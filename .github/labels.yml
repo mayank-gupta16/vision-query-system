@@ -1,0 +1,97 @@
+# Controlled label taxonomy materialized on GitHub on 2026-09-06.
+- name: "type:feature"
+  color: "1f883d"
+  description: New user-visible or platform capability
+- name: "type:bug"
+  color: "d1242f"
+  description: Incorrect behavior or regression
+- name: "type:research"
+  color: "8250df"
+  description: Bounded experiment ending in a recommendation
+- name: "type:refactor"
+  color: "57606a"
+  description: Internal structure change without intended behavior change
+- name: "type:performance"
+  color: "bf8700"
+  description: Measured performance or resource work
+- name: "type:test"
+  color: "0969da"
+  description: Test or fixture work
+- name: "type:docs"
+  color: "0075ca"
+  description: Documentation-only work
+- name: "type:security"
+  color: "b60205"
+  description: Security or privacy work
+- name: "type:chore"
+  color: "6e7781"
+  description: Repository or maintenance work
+- name: "priority:P0"
+  color: "b60205"
+  description: Release-blocking or urgent
+- name: "priority:P1"
+  color: "d93f0b"
+  description: High priority
+- name: "priority:P2"
+  color: "fbca04"
+  description: Normal priority
+- name: "priority:P3"
+  color: "c5def5"
+  description: Low priority or later
+- name: "area:video"
+  color: "bfdadc"
+  description: Video sources, probing, decoding, and sampling
+- name: "area:detection"
+  color: "bfdadc"
+  description: Object detection
+- name: "area:tracking"
+  color: "bfdadc"
+  description: Short-term tracking and tracklets
+- name: "area:reid"
+  color: "bfdadc"
+  description: Persistent identity and entity resolution
+- name: "area:world-model"
+  color: "bfdadc"
+  description: Entities, claims, relationships, events, and provenance
+- name: "area:query"
+  color: "bfdadc"
+  description: Query planning and execution
+- name: "area:vlm"
+  color: "bfdadc"
+  description: Semantic reasoner and VLM adapters
+- name: "area:ocr"
+  color: "bfdadc"
+  description: OCR and plate processing
+- name: "area:evidence"
+  color: "bfdadc"
+  description: Evidence selection, artifacts, and provenance
+- name: "area:geometry"
+  color: "bfdadc"
+  description: Image-space and calibrated geometry
+- name: "area:benchmark"
+  color: "bfdadc"
+  description: Accuracy and resource benchmarks
+- name: "area:storage"
+  color: "bfdadc"
+  description: Metadata, artifacts, embeddings, and migrations
+- name: "area:cli"
+  color: "bfdadc"
+  description: Command-line interface
+- name: "area:infra"
+  color: "bfdadc"
+  description: CI, packaging, releases, and repository operations
+- name: "area:docs"
+  color: "bfdadc"
+  description: Product and engineering documentation
+- name: "agent:ready"
+  color: "0e8a16"
+  description: Approved and sufficiently specified for agent execution
+- name: "agent:needs-human"
+  color: "d4c5f9"
+  description: Requires a maintainer action or judgment
+- name: "blocked"
+  color: "000000"
+  description: Cannot proceed until a named dependency is resolved
+- name: "needs-decision"
+  color: "5319e7"
+  description: A durable maintainer or ADR decision is required
