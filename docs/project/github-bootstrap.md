@@ -24,8 +24,10 @@ start of bootstrap. The controlled labels, ten milestone shells, v0.1 issues
 implementation issue is ready while licensing is unresolved.
 
 Project creation is blocked because the token lacks `read:project`/`project`
-scopes. GitHub-hosted CI has not run because the workflow is not yet on a pushed
-branch. No ruleset exists; configure it only after the CI check name is verified.
+scopes. Bootstrap PR #39 ran the `repository-policy` GitHub-hosted check
+successfully. Classic `main` branch protection now requires PRs, that check, and
+resolved conversations; blocks force pushes/deletion; requires zero approvals;
+and excludes admins from enforcement as a solo-maintainer recovery path.
 Non-provider secret scanning patterns and validity checks remain disabled after
 an enable attempt; standard secret scanning and push protection are enabled.
 
@@ -40,13 +42,11 @@ an enable attempt; standard secret scanning and push protection are enabled.
   `area:docs`
 - Workflow: `agent:ready`, `agent:needs-human`, `blocked`, `needs-decision`
 
-## Proposed Project and rules
+## Proposed Project
 
 Create `VisualWorld Roadmap` only after milestones/issues exist. Fields: Status,
 Priority, Milestone/Version, Area, Effort, Risk. Views: Current Milestone,
 Roadmap, Bugs, Research, Blocked, Performance, Security.
 
-After CI is proven on a PR, protect `main`: require PRs and the lightweight CI
-check, resolved conversations, and block force pushes/deletion. Keep a
-maintainer recovery path; do not require a code-owner approval that deadlocks a
-solo maintainer.
+The Project remains the only listed bootstrap item blocked on additional OAuth
+scope. Do not substitute repository labels for Project status fields.

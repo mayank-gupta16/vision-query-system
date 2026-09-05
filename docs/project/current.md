@@ -28,17 +28,19 @@
 - Non-provider secret patterns and secret validity checks remain disabled after
   an enable attempt; availability/requirements need follow-up.
 - The `VisualWorld Roadmap` Project is blocked because the current token lacks
-  `read:project`/`project` scopes. No branch ruleset exists yet, and GitHub-hosted
-  CI must first run on the bootstrap PR.
+  `read:project`/`project` scopes.
+- Bootstrap PR #39 is open and its `repository-policy` check passed. Classic
+  branch protection on `main` now requires PRs, that status check, and resolved
+  conversations; force pushes and deletion are blocked. Required approvals are
+  zero and admins are not enforced so a solo maintainer retains recovery access.
 - No video ingestion, database, query engine, model adapter, test fixture, or
   benchmark implementation exists.
 - No license grants reuse rights yet.
 
 ## Next priorities
 
-1. Commit/push the bootstrap, open its PR, and verify policy CI.
+1. Merge bootstrap PR #39 and verify issue #1 closes.
 2. Obtain GitHub Project scopes, create `VisualWorld Roadmap`, and add views/fields.
-3. Configure a practical `main` ruleset after its required CI check exists.
-4. Merge/close #1, then resolve project license issue #2.
-5. Proceed through toolchain/media/schema/storage decisions #3–#6; do not mark
+3. Resolve project license issue #2.
+4. Proceed through toolchain/media/schema/storage decisions #3–#6; do not mark
    implementation issues ready while the contribution-license gate is active.
