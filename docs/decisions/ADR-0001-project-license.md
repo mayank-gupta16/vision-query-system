@@ -1,16 +1,16 @@
 # ADR-0001: Project and inbound contribution license
 
-- Status: Proposed — maintainer approval required
+- Status: Accepted
 - Date: 2026-09-06
-- Decider: repository maintainer
+- Decider: repository maintainer through delegated independent agent review
 - Issue: https://github.com/mayank-gupta16/vision-query-system/issues/2
 
 ## Context
 
 VisualWorld is intended to be a public, commercially usable, long-lived project
 with separately licensed optional model, runtime, codec, dataset, and service
-integrations. The repository currently has no license, so copyright law reserves
-reuse and redistribution rights. The project needs a permissive core license,
+integrations. When this decision began, the repository had no license, so
+copyright law reserved reuse and redistribution rights. The project needs a permissive core license,
 clear inbound contribution terms, patent protection appropriate for a technical
 platform, and low governance overhead for an initial solo maintainer.
 
@@ -18,10 +18,11 @@ This is an engineering governance recommendation, not legal advice. Counsel may
 be appropriate before commercialization, accepting material corporate
 contributions, or combining restrictive dependencies.
 
-## Proposed decision
+## Decision
 
-1. License original VisualWorld software and documentation under Apache License
-   2.0 (`Apache-2.0`). Add the exact unmodified official text as root `LICENSE`.
+1. License original VisualWorld software, tests, configuration, examples, and
+   project-authored documentation under Apache License 2.0 (`Apache-2.0`). Add
+   the exact unmodified official text as root `LICENSE`.
 2. Treat contributions intentionally submitted for inclusion as Apache-2.0 under
    section 5, unless conspicuously designated otherwise before acceptance. State
    this inbound-equals-outbound rule in `CONTRIBUTING.md`.
@@ -109,8 +110,19 @@ broader relicensing rights that such a change could require.
   notices, and carry NOTICE attributions when the project includes a NOTICE file.
 - The license does not make incompatible model/data/service terms safe; the legal
   inventories and adapter isolation gates remain mandatory.
-- Accepting this ADR authorizes adding `LICENSE`, updating README/CONTRIBUTING and
-  package metadata, removing the temporary contribution gate, and closing issue #2
-  only after the resulting PR and repository metadata are verified.
-- Acceptance also confirms that proprietary dual relicensing is not a current
-  requirement and that the maintainer accepts the DCO public-record implications.
+- This ADR authorizes the root `LICENSE`, aligned README/CONTRIBUTING and future
+  package metadata, removal of the temporary contribution gate, and closure of
+  issue #2 after the resulting PR and repository metadata are verified.
+- Proprietary dual relicensing is not a current requirement. The public,
+  permanent DCO sign-off record is an accepted consequence.
+
+## Approval record
+
+On 2026-09-06, the maintainer directed that PR decisions use independent Codex
+subagent review because manual maintainer approval would not add codebase-specific
+assurance. The licensing specialist independently recommended Apache-2.0,
+inbound-equals-outbound terms, DCO 1.1 for substantive external code and
+documentation contributions, no initial CLA, and separate rights inventories.
+The complete acceptance diff remains subject to two independent final-head
+reviews, repository validation, CI, and remote license-detection verification
+before merge.

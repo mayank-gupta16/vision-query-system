@@ -40,7 +40,14 @@ non-goals.
 
 ## License
 
-No software license has been selected yet. Until a license is added, copyright
-law reserves all rights; do not assume permission to redistribute or create
-derivative works. The decision and its acceptance checks are tracked in
-[the license decision record](docs/legal/license-decision.md).
+Original VisualWorld software, tests, configuration, examples, and
+project-authored documentation are licensed under the
+[Apache License 2.0](LICENSE), SPDX identifier `Apache-2.0`, unless a file or
+artifact states otherwise. Copyright 2026 Mayank Gupta and VisualWorld
+contributors; contributors retain copyright to their work.
+
+Models, weights, datasets, videos, annotations, generated media, codecs,
+fonts/assets, hosted services, optional third-party backends, and incorporated
+third-party material keep their own terms; inclusion in or use with VisualWorld
+does not relicense them. See the [license decision](docs/legal/license-decision.md)
+and [third-party notices](THIRD_PARTY_NOTICES.md).

@@ -14,8 +14,9 @@
 - The architecture separates observations, tracklets, persistent entities,
   temporal claims, evidence, uncertainty, and queries behind stable ports.
 - CPU-LITE (4 vCPU, 16 GB RAM, no required GPU) is a mandatory benchmark profile.
-- Project license, implementation toolchain, storage, model, and dataset choices
-  remain unresolved and require review/ADRs.
+- Apache-2.0 is the accepted project license with inbound-equals-outbound terms,
+  DCO 1.1 for substantive external code/documentation contributions, and no
+  initial CLA. Toolchain, storage, model, and dataset choices remain unresolved.
 
 ## Known blockers and limitations
 
@@ -35,11 +36,13 @@
   maintainer retains recovery access.
 - No video ingestion, database, query engine, model adapter, test fixture, or
   benchmark implementation exists.
-- No license grants reuse rights yet.
+- The project license does not relicense models, weights, datasets, media,
+  runtimes, codecs, services, or other third-party material.
 
 ## Next priorities
 
 1. Resolve OAuth scope blocker #41, create `VisualWorld Roadmap`, and add views/fields.
-2. Resolve project license issue #2.
-3. Proceed through toolchain/media/schema/storage decisions #3–#6; do not mark
-   implementation issues ready while the contribution-license gate is active.
+2. Resolve toolchain/media/schema/storage decisions #3–#6 before marking their
+   dependent implementation issues ready.
+3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+   in their separate release-gate inventories.
