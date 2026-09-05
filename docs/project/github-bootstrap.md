@@ -20,10 +20,11 @@ Dependabot alerts/security updates, and private vulnerability reporting are enab
 No milestones, issues, rulesets, or repository-specific Project existed at the
 start of bootstrap. The controlled labels, ten milestone shells, v0.1 issues
 #1–#20, research issues #21–#29, and roadmap epics #30–#38 were created on
-2026-09-06. Issue #1 is the assigned `agent:ready` bootstrap work; no
-implementation issue is ready while licensing is unresolved.
+2026-09-06. Bootstrap PR #39 passed policy CI, merged into `main`, and closed
+issue #1. No implementation issue is ready while licensing is unresolved.
 
-Project creation is blocked because the token lacks `read:project`/`project`
+Project creation is tracked in blocked issue #41 because the token lacks
+`read:project`/`project`
 scopes. Bootstrap PR #39 ran the `repository-policy` GitHub-hosted check
 successfully. Classic `main` branch protection now requires PRs, that check, and
 resolved conversations; blocks force pushes/deletion; requires zero approvals;
