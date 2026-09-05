@@ -1,0 +1,43 @@
+name: Research question
+description: Run a bounded experiment that ends in an engineering recommendation.
+title: "[Research]: "
+labels: ["type:research"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question and hypothesis
+    validations:
+      required: true
+  - type: textarea
+    id: experiment
+    attributes:
+      label: Experiment and alternatives
+      description: Describe controls, candidate approaches, and stopping criteria.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Dataset, licensing, and privacy
+      description: Identify manifest, annotations, permitted use, and handling constraints.
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics and hardware
+      description: Include accuracy, performance, uncertainty, and the CPU-LITE profile where applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Required output
+      description: Results, reproducible artifacts, limitations, and an engineering recommendation.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and relevant architecture

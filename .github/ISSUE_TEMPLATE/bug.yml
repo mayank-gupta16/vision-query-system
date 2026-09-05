@@ -1,0 +1,57 @@
+name: Bug report
+description: Report reproducible incorrect behavior.
+title: "[Bug]: "
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Do not include secrets, private media, personal data, or vulnerability
+        details. This form is intake only. Before an implementation issue can be
+        marked agent:ready, triage must add explicit scope, non-goals,
+        dependencies, acceptance criteria, required tests, benchmark/security
+        implications, and definition of done.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include revision, commands, configuration, and a safe minimal fixture.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Relevant structured logs, trace IDs, timestamps, and sanitized artifacts.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, hardware profile, Python/runtime versions, and adapter/model versions.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Scope, risk, and benchmark impact
+      description: Who is affected? Is accuracy, performance, privacy, or compatibility involved?
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed secrets, private media, and personal data.
+          required: true
+        - label: This is not an undisclosed security vulnerability.
+          required: true

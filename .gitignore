@@ -26,6 +26,7 @@ MANIFEST
 # Virtual environments
 .env
 .env.*
+!.env.example
 .venv
 env/
 venv/
@@ -59,5 +60,27 @@ coverage.xml
 
 # Logs and local databases
 *.log
+*.db
+*.sqlite
 *.sqlite3
+*.sqlite-shm
+*.sqlite-wal
 
+# Local media, model weights, and generated artifacts
+artifacts/
+data/private/
+models/
+outputs/
+*.avi
+*.mkv
+*.mov
+*.mp4
+*.webm
+*.bin
+*.ckpt
+*.onnx
+*.pt
+*.pth
+*.safetensors
+
+# Bootstrap fixtures are generated during tests; do not force-add binary fixtures.

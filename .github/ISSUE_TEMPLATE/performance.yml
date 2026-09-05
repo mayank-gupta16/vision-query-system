@@ -1,0 +1,44 @@
+name: Performance investigation
+description: Measure and improve resource use without hiding accuracy tradeoffs.
+title: "[Performance]: "
+labels: ["type:performance", "area:benchmark"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and hypothesis
+      description: Which bottleneck or regression is suspected, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: benchmark
+    attributes:
+      label: Benchmark protocol
+      description: Hardware profile, input manifest, configuration, warm-up, repetitions, and metrics.
+    validations:
+      required: true
+  - type: textarea
+    id: baseline
+    attributes:
+      label: Baseline evidence
+      description: Provide revision and measured wall time, throughput, CPU, RAM/VRAM, disk, and accuracy.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope, non-goals, and dependencies
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and regression tests
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Accuracy, security, privacy, and licensing risks
+    validations:
+      required: true

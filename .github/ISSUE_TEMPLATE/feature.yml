@@ -1,0 +1,45 @@
+name: Feature request
+description: Propose a scoped, evidence-backed capability.
+title: "[Feature]: "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and motivation
+      description: What user or engineering problem needs solving, and why now?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: Define the smallest reviewable behavior and explicit exclusions.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and relevant architecture
+      description: Link blocked-by issues, ADRs, interfaces, and canonical docs.
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and tests
+      description: State externally observable criteria and tests required.
+    validations:
+      required: true
+  - type: textarea
+    id: implications
+    attributes:
+      label: Benchmark, security, privacy, and licensing implications
+      description: State measurable impact and any new dependency/model/data risks.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Definition of done
+      description: List documentation, migration, evidence, and release-gate requirements.
+    validations:
+      required: true
