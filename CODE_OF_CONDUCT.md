@@ -34,5 +34,8 @@ GitHub's platform reporting/blocking tools in the interim. Maintainers may remov
 edit, or reject contributions and restrict participation when behavior violates
 this policy.
 
-This policy is adapted from Contributor Covenant 2.1. The canonical text is at
-https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
+This policy adapts
+[Contributor Covenant 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html),
+licensed under
+[Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).
+VisualWorld shortened and changed the behavior, enforcement, and scope text.

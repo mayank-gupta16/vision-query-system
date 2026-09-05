@@ -26,6 +26,7 @@ REQUIRED_FILES = (
     "CHANGELOG.md",
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
+    "LICENSE",
     "README.md",
     "SECURITY.md",
     "THIRD_PARTY_NOTICES.md",
