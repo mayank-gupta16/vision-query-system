@@ -8,6 +8,7 @@ import hashlib
 import socket
 import sqlite3
 import subprocess
+import traceback
 from collections.abc import Callable
 from typing import NoReturn, cast
 
@@ -126,8 +127,8 @@ def test_video_source_is_deterministic_bounded_and_instrumented() -> None:
     fake = FakeVideoSource(source, tuple(reversed(frames)))
 
     assert fake.probe() == source
-    assert fake.read_frames(limit=2) == frames[:2]
-    assert fake.read_frames(after_decode_index="0", limit=2) == frames[1:]
+    assert fake.read_frames(stream_index=0, limit=2) == frames[:2]
+    assert fake.read_frames(stream_index=0, after_decode_index="0", limit=2) == frames[1:]
     assert fake.calls == (
         PortCall(PortKind.VIDEO_SOURCE, "probe", 1),
         PortCall(PortKind.VIDEO_SOURCE, "read_frames", 2),
@@ -135,11 +136,13 @@ def test_video_source_is_deterministic_bounded_and_instrumented() -> None:
     )
 
     with pytest.raises(PortError, match="limit_exceeded"):
-        fake.read_frames(limit=0)
+        fake.read_frames(stream_index=0, limit=0)
     with pytest.raises(PortError, match="invalid_request"):
-        fake.read_frames(after_decode_index="01")
+        fake.read_frames(stream_index=0, after_decode_index="01")
     with pytest.raises(PortError, match="limit_exceeded"):
-        fake.read_frames(after_decode_index=str(2**64))
+        fake.read_frames(stream_index=0, after_decode_index=str(2**64))
+    with pytest.raises(PortError, match="not_found"):
+        fake.read_frames(stream_index=1)
     with pytest.raises(PortError, match="conflict"):
         FakeVideoSource(source, (frames[0], frames[0]))
 
@@ -193,12 +196,20 @@ def test_world_store_commits_atomically_and_lists_in_stable_order() -> None:
     assert fake.get(source.source_id) == source
 
     with pytest.raises(PortError, match="invalid_request"):
-        fake.list_frames(frames[0].frame_id, limit=1)
+        fake.list_frames(frames[0].frame_id, stream_index=0, limit=1)
     with pytest.raises(PortError, match="invalid_request"):
         fake.list_evidence(source.source_id, limit=1)
     assert fake.get(run.run_id) == run
-    assert fake.list_frames(source.source_id, limit=2) == frames[:2]
-    assert fake.list_frames(source.source_id, after_decode_index="1", limit=2) == frames[2:]
+    assert fake.list_frames(source.source_id, stream_index=0, limit=2) == frames[:2]
+    assert (
+        fake.list_frames(
+            source.source_id,
+            stream_index=0,
+            after_decode_index="1",
+            limit=2,
+        )
+        == frames[2:]
+    )
     assert fake.list_evidence(frames[1].frame_id, limit=2) == (evidence,)
 
     before = fake.calls
@@ -259,6 +270,25 @@ def test_port_errors_do_not_echo_untrusted_values() -> None:
     assert untrusted not in str(raised.value)
 
 
+@pytest.mark.parametrize(
+    ("lookup", "identifier"),
+    [
+        (FakeEvidenceStore().get, "0" * 64),
+        (FakeWorldStore().get, "src_" + "0" * 64),
+    ],
+)
+def test_not_found_errors_do_not_chain_or_trace_identifiers(
+    lookup: Callable[[str], object],
+    identifier: str,
+) -> None:
+    with pytest.raises(PortError) as raised:
+        lookup(identifier)
+
+    assert raised.value.__cause__ is None
+    assert raised.value.__context__ is None
+    assert identifier not in "".join(traceback.format_exception(raised.value))
+
+
 def test_world_store_rejects_orphan_references_without_partial_commit() -> None:
     source, frames, _, evidence, run, _ = records()
     fake = FakeWorldStore()
@@ -268,6 +298,34 @@ def test_world_store_rejects_orphan_references_without_partial_commit() -> None:
             fake.commit((orphan,))
     with pytest.raises(PortError, match="not_found"):
         fake.get(source.source_id)
+
+
+def test_frame_paging_is_stream_specific_and_positions_are_unique() -> None:
+    time_base = TimeBase("1", "1000")
+    source = Source.create(
+        Fingerprint("a1" * 32, "20"),
+        (
+            SourceStream(0, 16, 12, 0, time_base),
+            SourceStream(1, 16, 12, 0, time_base),
+        ),
+    )
+    first = FrameRef.create(source.source_id, 0, "0", MediaTime("0", time_base))
+    second = FrameRef.create(source.source_id, 1, "0", MediaTime("0", time_base))
+    same_position = FrameRef.create(source.source_id, 0, "0", MediaTime("1", time_base))
+    video = FakeVideoSource(source, (second, first))
+
+    assert video.read_frames(stream_index=0, limit=1) == (first,)
+    assert video.read_frames(stream_index=1, limit=1) == (second,)
+    assert video.read_frames(stream_index=1, after_decode_index="0", limit=1) == ()
+    with pytest.raises(PortError, match="conflict"):
+        FakeVideoSource(source, (first, same_position))
+
+    world = FakeWorldStore()
+    world.commit((source, first, second))
+    assert world.list_frames(source.source_id, stream_index=0, limit=1) == (first,)
+    assert world.list_frames(source.source_id, stream_index=1, limit=1) == (second,)
+    with pytest.raises(PortError, match="conflict"):
+        world.commit((same_position,))
 
 
 def test_fakes_do_not_touch_shell_network_filesystem_or_sql(
@@ -290,7 +348,7 @@ def test_fakes_do_not_touch_shell_network_filesystem_or_sql(
     monkeypatch.setattr(subprocess, "run", denied)
 
     assert video.probe() == source
-    assert video.read_frames(limit=1) == frames[:1]
+    assert video.read_frames(stream_index=0, limit=1) == frames[:1]
     assert sampler.sample(source, frames, Sampling(Rational("5", "1"))) == frames[:1]
     assert evidence_store.put(artifact, content) == artifact
     assert evidence_store.get(artifact.sha256) == content

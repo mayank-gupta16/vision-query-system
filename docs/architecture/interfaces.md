@@ -34,10 +34,10 @@ The v0.1 executable contract intentionally implements only four ports:
 
 | Port | Version-1 operations |
 | --- | --- |
-| `VideoSource` | Probe one already-authorized source and read bounded, decode-index-paged `FrameRef` batches. |
+| `VideoSource` | Probe one already-authorized source and read bounded, per-stream decode-index-paged `FrameRef` batches. |
 | `FrameSampler` | Select a deterministic bounded subset from supplied `FrameRef` candidates. |
 | `EvidenceStore` | Put digest- and size-verified artifact bytes and retrieve them by SHA-256. |
-| `WorldStore` | Atomically commit bounded ingestion-record batches, retrieve by typed ID, and list bounded frames/evidence. |
+| `WorldStore` | Atomically commit bounded ingestion-record batches, retrieve by typed ID, and list bounded per-stream frames/evidence. |
 
 `CapabilityDescriptor` identifies the port and contract version, implementation
 version, deterministic/offline behavior, and batch/payload bounds. V1 application

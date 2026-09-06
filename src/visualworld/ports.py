@@ -22,6 +22,7 @@ from visualworld.ingestion import (
 
 MAX_PORT_BATCH_ITEMS = 64
 MAX_FAKE_ARTIFACT_BYTES = 1024 * 1024
+_MAX_STREAM_INDEX = 2**31 - 1
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}\Z")
 _DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
@@ -151,6 +152,7 @@ class VideoSource(Protocol):
     def read_frames(
         self,
         *,
+        stream_index: int,
         after_decode_index: str | None = None,
         limit: int = MAX_PORT_BATCH_ITEMS,
     ) -> tuple[FrameRef, ...]: ...
@@ -192,6 +194,7 @@ class WorldStore(Protocol):
         self,
         source_id: str,
         *,
+        stream_index: int,
         after_decode_index: str | None = None,
         limit: int,
     ) -> tuple[FrameRef, ...]: ...
@@ -244,13 +247,18 @@ def _bounded_limit(limit: int, port: PortKind, operation: str) -> int:
 def _unsigned_decimal(value: str, port: PortKind, operation: str) -> int:
     if not isinstance(value, str) or not _UNSIGNED_DECIMAL_RE.fullmatch(value):
         raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
-    try:
-        integer = int(value)
-    except ValueError as error:
-        raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation) from error
+    if len(value) > 20:
+        raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
+    integer = int(value)
     if integer > 2**64 - 1:
         raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
     return integer
+
+
+def _stream_index(value: int, port: PortKind, operation: str) -> int:
+    if type(value) is not int or not 0 <= value <= _MAX_STREAM_INDEX:
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    return value
 
 
 def _digest(value: str, port: PortKind, operation: str) -> str:
@@ -290,6 +298,9 @@ class FakeVideoSource(_InstrumentedFake):
             raise _port_error(PortErrorCode.INVALID_REQUEST, PortKind.VIDEO_SOURCE, "init")
         if len({frame.frame_id for frame in frames}) != len(frames):
             raise _port_error(PortErrorCode.CONFLICT, PortKind.VIDEO_SOURCE, "init")
+        positions = {(frame.stream_index, frame.decode_index) for frame in frames}
+        if len(positions) != len(frames):
+            raise _port_error(PortErrorCode.CONFLICT, PortKind.VIDEO_SOURCE, "init")
         super().__init__(_fake_descriptor(PortKind.VIDEO_SOURCE))
         self._source = source
         self._frames = tuple(sorted(frames, key=lambda frame: int(frame.decode_index)))
@@ -301,10 +312,18 @@ class FakeVideoSource(_InstrumentedFake):
     def read_frames(
         self,
         *,
+        stream_index: int,
         after_decode_index: str | None = None,
         limit: int = MAX_PORT_BATCH_ITEMS,
     ) -> tuple[FrameRef, ...]:
         bounded_limit = _bounded_limit(limit, PortKind.VIDEO_SOURCE, "read_frames")
+        selected_stream = _stream_index(
+            stream_index,
+            PortKind.VIDEO_SOURCE,
+            "read_frames",
+        )
+        if selected_stream not in {stream.stream_index for stream in self._source.streams}:
+            raise _port_error(PortErrorCode.NOT_FOUND, PortKind.VIDEO_SOURCE, "read_frames")
         after = -1
         if after_decode_index is not None:
             after = _unsigned_decimal(
@@ -312,9 +331,11 @@ class FakeVideoSource(_InstrumentedFake):
                 PortKind.VIDEO_SOURCE,
                 "read_frames",
             )
-        result = tuple(frame for frame in self._frames if int(frame.decode_index) > after)[
-            :bounded_limit
-        ]
+        result = tuple(
+            frame
+            for frame in self._frames
+            if frame.stream_index == selected_stream and int(frame.decode_index) > after
+        )[:bounded_limit]
         self._record_call("read_frames", len(result))
         return result
 
@@ -404,10 +425,9 @@ class FakeEvidenceStore(_InstrumentedFake):
 
     def get(self, digest: str) -> bytes:
         validated = _digest(digest, PortKind.EVIDENCE_STORE, "get")
-        try:
-            content = self._content[validated]
-        except KeyError as error:
-            raise _port_error(PortErrorCode.NOT_FOUND, PortKind.EVIDENCE_STORE, "get") from error
+        if validated not in self._content:
+            raise _port_error(PortErrorCode.NOT_FOUND, PortKind.EVIDENCE_STORE, "get")
+        content = self._content[validated]
         self._record_call("get", 1)
         return content
 
@@ -434,6 +454,9 @@ class FakeWorldStore(_InstrumentedFake):
             pending[_identifier(record)] = record
         source_ids = {record.source_id for record in pending.values() if isinstance(record, Source)}
         frame_ids = {record.frame_id for record in pending.values() if isinstance(record, FrameRef)}
+        sources = {
+            record.source_id: record for record in pending.values() if isinstance(record, Source)
+        }
         if any(
             isinstance(record, (FrameRef, RunManifest)) and record.source_id not in source_ids
             for record in records
@@ -442,15 +465,24 @@ class FakeWorldStore(_InstrumentedFake):
             for record in records
         ):
             raise _port_error(PortErrorCode.CONFLICT, PortKind.WORLD_STORE, "commit")
+        frames = [record for record in pending.values() if isinstance(record, FrameRef)]
+        if any(
+            frame.stream_index
+            not in {stream.stream_index for stream in sources[frame.source_id].streams}
+            for frame in frames
+        ):
+            raise _port_error(PortErrorCode.CONFLICT, PortKind.WORLD_STORE, "commit")
+        positions = {(frame.source_id, frame.stream_index, frame.decode_index) for frame in frames}
+        if len(positions) != len(frames):
+            raise _port_error(PortErrorCode.CONFLICT, PortKind.WORLD_STORE, "commit")
         self._records = pending
         self._record_call("commit", len(records))
 
     def get(self, record_id: str) -> Record:
         validated = _record_id(record_id, PortKind.WORLD_STORE, "get")
-        try:
-            record = self._records[validated]
-        except KeyError as error:
-            raise _port_error(PortErrorCode.NOT_FOUND, PortKind.WORLD_STORE, "get") from error
+        if validated not in self._records:
+            raise _port_error(PortErrorCode.NOT_FOUND, PortKind.WORLD_STORE, "get")
+        record = self._records[validated]
         self._record_call("get", 1)
         return record
 
@@ -458,6 +490,7 @@ class FakeWorldStore(_InstrumentedFake):
         self,
         source_id: str,
         *,
+        stream_index: int,
         after_decode_index: str | None = None,
         limit: int,
     ) -> tuple[FrameRef, ...]:
@@ -467,6 +500,16 @@ class FakeWorldStore(_InstrumentedFake):
                 PortKind.WORLD_STORE,
                 "list_frames",
             )
+        selected_stream = _stream_index(
+            stream_index,
+            PortKind.WORLD_STORE,
+            "list_frames",
+        )
+        source = self._records.get(source_id)
+        if not isinstance(source, Source) or selected_stream not in {
+            stream.stream_index for stream in source.streams
+        }:
+            raise _port_error(PortErrorCode.NOT_FOUND, PortKind.WORLD_STORE, "list_frames")
         bounded_limit = _bounded_limit(limit, PortKind.WORLD_STORE, "list_frames")
         after = -1
         if after_decode_index is not None:
@@ -482,6 +525,7 @@ class FakeWorldStore(_InstrumentedFake):
                     for record in self._records.values()
                     if isinstance(record, FrameRef)
                     and record.source_id == source_id
+                    and record.stream_index == selected_stream
                     and int(record.decode_index) > after
                 ),
                 key=lambda frame: int(frame.decode_index),
