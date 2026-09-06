@@ -39,6 +39,12 @@ instructions.
 - Preserve mandatory security and provenance boundaries with small fail-closed
   behavior. An unsupported path should return a clear error rather than trigger
   an open-ended attempt to perfect that platform before the MVP.
+- Apply the same scope test during review. Before V1, a finding blocks the
+  active PR only when it violates the linked issue, breaks the working vertical
+  slice, or creates a concrete correctness, security, privacy, licensing, or
+  data-loss risk on the supported MVP path. Treat portability improvements,
+  broader compatibility, performance tuning, and speculative hardening as
+  follow-up work unless the issue explicitly requires them.
 
 ## Durable engineering rules
 
