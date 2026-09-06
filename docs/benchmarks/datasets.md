@@ -22,3 +22,23 @@ not permission to redistribute media or derived face/plate crops.
 
 Benchmark splits and goldens must be locked before measuring a release. Changes
 to annotations or metric code invalidate direct comparisons unless reported.
+
+## Approved synthetic-v1 set
+
+The [synthetic-v1 manifest](../../fixtures/synthetic-v1/manifest.json) approves
+three project-authored 16x12 RGB fixtures: constant-rate, varying-rate, and a
+90-degree display-rotation case. The standard-library generator uses no input
+media, codec library, network, person, face, plate, text, font, or imported
+asset. Exact container bytes, rational timestamps, moving source-pixel regions,
+and per-frame RGB hashes are locked in the manifest.
+
+Generate and checksum-scan the ephemeral media in a fresh ignored directory:
+
+```sh
+python3 scripts/generate_synthetic_fixtures.py \
+  --output artifacts/fixtures/synthetic-v1
+```
+
+The command reports wall time, process peak RSS, and total bytes for the PR-CI
+boundedness check. Those machine-dependent observations are not part of the
+canonical fixture manifest. Generated `.mov` files remain untracked.

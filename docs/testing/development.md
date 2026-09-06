@@ -55,8 +55,12 @@ shared caches: uv can reuse a previously built cached wheel despite `no-build`.
 Fresh CI restores no dependency cache. Host proxy/certificate settings are not
 an application egress policy.
 
-Unit/contract tests use no media, models, downloads, inference, or services.
-Tooling tests use tiny temporary archives and mocked network/process operations.
+Unit/contract tests use only project-generated synthetic-v1 media; they use no
+external media, models, downloads, inference, or services. The pure-Python
+fixture generator runs in every supported CI lane, compares all output bytes to
+the reviewed manifest, and fails on unexpected files, symlinks, or checksum/size
+drift. Tooling tests use tiny temporary archives and mocked network/process
+operations.
 An offline uv flag is not an OS network sandbox; hostile-media boundaries belong
 to the media ADR. The 90% coverage floor measures application source with branch
 tracking; this scaffold has no application branches. Tooling tests provide
@@ -73,6 +77,21 @@ not exercise the external backend hash. The negative control must report a hash
 mismatch even with the correct backend cached. uv 0.12.6 also splits spaces in an
 absolute constraint path; the wrapper uses the reviewed repository-relative
 filename with a fixed working directory. Source/output paths may contain spaces.
+
+To generate the three ephemeral CFR, VFR, and rotation fixtures manually, pass a
+fresh empty output directory:
+
+```sh
+python3 scripts/generate_synthetic_fixtures.py \
+  --output artifacts/fixtures/synthetic-v1
+```
+
+The command needs only the Python standard library and reviewed repository
+source. It does not call FFmpeg, fetch media, or overwrite a non-empty output
+directory. Its JSON receipt reports wall time and process peak RSS as a generous
+PR-CI boundedness check, not as cross-machine optimization evidence. The
+[canonical manifest](../../fixtures/synthetic-v1/manifest.json) contains only
+deterministic facts.
 
 ## Updates
 

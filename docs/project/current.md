@@ -2,7 +2,8 @@
 
 - Stable version: none; experimental package version 0.1.0a0 is unreleased
 - Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
-- Implementation: help/version-only package and deterministic developer commands
+- Implementation: help/version-only package plus deterministic developer and
+  synthetic-fixture commands
 - Benchmark baseline: none
 
 ## Established facts
@@ -23,7 +24,7 @@
   a universal lock with wheel-only installs for Linux x86_64 and macOS arm64,
   zero initial runtime dependencies, and a forced hash-verified PEP 517
   packaging lane.
-  Model and dataset choices remain unresolved.
+  Model and external dataset choices remain unresolved.
 - ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
   signature-verified FFmpeg 9.0.1 build for the first Linux ingestion slice.
   Hostile decode is isolated and fail-closed; native hostile decode on macOS is
@@ -52,17 +53,16 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- No video ingestion, database, query engine, model adapter, media fixture, or
-  application benchmark implementation exists. Package/tooling tests use only
-  generated temporary metadata/archive fixtures.
+- No video ingestion, database, query engine, model adapter, or application
+  benchmark implementation exists. Tests generate only the approved tiny
+  synthetic-v1 media plus temporary metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,
   runtimes, codecs, services, or other third-party material.
 
 ## Next priorities
 
-1. Resolve OAuth scope blocker #41, create `VisualWorld Roadmap`, and add views/fields.
-2. Implement the smallest v0.1 end-to-end ingestion slice in issue dependency
+1. Implement the smallest v0.1 end-to-end ingestion slice in issue dependency
    order; preserve the root package's zero runtime dependencies by keeping media
    dependencies adapter-local.
-3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+2. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

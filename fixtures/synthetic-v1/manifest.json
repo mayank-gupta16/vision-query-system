@@ -1,0 +1,312 @@
+{
+  "annotations": {
+    "provenance": "Exact facts computed from the reviewed generator specification",
+    "reviewed_on": "2026-09-06"
+  },
+  "fixture_set": {
+    "id": "synthetic-v1",
+    "version": 1
+  },
+  "fixtures": [
+    {
+      "byte_count": 2892,
+      "codec": "rawvideo",
+      "container": "quicktime",
+      "display_dimensions": {
+        "height": 12,
+        "width": 16
+      },
+      "encoded_dimensions": {
+        "height": 12,
+        "width": 16
+      },
+      "filename": "cfr.mov",
+      "fixture_id": "cfr",
+      "frame_count": 4,
+      "frames": [
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              48,
+              16
+            ],
+            "width": 3,
+            "x": 1,
+            "y": 1
+          },
+          "pts": "0",
+          "rgb24_sha256": "79b031dc8c0172202c4b93551a4cef894efdca724689bf5706a60516a5feb0db"
+        },
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              48,
+              48
+            ],
+            "width": 3,
+            "x": 4,
+            "y": 3
+          },
+          "pts": "200",
+          "rgb24_sha256": "1ab6fcee0ceeab03ff066b38301e19ea7963d31039a8495ad5aad13cf0641151"
+        },
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              48,
+              80
+            ],
+            "width": 3,
+            "x": 7,
+            "y": 5
+          },
+          "pts": "400",
+          "rgb24_sha256": "7e230f7de83c1b50a7070a11fed6cf6aa539808f6ae42628de34945223d8c299"
+        },
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              48,
+              112
+            ],
+            "width": 3,
+            "x": 10,
+            "y": 7
+          },
+          "pts": "600",
+          "rgb24_sha256": "5d5b267f0abfb7969c72715d259ad98a0c3fcd35f21f77c17857f089438c3153"
+        }
+      ],
+      "pixel_format": "rgb24",
+      "rotation_degrees": 0,
+      "sha256": "1ed5feca48aebafac0f67f98be508a47ed164dd2c42804c418741417b70db706",
+      "time_base": {
+        "denominator": "1000",
+        "numerator": "1"
+      }
+    },
+    {
+      "byte_count": 2916,
+      "codec": "rawvideo",
+      "container": "quicktime",
+      "display_dimensions": {
+        "height": 12,
+        "width": 16
+      },
+      "encoded_dimensions": {
+        "height": 12,
+        "width": 16
+      },
+      "filename": "vfr.mov",
+      "fixture_id": "vfr",
+      "frame_count": 4,
+      "frames": [
+        {
+          "duration": "100",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              64,
+              16
+            ],
+            "width": 3,
+            "x": 2,
+            "y": 2
+          },
+          "pts": "0",
+          "rgb24_sha256": "e66c885bcf185e995a45e3fc29b042a0b27197d2650223dd6fd9874d73683eb1"
+        },
+        {
+          "duration": "250",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              64,
+              48
+            ],
+            "width": 3,
+            "x": 5,
+            "y": 4
+          },
+          "pts": "100",
+          "rgb24_sha256": "b9fde5c7c89dcabe7be94130ad051b8ebd81945ed49444c9104a430c376a5214"
+        },
+        {
+          "duration": "150",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              64,
+              80
+            ],
+            "width": 3,
+            "x": 8,
+            "y": 6
+          },
+          "pts": "350",
+          "rgb24_sha256": "efb012e51a5e52a5b9d0b2d1c9f050245cca7bfffbbfab8f1cbd46c13175f943"
+        },
+        {
+          "duration": "300",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              64,
+              112
+            ],
+            "width": 3,
+            "x": 11,
+            "y": 8
+          },
+          "pts": "500",
+          "rgb24_sha256": "58f4b0daf28a3d5a663222d0afb65b6a47755d90aa15ddd27ce3e2b26fb955f4"
+        }
+      ],
+      "pixel_format": "rgb24",
+      "rotation_degrees": 0,
+      "sha256": "529f8c444478570c20b00535fa90f23521f6abc2f8a37ab824296e78e1db3643",
+      "time_base": {
+        "denominator": "1000",
+        "numerator": "1"
+      }
+    },
+    {
+      "byte_count": 2892,
+      "codec": "rawvideo",
+      "container": "quicktime",
+      "display_dimensions": {
+        "height": 16,
+        "width": 12
+      },
+      "encoded_dimensions": {
+        "height": 12,
+        "width": 16
+      },
+      "filename": "rotation-90.mov",
+      "fixture_id": "rotation-90",
+      "frame_count": 4,
+      "frames": [
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              80,
+              16
+            ],
+            "width": 3,
+            "x": 3,
+            "y": 3
+          },
+          "pts": "0",
+          "rgb24_sha256": "4aa62fdd2fcef4b99d36b80be32da27b28ed0c7b9ecc00ae9cdfe616e9983901"
+        },
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              80,
+              48
+            ],
+            "width": 3,
+            "x": 6,
+            "y": 5
+          },
+          "pts": "200",
+          "rgb24_sha256": "4de673f9db0f6ee608ad382d5eb639f23a4b4a4d2f6d2f218999193a862a4bec"
+        },
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              80,
+              80
+            ],
+            "width": 3,
+            "x": 9,
+            "y": 7
+          },
+          "pts": "400",
+          "rgb24_sha256": "fe03e752e29e092b75db945d37f06b9fd997e65c60fe8f12cd22eda0186b53af"
+        },
+        {
+          "duration": "200",
+          "moving_region": {
+            "height": 3,
+            "rgb": [
+              240,
+              80,
+              112
+            ],
+            "width": 3,
+            "x": 12,
+            "y": 9
+          },
+          "pts": "600",
+          "rgb24_sha256": "36f7466fb865df55744c31dc2569d0a62f2e4f081025b85e2f55c61e62fc5534"
+        }
+      ],
+      "pixel_format": "rgb24",
+      "rotation_degrees": 90,
+      "sha256": "d5ff0afc578ac0c89da77282998f92b91ccfb2d59759c3c1ba2f93865bcbe70e",
+      "time_base": {
+        "denominator": "1000",
+        "numerator": "1"
+      }
+    }
+  ],
+  "generator": {
+    "path": "scripts/generate_synthetic_fixtures.py",
+    "sha256": "6fa0fba674d3b0c81d9154d17d933732bd22bc35ebcfdacae7dec12020fb6356",
+    "version": 1
+  },
+  "privacy": {
+    "classification": "public-synthetic-no-personal-data",
+    "consent_status": "not-applicable-no-personal-data",
+    "contains_faces": false,
+    "contains_imported_assets": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false
+  },
+  "rights": {
+    "acquisition_method": "Generated locally from reviewed repository source",
+    "allowed_uses": [
+      "testing",
+      "benchmarking",
+      "redistribution",
+      "modification"
+    ],
+    "derivatives_allowed": true,
+    "external_sources": [],
+    "license_expression": "Apache-2.0",
+    "owner": "VisualWorld contributors",
+    "permission_basis": "Original project-generated synthetic work",
+    "redistribution_allowed": true,
+    "retention_requirement": "none",
+    "source": "Algorithmic geometric RGB patterns; no imported media or fonts"
+  },
+  "schema": "visualworld.synthetic-fixture-manifest",
+  "schema_version": 1
+}
