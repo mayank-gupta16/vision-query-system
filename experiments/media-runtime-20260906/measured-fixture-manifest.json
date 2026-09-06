@@ -1,0 +1,776 @@
+{
+  "acquisition_method": "generated locally from reviewed source code",
+  "allowed_use": "VisualWorld testing and benchmarking",
+  "commands": {
+    "excessive-metadata.mp4": [
+      "/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-i",
+      "fixture.mp4",
+      "-f",
+      "ffmetadata",
+      "-i",
+      "excessive-metadata.ffmeta",
+      "-map",
+      "0:v:0",
+      "-map_metadata",
+      "1",
+      "-c:v",
+      "copy",
+      "-movflags",
+      "+faststart",
+      "excessive-metadata.mp4"
+    ],
+    "fixture.mp4": [
+      "/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=320x240:rate=10",
+      "-frames:v",
+      "30",
+      "-vf",
+      "setpts=N+10,setsar=4/3",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-pix_fmt",
+      "yuv420p",
+      "-g",
+      "10",
+      "-keyint_min",
+      "10",
+      "-bf",
+      "2",
+      "-sc_threshold",
+      "0",
+      "-threads",
+      "1",
+      "-x264-params",
+      "threads=1:force-cfr=1",
+      "-flags:v",
+      "+bitexact",
+      "-fflags",
+      "+bitexact",
+      "-map_metadata",
+      "-1",
+      "-video_track_timescale",
+      "90000",
+      "-movflags",
+      "+faststart",
+      "fixture.mp4"
+    ],
+    "no-pts.h264": [
+      "/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=320x240:rate=10",
+      "-frames:v",
+      "5",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-pix_fmt",
+      "yuv420p",
+      "-g",
+      "10",
+      "-keyint_min",
+      "10",
+      "-bf",
+      "2",
+      "-sc_threshold",
+      "0",
+      "-threads",
+      "1",
+      "-x264-params",
+      "threads=1:force-cfr=1",
+      "-flags:v",
+      "+bitexact",
+      "-fflags",
+      "+bitexact",
+      "-map_metadata",
+      "-1",
+      "-f",
+      "h264",
+      "no-pts.h264"
+    ],
+    "oversize.mp4": [
+      "/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "color=c=black:s=4096x2160:r=1",
+      "-frames:v",
+      "1",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-pix_fmt",
+      "yuv420p",
+      "-g",
+      "10",
+      "-keyint_min",
+      "10",
+      "-bf",
+      "2",
+      "-sc_threshold",
+      "0",
+      "-threads",
+      "1",
+      "-x264-params",
+      "threads=1:force-cfr=1",
+      "-flags:v",
+      "+bitexact",
+      "-fflags",
+      "+bitexact",
+      "-map_metadata",
+      "-1",
+      "-video_track_timescale",
+      "90000",
+      "oversize.mp4"
+    ],
+    "rotated.mp4": [
+      "/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-display_rotation:v:0",
+      "90",
+      "-i",
+      "fixture.mp4",
+      "-map",
+      "0:v:0",
+      "-c:v",
+      "copy",
+      "-map_metadata",
+      "-1",
+      "-movflags",
+      "+faststart",
+      "rotated.mp4"
+    ],
+    "varying-pts.mp4": [
+      "/usr/bin/ffmpeg",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-nostdin",
+      "-y",
+      "-f",
+      "lavfi",
+      "-i",
+      "testsrc2=size=320x240:rate=10",
+      "-frames:v",
+      "30",
+      "-vf",
+      "setpts=N+10+floor(N/3),setsar=4/3",
+      "-an",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-pix_fmt",
+      "yuv420p",
+      "-g",
+      "10",
+      "-keyint_min",
+      "10",
+      "-bf",
+      "2",
+      "-sc_threshold",
+      "0",
+      "-threads",
+      "1",
+      "-x264-params",
+      "threads=1:force-cfr=0",
+      "-flags:v",
+      "+bitexact",
+      "-fflags",
+      "+bitexact",
+      "-map_metadata",
+      "-1",
+      "-fps_mode:v",
+      "vfr",
+      "-video_track_timescale",
+      "90000",
+      "-movflags",
+      "+faststart",
+      "varying-pts.mp4"
+    ]
+  },
+  "expected": {
+    "excessive-metadata.mp4": {
+      "container_comment_bytes": 131072
+    },
+    "fixture.mp4": {
+      "frames": 30,
+      "has_reordered_dts": true,
+      "height": 240,
+      "pts": [
+        90000,
+        99000,
+        108000,
+        117000,
+        126000,
+        135000,
+        144000,
+        153000,
+        162000,
+        171000,
+        180000,
+        189000,
+        198000,
+        207000,
+        216000,
+        225000,
+        234000,
+        243000,
+        252000,
+        261000,
+        270000,
+        279000,
+        288000,
+        297000,
+        306000,
+        315000,
+        324000,
+        333000,
+        342000,
+        351000
+      ],
+      "sample_aspect_ratio": {
+        "denominator": 3,
+        "numerator": 4
+      },
+      "time_base": {
+        "denominator": 90000,
+        "numerator": 1
+      },
+      "width": 320
+    },
+    "no-pts.h264": {
+      "frames": 5,
+      "pts": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "oversize.mp4": {
+      "height": 2160,
+      "width": 4096
+    },
+    "rotated.mp4": {
+      "rotation_degrees": 90
+    },
+    "varying-pts.mp4": {
+      "frames": 30,
+      "has_discontinuities": true,
+      "has_reordered_dts": true,
+      "pts": [
+        90000,
+        99000,
+        108000,
+        126000,
+        135000,
+        144000,
+        162000,
+        171000,
+        180000,
+        198000,
+        207000,
+        216000,
+        234000,
+        243000,
+        252000,
+        270000,
+        279000,
+        288000,
+        306000,
+        315000,
+        324000,
+        342000,
+        351000,
+        360000,
+        378000,
+        387000,
+        396000,
+        414000,
+        423000,
+        432000
+      ],
+      "time_base": {
+        "denominator": 90000,
+        "numerator": 1
+      }
+    }
+  },
+  "ffmpeg": {
+    "path": "/usr/bin/ffmpeg",
+    "sha256": "bdf6aabffdba7411edff8d36c389d695257fcdf823d196020176e117612862f6",
+    "version_output": [
+      "ffmpeg version 8.0.1-3ubuntu2 Copyright (c) 2000-2025 the FFmpeg developers",
+      "built with gcc 15 (Ubuntu 15.2.0-13ubuntu3)",
+      "configuration: --prefix=/usr --extra-version=3ubuntu2 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-pocketsphinx --disable-libcaca --disable-libmfx --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libdvdnav --enable-libdvdread --enable-libjack --enable-libjxl --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-librsvg --enable-shared",
+      "libavutil      60.  8.100 / 60.  8.100",
+      "libavcodec     62. 11.100 / 62. 11.100",
+      "libavformat    62.  3.100 / 62.  3.100",
+      "libavdevice    62.  1.100 / 62.  1.100",
+      "libavfilter    11.  4.100 / 11.  4.100",
+      "libswscale      9.  1.100 /  9.  1.100",
+      "libswresample   6.  1.100 /  6.  1.100",
+      "",
+      "Exiting with exit code 0"
+    ]
+  },
+  "ffprobe": {
+    "path": "/usr/bin/ffprobe",
+    "sha256": "a6dac1e9e8631e04075d06854cc4069308aec279bb04683b4a0bca5e4f54b2fe",
+    "version_output": [
+      "ffprobe version 8.0.1-3ubuntu2 Copyright (c) 2007-2025 the FFmpeg developers",
+      "built with gcc 15 (Ubuntu 15.2.0-13ubuntu3)",
+      "configuration: --prefix=/usr --extra-version=3ubuntu2 --toolchain=hardened --libdir=/usr/lib/x86_64-linux-gnu --incdir=/usr/include/x86_64-linux-gnu --arch=amd64 --enable-gpl --disable-stripping --disable-pocketsphinx --disable-libcaca --disable-libmfx --disable-omx --enable-gnutls --enable-libaom --enable-libass --enable-libbs2b --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libharfbuzz --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-openal --enable-opencl --enable-opengl --disable-sndio --enable-libvpl --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-ladspa --enable-libbluray --enable-libdvdnav --enable-libdvdread --enable-libjack --enable-libjxl --enable-libpulse --enable-librabbitmq --enable-librist --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libx264 --enable-libzmq --enable-libzvbi --enable-lv2 --enable-sdl2 --enable-libplacebo --enable-librav1e --enable-librsvg --enable-shared",
+      "libavutil      60.  8.100 / 60.  8.100",
+      "libavcodec     62. 11.100 / 62. 11.100",
+      "libavformat    62.  3.100 / 62.  3.100",
+      "libavdevice    62.  1.100 / 62.  1.100",
+      "libavfilter    11.  4.100 / 11.  4.100",
+      "libswscale      9.  1.100 /  9.  1.100",
+      "libswresample   6.  1.100 /  6.  1.100"
+    ]
+  },
+  "files": [
+    {
+      "bytes": 131094,
+      "name": "excessive-metadata.ffmeta",
+      "sha256": "2c5bf1f170fbad1cb1d52341aafcb4c7585048bd56eba6e763d889562f09c615"
+    },
+    {
+      "bytes": 276151,
+      "name": "excessive-metadata.mp4",
+      "sha256": "60bf88263302911b4523c39e21791acc378ba423985dc33ebf40b888134d5095"
+    },
+    {
+      "bytes": 145031,
+      "name": "fixture.mp4",
+      "sha256": "af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e"
+    },
+    {
+      "bytes": 4096,
+      "name": "malformed.bin",
+      "sha256": "c8f5d0341d54d951a71b136e6e2afcb14d11ed8489a7ae126a8fee0df6ecf193"
+    },
+    {
+      "bytes": 89,
+      "name": "nested-reference.m3u8",
+      "sha256": "7ed1eb35d06dc004557772d6deb707a8e08d115982d594bcfde14afe38acdbdd"
+    },
+    {
+      "bytes": 26615,
+      "name": "no-pts.h264",
+      "sha256": "4040c25e536073f6b91cb7ccfa1380958cf1cc7fba336cb26616083f76fe5a1f"
+    },
+    {
+      "bytes": 27454,
+      "name": "oversize.mp4",
+      "sha256": "7f0a2149b41cd393c073a08f7b4a742d3821da296e08266a96c864606c8b25b2"
+    },
+    {
+      "bytes": 145055,
+      "name": "rotated.mp4",
+      "sha256": "aa52bb7a53b50266bd3d7e15bc1e52db3790a2625af2027ed05d0041cbdbffd3"
+    },
+    {
+      "bytes": 67108865,
+      "name": "source-too-large.bin",
+      "sha256": "91990977345985aaf03af1358f4f989d7eaf985b58529efb72f613c588f6599a"
+    },
+    {
+      "bytes": 4096,
+      "name": "truncated.mp4",
+      "sha256": "ec0b5cd5ff64100aa4e4eedcb5b1608364282f83727f9dfe1a45e1d8f039c508"
+    },
+    {
+      "bytes": 148709,
+      "name": "varying-pts.mp4",
+      "sha256": "446e657c59e62098092bffd8687fd5f582a1c1e80a9309eace5da136ae981089"
+    }
+  ],
+  "generator": "experiments/media-runtime-20260906/generate_fixtures.py",
+  "owner_source": "VisualWorld project-generated synthetic test inputs",
+  "packet_probes": {
+    "fixture.mp4": {
+      "command": [
+        "/usr/bin/ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_packets",
+        "-show_entries",
+        "packet=pts,dts,duration",
+        "-of",
+        "json",
+        "fixture.mp4"
+      ],
+      "packets": [
+        {
+          "dts": 72000,
+          "duration": 9000,
+          "pts": 90000
+        },
+        {
+          "dts": 81000,
+          "duration": 9000,
+          "pts": 117000
+        },
+        {
+          "dts": 90000,
+          "duration": 9000,
+          "pts": 99000
+        },
+        {
+          "dts": 99000,
+          "duration": 9000,
+          "pts": 108000
+        },
+        {
+          "dts": 108000,
+          "duration": 9000,
+          "pts": 144000
+        },
+        {
+          "dts": 117000,
+          "duration": 9000,
+          "pts": 126000
+        },
+        {
+          "dts": 126000,
+          "duration": 9000,
+          "pts": 135000
+        },
+        {
+          "dts": 135000,
+          "duration": 9000,
+          "pts": 171000
+        },
+        {
+          "dts": 144000,
+          "duration": 9000,
+          "pts": 153000
+        },
+        {
+          "dts": 153000,
+          "duration": 9000,
+          "pts": 162000
+        },
+        {
+          "dts": 162000,
+          "duration": 9000,
+          "pts": 180000
+        },
+        {
+          "dts": 171000,
+          "duration": 9000,
+          "pts": 207000
+        },
+        {
+          "dts": 180000,
+          "duration": 9000,
+          "pts": 189000
+        },
+        {
+          "dts": 189000,
+          "duration": 9000,
+          "pts": 198000
+        },
+        {
+          "dts": 198000,
+          "duration": 9000,
+          "pts": 234000
+        },
+        {
+          "dts": 207000,
+          "duration": 9000,
+          "pts": 216000
+        },
+        {
+          "dts": 216000,
+          "duration": 9000,
+          "pts": 225000
+        },
+        {
+          "dts": 225000,
+          "duration": 9000,
+          "pts": 261000
+        },
+        {
+          "dts": 234000,
+          "duration": 9000,
+          "pts": 243000
+        },
+        {
+          "dts": 243000,
+          "duration": 9000,
+          "pts": 252000
+        },
+        {
+          "dts": 252000,
+          "duration": 9000,
+          "pts": 270000
+        },
+        {
+          "dts": 261000,
+          "duration": 9000,
+          "pts": 297000
+        },
+        {
+          "dts": 270000,
+          "duration": 9000,
+          "pts": 279000
+        },
+        {
+          "dts": 279000,
+          "duration": 9000,
+          "pts": 288000
+        },
+        {
+          "dts": 288000,
+          "duration": 9000,
+          "pts": 324000
+        },
+        {
+          "dts": 297000,
+          "duration": 9000,
+          "pts": 306000
+        },
+        {
+          "dts": 306000,
+          "duration": 9000,
+          "pts": 315000
+        },
+        {
+          "dts": 315000,
+          "duration": 9000,
+          "pts": 351000
+        },
+        {
+          "dts": 324000,
+          "duration": 9000,
+          "pts": 333000
+        },
+        {
+          "dts": 333000,
+          "duration": 9000,
+          "pts": 342000
+        }
+      ]
+    },
+    "varying-pts.mp4": {
+      "command": [
+        "/usr/bin/ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_packets",
+        "-show_entries",
+        "packet=pts,dts,duration",
+        "-of",
+        "json",
+        "varying-pts.mp4"
+      ],
+      "packets": [
+        {
+          "dts": 72000,
+          "duration": 9000,
+          "pts": 90000
+        },
+        {
+          "dts": 81000,
+          "duration": 9000,
+          "pts": 126000
+        },
+        {
+          "dts": 90000,
+          "duration": 9000,
+          "pts": 99000
+        },
+        {
+          "dts": 99000,
+          "duration": 9000,
+          "pts": 108000
+        },
+        {
+          "dts": 108000,
+          "duration": 18000,
+          "pts": 162000
+        },
+        {
+          "dts": 126000,
+          "duration": 9000,
+          "pts": 135000
+        },
+        {
+          "dts": 135000,
+          "duration": 9000,
+          "pts": 144000
+        },
+        {
+          "dts": 144000,
+          "duration": 18000,
+          "pts": 198000
+        },
+        {
+          "dts": 162000,
+          "duration": 9000,
+          "pts": 171000
+        },
+        {
+          "dts": 171000,
+          "duration": 9000,
+          "pts": 180000
+        },
+        {
+          "dts": 180000,
+          "duration": 18000,
+          "pts": 207000
+        },
+        {
+          "dts": 198000,
+          "duration": 9000,
+          "pts": 243000
+        },
+        {
+          "dts": 207000,
+          "duration": 9000,
+          "pts": 216000
+        },
+        {
+          "dts": 216000,
+          "duration": 18000,
+          "pts": 234000
+        },
+        {
+          "dts": 234000,
+          "duration": 9000,
+          "pts": 279000
+        },
+        {
+          "dts": 243000,
+          "duration": 9000,
+          "pts": 252000
+        },
+        {
+          "dts": 252000,
+          "duration": 18000,
+          "pts": 270000
+        },
+        {
+          "dts": 270000,
+          "duration": 9000,
+          "pts": 315000
+        },
+        {
+          "dts": 279000,
+          "duration": 9000,
+          "pts": 288000
+        },
+        {
+          "dts": 288000,
+          "duration": 18000,
+          "pts": 306000
+        },
+        {
+          "dts": 306000,
+          "duration": 9000,
+          "pts": 324000
+        },
+        {
+          "dts": 315000,
+          "duration": 9000,
+          "pts": 360000
+        },
+        {
+          "dts": 324000,
+          "duration": 18000,
+          "pts": 342000
+        },
+        {
+          "dts": 342000,
+          "duration": 9000,
+          "pts": 351000
+        },
+        {
+          "dts": 351000,
+          "duration": 9000,
+          "pts": 396000
+        },
+        {
+          "dts": 360000,
+          "duration": 18000,
+          "pts": 378000
+        },
+        {
+          "dts": 378000,
+          "duration": 9000,
+          "pts": 387000
+        },
+        {
+          "dts": 387000,
+          "duration": 9000,
+          "pts": 432000
+        },
+        {
+          "dts": 396000,
+          "duration": 18000,
+          "pts": 414000
+        },
+        {
+          "dts": 414000,
+          "duration": 9000,
+          "pts": 423000
+        }
+      ]
+    }
+  },
+  "privacy": "synthetic patterns only",
+  "python_generated": {
+    "excessive-metadata.ffmeta": "fixed 131072-byte comment",
+    "malformed.bin": "bytes(range(256)) repeated 16 times",
+    "nested-reference.m3u8": "fixed manifest with 127.0.0.1:9 reference",
+    "source-too-large.bin": "sparse file of 67108865 bytes",
+    "truncated.mp4": "first 4096 bytes of fixture.mp4"
+  },
+  "rights": "project-generated; no third-party video, faces, plates, or private data",
+  "schema_version": 1
+}

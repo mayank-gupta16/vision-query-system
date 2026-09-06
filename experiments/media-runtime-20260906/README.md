@@ -49,7 +49,8 @@ python3 generate_fixtures.py --ffmpeg /usr/bin/ffmpeg --output /DISPOSABLE/fixtu
 The generated manifest contains every executed argument array, input checksum,
 rights/privacy declaration, CFR and varying/discontinuous expected PTS sequence,
 source packet PTS/DTS, rotation/SAR facts, and hostile fixture recipe. No binary
-fixture is committed.
+fixture is committed. The exact measured manifest is retained as
+[measured-fixture-manifest.json](measured-fixture-manifest.json).
 
 ## Worker contract
 
@@ -72,7 +73,7 @@ The measured host staged the CPython, source-built PyAV, and minimal FFmpeg tree
 as one root-owned read-only runtime. The parent then launched the worker with:
 
 - a transient systemd service using a read-only `OpenFile=` descriptor;
-- `User=nobody`, `NoNewPrivileges=yes`, 256 MiB `MemoryMax`, no swap, 32 tasks,
+- `User=nobody`, `NoNewPrivileges=yes`, 256 MiB `MemoryMax`, no swap, 64 tasks,
   200% CPU bandwidth, a 20-second deadline, and restrictive rlimits;
 - bubblewrap user, PID, network, IPC, UTS, and mount namespaces;
 - an empty read-only root, only the runtime and system C-library closure mounted
@@ -84,8 +85,9 @@ staging, an inner seccomp/Landlock policy, aggregate CPU-budget polling,
 `cgroup.kill`, bounded pipe draining, and structured error mapping. It must fail
 closed when any mandatory Linux isolation capability is absent.
 
-The generated fixtures are deliberately not committed. Their exact generator
-parameters, hashes, raw outcomes, and benchmark samples are in the
+The generated binary fixtures are deliberately not committed. Their exact
+generator parameters, hashes, observed outcomes, and benchmark values are in
+the measured manifest and
 [CPU-LITE receipt](../../docs/research/media-runtime-cpu-lite-receipt.json).
 Do not substitute private video.
 

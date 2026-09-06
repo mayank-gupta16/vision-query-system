@@ -30,22 +30,23 @@ fingerprint `FCF986EA15E6E293A5644F10B4322F04D67658D8`; its SHA-256 is
 The PyAV 18.1.0 sdist SHA-256 is
 `47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28`.
 The measured source build linked PyAV to FFmpeg 9.0.1 and reported
-`LGPL version 2.1 or later`; it enabled no external libraries.
+`LGPL version 2.1 or later`; it enabled no external codec libraries.
 
 ## Correctness and failure probes
 
-Generated H.264 fixtures covered MP4 rational timestamps with a nonzero start,
-an elementary stream with no timestamps, and a 90-degree display matrix. The
-selected worker returned all 30 MP4 frames from PTS 90,000 through 351,000 at
-time base 1/90,000. All five elementary-stream frames retained null PTS. The
-display matrix was preserved as nine signed 32-bit values, and every framed
-RGB24 payload passed its embedded SHA-256 and exact byte-length check.
+Generated H.264 fixtures covered CFR and varying/discontinuous MP4 timestamps,
+a nonzero start, reordered packets, an elementary stream with no timestamps, a
+90-degree display matrix, SAR, and 128 KiB container metadata. The selected
+worker matched both 30-value expected PTS sequences exactly at time base
+1/90,000. All five elementary-stream frames retained null PTS. The display
+matrix was preserved on every rotated frame, and every framed RGB24 payload
+passed its embedded SHA-256 and exact byte-length check.
 
-Malformed bytes and a truncated MP4 returned bounded decode errors. A 4096×2160
-frame, a source one byte over 64 MiB, a two-frame limit, and a decoded-output
-limit each returned the expected deterministic limit classification. All eight
-cases ended in 0.11–0.21 seconds in the bubblewrap probe; none reached the
-five-second outer timeout.
+Malformed bytes, a truncated MP4, and a nested network reference returned
+bounded decode errors. A 4096×2160 frame, a source one byte over 64 MiB, a
+one-frame limit, and a decoded-output limit each returned the expected
+deterministic classification. All cases ended within 0.14 seconds in the final
+bubblewrap replay; none reached the five-second outer timeout.
 
 One integration failure improved the frozen probe: creating a separate PyAV
 reformatter for every frame accumulated conversion workers and hit a 32-task
@@ -56,13 +57,10 @@ optimization project.
 ## CPU-LITE observation
 
 The disposable Ubuntu 26.04.1 x86_64 host had 4 vCPU, 15,841,396 KiB RAM, and no
-required GPU. After two warm-ups, ten unsandboxed worker runs decoded the
-30-frame 320×240 fixture in a median 0.115 seconds (about 261 frames/s) with
-38,332 KiB median process peak RSS. Ten bubblewrap runs had a median 0.110-second
-wall time; the launcher-only RSS reported by GNU time is intentionally discarded.
-One full systemd-cgroup plus bubblewrap run completed in 122 ms, used 118 ms CPU,
-and reported a 26.1 MiB cgroup memory peak. Ten cold PyAV imports had a median
-55 ms wall time and 26,068 KiB peak RSS.
+required GPU. The final 30-frame 320×240 bubblewrap replay completed in 0.123
+seconds (about 244 frames/s), with its first complete frame record at 0.080
+seconds. A full systemd-cgroup plus bubblewrap observation completed in 116 ms,
+used 111 ms CPU, and reported a 26.1 MiB cgroup memory peak with zero swap.
 
 These small generated-input measurements are prototype diagnostics, not release
 performance promises. Raw samples, hashes, commands, exit codes, and limitations
@@ -75,7 +73,11 @@ host's restricted generic user namespaces. The measured empty-root namespace hid
 host-private paths, disabled the host network namespace, retained seek on the
 single inherited regular-file descriptor, and required explicit
 `--remount-ro /` to prevent writes outside the capped temporary filesystem.
-Cgroup v2 supplied aggregate memory/task/CPU-bandwidth/deadline controls.
+Cgroup v2 supplied aggregate memory/task/CPU-bandwidth/deadline controls. Probes
+confirmed denied host/symlink/runtime/root access, zero IPv4/IPv6/Unix/UDP host
+listener hits, failed public DNS transport, and no nested-reference egress.
+Cancellation while stdout was blocked terminated in 1.19 ms without a forced
+kill, surviving process group, or token-bearing descendant.
 
 Issue #11 must turn the measured command into a deterministic supervisor with
 safe descriptor opening, exact runtime staging, inner seccomp and Landlock,
@@ -93,8 +95,8 @@ passes the same tests.
 PyAV is BSD-3-Clause; the selected FFmpeg configuration is
 LGPL-2.1-or-later. This is not approval to redistribute their binaries. The
 official PyAV wheel's bundled external components are explicitly excluded.
-H.264, HEVC, and MPEG-4 patent exposure is separate from copyright licensing and
-requires jurisdiction-specific review before commercial distribution claims.
+H.264 patent exposure is separate from copyright licensing and requires
+jurisdiction-specific review before commercial distribution claims.
 
 PyAV 18.1.0 does not expose per-frame SAR or best-effort timestamps. Stream SAR
 is therefore labelled as a guess in the probe. Issue #11 must add the small

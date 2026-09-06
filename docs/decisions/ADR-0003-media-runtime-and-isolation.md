@@ -42,6 +42,9 @@ wall limits. Capability probing is mandatory and failure returns
 `IsolationUnavailable`; there is no ordinary-subprocess fallback. Seccomp,
 Landlock, safe descriptor opening, whole-cgroup cancellation, and bounded output
 draining are requirements for issue #11 rather than additional issue #4 tuning.
+The issue #4 experiment demonstrated the selected namespace/cgroup direction
+with denied host access and egress, bounded blocked output, prompt cancellation,
+and no surviving descendant; it is not the production launcher.
 
 Native hostile decode on macOS is blocked. `sandbox-exec` is deprecated, while a
 native App Sandbox helper does not provide the demonstrated job-wide resource
