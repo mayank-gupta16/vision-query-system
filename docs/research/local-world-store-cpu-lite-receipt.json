@@ -10,55 +10,56 @@
   },
   "implementation": {
     "executable_implementation": "cpython",
-    "harness_sha256": "75e597104c2e4781894d7ca7f5ec259a45f0c22ce2013e13d38320e5c2e1b440",
+    "harness_sha256": "c73b5f11cea420261ba8655d1fd4d0f6061443999f6862ae1b0c6aa75e85cf0f",
     "python_version": "3.13.15",
     "sqlite_version": "3.53.1",
+    "storage_module_sha256": "9c1a046e2cf612502aaf3e402d6dd8a959e7bb9cb1a110ad0b4f1437de1e575f",
     "world_store_module_sha256": "5c60a1c940d293d3704224925221d5599def4fd4952227b2272e7916e862aae0"
   },
   "measurements": {
     "evidence_index_lookups": {
-      "cpu_ns": 556131977,
+      "cpu_ns": 572655580,
       "lookup_count": 300,
-      "wall_ns": 556214100
+      "wall_ns": 572695620
     },
     "finalize_transaction": {
-      "cpu_ns": 25108958,
-      "wall_ns": 25107360
+      "cpu_ns": 26318447,
+      "wall_ns": 26315863
     },
     "frame_index_scan": {
-      "cpu_ns": 31662003,
+      "cpu_ns": 36236605,
       "page_count": 5,
-      "wall_ns": 31666767
+      "wall_ns": 36234615
     },
     "idempotent_retry": {
-      "cpu_ns": 2355058,
-      "wall_ns": 2353891
+      "cpu_ns": 2937011,
+      "wall_ns": 2934709
     },
     "initialize_migration": {
-      "cpu_ns": 4160552,
-      "wall_ns": 4160861
+      "cpu_ns": 4674757,
+      "wall_ns": 4674459
     },
     "intent_transactions": {
-      "cpu_ns": 9375547,
+      "cpu_ns": 10582505,
       "transaction_count": 5,
-      "wall_ns": 9373793
+      "wall_ns": 10580207
     },
     "prepare_transaction": {
-      "cpu_ns": 1274736,
-      "wall_ns": 1273297
+      "cpu_ns": 1602298,
+      "wall_ns": 1600292
     },
     "record_transactions": {
-      "cpu_ns": 70696601,
+      "cpu_ns": 75092338,
       "transaction_count": 10,
-      "wall_ns": 70696447
+      "wall_ns": 75100535
     },
     "reopen": {
-      "cpu_ns": 1863662,
-      "wall_ns": 1861982
+      "cpu_ns": 1845581,
+      "wall_ns": 1843723
     },
     "verify": {
-      "cpu_ns": 58364170,
-      "wall_ns": 58370600
+      "cpu_ns": 59738396,
+      "wall_ns": 59736897
     }
   },
   "profile": {
@@ -79,7 +80,7 @@
     "database_logical_limit_bytes": 16777216,
     "disk_bounded": true,
     "peak_rss_limit_bytes": 2147483648,
-    "process_peak_rss_bytes": 28889088,
+    "process_peak_rss_bytes": 28618752,
     "rss_bounded": true,
     "rss_measured": true,
     "timing_measured": true

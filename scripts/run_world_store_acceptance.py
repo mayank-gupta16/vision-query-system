@@ -239,6 +239,7 @@ def _run(work_root: Path, record_count: int) -> dict[str, object]:
             "implementation": {
                 "python_version": platform.python_version(),
                 "world_store_module_sha256": _sha256(ROOT / "src/visualworld/world_store.py"),
+                "storage_module_sha256": _sha256(ROOT / "src/visualworld/storage.py"),
                 "harness_sha256": _sha256(Path(__file__)),
                 "executable_implementation": sys.implementation.name,
                 "sqlite_version": sqlite_version(),

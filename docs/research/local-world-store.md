@@ -67,14 +67,14 @@ the connection authorizer denies `ATTACH`, `DETACH`, virtual tables, and
 
 The generated workload represents 60 seconds at 5 FPS: one 1920x1080 source,
 one run, 300 frames with exact millisecond time-base PTS, 300 evidence records,
-and 300 unique artifact descriptors. Five intent transactions took 9.4 ms; ten
-hidden record transactions took 70.7 ms; finalization took 25.1 ms; and an
-idempotent finalization retry took 2.4 ms. Five frame-index pages took 31.7 ms,
-300 point evidence lookups took 556.2 ms, reopen took 1.9 ms, and complete
-canonical/projection verification took 58.4 ms.
+and 300 unique artifact descriptors. Five intent transactions took 10.6 ms; ten
+hidden record transactions took 75.1 ms; finalization took 26.3 ms; and an
+idempotent finalization retry took 2.9 ms. Five frame-index pages took 36.2 ms,
+300 point evidence lookups took 572.7 ms, reopen took 1.8 ms, and complete
+canonical/projection verification took 59.7 ms.
 
 The live SQLite/WAL set occupied 1,523,712 logical and allocated bytes across
-four regular files. Peak process RSS was 28,889,088 bytes, below the 2 GiB
+four regular files. Peak process RSS was 28,618,752 bytes, below the 2 GiB
 profile bound. These single-run figures establish correctness and resource
 provenance, not a cross-machine optimization claim.
 

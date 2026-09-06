@@ -994,6 +994,37 @@ def test_forged_evidence_session_cannot_bypass_the_shared_writer_lock(
         os.close(raw_root_descriptor)
 
 
+def test_interrupted_session_teardown_cannot_leave_a_live_lock_capability(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    evidence_store = LocalEvidenceStore(root, lock_timeout_ms=20)
+    store = LocalWorldStore(root, lock_timeout_ms=20)
+    source, _, _, _, _ = _records()
+    captured: EvidenceWriterSession | None = None
+
+    def interrupt_before_invalidation(self: EvidenceWriterSession) -> None:
+        del self
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(EvidenceWriterSession, "_deactivate", interrupt_before_invalidation)
+    with pytest.raises(KeyboardInterrupt), evidence_store.writer_session() as session:
+        captured = session
+
+    assert captured is not None
+    assert captured._lock_owner is not None
+    assert captured._lock_owner.closed
+    with pytest.raises(PortError, match="invalid_request"):
+        store.commit((source,), evidence_session=captured)
+    with pytest.raises(PortError, match="invalid_request"):
+        captured.inventory(limit=1)
+    monkeypatch.undo()
+    with evidence_store.writer_session() as recovered:
+        store.commit((source,), evidence_session=recovered)
+    assert store.get(source.source_id) == source
+
+
 def test_poisoned_writer_instance_fails_closed(tmp_path: Path) -> None:
     store = _store(tmp_path)
     store._poisoned = True
