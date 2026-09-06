@@ -4,6 +4,9 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add framework-free version-1 Source, FrameRef, Geometry, EvidenceRef, and
+  RunManifest records with canonical JSON, typed identities, exact rational
+  time, strict input limits, and round-trip contract tests.
 - Add the deterministic, standard-library synthetic-v1 CFR, VFR, and rotation
   fixture generator with locked pixel/timestamp/checksum and rights/privacy
   manifest checks; generated media remains untracked.

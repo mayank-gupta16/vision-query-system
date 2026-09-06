@@ -2,8 +2,8 @@
 
 - Stable version: none; experimental package version 0.1.0a0 is unreleased
 - Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
-- Implementation: help/version-only package plus deterministic developer and
-  synthetic-fixture commands
+- Implementation: help/version package, deterministic developer and
+  synthetic-fixture commands, and version-1 ingestion domain records
 - Benchmark baseline: none
 
 ## Established facts
@@ -33,6 +33,8 @@
 - ADR-0004 accepts strict versioned JSON ingestion records, typed SHA-256-based
   identifiers, exact rational PTS with measured/estimated provenance,
   original-pixel geometry, and explicit migration and untrusted-field limits.
+  Its Source, FrameRef, Geometry, EvidenceRef, and RunManifest contracts now
+  have a framework-free implementation with strict canonical serialization.
 - ADR-0005 accepts local SQLite metadata plus a SHA-256 content-addressed
   filesystem artifact store with staged commits, recovery/audit, migrations,
   and reference-aware cascade deletion. Video blobs remain outside SQLite.
