@@ -176,6 +176,8 @@ def _run_inner_probe(args: argparse.Namespace) -> int:
     symlink = Path("/tmp/visualworld-symlink-escape")
     symlink.symlink_to(args.host_sentinel)
     status_fields = _status_fields()
+    host_udp_send_raised = _udp_denied(("127.0.0.1", args.udp_port))
+    public_dns_send_raised = _udp_denied(("8.8.8.8", 53))
     checks = {
         "effective_uid_non_root": os.geteuid() == 65534,
         "effective_gid_non_root": os.getegid() == 65534,
@@ -193,8 +195,7 @@ def _run_inner_probe(args: argparse.Namespace) -> int:
         "host_unix_abstract_denied": _connect_denied(
             socket.AF_UNIX, "\0" + args.abstract_socket_name
         ),
-        "host_udp_denied": _udp_denied(("127.0.0.1", args.udp_port)),
-        "public_dns_transport_denied": _udp_denied(("8.8.8.8", 53)),
+        "public_dns_transport_denied": public_dns_send_raised,
         "dns_resolution_denied": _dns_denied(),
         "capabilities_empty": int(status_fields.get("CapEff", "1"), 16) == 0,
         "no_new_privileges": status_fields.get("NoNewPrivs") == "1",
@@ -206,6 +207,11 @@ def _run_inner_probe(args: argparse.Namespace) -> int:
     result = {
         "schema_version": 1,
         "checks": checks,
+        "transport_observations": {
+            "host_udp_send_raised": host_udp_send_raised,
+            "public_dns_send_raised": public_dns_send_raised,
+            "host_delivery_is_verified_by_outer_listener": True,
+        },
         "namespaces": namespaces,
         "status_fields": status_fields,
         "status": "pass" if all(checks.values()) else "fail",
