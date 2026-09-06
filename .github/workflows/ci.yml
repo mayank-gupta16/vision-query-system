@@ -27,3 +27,48 @@ jobs:
 
       - name: Compile repository tooling
         run: python3 -m compileall -q scripts
+
+  application:
+    name: application (${{ matrix.os }} / ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+        python: ['3.13.15', '3.14.7']
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Record host and acquire checksum-verified developer toolchain
+        run: |
+          uname -a
+          python3 --version
+          python3 scripts/bootstrap.py --python '${{ matrix.python }}'
+
+      - name: Clean locked wheel-only development sync
+        run: python3 scripts/dev.py sync --python '${{ matrix.python }}'
+
+      - name: Offline checks and license inventory
+        run: python3 scripts/dev.py check --python '${{ matrix.python }}'
+
+      - name: Build sdist then wheel; test fresh runtime and bad-hash rejection
+        run: python3 scripts/dev.py build --python '${{ matrix.python }}'
+
+      - name: Audit public locked development packages (network required)
+        if: matrix.os == 'ubuntu-24.04' && matrix.python == '3.13.15'
+        run: python3 scripts/dev.py audit --python '${{ matrix.python }}'
+
+  application-checks:
+    if: always()
+    needs: application
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every supported application lane
+        env:
+          MATRIX_RESULT: ${{ needs.application.result }}
+        run: test "$MATRIX_RESULT" = success

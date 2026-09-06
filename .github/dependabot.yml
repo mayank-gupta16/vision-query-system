@@ -9,4 +9,6 @@ updates:
       - "type:chore"
       - "area:infra"
 
-  # Enable the `pip` ecosystem after v0.1 selects and commits Python packaging.
+  # Python updates remain manual: exact uv, one direct tool per reviewed PR,
+  # seven-day cutoff, both platform wheel/license checks (ADR-0002).
+  # Never rewrite frozen experiments/toolchain-20260906 research evidence.

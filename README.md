@@ -14,10 +14,31 @@ video -> observations -> tracklets -> entities -> world state -> queries
 
 ## Project status
 
-VisualWorld is in repository bootstrap. There is no usable application yet.
+VisualWorld has an experimental Python package (`0.1.0a0`) with help/version
+commands and a reproducible developer toolchain. Video ingestion, storage, and
+queries are not implemented yet.
 See [current project state](docs/project/current.md) and the
 [roadmap](docs/project/roadmap.md) for the proposed sequencing and explicit
 non-goals.
+
+## Try the scaffold
+
+On Linux x86_64 (glibc) or macOS arm64, from a trusted checkout with host Python
+3.9+ available:
+
+```sh
+python3 scripts/bootstrap.py
+python3 scripts/dev.py sync
+artifacts/toolchain/3.13.15/dev/bin/visualworld --help
+artifacts/toolchain/3.13.15/dev/bin/visualworld --version
+python3 scripts/dev.py check
+```
+
+Setup downloads checksum-pinned developer tools into ignored local directories;
+it does not change system Python or download models/media. The application has
+no third-party runtime dependencies. See [developer setup](docs/testing/development.md)
+for compatibility, build/audit commands, network boundaries, and exact versions.
+Nothing is published to a package registry by these commands.
 
 ## Principles
 

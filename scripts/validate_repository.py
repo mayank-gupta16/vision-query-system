@@ -8,7 +8,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = (
     ".env.example",
@@ -125,14 +124,16 @@ def main() -> int:
     assert not FULL_SHA_ACTION.fullmatch("actions/checkout@v6")
     assert SECRET_PATTERNS["GitHub token"].search("ghp_" + "a" * 24)
 
-    for relative in REQUIRED_FILES:
-        path = ROOT / relative
+    for required in REQUIRED_FILES:
+        path = ROOT / required
         if not path.is_file() or path.stat().st_size == 0:
-            failures.append(f"required file missing or empty: {relative}")
+            failures.append(f"required file missing or empty: {required}")
 
     for directory in sorted(path for path in (ROOT / "docs").rglob("*") if path.is_dir()):
         if not (directory / "index.md").is_file():
-            failures.append(f"documentation directory lacks index.md: {directory.relative_to(ROOT)}")
+            failures.append(
+                f"documentation directory lacks index.md: {directory.relative_to(ROOT)}"
+            )
 
     files = candidate_files()
     for path in files:

@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-06T08:29:06.120509+00:00",
+  "purpose": "Single fresh-cache CPU-LITE package-scaffold setup validation; not inference/video throughput",
+  "source_base_commit": "99128719d6175d2069b44c37f8dabef0833e3aad",
+  "source_identity_note": "Issue 8 working snapshot on the named base; exact measured source inputs identified by hashes below. Report/receipt commits are added after measurement.",
+  "source_sha256": {
+    ".python-version": "861b3dd8083d28f336ef70f6755bc399538ddad627b1d095820ca34cb953cf14",
+    "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "README.md": "154c58ddea6601cb0788f139e296741dfdfd418dbcb48fa9d416d2803c9e0b36",
+    "build-constraints.txt": "f8a60b3fc3a10406c6b565ca88fdea70f3e9c3a75c1ad9da32309a21f6495023",
+    "docs/legal/development-tool-inventory.json": "06c559318fa2d032185e36d2b4e87adc73afb86b02b372ef616cb3661c1cd591",
+    "pyproject.toml": "7e3fc2ded12d30942f25b6d7c2b80d06daff8e3aeac90b2a25799d2a52365976",
+    "scripts/bootstrap.py": "0e19307aa75ca30a774a67949bda0f5640c85d122bfcdfba65ef53155a1127fd",
+    "scripts/check_wheel.py": "838073a27871f878adb9dde9bc8f75deef2bd05d742635f29cfeba0336fa36ab",
+    "scripts/dev.py": "1a9c38f86bb887677b9697995cdfff63aa098e3e626892be7b72312abd00e0d0",
+    "scripts/inspect_dependency_licenses.py": "e70b27c8ea02d4396f708fbbca64f02d99c044bb531080dc3cf26d8db3554661",
+    "scripts/validate_repository.py": "ff6161d7e47735067640ad9c21fd2680d4b694fc4d92212da9902ea578bb698a",
+    "src/visualworld/__init__.py": "3008d81757ad83fc9022b16218e45c8a2d06360a8a69d1eb884133edb7c584c4",
+    "src/visualworld/__main__.py": "8d6f7c9fcbd3f105b0c110b16adbfbbfea98aca0de5fb2fc99c1fba9cfd207c4",
+    "src/visualworld/cli.py": "e091c53144518d0074cd2191fe9490f1b3f0c61e96843fd404dd97d6930b38b3",
+    "src/visualworld/py.typed": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/test_cli.py": "a6d2a36da3c4e8098ecf745162c13f135e98ea9e5ed848f3ee2c9dbb47d85702",
+    "tests/test_dependency_inventory.py": "e605f4e6ab295d5615b60a462cb20c402b68d6744eefa81c5f03342d6c85c90f",
+    "tests/test_tooling.py": "60d84be42c43bb9dac750d8efb91a64e8ba2b151f8812c9049f2cb34af17af31",
+    "uv.lock": "2a9bfdce8fbce132874f626ccb10dda33dce3cc6366614707e6cc56540661870"
+  },
+  "hardware": {
+    "platform": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "machine": "x86_64",
+    "logical_cpus": 4,
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "os_release": "PRETTY_NAME=\"Ubuntu 26.04.1 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"26.04\"\nVERSION=\"26.04.1 LTS (Resolute Raccoon)\"\nVERSION_CODENAME=resolute\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=resolute\nLOGO=ubuntu-logo\n",
+    "meminfo": "MemTotal:       15841396 kB\nMemFree:        12498648 kB\nMemAvailable:   15184256 kB\nBuffers:           47804 kB\nCached:          2717172 kB\nSwapCached:            0 kB\nActive:           340160 kB\nInactive:        2496932 kB\nActive(anon):      85276 kB\nInactive(anon):        0 kB\nActive(file):     254884 kB\nInactive(file):  2496932 kB\nUnevictable:       14040 kB\nMlocked:           10040 kB\nSwapTotal:       8388604 kB\nSwapFree:        8388604 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:              2072 kB\nWriteback:             0 kB\nAnonPages:         86288 kB\nMapped:           125428 kB\nShmem:              5660 kB\nKReclaimable:     274612 kB\nSlab:             372492 kB\nSReclaimable:     274612 kB\nSUnreclaim:        97880 kB\nKernelStack:        3408 kB\nPageTables:         3876 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    16309300 kB\nCommitted_AS:     659172 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:       26072 kB\nVmallocChunk:          0 kB\nPercpu:             3088 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:    124928 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:         2762752 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:      163908 kB\nDirectMap2M:    16607232 kB\n"
+  },
+  "cache_state": "Fresh empty tool, Python, dev and cache directories; host filesystem/network caches uncontrolled. Ordinary editable sync.",
+  "timing_note": "GNU time wall and CPU precision 0.01 seconds; zero is below precision. Command-level RSS is the process-tree high-water observation, not a sum. Bootstrap includes uv and Python acquisition; sync includes wrapper and lock check, unlike the research direct-uv-sync baseline.",
+  "steps": [
+    {
+      "name": "bootstrap",
+      "command": [
+        "python3",
+        "scripts/bootstrap.py",
+        "--state",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.88,
+      "peak_rss_kib": 47520,
+      "user_cpu_seconds": 1.25,
+      "system_cpu_seconds": 0.4,
+      "stdout": "Verified developer toolchain: /root/visualworld-scaffold-measure-aso83wf6/tools\n",
+      "stderr": "Downloading cpython-3.13.15-linux-x86_64-gnu (download) (33.2MiB)\n Downloaded cpython-3.13.15-linux-x86_64-gnu (download)\nInstalled Python 3.13.15 in 772ms\n + cpython-3.13.15-linux-x86_64-gnu",
+      "working_directory": "/root/visualworld-scaffold-validation"
+    },
+    {
+      "name": "cold_editable_sync",
+      "command": [
+        "python3",
+        "scripts/dev.py",
+        "sync",
+        "--state",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.05,
+      "peak_rss_kib": 72856,
+      "user_cpu_seconds": 0.81,
+      "system_cpu_seconds": 0.37,
+      "stdout": "+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv lock --check\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv sync --locked --all-groups\n",
+      "stderr": "Using CPython 3.13.15 interpreter at: /root/visualworld-scaffold-measure-aso83wf6/tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3\nResolved 41 packages in 1ms\nUsing CPython 3.13.15 interpreter at: /root/visualworld-scaffold-measure-aso83wf6/tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3\nCreating virtual environment at: /root/visualworld-scaffold-measure-aso83wf6/tools/dev\nResolved 41 packages in 1ms\n   Building visualworld-engine @ file:///root/visualworld-scaffold-validation\n      Built visualworld-engine @ file:///root/visualworld-scaffold-validation\nDownloading pip (1.7MiB)\nDownloading pygments (1.2MiB)\nDownloading ruff (9.8MiB)\nDownloading mypy (14.5MiB)\nDownloading ast-serialize (1.2MiB)\n Downloaded ast-serialize\n Downloaded ruff\n Downloaded pygments\n Downloaded pip\n Downloaded mypy\nPrepared 40 packages in 632ms\nInstalled 40 packages in 21ms\n + ast-serialize==0.8.0\n + boolean-py==5.0\n + cachecontrol==0.14.4\n + certifi==2026.7.22\n + charset-normalizer==3.5.1\n + coverage==7.16.0\n + cyclonedx-python-lib==11.12.0\n + defusedxml==0.7.1\n + filelock==3.32.4\n + idna==3.19\n + iniconfig==2.3.0\n + librt==0.15.0\n + license-expression==30.4.4\n + markdown-it-py==4.2.0\n + mdurl==0.1.2\n + msgpack==1.2.2\n + mypy==2.3.1\n + mypy-extensions==1.1.0\n + packageurl-python==0.17.6\n + packaging==26.3\n + pathspec==1.1.1\n + pip==26.2.1\n + pip-api==0.0.34\n + pip-audit==2.10.1\n + pip-requirements-parser==32.0.1\n + platformdirs==4.11.5\n + pluggy==1.6.0\n + py-serializable==2.1.0\n + pygments==2.21.0\n + pyparsing==3.3.2\n + pytest==9.1.1\n + requests==2.34.2\n + rich==15.0.0\n + ruff==0.16.5\n + sortedcontainers==2.4.0\n + tomli==2.4.1\n + tomli-w==1.2.0\n + typing-extensions==4.16.0\n + urllib3==2.7.0\n + visualworld-engine==0.1.0a0 (from file:///root/visualworld-scaffold-validation)",
+      "working_directory": "/root/visualworld-scaffold-validation"
+    },
+    {
+      "name": "offline_checks",
+      "command": [
+        "python3",
+        "scripts/dev.py",
+        "check",
+        "--state",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 3.19,
+      "peak_rss_kib": 90324,
+      "user_cpu_seconds": 2.69,
+      "system_cpu_seconds": 0.35,
+      "stdout": "+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv lock --check --offline\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync --offline ruff format --check src tests scripts\n11 files already formatted\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync --offline ruff check src tests scripts\nAll checks passed!\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync --offline mypy src tests scripts\nSuccess: no issues found in 11 source files\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync --offline coverage run -m pytest\n============================= test session starts ==============================\nplatform linux -- Python 3.13.15, pytest-9.1.1, pluggy-1.6.0\nrootdir: /root/visualworld-scaffold-validation\nconfigfile: pyproject.toml\ntestpaths: tests\ncollected 80 items\n\ntests/test_cli.py ...................                                    [ 23%]\ntests/test_dependency_inventory.py ..........................            [ 56%]\ntests/test_tooling.py ...................................                [100%]\n\n============================== 80 passed in 1.03s ==============================\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync --offline coverage report\nName                          Stmts   Miss Branch BrPart  Cover   Missing\n-------------------------------------------------------------------------\nsrc/visualworld/__init__.py       1      0      0      0   100%\nsrc/visualworld/__main__.py       2      0      0      0   100%\nsrc/visualworld/cli.py           12      0      0      0   100%\n-------------------------------------------------------------------------\nTOTAL                            15      0      0      0   100%\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync --offline python scripts/inspect_dependency_licenses.py --check\nDevelopment license evidence verified: 39 installed third-party packages\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3 scripts/validate_repository.py\nRepository validation passed (88 tracked/candidate files checked).\n",
+      "stderr": "Resolved 41 packages in 1ms",
+      "working_directory": "/root/visualworld-scaffold-validation"
+    },
+    {
+      "name": "build_and_fresh_runtime_and_negative_hash",
+      "command": [
+        "python3",
+        "scripts/dev.py",
+        "build",
+        "--state",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.83,
+      "peak_rss_kib": 49912,
+      "user_cpu_seconds": 0.58,
+      "system_cpu_seconds": 0.15,
+      "stdout": "+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv build --sdist --force-pep517 --no-sources --build-constraint build-constraints.txt --require-hashes --out-dir /root/visualworld-scaffold-validation/artifacts/build-5ftahati\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv build /root/visualworld-scaffold-validation/artifacts/build-5ftahati/visualworld_engine-0.1.0a0.tar.gz --wheel --force-pep517 --no-sources --build-constraint build-constraints.txt --require-hashes --out-dir /root/visualworld-scaffold-validation/artifacts/build-5ftahati\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3 /root/visualworld-scaffold-validation/scripts/check_wheel.py --uv /root/visualworld-scaffold-measure-aso83wf6/tools/uv --wheel /root/visualworld-scaffold-validation/artifacts/build-5ftahati/visualworld_engine-0.1.0a0-py3-none-any.whl\nFresh installed wheel: import, module, console, license, zero runtime dependencies passed.\nInvalid backend hash rejected (including with the correct backend cached).\nvisualworld_engine-0.1.0a0-py3-none-any.whl: 8885 bytes sha256:80a29cb14ae4d0c86a98bf4720aa1a5a2b9ac13835a88c18476eea51a8c1b765\nvisualworld_engine-0.1.0a0.tar.gz: 7467 bytes sha256:34be73e6302dc93df195c462c3bb8476330eb5aa5041856a455eacada2ca5faf\nArtifacts and runtime-only SBOM: /root/visualworld-scaffold-validation/artifacts/build-5ftahati\n",
+      "stderr": "Building source distribution...\nSuccessfully built artifacts/build-5ftahati/visualworld_engine-0.1.0a0.tar.gz\nBuilding wheel from source distribution...\nSuccessfully built artifacts/build-5ftahati/visualworld_engine-0.1.0a0-py3-none-any.whl\nUsing CPython 3.13.15 interpreter at: /root/visualworld-scaffold-measure-aso83wf6/tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3\nCreating virtual environment at: runtime\nActivate with: source runtime/bin/activate\nUsing Python 3.13.15 environment at: runtime\nResolved 1 package in 1ms\nPrepared 1 package in 2ms\nwarning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.\n         If the cache and target directories are on different filesystems, hardlinking may not be supported.\n         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.\nInstalled 1 package in 1ms\n + visualworld-engine==0.1.0a0 (from file:///root/visualworld-scaffold-validation/artifacts/build-5ftahati/visualworld_engine-0.1.0a0-py3-none-any.whl)",
+      "working_directory": "/root/visualworld-scaffold-validation"
+    },
+    {
+      "name": "runtime_disk_environment",
+      "command": [
+        "/root/visualworld-scaffold-measure-aso83wf6/tools/uv",
+        "venv",
+        "--python",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3",
+        "/root/visualworld-scaffold-measure-aso83wf6/runtime"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.04,
+      "peak_rss_kib": 29432,
+      "user_cpu_seconds": 0.03,
+      "system_cpu_seconds": 0,
+      "stdout": "",
+      "stderr": "Using CPython 3.13.15 interpreter at: tools/python/cpython-3.13.15-linux-x86_64-gnu/bin/python3\nCreating virtual environment at: runtime\nActivate with: source runtime/bin/activate",
+      "working_directory": "/root/visualworld-scaffold-measure-aso83wf6"
+    },
+    {
+      "name": "runtime_disk_install",
+      "command": [
+        "/root/visualworld-scaffold-measure-aso83wf6/tools/uv",
+        "pip",
+        "install",
+        "--python",
+        "/root/visualworld-scaffold-measure-aso83wf6/runtime/bin/python",
+        "--no-deps",
+        "--offline",
+        "--cache-dir",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools/cache",
+        "/root/visualworld-scaffold-validation/artifacts/build-5ftahati/visualworld_engine-0.1.0a0-py3-none-any.whl"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.04,
+      "peak_rss_kib": 39800,
+      "user_cpu_seconds": 0.03,
+      "system_cpu_seconds": 0.01,
+      "stdout": "",
+      "stderr": "Using Python 3.13.15 environment at: runtime\nResolved 1 package in 1ms\nInstalled 1 package in 1ms\n + visualworld-engine==0.1.0a0 (from file:///root/visualworld-scaffold-validation/artifacts/build-5ftahati/visualworld_engine-0.1.0a0-py3-none-any.whl)",
+      "working_directory": "/root/visualworld-scaffold-measure-aso83wf6"
+    },
+    {
+      "name": "public_dependency_audit",
+      "command": [
+        "python3",
+        "scripts/dev.py",
+        "audit",
+        "--state",
+        "/root/visualworld-scaffold-measure-aso83wf6/tools"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.59,
+      "peak_rss_kib": 60420,
+      "user_cpu_seconds": 1.26,
+      "system_cpu_seconds": 0.12,
+      "stdout": "+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv export --locked --all-groups --no-emit-project --format requirements-txt --quiet --output-file /tmp/visualworld-audit-m56syivv/requirements.txt\n+ /root/visualworld-scaffold-measure-aso83wf6/tools/uv run --frozen --no-sync pip-audit --require-hashes --disable-pip --no-deps -r /tmp/visualworld-audit-m56syivv/requirements.txt\n",
+      "stderr": "WARNING:pip_audit._cli:The --no-deps flag is redundant when used with --require-hashes\nWARNING:pip_audit._cli:--no-deps is supported, but users are encouraged to fully hash their pinned dependencies\nWARNING:pip_audit._cli:Consider using a tool like `pip-compile`: https://pip-tools.readthedocs.io/en/latest/#using-hashes\nNo known vulnerabilities found",
+      "working_directory": "/root/visualworld-scaffold-validation"
+    }
+  ],
+  "artifacts": [
+    {
+      "name": ".gitignore",
+      "bytes": 1,
+      "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1"
+    },
+    {
+      "name": "visualworld_engine-0.1.0a0-py3-none-any.runtime.cdx.json",
+      "bytes": 727,
+      "sha256": "fcc09d52e0c9bf9129fef53a452970638813b74771968411e61ea7d72564ffd9"
+    },
+    {
+      "name": "visualworld_engine-0.1.0a0-py3-none-any.whl",
+      "bytes": 8885,
+      "sha256": "80a29cb14ae4d0c86a98bf4720aa1a5a2b9ac13835a88c18476eea51a8c1b765"
+    },
+    {
+      "name": "visualworld_engine-0.1.0a0.tar.gz",
+      "bytes": 7467,
+      "sha256": "34be73e6302dc93df195c462c3bb8476330eb5aa5041856a455eacada2ca5faf"
+    }
+  ],
+  "runtime_sbom": {
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "version": 1,
+    "metadata": {
+      "component": {
+        "type": "application",
+        "bom-ref": "pkg:pypi/visualworld-engine@0.1.0a0",
+        "name": "visualworld-engine",
+        "version": "0.1.0a0",
+        "purl": "pkg:pypi/visualworld-engine@0.1.0a0",
+        "licenses": [
+          {
+            "license": {
+              "id": "Apache-2.0"
+            }
+          }
+        ],
+        "hashes": [
+          {
+            "alg": "SHA-256",
+            "content": "80a29cb14ae4d0c86a98bf4720aa1a5a2b9ac13835a88c18476eea51a8c1b765"
+          }
+        ]
+      }
+    },
+    "components": [],
+    "dependencies": [
+      {
+        "ref": "pkg:pypi/visualworld-engine@0.1.0a0",
+        "dependsOn": []
+      }
+    ]
+  },
+  "toolchain_receipt": {
+    "uv_version": "0.12.6",
+    "uv_sha256": "d381f11517c66523211b0876552ff7dea5c1b4b0f13800571b35225761302fba",
+    "python_version": "3.13.15",
+    "python_archive": {
+      "name": "cpython",
+      "arch": {
+        "family": "x86_64",
+        "variant": null
+      },
+      "os": "linux",
+      "libc": "gnu",
+      "major": 3,
+      "minor": 13,
+      "patch": 15,
+      "prerelease": "",
+      "variant": null,
+      "build": "20260825",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6"
+    },
+    "python_executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f"
+  },
+  "allocated_kib_after_build_before_audit": {
+    "uv_executable": 49908,
+    "python": 110856,
+    "development_environment": 115596,
+    "cache": 117024,
+    "build_artifacts": 32
+  },
+  "allocation_note": "Each tree separately measured; hardlinks may be double-counted and values must not be summed as unique disk use. Fresh runtime smoke uses a temporary environment removed by the check, so runtime disk is measured separately below from another fresh install.",
+  "runtime_allocated_kib": 164,
+  "source_directory": "/root/visualworld-scaffold-validation"
+}

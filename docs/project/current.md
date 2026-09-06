@@ -1,16 +1,17 @@
 # Current project state
 
-- Stable version: none; unreleased repository bootstrap
+- Stable version: none; experimental package version 0.1.0a0 is unreleased
 - Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
-- Implementation: none
+- Implementation: help/version-only package and deterministic developer commands
 - Benchmark baseline: none
 
 ## Established facts
 
 - The product name is VisualWorld; the repository remains
   `mayank-gupta16/vision-query-system` pending a naming decision.
-- The repository still contains no application implementation. The accepted
-  Python toolchain comes from ADR-0002, not from the initial `.gitignore`.
+- The first installable package is `visualworld-engine`, import/CLI `visualworld`.
+  Only help/version behavior exists; no video or query functionality is claimed.
+  ADR-0002 governs its toolchain, exact lock, and four Linux/macOS Python lanes.
 - The architecture separates observations, tracklets, persistent entities,
   temporal claims, evidence, uncertainty, and queries behind stable ports.
 - CPU-LITE (4 vCPU, 16 GB RAM, no required GPU) is a mandatory benchmark profile.
@@ -40,16 +41,17 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- No video ingestion, database, query engine, model adapter, test fixture, or
-  benchmark implementation exists.
+- No video ingestion, database, query engine, model adapter, media fixture, or
+  application benchmark implementation exists. Package/tooling tests use only
+  generated temporary metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,
   runtimes, codecs, services, or other third-party material.
 
 ## Next priorities
 
 1. Resolve OAuth scope blocker #41, create `VisualWorld Roadmap`, and add views/fields.
-2. Implement package-scaffold issue #8 using ADR-0002, and resolve
-   media/schema/storage decisions #4–#6 before marking their dependent
-   implementation issues ready.
+2. Resolve media/schema/storage decisions #4–#6 before marking their dependent
+   implementation issues ready; preserve the scaffold's zero runtime dependencies
+   until the relevant adapter decision is accepted.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.
