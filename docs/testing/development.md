@@ -159,6 +159,23 @@ logical/allocated disk cost, hash/write throughput, wall/process CPU time, and
 peak RSS. The JSON receipt omits store paths, artifact/stage/run identifiers,
 artifact digests, and content.
 
+The dependency-free local WorldStore acceptance uses the same profile and a
+private existing work directory:
+
+```sh
+PYTHONPATH=src artifacts/toolchain/3.13.15/dev/bin/python \
+  scripts/run_world_store_acceptance.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/world-store-acceptance.json
+```
+
+It commits one 60-second 1080p/5-FPS metadata workload (300 frames and 300
+evidence records) through preparing, intent, hidden record-batch, finalization,
+retry, paginated frame lookup, per-frame evidence lookup, reopen, and bounded
+verification. The receipt reports transaction/index timings, SQLite/WAL disk
+cost, CPU time, peak RSS, implementation hashes, and aggregate counts; it omits
+store paths and all source/run/frame/evidence/artifact identifiers.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

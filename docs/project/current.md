@@ -7,10 +7,12 @@
   ports with deterministic fakes, a bounded Linux local-video source adapter,
   an exact-PTS deterministic frame sampler, and exact detector/source geometry
   with byte-preserving original-pixel RGB24 crops, plus a private staged local
-  evidence CAS with integrity, dedupe, bounded audit, and deletion primitives
+  evidence CAS with integrity, dedupe, bounded audit, and deletion primitives,
+  and a private transactional SQLite WorldStore with migration and run/intents
+  coordination primitives
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
-  crop mapping/copy plus local evidence disk/hash/write pass on CPU-LITE
-  generated fixtures
+  crop mapping/copy plus local evidence disk/hash/write and WorldStore
+  transaction/index/disk passes on CPU-LITE generated fixtures
 
 ## Established facts
 
@@ -61,6 +63,12 @@
   integrity/dedupe checks, shared/exclusive writer locking, and bounded dry-run
   audit primitives. Reference classification, SQLite state, and cascade-deletion
   authorization remain coordinator-owned.
+- LocalWorldStore implements the stable WorldStore port with private SQLite WAL,
+  checksummed schema version 1, canonical JSON plus verified typed projections,
+  fixed parameterized reads/writes, bounded verification, hidden preparing-run
+  batches, durable artifact intents, and atomic run publication. It composes
+  metadata mutations with an active EvidenceStore writer session; recovery and
+  cascade-deletion orchestration remain coordinator-owned.
 
 ## Known blockers and limitations
 
@@ -78,8 +86,8 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- No end-to-end ingestion orchestration, database, query engine, model adapter,
-  or application benchmark exists. The local-video adapter is Linux x86_64 only
+- No end-to-end ingestion orchestration, query engine, model adapter, or
+  application benchmark exists. The local-video adapter is Linux x86_64 only
   and tests generate only the approved tiny synthetic-v1 media plus temporary
   metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,

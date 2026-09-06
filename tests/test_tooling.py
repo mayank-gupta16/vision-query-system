@@ -338,6 +338,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
         "visualworld/ports.py": b"",
         "visualworld/sampling.py": b"",
         "visualworld/storage.py": b"",
+        "visualworld/world_store.py": b"",
         "visualworld/py.typed": b"",
         f"{info}/METADATA": metadata.encode(),
         f"{info}/WHEEL": b"Wheel-Version: 1.0\n",

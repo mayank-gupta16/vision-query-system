@@ -24,3 +24,9 @@ sensitive artifacts remain and audit any independently retained source reference
 [ADR-0005](../decisions/ADR-0005-local-storage-and-deletion.md) defines the
 accepted local staged-write, recovery, reference-aware cascade deletion, and
 reduced deletion-receipt protocol.
+
+The version-1 local WorldStore keeps only canonical metadata, lookup
+projections, artifact descriptors/references, and reduced coordination state in
+a private mode-0600 SQLite/WAL set. It never stores source paths, video or
+artifact bytes, raw SQL, or backend exception text. Preparing runs and records
+under pending deletion closure are not returned by ordinary list operations.

@@ -1,0 +1,103 @@
+{
+  "checks": {
+    "aggregate_counts_match": true,
+    "evidence_index_matches": true,
+    "exact_pts_match": true,
+    "final_manifest_matches": true,
+    "frame_count_matches": true,
+    "intents_cleared": true,
+    "reopen_preserves_records": true
+  },
+  "implementation": {
+    "executable_implementation": "cpython",
+    "harness_sha256": "75e597104c2e4781894d7ca7f5ec259a45f0c22ce2013e13d38320e5c2e1b440",
+    "python_version": "3.13.15",
+    "sqlite_version": "3.53.1",
+    "world_store_module_sha256": "03345d5f01a36ca3fbbffd37e8dc665307a496ee40ebdbf3596531371fef6c28"
+  },
+  "measurements": {
+    "evidence_index_lookups": {
+      "cpu_ns": 612065509,
+      "lookup_count": 300,
+      "wall_ns": 612157020
+    },
+    "finalize_transaction": {
+      "cpu_ns": 25705354,
+      "wall_ns": 25703136
+    },
+    "frame_index_scan": {
+      "cpu_ns": 34401338,
+      "page_count": 5,
+      "wall_ns": 34399739
+    },
+    "idempotent_retry": {
+      "cpu_ns": 2601125,
+      "wall_ns": 2599419
+    },
+    "initialize_migration": {
+      "cpu_ns": 4425796,
+      "wall_ns": 4426173
+    },
+    "intent_transactions": {
+      "cpu_ns": 9871865,
+      "transaction_count": 5,
+      "wall_ns": 9869400
+    },
+    "prepare_transaction": {
+      "cpu_ns": 1339870,
+      "wall_ns": 1338013
+    },
+    "record_transactions": {
+      "cpu_ns": 72468740,
+      "transaction_count": 10,
+      "wall_ns": 72467653
+    },
+    "reopen": {
+      "cpu_ns": 2168721,
+      "wall_ns": 2166243
+    },
+    "verify": {
+      "cpu_ns": 59379053,
+      "wall_ns": 59387723
+    }
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "resources": {
+    "database_allocated_bytes": 1523712,
+    "database_file_count": 4,
+    "database_logical_bytes": 1523712,
+    "database_logical_limit_bytes": 16777216,
+    "disk_bounded": true,
+    "peak_rss_limit_bytes": 2147483648,
+    "process_peak_rss_bytes": 28880896,
+    "rss_bounded": true,
+    "rss_measured": true,
+    "timing_measured": true
+  },
+  "schema": "visualworld.world-store-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "workload": {
+    "deterministic_synthetic_records": true,
+    "evidence_count": 300,
+    "frame_count": 300,
+    "run_count": 1,
+    "source_count": 1,
+    "source_dimensions": [
+      1920,
+      1080
+    ],
+    "source_seconds": 60,
+    "target_fps": 5
+  }
+}

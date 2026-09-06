@@ -34,3 +34,7 @@ architecture.
   staged CAS writes, integrity/dedupe/audit/delete primitives, confinement, and
   CPU-LITE validation with a
   [machine-readable receipt](local-evidence-store-cpu-lite-receipt.json).
+- [Local WorldStore](local-world-store.md) — issue #15 transactional SQLite
+  migration, canonical projection integrity, run/intents coordination, and
+  CPU-LITE validation with a
+  [machine-readable receipt](local-world-store-cpu-lite-receipt.json).
