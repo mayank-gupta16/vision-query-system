@@ -3,9 +3,9 @@
 - Stable version: none; experimental package version 0.1.0a0 is unreleased
 - Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
 - Implementation: help/version package, deterministic developer and
-  synthetic-fixture commands, version-1 ingestion domain records, and the four
-  v0.1 ports with deterministic fakes
-- Benchmark baseline: none
+  synthetic-fixture commands, version-1 ingestion domain records, the four v0.1
+  ports with deterministic fakes, and a bounded Linux local-video source adapter
+- Benchmark baseline: local source/probe pass on CPU-LITE generated fixtures
 
 ## Established facts
 
@@ -59,9 +59,10 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- No video ingestion, database, query engine, model adapter, or application
-  benchmark implementation exists. Tests generate only the approved tiny
-  synthetic-v1 media plus temporary metadata/archive fixtures.
+- No end-to-end ingestion orchestration, database, query engine, model adapter,
+  or application benchmark exists. The local-video adapter is Linux x86_64 only
+  and tests generate only the approved tiny synthetic-v1 media plus temporary
+  metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,
   runtimes, codecs, services, or other third-party material.
 

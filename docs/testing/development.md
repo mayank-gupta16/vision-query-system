@@ -93,6 +93,23 @@ PR-CI boundedness check, not as cross-machine optimization evidence. The
 [canonical manifest](../../fixtures/synthetic-v1/manifest.json) contains only
 deterministic facts.
 
+The Linux-only local-video acceptance command requires the accepted root-owned
+media runtime and its reviewed worker installed inside that runtime:
+
+```sh
+PYTHONPATH=src /opt/visualworld-runtime-probe/python/bin/python3.13 \
+  scripts/run_media_acceptance.py \
+  --runtime /opt/visualworld-runtime-probe \
+  --worker /opt/visualworld-runtime-probe/worker/media_worker.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/media-acceptance.json
+```
+
+It regenerates only the approved fixtures and checks exact probe/frame facts,
+structured corrupt/oversize/timeout/cancellation/path failures, and CPU-LITE
+wall/RSS evidence. It is not a cross-machine optimization benchmark. The latest
+reviewed result is the [issue #11 validation record](../research/local-video-source.md).
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

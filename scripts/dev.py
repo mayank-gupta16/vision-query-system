@@ -121,9 +121,9 @@ def run_command(command: str, state: Path, version: str) -> None:
         # No implicit dependency installation or network in the check command.
         prefix = [uv, "run", "--frozen", "--no-sync", "--offline"]
         for arguments in [
-            ["ruff", "format", "--check", "src", "tests", "scripts"],
-            ["ruff", "check", "src", "tests", "scripts"],
-            ["mypy", "src", "tests", "scripts"],
+            ["ruff", "format", "--check", "src", "tests", "scripts", "workers"],
+            ["ruff", "check", "src", "tests", "scripts", "workers"],
+            ["mypy", "src", "tests", "scripts", "workers"],
             ["coverage", "run", "-m", "pytest"],
             ["coverage", "report"],
             ["python", "scripts/inspect_dependency_licenses.py", "--check"],

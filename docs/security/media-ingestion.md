@@ -30,3 +30,10 @@ bounded regular-file descriptor, mount only an immutable runtime closure, disabl
 network, add the reviewed seccomp/Landlock policy, cap and concurrently drain all
 output, and kill the whole cgroup on cancellation or limit breach. There is no
 fallback to a main-process or ordinary-subprocess decoder.
+
+The implemented Linux launcher opens beneath the approved source root with
+`openat2`, snapshots the source into a sealed anonymous file, and launches a
+root-owned worker from inside the immutable runtime. Landlock permits read/execute
+only on that runtime and its fixed library mounts; a mounted `/proc` path remains
+denied. The worker also verifies non-root execution, no-new-privileges, and network
+denial before its output is accepted. Missing capabilities fail closed.
