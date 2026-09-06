@@ -18,48 +18,61 @@ STORE_ROOT/                         mode 0700
 ```
 
 The adapter also exposes coordinator-facing staged write, idempotent promotion,
-discard, integrity inspection, paginated inventory, and low-level deletion
-operations. A writer session holds the one kernel advisory lock across staging,
-future SQLite intent work, CAS promotion, and metadata completion. The adapter
+discard, integrity inspection, paginated inventory, typed cleanup handles for
+incomplete files and empty run directories, and low-level deletion operations.
+A writer session holds the one kernel advisory lock across staging, future
+SQLite intent work, CAS promotion, cleanup, and metadata completion. The adapter
 does not infer references or delete orphans: the WorldStore/coordinator remains
-the reference authority and must classify inventory results before any repair.
+the reference authority and must classify inventory results and prove that no
+live/preparing run owns a remnant before authorizing cleanup or repair.
 
-Initialization pins an absolute effective-UID-owned private root, creates only
-the fixed versioned layout, and probes exclusive creation, file/directory sync,
-and same-filesystem descriptor-relative rename. Existing objects with unexpected
-type, owner, mode, link count, device, or symlink behavior fail closed. Mutations
-stage through an exclusively created random file, hash and count the bytes,
-change it to read-only, sync it, and either verify/deduplicate an existing CAS
-file or atomically rename and sync both directories. A commit retry after a
-post-rename interruption verifies the final artifact and succeeds idempotently.
+Initialization pins an absolute effective-UID-owned private root, durably syncs
+the root entry through its trusted parent, creates only the fixed versioned
+layout, and probes exclusive creation, file/directory sync, and same-filesystem
+descriptor-relative rename. Existing objects with unexpected type, owner, mode,
+link count, device, or symlink behavior fail closed. Mutations stage through an
+exclusively created random file, hash and count the bytes, change it to read-only,
+sync it, and either verify/deduplicate an existing CAS file or atomically rename
+and sync both directories. A retry after a rename, unlink, or run-directory
+removal re-syncs every affected existing parent before reporting idempotent
+success.
 
 All artifact and path-derived scalars must be exact built-in values. Traversal,
 string/bytes subclass tricks, symlinks, FIFOs, hard links, hash/size conflicts,
-corrupt destinations, and invalid stage handles are rejected with structured
-redacted port errors. Reads take a shared lock; mutations and repair primitives
-take the exclusive lock. The writer session can inspect and inventory under that
-same exclusive lock before an authorized repair. Inventory is dry-run only and
-has explicit scan-entry, payload, and total-byte limits.
+corrupt destinations, and forged or mutated stage/cleanup handles are rejected
+with structured redacted port errors. Reads take a shared lock; mutations and
+repair primitives take the exclusive lock. A lock-owner close failure cannot be
+reported as success; an ambiguously retained lock poisons that adapter instance.
+The writer session can inspect and inventory under that same exclusive lock
+before an authorized repair.
+
+Inventory is dry-run only and streams hashes in 1 MiB chunks. In version 1,
+pagination bounds returned results, not traversal work: every page rescans and
+rehashes the complete known tree before selecting a page. The default whole-scan
+support envelope is 4,096 discovered directory entries and 1 GiB of artifact or
+stage bytes. Larger stores must explicitly raise those constructor budgets and
+pay the repeated scan cost; an incremental persisted audit cursor is deferred.
 
 ## Acceptance result
 
 Contract and adversarial tests cover layout and permissions, stable port
 compatibility, staged and direct writes, repeated commit/discard/delete,
 deduplication, synthetic same-hash/different-byte collision handling,
-interrupted writes and rename recovery, lock contention, descriptor reuse,
-missing/corrupt/incomplete/unknown audit findings, bounded pagination, and
-root/component/file traversal and link attacks. Reopening the store preserves
-the committed inode and verifies its bytes. The package-content check includes
-the new zero-dependency module.
+interrupted writes and rename/unlink durability recovery, lock contention and
+ambiguous close poisoning, descriptor reuse, missing/corrupt/incomplete/empty-run
+audit findings and authorized cleanup, bounded pagination, and root/component/
+file traversal and link attacks. Reopening the store preserves the committed
+inode and verifies its bytes. The package-content check includes the new
+zero-dependency module.
 
 The CPU-LITE baseline used two deterministic 16 MiB synthetic payloads. A raw
-SHA-256 pass took 28.6 ms (587 MB/s). The unique durable `put` took 127.7 ms
-(131 MB/s), a verified read took 46.4 ms (361 MB/s), and a deduplicated `put`
-took 171.2 ms (98 MB/s). Staging the second artifact took 61.7 ms (272 MB/s),
-atomic promotion and directory sync took 31.3 ms, the two-artifact integrity
-audit took 122.6 ms, and deletion plus directory sync took 31.7 ms. One retained
+SHA-256 pass took 29.1 ms (576 MB/s). The unique durable `put` took 144.4 ms
+(116 MB/s), a verified read took 45.6 ms (368 MB/s), and a deduplicated `put`
+took 202.8 ms (82 MB/s). Staging the second artifact took 75.5 ms (222 MB/s),
+atomic promotion and directory sync took 32.8 ms, the two-artifact integrity
+audit took 144.6 ms, and deletion plus directory sync took 32.0 ms. One retained
 artifact occupied 16,777,216 logical and allocated bytes; dedupe did not change
-that count. Peak process RSS was 90,509,312 bytes, below the 2 GiB harness bound.
+that count. Peak process RSS was 90,480,640 bytes, below the 2 GiB harness bound.
 These are single-run correctness baselines, not optimization targets or
 cross-machine performance claims.
 

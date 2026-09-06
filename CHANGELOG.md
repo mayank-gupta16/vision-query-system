@@ -5,9 +5,9 @@ All notable project changes will be recorded here.
 ## Unreleased
 
 - Add the private versioned local EvidenceStore with staged atomic CAS writes,
-  integrity verification, deduplication, coordinator-held locking, bounded audit
-  and deletion primitives, adversarial tests, and CPU-LITE disk/hash/write
-  evidence.
+  integrity verification, deduplication, coordinator-held locking, crash-remnant
+  cleanup handles, bounded streaming audit and deletion primitives, adversarial
+  tests, and CPU-LITE disk/hash/write evidence.
 - Add exact rational detector-to-source geometry for resize, letterbox, and
   quarter-turn display rotation plus deterministic, root-confined original-pixel
   RGB24 crop extraction and CPU-LITE evidence.

@@ -12,7 +12,7 @@ import re
 import secrets
 import stat
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from enum import StrEnum
@@ -43,6 +43,7 @@ _INVENTORY_TOKEN = re.compile(r"inv_[0-9a-f]{64}\Z")
 _PROBE_SOURCE = ".visualworld-probe.part"
 _PROBE_DESTINATION = ".visualworld-probe.ready"
 _DIRECTORY_FLAGS = os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
+_STRUCTURE_ERRNOS = frozenset({errno.EACCES, errno.EISDIR, errno.ELOOP, errno.ENOTDIR, errno.EPERM})
 
 
 def _error(
@@ -75,13 +76,27 @@ def _digest(value: object, operation: str) -> str:
     return value
 
 
-def _artifact(value: object, operation: str) -> Artifact:
+def _canonical_artifact(value: object) -> Artifact:
     if (
         type(value) is not Artifact
         or type(value.sha256) is not str
         or type(value.bytes) is not str
         or type(value.media_type) is not str
     ):
+        raise ValueError("invalid artifact")
+    return Artifact(value.sha256, value.bytes, value.media_type)
+
+
+def _artifact(value: object, operation: str) -> Artifact:
+    try:
+        return _canonical_artifact(value)
+    except (TypeError, ValueError):
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    raise AssertionError("unreachable")
+
+
+def _staging_name(value: object, operation: str) -> str:
+    if type(value) is not str or not _STAGING_NAME.fullmatch(value):
         _fail(PortErrorCode.INVALID_REQUEST, operation)
     return value
 
@@ -108,6 +123,7 @@ class InventoryKind(StrEnum):
     CORRUPT = "corrupt"
     STAGED = "staged"
     INCOMPLETE = "incomplete"
+    EMPTY_RUN = "empty_run"
     INVALID = "invalid"
 
 
@@ -119,15 +135,15 @@ class StageHandle:
     protocol_version: int = 1
 
     def __post_init__(self) -> None:
+        try:
+            _canonical_artifact(self.artifact)
+        except (TypeError, ValueError):
+            raise ValueError("invalid stage handle") from None
         if (
             type(self.run_id) is not str
             or not _RUN_ID.fullmatch(self.run_id)
             or type(self.staging_name) is not str
             or not _STAGING_NAME.fullmatch(self.staging_name)
-            or type(self.artifact) is not Artifact
-            or type(self.artifact.sha256) is not str
-            or type(self.artifact.bytes) is not str
-            or type(self.artifact.media_type) is not str
             or type(self.protocol_version) is not int
             or self.protocol_version != 1
         ):
@@ -165,6 +181,97 @@ class StageHandle:
 
 
 @dataclass(frozen=True, slots=True, repr=False)
+class StagingCleanupHandle:
+    """Opaque identity for explicit cleanup of one incomplete stage or empty run."""
+
+    run_id: str
+    staging_name: str | None
+    device: int
+    inode: int
+    protocol_version: int = 1
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.run_id) is not str
+            or not _RUN_ID.fullmatch(self.run_id)
+            or (
+                self.staging_name is not None
+                and (
+                    type(self.staging_name) is not str
+                    or not _STAGING_NAME.fullmatch(self.staging_name)
+                )
+            )
+            or type(self.device) is not int
+            or self.device < 0
+            or type(self.inode) is not int
+            or self.inode < 0
+            or type(self.protocol_version) is not int
+            or self.protocol_version != 1
+        ):
+            raise ValueError("invalid staging cleanup handle")
+
+    def to_mapping(self) -> dict[str, object]:
+        return {
+            "device": self.device,
+            "inode": self.inode,
+            "protocol_version": self.protocol_version,
+            "run_id": self.run_id,
+            "staging_name": self.staging_name,
+        }
+
+    def __repr__(self) -> str:
+        return "StagingCleanupHandle(<redacted>)"
+
+    @classmethod
+    def from_mapping(cls, value: object) -> StagingCleanupHandle:
+        if not isinstance(value, dict) or set(value) != {
+            "device",
+            "inode",
+            "protocol_version",
+            "run_id",
+            "staging_name",
+        }:
+            raise ValueError("invalid staging cleanup handle")
+        try:
+            return cls(
+                run_id=value["run_id"],
+                staging_name=value["staging_name"],
+                device=value["device"],
+                inode=value["inode"],
+                protocol_version=value["protocol_version"],
+            )
+        except (TypeError, ValueError):
+            raise ValueError("invalid staging cleanup handle") from None
+
+
+def _stage_handle(value: object, operation: str) -> StageHandle:
+    if type(value) is not StageHandle:
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    selected_run = _run_id(value.run_id, operation)
+    selected_name = _staging_name(value.staging_name, operation)
+    selected_artifact = _artifact(value.artifact, operation)
+    if type(value.protocol_version) is not int or value.protocol_version != 1:
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    return StageHandle(selected_run, selected_name, selected_artifact, 1)
+
+
+def _cleanup_handle(value: object, operation: str) -> StagingCleanupHandle:
+    if type(value) is not StagingCleanupHandle:
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    try:
+        return StagingCleanupHandle(
+            value.run_id,
+            value.staging_name,
+            value.device,
+            value.inode,
+            value.protocol_version,
+        )
+    except (TypeError, ValueError):
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    raise AssertionError("unreachable")
+
+
+@dataclass(frozen=True, slots=True, repr=False)
 class CommitResult:
     artifact: Artifact
     disposition: CommitDisposition
@@ -198,6 +305,7 @@ class InventoryEntry:
     kind: InventoryKind
     artifact: Artifact | None = None
     stage: StageHandle | None = None
+    cleanup: StagingCleanupHandle | None = None
 
     def __post_init__(self) -> None:
         if type(self.token) is not str or not _INVENTORY_TOKEN.fullmatch(self.token):
@@ -209,17 +317,33 @@ class InventoryEntry:
                 self.kind is InventoryKind.ARTIFACT
                 and isinstance(self.artifact, Artifact)
                 and self.stage is None
+                and self.cleanup is None
             )
             or (
                 self.kind is InventoryKind.STAGED
                 and self.artifact is None
                 and isinstance(self.stage, StageHandle)
+                and self.cleanup is None
             )
             or (
-                self.kind
-                in {InventoryKind.CORRUPT, InventoryKind.INCOMPLETE, InventoryKind.INVALID}
+                self.kind is InventoryKind.INCOMPLETE
                 and self.artifact is None
                 and self.stage is None
+                and isinstance(self.cleanup, StagingCleanupHandle)
+                and self.cleanup.staging_name is not None
+            )
+            or (
+                self.kind is InventoryKind.EMPTY_RUN
+                and self.artifact is None
+                and self.stage is None
+                and isinstance(self.cleanup, StagingCleanupHandle)
+                and self.cleanup.staging_name is None
+            )
+            or (
+                self.kind in {InventoryKind.CORRUPT, InventoryKind.INVALID}
+                and self.artifact is None
+                and self.stage is None
+                and self.cleanup is None
             )
         )
         if not valid_shape:
@@ -346,8 +470,15 @@ def _open_directory(
         descriptor = os.open(name, _DIRECTORY_FLAGS, dir_fd=parent_descriptor)
     except FileNotFoundError:
         _fail(missing, operation)
-    except OSError:
-        _fail(PortErrorCode.CORRUPT, operation)
+    except OSError as error:
+        _fail(
+            (
+                PortErrorCode.CORRUPT
+                if error.errno in _STRUCTURE_ERRNOS
+                else PortErrorCode.STORAGE_FAILED
+            ),
+            operation,
+        )
     try:
         metadata = os.fstat(descriptor)
         parent_metadata = os.fstat(parent_descriptor)
@@ -370,8 +501,9 @@ def _open_directory(
         with suppress(OSError):
             os.close(descriptor)
         _fail(PortErrorCode.CORRUPT, operation)
-    if created:
+    if create:
         try:
+            os.fsync(descriptor)
             os.fsync(parent_descriptor)
         except OSError:
             with suppress(OSError):
@@ -410,80 +542,120 @@ def _directory_chain(
 
 
 def _open_root(path: Path, operation: str, *, create: bool) -> int:
-    if not isinstance(path, Path) or not path.is_absolute():
+    if not isinstance(path, Path) or not path.is_absolute() or path.name in {"", ".", ".."}:
         _fail(PortErrorCode.UNSUPPORTED, operation)
-    created = False
-    if create:
-        try:
-            os.mkdir(path, 0o700)
-            created = True
-        except FileExistsError:
-            pass
-        except OSError:
-            _fail(PortErrorCode.UNSUPPORTED, operation)
+    parent_descriptor: int | None = None
     descriptor: int | None = None
+    created = False
     try:
-        before = path.lstat()
-        descriptor = os.open(path, _DIRECTORY_FLAGS)
-        opened = os.fstat(descriptor)
+        parent_before = path.parent.lstat()
+        parent_descriptor = os.open(path.parent, _DIRECTORY_FLAGS)
+        parent_opened = os.fstat(parent_descriptor)
     except OSError:
-        if descriptor is not None:
-            with suppress(OSError):
-                os.close(descriptor)
+        if parent_descriptor is not None:
+            _close_descriptors([parent_descriptor])
         _fail(PortErrorCode.UNSUPPORTED, operation)
-    if created:
-        try:
-            os.fchmod(descriptor, 0o700)
-            opened = os.fstat(descriptor)
-        except OSError:
-            with suppress(OSError):
-                os.close(descriptor)
-            _fail(PortErrorCode.UNSUPPORTED, operation)
+    active_parent = parent_descriptor
     if (
-        stat.S_ISLNK(before.st_mode)
-        or (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino)
-        or not _directory_metadata_valid(opened)
+        stat.S_ISLNK(parent_before.st_mode)
+        or not stat.S_ISDIR(parent_opened.st_mode)
+        or (parent_before.st_dev, parent_before.st_ino)
+        != (parent_opened.st_dev, parent_opened.st_ino)
     ):
-        with suppress(OSError):
-            os.close(descriptor)
+        _close_descriptors([active_parent])
         _fail(PortErrorCode.UNSUPPORTED, operation)
-    return descriptor
-
-
-def _open_lock(root_descriptor: int, operation: str, *, create: bool) -> int:
-    flags = os.O_RDWR | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
-    created = False
-    descriptor: int | None = None
     try:
         if create:
             try:
-                descriptor = os.open(
-                    "writer.lock",
-                    flags | os.O_CREAT | os.O_EXCL,
-                    0o600,
-                    dir_fd=root_descriptor,
-                )
+                os.mkdir(path.name, 0o700, dir_fd=active_parent)
                 created = True
             except FileExistsError:
-                descriptor = os.open("writer.lock", flags, dir_fd=root_descriptor)
-        else:
-            descriptor = os.open("writer.lock", flags, dir_fd=root_descriptor)
-        metadata = os.fstat(descriptor)
+                pass
+            except OSError:
+                _fail(PortErrorCode.UNSUPPORTED, operation)
+        try:
+            before = os.stat(path.name, dir_fd=active_parent, follow_symlinks=False)
+            descriptor = os.open(path.name, _DIRECTORY_FLAGS, dir_fd=active_parent)
+            opened = os.fstat(descriptor)
+        except OSError:
+            _fail(PortErrorCode.UNSUPPORTED, operation)
         if created:
-            os.fchmod(descriptor, 0o600)
-            metadata = os.fstat(descriptor)
-    except OSError:
+            try:
+                os.fchmod(descriptor, 0o700)
+                opened = os.fstat(descriptor)
+            except OSError:
+                _fail(PortErrorCode.UNSUPPORTED, operation)
+        if (
+            stat.S_ISLNK(before.st_mode)
+            or (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino)
+            or not _directory_metadata_valid(opened)
+        ):
+            _fail(PortErrorCode.UNSUPPORTED, operation)
+        if create:
+            try:
+                # Always sync on initialization so a retry completes a root mkdir
+                # whose prior parent sync failed after the namespace change.
+                os.fsync(active_parent)
+            except OSError:
+                _fail(PortErrorCode.UNSUPPORTED, operation)
+        return descriptor
+    except BaseException:
         if descriptor is not None:
+            _close_descriptors([descriptor])
+        raise
+    finally:
+        _close_descriptors([active_parent])
+
+
+def _open_lock(root_descriptor: int, operation: str, *, create: bool) -> BinaryFile:
+    created = False
+    stream: BinaryFile | None = None
+    try:
+        if create:
+            try:
+                stream = _open_file(root_descriptor, "writer.lock", "x+b", 0o600)
+                created = True
+            except FileExistsError:
+                stream = _open_file(root_descriptor, "writer.lock", "r+b", 0)
+        else:
+            stream = _open_file(root_descriptor, "writer.lock", "r+b", 0)
+        metadata = os.fstat(stream.fileno())
+        if created:
+            os.fchmod(stream.fileno(), 0o600)
+            metadata = os.fstat(stream.fileno())
+        if create:
+            os.fsync(stream.fileno())
+    except OSError:
+        if stream is not None and not stream.closed:
             with suppress(OSError):
-                os.close(descriptor)
+                stream.close()
         _fail(PortErrorCode.UNSUPPORTED if create else PortErrorCode.CORRUPT, operation)
-    if descriptor is None:
+    if stream is None:
         _fail(PortErrorCode.UNSUPPORTED if create else PortErrorCode.CORRUPT, operation)
     if not _regular_metadata_valid(metadata, 0o600):
-        with suppress(OSError):
-            os.close(descriptor)
+        if not stream.closed:
+            with suppress(OSError):
+                stream.close()
         _fail(PortErrorCode.UNSUPPORTED if create else PortErrorCode.CORRUPT, operation)
-    return descriptor
+    return stream
+
+
+def _close_lock_owner(
+    stream: BinaryFile,
+    operation: str,
+    poison: Callable[[BinaryFile], None],
+) -> None:
+    try:
+        stream.close()
+    except BaseException as error:
+        if not stream.closed:
+            with suppress(BaseException):
+                stream.close()
+        if not stream.closed:
+            poison(stream)
+        if isinstance(error, OSError):
+            _fail(PortErrorCode.STORAGE_FAILED, operation)
+        raise
 
 
 @contextmanager
@@ -493,15 +665,16 @@ def _locked(
     *,
     exclusive: bool,
     timeout_ms: int,
+    poison: Callable[[BinaryFile], None],
     create: bool = False,
 ) -> Iterator[None]:
-    descriptor = _open_lock(root_descriptor, operation, create=create)
+    stream = _open_lock(root_descriptor, operation, create=create)
     mode = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
     deadline = time.monotonic_ns() + timeout_ms * 1_000_000
     try:
         while True:
             try:
-                fcntl.flock(descriptor, mode | fcntl.LOCK_NB)
+                fcntl.flock(stream.fileno(), mode | fcntl.LOCK_NB)
                 break
             except BlockingIOError:
                 if time.monotonic_ns() >= deadline:
@@ -516,8 +689,7 @@ def _locked(
                 _fail(PortErrorCode.STORAGE_FAILED, operation)
         yield
     finally:
-        with suppress(OSError):
-            os.close(descriptor)
+        _close_lock_owner(stream, operation, poison)
 
 
 def _open_file(
@@ -570,7 +742,7 @@ def _unlink_if_owned(
 def _verify_file(
     parent_descriptor: int,
     name: str,
-    digest_name: str,
+    digest_name: str | None,
     expected_artifact: Artifact | None,
     operation: str,
     maximum: int,
@@ -581,8 +753,15 @@ def _verify_file(
         stream = _open_file(parent_descriptor, name, "rb", 0)
     except FileNotFoundError:
         return None
-    except OSError:
-        _fail(PortErrorCode.CORRUPT, operation)
+    except OSError as error:
+        _fail(
+            (
+                PortErrorCode.CORRUPT
+                if error.errno in _STRUCTURE_ERRNOS
+                else PortErrorCode.STORAGE_FAILED
+            ),
+            operation,
+        )
     try:
         metadata = os.fstat(stream.fileno())
         if (
@@ -604,10 +783,11 @@ def _verify_file(
             digest.update(chunk)
             if chunks is not None:
                 chunks.append(chunk)
-        if total != metadata.st_size or digest.hexdigest() != digest_name:
+        actual_digest = digest.hexdigest()
+        if total != metadata.st_size or (digest_name is not None and actual_digest != digest_name):
             _fail(PortErrorCode.CORRUPT, operation)
         verified_artifact = Artifact(
-            digest_name,
+            actual_digest,
             str(total),
             (
                 expected_artifact.media_type
@@ -714,6 +894,8 @@ class LocalEvidenceStore:
         self._inventory_maximum_entries = max_inventory_entries
         self._inventory_maximum_bytes = max_inventory_bytes
         self._lock_timeout_ms = lock_timeout_ms
+        self._poisoned = False
+        self._retained_lock_streams: list[BinaryFile] = []
         self._descriptor = CapabilityDescriptor(
             PortKind.EVIDENCE_STORE,
             "local-cas",
@@ -741,6 +923,7 @@ class LocalEvidenceStore:
                 operation,
                 exclusive=True,
                 timeout_ms=self._lock_timeout_ms,
+                poison=self._poison_lock,
                 create=True,
             ):
                 with (
@@ -827,6 +1010,8 @@ class LocalEvidenceStore:
 
     @contextmanager
     def _operation(self, operation: str, *, exclusive: bool) -> Iterator[int]:
+        if self._poisoned:
+            _fail(PortErrorCode.STORAGE_FAILED, operation)
         root_descriptor = _open_root(self._root, operation, create=False)
         try:
             with _locked(
@@ -834,11 +1019,16 @@ class LocalEvidenceStore:
                 operation,
                 exclusive=exclusive,
                 timeout_ms=self._lock_timeout_ms,
+                poison=self._poison_lock,
             ):
                 yield root_descriptor
         finally:
             with suppress(OSError):
                 os.close(root_descriptor)
+
+    def _poison_lock(self, stream: BinaryFile) -> None:
+        self._poisoned = True
+        self._retained_lock_streams.append(stream)
 
     def _validate_put(self, artifact: object, content: object, operation: str) -> Artifact:
         selected = _artifact(artifact, operation)
@@ -912,6 +1102,8 @@ class LocalEvidenceStore:
                             stream.close()
                     if created and not completed:
                         _unlink_if_owned(run_directory, name, inode)
+                        with suppress(OSError):
+                            self._remove_empty_run(staging, run_directory, selected_run)
             _fail(PortErrorCode.STORAGE_FAILED, operation)
         raise AssertionError("unreachable")
 
@@ -973,15 +1165,14 @@ class LocalEvidenceStore:
         stage: object,
         operation: str,
     ) -> CommitResult:
-        if type(stage) is not StageHandle:
-            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        selected = _stage_handle(stage, operation)
         with _directory_chain(root_descriptor, ("staging", "v1"), operation) as staging:
             run_directory: int | None = None
             try:
                 try:
                     run_directory, _ = _open_directory(
                         staging,
-                        stage.run_id,
+                        selected.run_id,
                         operation,
                         create=False,
                         missing=PortErrorCode.NOT_FOUND,
@@ -992,9 +1183,9 @@ class LocalEvidenceStore:
                 staged = (
                     _verify_file(
                         run_directory,
-                        stage.staging_name,
-                        stage.artifact.sha256,
-                        stage.artifact,
+                        selected.staging_name,
+                        selected.artifact.sha256,
+                        selected.artifact,
                         operation,
                         self._maximum,
                         content=False,
@@ -1004,8 +1195,8 @@ class LocalEvidenceStore:
                 )
                 final, final_parent, descriptors = self._cas_file(
                     root_descriptor,
-                    stage.artifact.sha256,
-                    stage.artifact,
+                    selected.artifact.sha256,
+                    selected.artifact,
                     operation,
                     content=False,
                     create=staged is not None,
@@ -1014,36 +1205,49 @@ class LocalEvidenceStore:
                     if staged is None:
                         if final is None:
                             _fail(PortErrorCode.NOT_FOUND, operation)
+                        try:
+                            os.fsync(cast(int, final_parent))
+                            self._sync_stage_absence(
+                                staging,
+                                run_directory,
+                                selected.run_id,
+                            )
+                        except OSError:
+                            _fail(PortErrorCode.STORAGE_FAILED, operation)
                         return CommitResult(
-                            stage.artifact,
+                            selected.artifact,
                             CommitDisposition.ALREADY_COMMITTED,
                         )
                     active_run = cast(int, run_directory)
                     if final is not None:
                         if not _files_equal(
                             cast(int, final_parent),
-                            stage.artifact.sha256,
+                            selected.artifact.sha256,
                             active_run,
-                            stage.staging_name,
-                            int(stage.artifact.bytes),
+                            selected.staging_name,
+                            int(selected.artifact.bytes),
                             operation,
                         ):
                             _fail(PortErrorCode.CONFLICT, operation)
-                        os.unlink(stage.staging_name, dir_fd=active_run)
+                        os.unlink(selected.staging_name, dir_fd=active_run)
                         os.fsync(active_run)
-                        self._remove_empty_run(staging, active_run, stage.run_id)
-                        return CommitResult(stage.artifact, CommitDisposition.DEDUPLICATED)
+                        os.fsync(cast(int, final_parent))
+                        self._remove_empty_run(staging, active_run, selected.run_id)
+                        return CommitResult(
+                            selected.artifact,
+                            CommitDisposition.DEDUPLICATED,
+                        )
                     destination = cast(int, final_parent)
                     os.rename(
-                        stage.staging_name,
-                        stage.artifact.sha256,
+                        selected.staging_name,
+                        selected.artifact.sha256,
                         src_dir_fd=active_run,
                         dst_dir_fd=destination,
                     )
                     os.fsync(active_run)
                     os.fsync(destination)
-                    self._remove_empty_run(staging, active_run, stage.run_id)
-                    return CommitResult(stage.artifact, CommitDisposition.PROMOTED)
+                    self._remove_empty_run(staging, active_run, selected.run_id)
+                    return CommitResult(selected.artifact, CommitDisposition.PROMOTED)
                 except OSError:
                     _fail(PortErrorCode.STORAGE_FAILED, operation)
                 finally:
@@ -1059,8 +1263,22 @@ class LocalEvidenceStore:
             os.rmdir(run_id, dir_fd=staging)
             os.fsync(staging)
         except OSError as error:
-            if error.errno not in {errno.ENOENT, errno.ENOTEMPTY}:
+            if error.errno == errno.ENOENT:
+                os.fsync(staging)
+            elif error.errno != errno.ENOTEMPTY:
                 raise
+
+    def _sync_stage_absence(
+        self,
+        staging: int,
+        run_directory: int | None,
+        run_id: str,
+    ) -> None:
+        if run_directory is None:
+            os.fsync(staging)
+            return
+        os.fsync(run_directory)
+        self._remove_empty_run(staging, run_directory, run_id)
 
     def put(self, artifact: Artifact, content: bytes) -> Artifact:
         operation = "put"
@@ -1160,7 +1378,9 @@ class LocalEvidenceStore:
                     continue
                 try:
                     first, _ = _open_directory(root, first_entry.name, operation, create=False)
-                except PortError:
+                except PortError as error:
+                    if error.code is not PortErrorCode.CORRUPT:
+                        raise
                     entries.append(_invalid_entry(InventoryKind.INVALID, b"a1\0" + first_identity))
                     continue
                 try:
@@ -1182,7 +1402,9 @@ class LocalEvidenceStore:
                                 operation,
                                 create=False,
                             )
-                        except PortError:
+                        except PortError as error:
+                            if error.code is not PortErrorCode.CORRUPT:
+                                raise
                             entries.append(
                                 _invalid_entry(InventoryKind.INVALID, b"a2\0" + second_identity)
                             )
@@ -1259,11 +1481,32 @@ class LocalEvidenceStore:
                     continue
                 try:
                     run, _ = _open_directory(root, run_entry.name, operation, create=False)
-                except PortError:
+                except PortError as error:
+                    if error.code is not PortErrorCode.CORRUPT:
+                        raise
                     entries.append(_invalid_entry(InventoryKind.INVALID, b"sr\0" + run_identity))
                     continue
                 try:
-                    for file_entry in _scan_directory(run, budget, operation):
+                    file_entries = _scan_directory(run, budget, operation)
+                    if not file_entries:
+                        try:
+                            run_metadata = os.fstat(run)
+                        except OSError:
+                            _fail(PortErrorCode.STORAGE_FAILED, operation)
+                        cleanup = StagingCleanupHandle(
+                            run_entry.name,
+                            None,
+                            run_metadata.st_dev,
+                            run_metadata.st_ino,
+                        )
+                        entries.append(
+                            InventoryEntry(
+                                _inventory_token(InventoryKind.EMPTY_RUN, run_identity),
+                                InventoryKind.EMPTY_RUN,
+                                cleanup=cleanup,
+                            )
+                        )
+                    for file_entry in file_entries:
                         identity = run_identity + b"/" + os.fsencode(file_entry.name)
                         metadata = file_entry.metadata
                         if metadata is None:
@@ -1279,32 +1522,43 @@ class LocalEvidenceStore:
                                 _invalid_entry(InventoryKind.INVALID, b"sf\0" + identity)
                             )
                         elif stat.S_IMODE(metadata.st_mode) == 0o600:
+                            cleanup = StagingCleanupHandle(
+                                run_entry.name,
+                                file_entry.name,
+                                metadata.st_dev,
+                                metadata.st_ino,
+                            )
                             entries.append(
-                                _invalid_entry(InventoryKind.INCOMPLETE, b"sf\0" + identity)
+                                InventoryEntry(
+                                    _inventory_token(InventoryKind.INCOMPLETE, identity),
+                                    InventoryKind.INCOMPLETE,
+                                    cleanup=cleanup,
+                                )
                             )
                         elif stat.S_IMODE(metadata.st_mode) == 0o400:
-                            stream: BinaryFile | None = None
                             try:
-                                stream = _open_file(run, file_entry.name, "rb", 0)
-                                content = stream.read(self._maximum + 1)
-                                stream.close()
-                            except OSError:
+                                verified = _verify_file(
+                                    run,
+                                    file_entry.name,
+                                    None,
+                                    None,
+                                    operation,
+                                    self._maximum,
+                                    content=False,
+                                )
+                            except PortError as error:
+                                if error.code is not PortErrorCode.CORRUPT:
+                                    raise
                                 entries.append(
                                     _invalid_entry(InventoryKind.CORRUPT, b"sf\0" + identity)
                                 )
                                 continue
-                            finally:
-                                if stream is not None and not stream.closed:
-                                    with suppress(OSError):
-                                        stream.close()
-                            if len(content) != metadata.st_size or len(content) > self._maximum:
+                            if verified is None:
                                 entries.append(
                                     _invalid_entry(InventoryKind.CORRUPT, b"sf\0" + identity)
                                 )
                                 continue
-                            artifact = Artifact(
-                                hashlib.sha256(content).hexdigest(), str(len(content))
-                            )
+                            artifact = verified.artifact
                             stage = StageHandle(run_entry.name, file_entry.name, artifact)
                             entries.append(
                                 InventoryEntry(
@@ -1391,8 +1645,15 @@ class LocalEvidenceStore:
             create=False,
         )
         try:
-            if final is None or parent is None:
+            if final is None:
+                if parent is not None:
+                    try:
+                        os.fsync(parent)
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
                 return DeleteDisposition.ALREADY_ABSENT
+            if parent is None:
+                _fail(PortErrorCode.CORRUPT, operation)
             try:
                 current = os.stat(
                     selected.sha256,
@@ -1420,44 +1681,134 @@ class LocalEvidenceStore:
         stage: object,
         operation: str,
     ) -> DeleteDisposition:
-        if type(stage) is not StageHandle:
-            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        selected = _stage_handle(stage, operation)
         with _directory_chain(root_descriptor, ("staging", "v1"), operation) as staging:
             try:
                 run, _ = _open_directory(
                     staging,
-                    stage.run_id,
+                    selected.run_id,
                     operation,
                     create=False,
                     missing=PortErrorCode.NOT_FOUND,
                 )
             except PortError as error:
                 if error.code is PortErrorCode.NOT_FOUND:
+                    try:
+                        os.fsync(staging)
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
                     return DeleteDisposition.ALREADY_ABSENT
                 raise
             try:
                 verified = _verify_file(
                     run,
-                    stage.staging_name,
-                    stage.artifact.sha256,
-                    stage.artifact,
+                    selected.staging_name,
+                    selected.artifact.sha256,
+                    selected.artifact,
                     operation,
                     self._maximum,
                     content=False,
                 )
                 if verified is None:
+                    try:
+                        self._sync_stage_absence(staging, run, selected.run_id)
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
                     return DeleteDisposition.ALREADY_ABSENT
                 try:
                     current = os.stat(
-                        stage.staging_name,
+                        selected.staging_name,
                         dir_fd=run,
                         follow_symlinks=False,
                     )
                     if (current.st_dev, current.st_ino) != verified.inode:
                         _fail(PortErrorCode.CORRUPT, operation)
-                    os.unlink(stage.staging_name, dir_fd=run)
+                    os.unlink(selected.staging_name, dir_fd=run)
                     os.fsync(run)
-                    self._remove_empty_run(staging, run, stage.run_id)
+                    self._remove_empty_run(staging, run, selected.run_id)
+                except OSError:
+                    _fail(PortErrorCode.STORAGE_FAILED, operation)
+                return DeleteDisposition.DELETED
+            finally:
+                with suppress(OSError):
+                    os.close(run)
+
+    def discard_incomplete(self, cleanup: StagingCleanupHandle) -> DeleteDisposition:
+        """Discard an inventoried crash remnant after coordinator authorization."""
+
+        operation = "discard_incomplete"
+        with self._operation(operation, exclusive=True) as root_descriptor:
+            return self._discard_incomplete_locked(root_descriptor, cleanup, operation)
+
+    def _discard_incomplete_locked(
+        self,
+        root_descriptor: int,
+        cleanup: object,
+        operation: str,
+    ) -> DeleteDisposition:
+        selected = _cleanup_handle(cleanup, operation)
+        with _directory_chain(root_descriptor, ("staging", "v1"), operation) as staging:
+            try:
+                run, _ = _open_directory(
+                    staging,
+                    selected.run_id,
+                    operation,
+                    create=False,
+                    missing=PortErrorCode.NOT_FOUND,
+                )
+            except PortError as error:
+                if error.code is PortErrorCode.NOT_FOUND:
+                    try:
+                        os.fsync(staging)
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
+                    return DeleteDisposition.ALREADY_ABSENT
+                raise
+            try:
+                if selected.staging_name is None:
+                    try:
+                        metadata = os.fstat(run)
+                        with os.scandir(run) as iterator:
+                            occupied = next(iterator, None) is not None
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
+                    if (metadata.st_dev, metadata.st_ino) != (
+                        selected.device,
+                        selected.inode,
+                    ):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    if occupied:
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    try:
+                        os.rmdir(selected.run_id, dir_fd=staging)
+                        os.fsync(staging)
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
+                    return DeleteDisposition.DELETED
+
+                try:
+                    metadata = os.stat(
+                        selected.staging_name,
+                        dir_fd=run,
+                        follow_symlinks=False,
+                    )
+                except FileNotFoundError:
+                    try:
+                        self._sync_stage_absence(staging, run, selected.run_id)
+                    except OSError:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
+                    return DeleteDisposition.ALREADY_ABSENT
+                except OSError:
+                    _fail(PortErrorCode.STORAGE_FAILED, operation)
+                if not _regular_metadata_valid(metadata, 0o600) or (
+                    metadata.st_dev,
+                    metadata.st_ino,
+                ) != (selected.device, selected.inode):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                try:
+                    os.unlink(selected.staging_name, dir_fd=run)
+                    os.fsync(run)
+                    self._remove_empty_run(staging, run, selected.run_id)
                 except OSError:
                     _fail(PortErrorCode.STORAGE_FAILED, operation)
                 return DeleteDisposition.DELETED
@@ -1518,6 +1869,13 @@ class EvidenceWriterSession:
             "discard_stage",
         )
 
+    def discard_incomplete(self, cleanup: StagingCleanupHandle) -> DeleteDisposition:
+        return self._store._discard_incomplete_locked(
+            self._descriptor(),
+            cleanup,
+            "discard_incomplete",
+        )
+
     def inspect(self, artifacts: tuple[Artifact, ...]) -> tuple[ArtifactCheck, ...]:
         return self._store._inspect_locked(
             self._descriptor(),
@@ -1555,4 +1913,5 @@ __all__ = [
     "InventoryPage",
     "LocalEvidenceStore",
     "StageHandle",
+    "StagingCleanupHandle",
 ]

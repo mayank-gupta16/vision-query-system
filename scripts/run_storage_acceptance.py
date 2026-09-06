@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import platform
+import resource
 import sys
 import tempfile
 import time
@@ -47,9 +48,8 @@ def _memory_bytes() -> int:
 
 def _peak_rss_bytes() -> int:
     try:
-        for line in Path("/proc/self/status").read_text(encoding="ascii").splitlines():
-            if line.startswith("VmHWM:"):
-                return int(line.split()[1]) * 1024
+        reported = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+        return reported if platform.system() == "Darwin" else reported * 1024
     except (OSError, ValueError):
         pass
     return 0

@@ -30,6 +30,7 @@ from visualworld.storage import (
     InventoryPage,
     LocalEvidenceStore,
     StageHandle,
+    StagingCleanupHandle,
 )
 
 RUN_ID = "run_" + "1" * 64
@@ -114,6 +115,9 @@ def test_configuration_and_value_objects_reject_invalid_shapes(tmp_path: Path) -
 
     invalid_values: tuple[Callable[[], object], ...] = (
         lambda: StageHandle(RUN_ID, "invalid", artifact),
+        lambda: StageHandle(RUN_ID, "0" * 32 + ".part", cast(Artifact, object())),
+        lambda: StagingCleanupHandle(RUN_ID, None, -1, 1),
+        lambda: StagingCleanupHandle(RUN_ID, "invalid", 1, 1),
         lambda: CommitResult(cast(Artifact, object()), CommitDisposition.PROMOTED),
         lambda: CommitResult(artifact, cast(CommitDisposition, "promoted")),
         lambda: ArtifactCheck(cast(Artifact, object()), ArtifactState.VALID),
@@ -129,6 +133,64 @@ def test_configuration_and_value_objects_reject_invalid_shapes(tmp_path: Path) -
             construct()
 
     assert "<redacted>" in repr(CommitResult(artifact, CommitDisposition.PROMOTED))
+
+
+def test_new_store_root_is_synced_through_its_parent(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    parent_identity = (tmp_path.stat().st_dev, tmp_path.stat().st_ino)
+    original = os.fsync
+    synced: list[tuple[int, int]] = []
+
+    def record_sync(descriptor: int) -> None:
+        metadata = os.fstat(descriptor)
+        synced.append((metadata.st_dev, metadata.st_ino))
+        original(descriptor)
+
+    monkeypatch.setattr(os, "fsync", record_sync)
+
+    LocalEvidenceStore(root)
+
+    assert parent_identity in synced
+
+
+def test_root_parent_sync_failure_is_retried_on_reinitialization(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    parent_identity = (tmp_path.stat().st_dev, tmp_path.stat().st_ino)
+    original = os.fsync
+    failed = False
+
+    def fail_parent_once(descriptor: int) -> None:
+        nonlocal failed
+        metadata = os.fstat(descriptor)
+        if (metadata.st_dev, metadata.st_ino) == parent_identity and not failed:
+            failed = True
+            raise OSError("private parent sync failure")
+        original(descriptor)
+
+    monkeypatch.setattr(os, "fsync", fail_parent_once)
+    with pytest.raises(PortError) as raised:
+        LocalEvidenceStore(root)
+    assert raised.value.code is PortErrorCode.UNSUPPORTED
+
+    parent_syncs = 0
+
+    def record_parent_sync(descriptor: int) -> None:
+        nonlocal parent_syncs
+        metadata = os.fstat(descriptor)
+        if (metadata.st_dev, metadata.st_ino) == parent_identity:
+            parent_syncs += 1
+        original(descriptor)
+
+    monkeypatch.setattr(os, "fsync", record_parent_sync)
+    LocalEvidenceStore(root)
+
+    assert parent_syncs == 1
 
 
 def test_put_get_and_deduplication_follow_exact_cas_layout(tmp_path: Path) -> None:
@@ -181,6 +243,32 @@ def test_stage_handle_round_trips_as_coordinator_state(tmp_path: Path) -> None:
         with pytest.raises(ValueError, match="invalid stage handle"):
             StageHandle.from_mapping(invalid)
 
+    cleanup = StagingCleanupHandle(RUN_ID, "0" * 32 + ".part", 1, 2)
+    assert StagingCleanupHandle.from_mapping(cleanup.to_mapping()) == cleanup
+    assert "<redacted>" in repr(cleanup)
+    with pytest.raises(ValueError, match="invalid staging cleanup handle"):
+        StagingCleanupHandle.from_mapping({**cleanup.to_mapping(), "device": -1})
+    with pytest.raises(ValueError, match="invalid staging cleanup handle"):
+        StagingCleanupHandle.from_mapping({})
+
+
+def test_stage_and_cleanup_operation_boundaries_reject_noncanonical_values(
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    staged = store.stage(RUN_ID, _artifact(b"stage"), b"stage")
+    object.__setattr__(staged, "protocol_version", 2)
+
+    operations: tuple[Callable[[], object], ...] = (
+        lambda: store.commit_stage(cast(StageHandle, object())),
+        lambda: store.commit_stage(staged),
+        lambda: store.discard_incomplete(cast(StagingCleanupHandle, object())),
+    )
+    for operation in operations:
+        with pytest.raises(PortError) as raised:
+            operation()
+        assert raised.value.code is PortErrorCode.INVALID_REQUEST
+
 
 def test_commit_deduplicates_a_separately_staged_artifact(tmp_path: Path) -> None:
     store = _store(tmp_path)
@@ -231,6 +319,124 @@ def test_discard_stage_is_idempotent_and_scoped(tmp_path: Path) -> None:
     assert store.discard_stage(first) is DeleteDisposition.DELETED
     assert store.discard_stage(first) is DeleteDisposition.ALREADY_ABSENT
     assert _staged_path(store.root, second).exists()
+
+
+def test_inventory_cleanup_handles_recover_incomplete_files_and_empty_runs(
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    staging = store.root / "staging" / "v1"
+    partial_run = staging / RUN_ID
+    partial_run.mkdir(mode=0o700)
+    partial = partial_run / ("2" * 32 + ".part")
+    partial.write_bytes(b"partial")
+    partial.chmod(0o600)
+    empty_run = staging / ("run_" + "3" * 64)
+    empty_run.mkdir(mode=0o700)
+
+    with store.writer_session() as writer:
+        entries = writer.inventory(limit=20).entries
+        incomplete = next(entry for entry in entries if entry.kind is InventoryKind.INCOMPLETE)
+        empty = next(entry for entry in entries if entry.kind is InventoryKind.EMPTY_RUN)
+        assert incomplete.cleanup is not None
+        assert empty.cleanup is not None
+        assert writer.discard_incomplete(incomplete.cleanup) is DeleteDisposition.DELETED
+        assert writer.discard_incomplete(incomplete.cleanup) is DeleteDisposition.ALREADY_ABSENT
+        assert writer.discard_incomplete(empty.cleanup) is DeleteDisposition.DELETED
+        assert writer.discard_incomplete(empty.cleanup) is DeleteDisposition.ALREADY_ABSENT
+
+    assert not partial.exists()
+    assert not partial_run.exists()
+    assert not empty_run.exists()
+
+
+def test_stale_cleanup_handle_never_deletes_a_replacement(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    run = store.root / "staging" / "v1" / RUN_ID
+    run.mkdir(mode=0o700)
+    partial = run / ("2" * 32 + ".part")
+    partial.write_bytes(b"old")
+    partial.chmod(0o600)
+    entry = next(item for item in _inventory(store) if item.kind is InventoryKind.INCOMPLETE)
+    assert entry.cleanup is not None
+    partial.unlink()
+    partial.write_bytes(b"replacement")
+    partial.chmod(0o600)
+
+    with pytest.raises(PortError) as raised:
+        store.discard_incomplete(entry.cleanup)
+
+    assert raised.value.code is PortErrorCode.CORRUPT
+    assert partial.read_bytes() == b"replacement"
+
+
+def test_mutated_cleanup_handle_cannot_escape_the_store(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    run = store.root / "staging" / "v1" / RUN_ID
+    run.mkdir(mode=0o700)
+    partial = run / ("2" * 32 + ".part")
+    partial.write_bytes(b"partial")
+    partial.chmod(0o600)
+    entry = next(item for item in _inventory(store) if item.kind is InventoryKind.INCOMPLETE)
+    assert entry.cleanup is not None
+    victim = tmp_path / "victim"
+    victim.mkdir(mode=0o700)
+    outside = victim / "private.part"
+    outside.write_bytes(b"outside")
+    outside.chmod(0o600)
+    outside_metadata = outside.stat()
+    object.__setattr__(entry.cleanup, "run_id", "../../../victim")
+    object.__setattr__(entry.cleanup, "staging_name", "private.part")
+    object.__setattr__(entry.cleanup, "device", outside_metadata.st_dev)
+    object.__setattr__(entry.cleanup, "inode", outside_metadata.st_ino)
+
+    with pytest.raises(PortError) as raised:
+        store.discard_incomplete(entry.cleanup)
+
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert outside.read_bytes() == b"outside"
+
+
+def test_cleanup_handle_refuses_occupied_or_replaced_empty_run(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    staging = store.root / "staging" / "v1"
+    run = staging / RUN_ID
+    run.mkdir(mode=0o700)
+    entry = next(item for item in _inventory(store) if item.kind is InventoryKind.EMPTY_RUN)
+    assert entry.cleanup is not None
+    (run / "unknown").write_bytes(b"occupied")
+
+    with pytest.raises(PortError) as occupied:
+        store.discard_incomplete(entry.cleanup)
+    assert occupied.value.code is PortErrorCode.CONFLICT
+
+    (run / "unknown").unlink()
+    object.__setattr__(entry.cleanup, "inode", entry.cleanup.inode + 1)
+    with pytest.raises(PortError) as replaced:
+        store.discard_incomplete(entry.cleanup)
+    assert replaced.value.code is PortErrorCode.CORRUPT
+
+
+def test_incomplete_cleanup_retry_resyncs_a_still_occupied_run(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    run = store.root / "staging" / "v1" / RUN_ID
+    run.mkdir(mode=0o700)
+    first = run / ("2" * 32 + ".part")
+    second = run / ("3" * 32 + ".part")
+    for path in (first, second):
+        path.write_bytes(path.name.encode("ascii"))
+        path.chmod(0o600)
+    cleanup = next(
+        item.cleanup
+        for item in _inventory(store)
+        if item.kind is InventoryKind.INCOMPLETE
+        and item.cleanup is not None
+        and item.cleanup.staging_name == first.name
+    )
+
+    assert store.discard_incomplete(cleanup) is DeleteDisposition.DELETED
+    assert store.discard_incomplete(cleanup) is DeleteDisposition.ALREADY_ABSENT
+    assert second.exists()
 
 
 def test_store_local_delete_is_idempotent(tmp_path: Path) -> None:
@@ -300,6 +506,24 @@ def test_audit_is_bounded_and_invalid_cursors_fail_closed(tmp_path: Path) -> Non
     with pytest.raises(PortError) as raised:
         store.inventory(after="inv_" + "f" * 64)
     assert raised.value.code is PortErrorCode.INVALID_REQUEST
+
+
+def test_staging_inventory_streams_with_maximum_supported_payload_limit(tmp_path: Path) -> None:
+    store = LocalEvidenceStore(
+        tmp_path / "store",
+        max_payload_bytes=2**63 - 1,
+        max_inventory_bytes=1024,
+    )
+    run = store.root / "staging" / "v1" / RUN_ID
+    run.mkdir(mode=0o700)
+    staged = run / ("2" * 32 + ".part")
+    staged.write_bytes(b"bounded")
+    staged.chmod(0o400)
+
+    entry = next(item for item in _inventory(store) if item.kind is InventoryKind.STAGED)
+
+    assert entry.stage is not None
+    assert entry.stage.artifact == _artifact(b"bounded")
 
 
 def test_coordinator_and_audit_representations_redact_identifiers(tmp_path: Path) -> None:
@@ -465,6 +689,41 @@ def test_exact_builtin_validation_blocks_path_and_payload_subclasses(tmp_path: P
     assert not (tmp_path / "outside").exists()
 
 
+def test_mutated_stage_handles_are_revalidated_before_any_filesystem_access(
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    artifact = _artifact(b"private")
+    staged = store.stage(RUN_ID, artifact, b"private")
+    victim = tmp_path / "victim"
+    victim.mkdir(mode=0o700)
+    outside = victim / "private.part"
+    outside.write_bytes(b"private")
+    outside.chmod(0o400)
+    object.__setattr__(staged, "run_id", "../../../victim")
+    object.__setattr__(staged, "staging_name", "private.part")
+
+    for operation in (store.commit_stage, store.discard_stage):
+        with pytest.raises(PortError) as raised:
+            operation(staged)
+        assert raised.value.code is PortErrorCode.INVALID_REQUEST
+
+    assert outside.read_bytes() == b"private"
+    assert victim.exists()
+
+
+def test_mutated_artifacts_fail_as_redacted_invalid_requests(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    artifact = _artifact(b"private")
+    object.__setattr__(artifact, "bytes", "private-byte-count")
+
+    with pytest.raises(PortError) as raised:
+        store.delete_artifact(artifact)
+
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert "private-byte-count" not in repr(raised.value)
+
+
 def test_get_and_delete_reject_invalid_digests_without_echoing_them(tmp_path: Path) -> None:
     store = _store(tmp_path)
     private = "../private-artifact"
@@ -563,9 +822,27 @@ def test_commit_retry_recovers_after_post_rename_sync_failure(
     with pytest.raises(PortError) as raised:
         store.commit_stage(staged)
     assert raised.value.code is PortErrorCode.STORAGE_FAILED
-    monkeypatch.setattr(os, "fsync", original)
+    destination_parent_identity = (
+        destination.parent.stat().st_dev,
+        destination.parent.stat().st_ino,
+    )
+    run = store.root / "staging" / "v1" / staged.run_id
+    run_identity = (run.stat().st_dev, run.stat().st_ino)
+    staging = store.root / "staging" / "v1"
+    staging_identity = (staging.stat().st_dev, staging.stat().st_ino)
+    synced: list[tuple[int, int]] = []
+
+    def record_sync(descriptor: int) -> None:
+        metadata = os.fstat(descriptor)
+        synced.append((metadata.st_dev, metadata.st_ino))
+        original(descriptor)
+
+    monkeypatch.setattr(os, "fsync", record_sync)
 
     assert store.commit_stage(staged).disposition is CommitDisposition.ALREADY_COMMITTED
+    assert destination_parent_identity in synced
+    assert run_identity in synced
+    assert staging_identity in synced
     assert store.get(artifact.sha256) == b"sync recovery"
 
 
@@ -662,6 +939,40 @@ def test_stage_close_failure_does_not_close_reused_descriptor(
     assert victim_descriptor is not None
     assert os.fstat(victim_descriptor).st_ino == victim.stat().st_ino
     os.close(victim_descriptor)
+
+
+def test_ambiguous_writer_lock_close_poisons_store_and_never_reports_success(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    artifact = _artifact(b"locked")
+    store.put(artifact, b"locked")
+    lock_metadata = (store.root / "writer.lock").stat()
+    lock_identity = (lock_metadata.st_dev, lock_metadata.st_ino)
+    original_file_io = io.FileIO
+
+    class ErrorBeforeRelease(io.FileIO):
+        def close(self) -> None:
+            if not self.closed:
+                metadata = os.fstat(self.fileno())
+                if (metadata.st_dev, metadata.st_ino) == lock_identity:
+                    raise OSError("private close failure")
+            super().close()
+
+    monkeypatch.setattr("visualworld.storage.io.FileIO", ErrorBeforeRelease)
+
+    with pytest.raises(PortError) as raised:
+        store.get(artifact.sha256)
+    assert raised.value.code is PortErrorCode.STORAGE_FAILED
+    with pytest.raises(PortError) as poisoned:
+        store.delete_artifact(artifact)
+    assert poisoned.value.code is PortErrorCode.STORAGE_FAILED
+    assert _artifact_path(store.root, artifact).exists()
+
+    retained = store._retained_lock_streams
+    assert len(retained) == 1
+    original_file_io.close(retained[0])
 
 
 def test_staging_name_collision_retries_are_bounded_and_non_destructive(
@@ -878,9 +1189,52 @@ def test_delete_retry_recovers_after_directory_sync_failure(
     with pytest.raises(PortError) as raised:
         store.delete_artifact(artifact)
     assert raised.value.code is PortErrorCode.STORAGE_FAILED
-    monkeypatch.setattr(os, "fsync", original)
+    parent = _artifact_path(store.root, artifact).parent
+    parent_identity = (parent.stat().st_dev, parent.stat().st_ino)
+    synced: list[tuple[int, int]] = []
+
+    def record_sync(descriptor: int) -> None:
+        metadata = os.fstat(descriptor)
+        synced.append((metadata.st_dev, metadata.st_ino))
+        original(descriptor)
+
+    monkeypatch.setattr(os, "fsync", record_sync)
 
     assert store.delete_artifact(artifact) is DeleteDisposition.ALREADY_ABSENT
+    assert parent_identity in synced
+
+
+def test_discard_retry_recovers_after_directory_sync_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    store = _store(tmp_path)
+    staged = store.stage(RUN_ID, _artifact(b"discard recovery"), b"discard recovery")
+    run = _staged_path(store.root, staged).parent
+    run_identity = (run.stat().st_dev, run.stat().st_ino)
+    staging = run.parent
+    staging_identity = (staging.stat().st_dev, staging.stat().st_ino)
+    original = os.fsync
+
+    def fail_sync(_: int) -> None:
+        raise OSError("private sync failure")
+
+    monkeypatch.setattr(os, "fsync", fail_sync)
+    with pytest.raises(PortError) as raised:
+        store.discard_stage(staged)
+    assert raised.value.code is PortErrorCode.STORAGE_FAILED
+    synced: list[tuple[int, int]] = []
+
+    def record_sync(descriptor: int) -> None:
+        metadata = os.fstat(descriptor)
+        synced.append((metadata.st_dev, metadata.st_ino))
+        original(descriptor)
+
+    monkeypatch.setattr(os, "fsync", record_sync)
+
+    assert store.discard_stage(staged) is DeleteDisposition.ALREADY_ABSENT
+    assert run_identity in synced
+    assert staging_identity in synced
 
 
 def test_root_permissions_and_owner_are_enforced(
