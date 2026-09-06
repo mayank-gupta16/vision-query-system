@@ -29,6 +29,9 @@
   Hostile decode is isolated and fail-closed; native hostile decode on macOS is
   intentionally unsupported until a validated boundary exists. No media runtime
   has yet been added to the root package.
+- ADR-0004 accepts strict versioned JSON ingestion records, typed SHA-256-based
+  identifiers, exact rational PTS with measured/estimated provenance,
+  original-pixel geometry, and explicit migration and untrusted-field limits.
 
 ## Known blockers and limitations
 
@@ -55,8 +58,8 @@
 ## Next priorities
 
 1. Resolve OAuth scope blocker #41, create `VisualWorld Roadmap`, and add views/fields.
-2. Merge the media decision #4, then resolve schema/storage decisions #5–#6 and
-   implement the smallest end-to-end ingestion slice; preserve the root package's
-   zero runtime dependencies by keeping media dependencies adapter-local.
+2. Resolve storage decision #6, then implement the smallest end-to-end ingestion
+   slice; preserve the root package's zero runtime dependencies by keeping media
+   dependencies adapter-local.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.
