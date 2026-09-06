@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import signal
+import struct
 import subprocess
 import time
 from contextlib import suppress
@@ -17,6 +18,7 @@ from isolation_probe import namespace_argv
 PIPE_BYTES = 4096
 CANCEL_AFTER_SECONDS = 0.25
 TERMINATION_LIMIT_SECONDS = 0.5
+MAGIC = b"VWFRAME1"
 
 
 def _fd3(source_fd: int) -> None:
@@ -89,9 +91,15 @@ def run(runtime: Path, source: Path) -> dict[str, object]:
     else:
         process_group_gone = False
 
+    incomplete_first_record = False
+    if stdout.startswith(MAGIC) and len(stdout) >= len(MAGIC) + 8:
+        metadata_bytes, pixel_bytes = struct.unpack(">II", stdout[len(MAGIC) : len(MAGIC) + 8])
+        complete_first_record_bytes = len(MAGIC) + 8 + metadata_bytes + pixel_bytes
+        incomplete_first_record = len(stdout) < complete_first_record_bytes
+
     checks = {
         "worker_alive_when_cancelled": alive_before_cancel,
-        "blocked_output_observed": alive_before_cancel and len(stdout) >= PIPE_BYTES,
+        "blocked_output_observed": alive_before_cancel and incomplete_first_record,
         "termination_within_limit": termination_seconds <= TERMINATION_LIMIT_SECONDS,
         "no_forced_kill": not forced_kill,
         "process_group_gone": process_group_gone,
