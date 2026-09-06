@@ -90,7 +90,8 @@ never decides whether an artifact is referenced, orphaned, or safe to clean.
 `visualworld.world_store.LocalWorldStore` is the first production `WorldStore`.
 It stores canonical version-1 records in typed SQLite `STRICT` tables with
 deterministic projection columns and fixed parameterized access. Adapter
-extensions keep preparing-run records hidden, persist artifact stage intents,
+extensions keep preparing-run records hidden, expose page-recoverable pending
+runs and artifact stage intents,
 and atomically publish a committed run only after every intent has a matching
 owned evidence reference. Mutations normally acquire the shared `writer.lock`;
 the same APIs can instead consume an active `EvidenceWriterSession` so the

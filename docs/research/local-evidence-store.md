@@ -21,8 +21,9 @@ The adapter also exposes coordinator-facing staged write, idempotent promotion,
 discard, integrity inspection, paginated inventory, metadata-fingerprint-bound
 cleanup handles for incomplete files and empty run directories, and low-level
 deletion operations.
-A writer session holds the one kernel advisory lock across staging, future
-SQLite intent work, CAS promotion, cleanup, and metadata completion. The adapter
+A registered, active writer session holds the one kernel advisory lock across
+staging, future SQLite intent work, CAS promotion, cleanup, and metadata
+completion. The adapter
 does not infer references or delete orphans: the WorldStore/coordinator remains
 the reference authority and must classify inventory results and prove that no
 live/preparing run owns a remnant before authorizing cleanup or repair.
@@ -67,13 +68,13 @@ inode and verifies its bytes. The package-content check includes the new
 zero-dependency module.
 
 The CPU-LITE baseline used two deterministic 16 MiB synthetic payloads. A raw
-SHA-256 pass took 29.7 ms (565 MB/s). The unique durable `put` took 141.5 ms
-(118 MB/s), a verified read took 44.5 ms (376 MB/s), and a deduplicated `put`
-took 186.4 ms (90 MB/s). Staging the second artifact took 74.0 ms (226 MB/s),
-atomic promotion and directory sync took 32.1 ms, the two-artifact integrity
-audit took 120.5 ms, and deletion plus directory sync took 31.8 ms. One retained
+SHA-256 pass took 29.2 ms (574 MB/s). The unique durable `put` took 127.7 ms
+(131 MB/s), a verified read took 48.2 ms (348 MB/s), and a deduplicated `put`
+took 172.3 ms (97 MB/s). Staging the second artifact took 70.8 ms (237 MB/s),
+atomic promotion and directory sync took 33.6 ms, the two-artifact integrity
+audit took 148.7 ms, and deletion plus directory sync took 35.1 ms. One retained
 artifact occupied 16,777,216 logical and allocated bytes; dedupe did not change
-that count. Peak process RSS was 90,730,496 bytes, below the 2 GiB harness bound.
+that count. Peak process RSS was 90,542,080 bytes, below the 2 GiB harness bound.
 These are single-run correctness baselines, not optimization targets or
 cross-machine performance claims.
 

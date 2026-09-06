@@ -936,6 +936,7 @@ class LocalEvidenceStore:
         self._lock_timeout_ms = lock_timeout_ms
         self._poisoned = False
         self._retained_lock_streams: list[BinaryFile] = []
+        self._active_writer_session: EvidenceWriterSession | None = None
         self._descriptor = CapabilityDescriptor(
             PortKind.EVIDENCE_STORE,
             "local-cas",
@@ -1334,6 +1335,9 @@ class LocalEvidenceStore:
 
         with self._operation("writer_session", exclusive=True) as root_descriptor:
             session = EvidenceWriterSession(self, root_descriptor)
+            if self._active_writer_session is not None:
+                _fail(PortErrorCode.STORAGE_FAILED, "writer_session")
+            self._active_writer_session = session
             try:
                 yield session
             finally:
@@ -1875,11 +1879,13 @@ class EvidenceWriterSession:
         )
 
     def _descriptor(self) -> int:
-        if self._root_descriptor is None:
+        if self._root_descriptor is None or self._store._active_writer_session is not self:
             _fail(PortErrorCode.INVALID_REQUEST, "writer_session")
         return self._root_descriptor
 
     def _deactivate(self) -> None:
+        if self._store._active_writer_session is self:
+            self._store._active_writer_session = None
         self._root_descriptor = None
 
     def stage(self, run_id: str, artifact: Artifact, content: bytes) -> StageHandle:

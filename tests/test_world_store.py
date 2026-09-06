@@ -35,7 +35,7 @@ from visualworld.ingestion import (
     dumps_record,
 )
 from visualworld.ports import Effect, PortError, PortErrorCode, PortKind, WorldStore
-from visualworld.storage import LocalEvidenceStore, StageHandle
+from visualworld.storage import EvidenceWriterSession, LocalEvidenceStore, StageHandle
 from visualworld.world_store import LocalWorldStore, WorldStoreStats
 
 
@@ -339,6 +339,10 @@ def test_preparing_run_batches_remain_hidden_until_atomic_finalization(tmp_path:
 
     assert store.list_frames(source.source_id, stream_index=0, limit=3) == ()
     assert store.list_evidence(frames[0].frame_id, limit=2) == ()
+    with pytest.raises(PortError, match="not_found"):
+        store.get(frames[0].frame_id)
+    with pytest.raises(PortError, match="not_found"):
+        store.get(evidence[0].evidence_id)
     assert store.list_artifact_intents(preparing.run_id) == stages
     assert store.pending_runs() == (preparing,)
 
@@ -350,6 +354,39 @@ def test_preparing_run_batches_remain_hidden_until_atomic_finalization(tmp_path:
     assert store.list_evidence(frames[0].frame_id, limit=2) == evidence[:1]
     assert store.list_artifact_intents(preparing.run_id) == ()
     assert store.pending_runs() == ()
+
+
+def test_artifact_intents_are_recoverable_through_bounded_pages(tmp_path: Path) -> None:
+    source, _, _, preparing, _ = _records(frame_count=0)
+    store = _store(tmp_path)
+    store.commit((source, preparing))
+    stages = tuple(
+        StageHandle(
+            preparing.run_id,
+            f"{index:032x}.part",
+            Artifact(hashlib.sha256(f"intent-{index}".encode()).hexdigest(), "1"),
+        )
+        for index in range(70)
+    )
+    store.record_artifact_intents(preparing.run_id, stages[:64])
+    store.record_artifact_intents(preparing.run_id, stages[64:])
+
+    first = store.list_artifact_intents(preparing.run_id, limit=64)
+    second = store.list_artifact_intents(
+        preparing.run_id,
+        after_staging_name=first[-1].staging_name,
+        limit=64,
+    )
+
+    assert first + second == stages
+    with pytest.raises(PortError, match="limit_exceeded"):
+        LocalWorldStore(store.root, max_audit_records=2).verify()
+    with pytest.raises(PortError, match="invalid_request"):
+        store.list_artifact_intents(
+            preparing.run_id,
+            after_staging_name="../escape",
+            limit=1,
+        )
 
 
 def test_finalization_requires_every_intent_to_have_an_owned_reference(tmp_path: Path) -> None:
@@ -393,6 +430,17 @@ def test_run_batches_reject_foreign_frames_and_unowned_evidence(tmp_path: Path) 
         store.get(evidence[0].evidence_id)
 
 
+def test_unowned_evidence_inherits_its_frame_visibility(tmp_path: Path) -> None:
+    source, frames, evidence, preparing, _ = _records(frame_count=1)
+    store = _store(tmp_path)
+    store.commit((source, preparing, frames[0]))
+    store.commit((evidence[0],))
+
+    with pytest.raises(PortError, match="not_found"):
+        store.get(evidence[0].evidence_id)
+    assert store.list_evidence(frames[0].frame_id, limit=1) == ()
+
+
 def test_failed_and_cancelled_runs_are_recoverable_but_committed_is_final(tmp_path: Path) -> None:
     source, _, _, preparing, committed = _records(frame_count=0)
     failed = RunManifest.create(source.source_id, (), preparing.sampling, "failed")
@@ -411,6 +459,30 @@ def test_failed_and_cancelled_runs_are_recoverable_but_committed_is_final(tmp_pa
     with pytest.raises(PortError, match="conflict"):
         store.commit((failed,))
     assert store.get(committed.run_id) == committed
+
+
+def test_pending_runs_are_recoverable_through_bounded_pages(tmp_path: Path) -> None:
+    source, _, _, _, _ = _records(frame_count=0)
+    runs = tuple(
+        RunManifest.create(
+            source.source_id,
+            (),
+            Sampling(Rational(str(index + 1), "1")),
+            "preparing",
+        )
+        for index in range(70)
+    )
+    store = _store(tmp_path)
+    store.commit((source, *runs[:63]))
+    store.commit(runs[63:])
+
+    expected = tuple(sorted(runs, key=lambda run: run.run_id))
+    first = store.pending_runs(limit=64)
+    second = store.pending_runs(after_run_id=first[-1].run_id, limit=64)
+
+    assert first + second == expected
+    with pytest.raises(PortError, match="invalid_request"):
+        store.pending_runs(after_run_id="invalid", limit=1)
 
 
 def test_intents_reject_forged_mismatched_and_colliding_handles(tmp_path: Path) -> None:
@@ -902,6 +974,24 @@ def test_closed_or_foreign_evidence_session_is_rejected(tmp_path: Path) -> None:
         pytest.raises(PortError, match="invalid_request"),
     ):
         store.commit((), evidence_session=foreign)
+
+
+def test_forged_evidence_session_cannot_bypass_the_shared_writer_lock(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    evidence_store = LocalEvidenceStore(root, lock_timeout_ms=20)
+    store = LocalWorldStore(root, lock_timeout_ms=20)
+    source, _, _, _, _ = _records()
+    raw_root_descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    forged = EvidenceWriterSession(evidence_store, raw_root_descriptor)
+    try:
+        with pytest.raises(PortError, match="invalid_request"):
+            store.commit((source,), evidence_session=forged)
+        with pytest.raises(PortError, match="invalid_request"):
+            forged.inventory(limit=1)
+    finally:
+        os.close(raw_root_descriptor)
 
 
 def test_poisoned_writer_instance_fails_closed(tmp_path: Path) -> None:

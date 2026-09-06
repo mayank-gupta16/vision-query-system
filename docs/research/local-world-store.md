@@ -29,11 +29,12 @@ Writes use `BEGIN IMMEDIATE`, `foreign_keys=ON`, `journal_mode=WAL`,
 `synchronous=FULL`, `secure_delete=ON`, bounded busy handling, and the same
 exclusive kernel `writer.lock` as `LocalEvidenceStore`. Reads use short
 read-only WAL connections. Preparing-run record batches are associated and
-hidden; stage handles are persisted as exact artifact intents; finalization
-requires every intent to match an owned catalog/reference edge, clears intents,
-and changes the canonical run marker to committed in one transaction. Exact
-retries are no-ops, invalid state changes conflict, and failed/cancelled runs
-remain discoverable for the future recovery coordinator.
+hidden from both point and list reads; stage handles are persisted as exact,
+bounded-page-recoverable artifact intents; finalization requires every intent
+to match an owned catalog/reference edge, clears intents, and changes the
+canonical run marker to committed in one transaction. Exact retries are no-ops,
+invalid state changes conflict, and preparing, failed, or cancelled runs remain
+discoverable through bounded stable pages for the future recovery coordinator.
 
 The mutation extensions accept an active `EvidenceWriterSession` bound to the
 same root. This lets the next coordinator perform stage, intent, CAS promotion,
@@ -46,9 +47,9 @@ repair remain issue #16 work; version-1 tables reserve their durable state.
 Contract tests cover all four record types, stable numeric ordering through the
 unsigned 64-bit decode-index range, atomic foreign-key/position failure,
 idempotence and conflicting content, reopen, hidden preparing records, intent
-retry/collision, finalization completeness, failed/cancelled recovery states,
-bounded verification, shared-lock contention, bounded SQLite busy behavior,
-and a real composed EvidenceStore/WorldStore writer session.
+retry/collision/pagination, finalization completeness, pending-run recovery
+pagination, bounded verification, shared-lock contention, bounded SQLite busy
+behavior, and a real composed EvidenceStore/WorldStore writer session.
 
 Migration/security tests cover complete rollback and retry, newer/negative
 version refusal, ledger and schema drift, malformed database bytes, canonical
@@ -66,14 +67,14 @@ the connection authorizer denies `ATTACH`, `DETACH`, virtual tables, and
 
 The generated workload represents 60 seconds at 5 FPS: one 1920x1080 source,
 one run, 300 frames with exact millisecond time-base PTS, 300 evidence records,
-and 300 unique artifact descriptors. Five intent transactions took 9.9 ms; ten
-hidden record transactions took 72.5 ms; finalization took 25.7 ms; and an
-idempotent finalization retry took 2.6 ms. Five frame-index pages took 34.4 ms,
-300 point evidence lookups took 612.2 ms, reopen took 2.2 ms, and complete
-canonical/projection verification took 59.4 ms.
+and 300 unique artifact descriptors. Five intent transactions took 9.4 ms; ten
+hidden record transactions took 70.7 ms; finalization took 25.1 ms; and an
+idempotent finalization retry took 2.4 ms. Five frame-index pages took 31.7 ms,
+300 point evidence lookups took 556.2 ms, reopen took 1.9 ms, and complete
+canonical/projection verification took 58.4 ms.
 
 The live SQLite/WAL set occupied 1,523,712 logical and allocated bytes across
-four regular files. Peak process RSS was 28,880,896 bytes, below the 2 GiB
+four regular files. Peak process RSS was 28,889,088 bytes, below the 2 GiB
 profile bound. These single-run figures establish correctness and resource
 provenance, not a cross-machine optimization claim.
 

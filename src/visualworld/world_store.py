@@ -1195,18 +1195,23 @@ class LocalWorldStore:
         self,
         run_id: str,
         *,
+        after_staging_name: str | None = None,
         limit: int = MAX_PORT_BATCH_ITEMS,
     ) -> tuple[StageHandle, ...]:
         operation = "list_artifact_intents"
         selected_run = _identifier(run_id, _RUN_ID, operation)
         selected_limit = _bounded_limit(limit, operation)
+        after = ""
+        if after_staging_name is not None:
+            after = _identifier(after_staging_name, _STAGING_NAME, operation)
         with self._read_connection(operation) as connection:
             try:
                 rows = connection.execute(
                     """SELECT staging_name, artifact_digest, byte_count,
                     media_type, protocol_version FROM artifact_intents
-                    WHERE run_id = ? ORDER BY staging_name LIMIT ?""",
-                    (selected_run, selected_limit),
+                    WHERE run_id = ? AND staging_name > ?
+                    ORDER BY staging_name LIMIT ?""",
+                    (selected_run, after, selected_limit),
                 ).fetchall()
                 try:
                     return tuple(
@@ -1314,16 +1319,25 @@ class LocalWorldStore:
             except sqlite3.Error as error:
                 _sqlite_error(error, operation)
 
-    def pending_runs(self, *, limit: int = MAX_PORT_BATCH_ITEMS) -> tuple[RunManifest, ...]:
+    def pending_runs(
+        self,
+        *,
+        after_run_id: str | None = None,
+        limit: int = MAX_PORT_BATCH_ITEMS,
+    ) -> tuple[RunManifest, ...]:
         operation = "pending_runs"
         selected_limit = _bounded_limit(limit, operation)
+        after = ""
+        if after_run_id is not None:
+            after = _identifier(after_run_id, _RUN_ID, operation)
         with self._read_connection(operation) as connection:
             try:
                 rows = connection.execute(
                     """SELECT record_json FROM runs
                     WHERE state IN ('preparing', 'failed', 'cancelled')
+                      AND run_id > ?
                     ORDER BY run_id LIMIT ?""",
-                    (selected_limit,),
+                    (after, selected_limit),
                 ).fetchall()
                 result = tuple(self._decode_record(row[0], operation) for row in rows)
                 if not all(isinstance(record, RunManifest) for record in result):
@@ -1356,6 +1370,9 @@ class LocalWorldStore:
                 row = connection.execute(statements[prefix], (selected,)).fetchone()
                 if row is None or hidden is not None:
                     _fail(PortErrorCode.NOT_FOUND, operation)
+                visible = self._record_visible(connection, prefix, selected, operation)
+                if not visible:
+                    _fail(PortErrorCode.NOT_FOUND, operation)
                 record = self._decode_record(row[0], operation)
                 if _record_identifier(record) != selected:
                     _fail(PortErrorCode.CORRUPT, operation)
@@ -1366,6 +1383,58 @@ class LocalWorldStore:
             except sqlite3.Error as error:
                 _sqlite_error(error, operation)
         raise AssertionError("unreachable")
+
+    def _record_visible(
+        self,
+        connection: sqlite3.Connection,
+        prefix: str,
+        record_id: str,
+        operation: str,
+    ) -> bool:
+        if prefix not in {"frm", "evi"}:
+            return True
+        if prefix == "frm":
+            row = connection.execute(
+                """SELECT
+                NOT EXISTS (
+                    SELECT 1 FROM run_records AS owned
+                    WHERE owned.record_id = ?
+                ) OR EXISTS (
+                    SELECT 1 FROM run_records AS owned
+                    JOIN runs AS run ON run.run_id = owned.run_id
+                    WHERE owned.record_id = ? AND run.state = 'committed'
+                )""",
+                (record_id, record_id),
+            ).fetchone()
+        else:
+            row = connection.execute(
+                """SELECT (
+                    NOT EXISTS (
+                        SELECT 1 FROM run_records AS owned
+                        WHERE owned.record_id = item.evidence_id
+                    ) OR EXISTS (
+                        SELECT 1 FROM run_records AS owned
+                        JOIN runs AS run ON run.run_id = owned.run_id
+                        WHERE owned.record_id = item.evidence_id
+                          AND run.state = 'committed'
+                    )
+                ) AND (
+                    NOT EXISTS (
+                        SELECT 1 FROM run_records AS owned
+                        WHERE owned.record_id = item.frame_id
+                    ) OR EXISTS (
+                        SELECT 1 FROM run_records AS owned
+                        JOIN runs AS run ON run.run_id = owned.run_id
+                        WHERE owned.record_id = item.frame_id
+                          AND run.state = 'committed'
+                    )
+                ) FROM evidence AS item WHERE item.evidence_id = ?""",
+                (record_id,),
+            ).fetchone()
+        value: object = None if row is None else row[0]
+        if type(value) is not int or value not in {0, 1}:
+            _fail(PortErrorCode.CORRUPT, operation)
+        return value == 1
 
     def list_frames(
         self,
@@ -1474,6 +1543,18 @@ class LocalWorldStore:
                             JOIN runs AS run ON run.run_id = owned.run_id
                             WHERE owned.record_id = item.evidence_id
                               AND run.state = 'committed'
+                        )
+                      )
+                      AND (
+                        NOT EXISTS (
+                            SELECT 1 FROM run_records AS frame_owned
+                            WHERE frame_owned.record_id = item.frame_id
+                        )
+                        OR EXISTS (
+                            SELECT 1 FROM run_records AS frame_owned
+                            JOIN runs AS frame_run ON frame_run.run_id = frame_owned.run_id
+                            WHERE frame_owned.record_id = item.frame_id
+                              AND frame_run.state = 'committed'
                         )
                       )
                     ORDER BY item.evidence_id LIMIT ?""",
@@ -1615,9 +1696,26 @@ class LocalWorldStore:
                     record = self._decode_record(row[0], operation)
                     self._verify_projection(connection, record, operation)
                 self._verify_coordination(connection, operation)
-                artifacts = connection.execute("SELECT count(*) FROM artifact_catalog").fetchone()
-                intents = connection.execute("SELECT count(*) FROM artifact_intents").fetchone()
-                if artifacts is None or intents is None:
+                artifacts = connection.execute(
+                    """SELECT count(*) FROM (
+                        SELECT 1 FROM artifact_catalog LIMIT ?
+                    )""",
+                    (self._max_audit_records + 1,),
+                ).fetchone()
+                intents = connection.execute(
+                    """SELECT count(*) FROM (
+                        SELECT 1 FROM artifact_intents LIMIT ?
+                    )""",
+                    (self._max_audit_records + 1,),
+                ).fetchone()
+                if (
+                    artifacts is None
+                    or intents is None
+                    or artifacts[0] > self._max_audit_records
+                    or intents[0] > self._max_audit_records
+                ):
+                    _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                if type(artifacts[0]) is not int or type(intents[0]) is not int:
                     _fail(PortErrorCode.CORRUPT, operation)
                 return WorldStoreStats(len(rows), artifacts[0], intents[0])
             except PortError:
@@ -1631,6 +1729,20 @@ class LocalWorldStore:
         connection: sqlite3.Connection,
         operation: str,
     ) -> None:
+        counts = connection.execute(
+            """SELECT
+                (SELECT count(*) FROM (
+                    SELECT 1 FROM run_records LIMIT ?
+                )),
+                (SELECT count(*) FROM (
+                    SELECT 1 FROM artifact_intents LIMIT ?
+                ))""",
+            (self._max_audit_records + 1, self._max_audit_records + 1),
+        ).fetchone()
+        if counts is None or any(
+            type(value) is not int or value > self._max_audit_records for value in counts
+        ):
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
         invalid_ownership = connection.execute(
             """SELECT count(*) FROM run_records AS owned
             JOIN runs AS run ON run.run_id = owned.run_id
