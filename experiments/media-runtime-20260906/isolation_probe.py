@@ -34,12 +34,9 @@ def namespace_argv(
     runtime: Path,
     program: list[str],
     *,
-    preserve_source: bool = False,
     extra_env: dict[str, str] | None = None,
 ) -> list[str]:
     argv = ["/usr/bin/bwrap"]
-    if preserve_source:
-        argv.extend(["--preserve-fds", "1"])
     environment_args = [
         item
         for key, value in sorted((extra_env or {}).items())
@@ -323,7 +320,7 @@ def _run_controller(args: argparse.Namespace) -> int:
                 "/runtime/python/bin/python3.13",
                 "/runtime/worker_probe.py",
             ]
-            nested_bwrap_argv = namespace_argv(runtime, nested_program, preserve_source=True)
+            nested_bwrap_argv = namespace_argv(runtime, nested_program)
             nested_process = subprocess.Popen(
                 nested_bwrap_argv,
                 stdout=subprocess.PIPE,

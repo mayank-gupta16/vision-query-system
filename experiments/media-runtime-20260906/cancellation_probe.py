@@ -50,7 +50,6 @@ def run(runtime: Path, source: Path) -> dict[str, object]:
     argv = namespace_argv(
         runtime.resolve(),
         program,
-        preserve_source=True,
         extra_env={"VISUALWORLD_PROBE_TOKEN": token},
     )
     source_fd = os.open(source.resolve(), os.O_RDONLY)

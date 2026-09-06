@@ -71,7 +71,7 @@ def _run_case(
         "/runtime/worker_probe.py",
         *(worker_args or []),
     ]
-    argv = namespace_argv(runtime, program, preserve_source=True)
+    argv = namespace_argv(runtime, program)
     source_fd = os.open(source, os.O_RDONLY)
     started = time.monotonic()
     process = subprocess.Popen(
@@ -122,7 +122,6 @@ def _measure_first_frame(runtime: Path, source: Path) -> dict[str, Any]:
     argv = namespace_argv(
         runtime,
         ["/runtime/python/bin/python3.13", "/runtime/worker_probe.py"],
-        preserve_source=True,
     )
     source_fd = os.open(source, os.O_RDONLY)
     started = time.monotonic()
