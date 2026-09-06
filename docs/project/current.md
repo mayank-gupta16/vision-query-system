@@ -3,7 +3,8 @@
 - Stable version: none; experimental package version 0.1.0a0 is unreleased
 - Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
 - Implementation: help/version package, deterministic developer and
-  synthetic-fixture commands, and version-1 ingestion domain records
+  synthetic-fixture commands, version-1 ingestion domain records, and the four
+  v0.1 ports with deterministic fakes
 - Benchmark baseline: none
 
 ## Established facts
@@ -38,6 +39,9 @@
 - ADR-0005 accepts local SQLite metadata plus a SHA-256 content-addressed
   filesystem artifact store with staged commits, recovery/audit, migrations,
   and reference-aware cascade deletion. Video blobs remain outside SQLite.
+- VideoSource, FrameSampler, EvidenceStore, and WorldStore now have framework-free
+  version-1 protocols, capability descriptors, structured errors, bounded call
+  records, and deterministic in-memory fakes. Later ports remain conceptual.
 
 ## Known blockers and limitations
 

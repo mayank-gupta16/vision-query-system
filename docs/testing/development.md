@@ -1,8 +1,8 @@
 # Developer setup and validation
 
-The `0.1.0a0` package is an experimental help/version scaffold, not a video
-ingestion or query application. It has no third-party runtime packages and no
-publishing configuration.
+The `0.1.0a0` package is an experimental ingestion foundation, not yet an
+end-to-end video ingestion or query application. It has no third-party runtime
+packages and no publishing configuration.
 
 ## Supported environments
 
@@ -63,8 +63,8 @@ drift. Tooling tests use tiny temporary archives and mocked network/process
 operations.
 An offline uv flag is not an OS network sandbox; hostile-media boundaries belong
 to the media ADR. The 90% coverage floor measures application source with branch
-tracking; this scaffold has no application branches. Tooling tests provide
-separate regression evidence, not inflated application coverage.
+tracking. Tooling tests provide separate regression evidence, not inflated
+application coverage.
 
 Build output goes to fresh ignored `artifacts/build-*` directories with exact
 sizes/hashes printed. Runtime-only CycloneDX 1.6 inventory comes from the newly

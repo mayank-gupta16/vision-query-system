@@ -16,6 +16,11 @@ still require GitHub network access and the hosted image can receive patches. It
 never downloads large weights. Real-model/GPU benchmarks are
 manual, scheduled, or release-triggered and publish complete provenance.
 
+The version-1 `VideoSource`, `FrameSampler`, `EvidenceStore`, and `WorldStore`
+fakes are instrumented in memory. Their shared contract tests monkeypatch shell,
+network, filesystem, and SQL entry points to prove ordinary fake orchestration
+causes no external side effect, and capability requests fail closed.
+
 Tests must distinguish exact deterministic expectations from tolerance-based
 probabilistic metrics. UNKNOWN and ambiguous count ranges are first-class
 expected outputs, not test failures.

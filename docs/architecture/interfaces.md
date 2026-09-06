@@ -27,3 +27,30 @@ security tests in ordinary CI.
 Capabilities and resource needs must be discoverable rather than inferred from
 implementation names. Optional adapters declare dependency/model licenses,
 hardware needs, offline/remote behavior, and the exact data they may transmit.
+
+## Version-1 ingestion ports
+
+The v0.1 executable contract intentionally implements only four ports:
+
+| Port | Version-1 operations |
+| --- | --- |
+| `VideoSource` | Probe one already-authorized source and read bounded, decode-index-paged `FrameRef` batches. |
+| `FrameSampler` | Select a deterministic bounded subset from supplied `FrameRef` candidates. |
+| `EvidenceStore` | Put digest- and size-verified artifact bytes and retrieve them by SHA-256. |
+| `WorldStore` | Atomically commit bounded ingestion-record batches, retrieve by typed ID, and list bounded frames/evidence. |
+
+`CapabilityDescriptor` identifies the port and contract version, implementation
+version, deterministic/offline behavior, and batch/payload bounds. V1 application
+orchestration never receives or grants shell, network, arbitrary-filesystem, or
+raw-SQL handles; an attempted ambient capability request returns the structured
+`capability_denied` error. Adapter internals remain responsible for their
+separately approved confinement, and process sandboxing is outside this contract.
+
+Port failures expose a stable error code, port, operation, and retryability flag;
+their message does not include untrusted paths, identifiers, content, or backend
+exceptions. Instrumentation records only the port, operation, and bounded item
+count. The standard-library `visualworld.ports` module includes deterministic
+in-memory fakes for all four contracts. Fake batches contain at most 64 records;
+the evidence fake advertises its configurable payload bound and defaults to 1
+MiB. The other ports listed above remain conceptual until a milestone exercises
+them.
