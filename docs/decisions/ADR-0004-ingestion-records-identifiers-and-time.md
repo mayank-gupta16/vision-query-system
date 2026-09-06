@@ -30,22 +30,54 @@ Every record is a strict UTF-8 JSON object with:
 Writers emit JSON Canonicalization Scheme (RFC 8785) bytes: sorted object keys,
 no insignificant whitespace, no duplicate keys, no byte-order mark, and no
 floating-point values. Identity inputs use only normalized NFC strings, exact
-decimal strings, booleans, arrays, and objects. Hashes are lowercase SHA-256
-hexadecimal.
+decimal strings, bounded JSON integers, booleans, arrays, and objects. Hashes
+are lowercase SHA-256 hexadecimal.
 
 Identifiers are typed, 68-character strings:
 
-- `src_<sha256>` is the SHA-256 of the complete immutable source bytes;
+- `src_<sha256>` hashes the canonical source identity projection;
 - `frm_<sha256>` hashes the canonical frame identity projection;
 - `evi_<sha256>` hashes the canonical evidence identity projection; and
 - `run_<sha256>` hashes the canonical run identity projection.
 
-Each projection includes `identity_version: 1`. Mutable state, wall-clock time,
-display labels, storage locations, and optional descriptive metadata never enter
-an identity projection. When an existing identifier is encountered, its stored
-identity projection must match byte-for-byte; otherwise ingestion stops with an
-integrity error. Database sequence numbers may be private indexes but never
-domain identifiers.
+Every record persists `identity_version: 1`; version-1 schemas require that
+value, and it is part of every identity projection. The four normative identity
+projections are the following exact object shapes (shown as canonical bytes):
+
+```json
+{"fingerprint":{"algorithm":"sha256","bytes":"145031","digest":"af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e"},"identity_version":1}
+```
+
+```json
+{"decode_index":"0","identity_version":1,"pts":{"basis":"measured","time_base":{"denominator":"90000","numerator":"1"},"value":"90000"},"source_id":"src_8557c30d43a6c7e7a6710008e0e14f0afa86ae409fc4b8ad44bb4b97509486c9","stream_index":0}
+```
+
+```json
+{"artifact_sha256":"1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f","frame_id":"frm_53b715d4410841bda9c052b9583d11e9a8da41903af5643beaff376031f02efc","geometry":{"box_xyxy":[0,0,320,240],"measurement":"measured","source_height":240,"source_width":320,"space":"source_pixels","transform_to_source":{"kind":"identity"}},"identity_version":1,"kind":"original_frame"}
+```
+
+```json
+{"contracts":{"evidence_ref":1,"frame_ref":1,"run_manifest":1,"source":1},"identity_version":1,"producers":[{"configuration_sha256":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a","name":"visualworld.sampler","version":"0.1.0a0"}],"sampling":{"policy":"nearest_eligible_pts","target_fps":{"denominator":"1","numerator":"5"}},"source_id":"src_8557c30d43a6c7e7a6710008e0e14f0afa86ae409fc4b8ad44bb4b97509486c9"}
+```
+
+The source projection is `{identity_version, fingerprint}`; the frame projection
+is `{identity_version, source_id, stream_index, decode_index, pts}`; the evidence
+projection is `{identity_version, frame_id, kind, artifact_sha256, geometry}`
+(with the digest deliberately flattened from `artifact.sha256`); and the run
+projection is `{identity_version, source_id, contracts, producers, sampling}`.
+No other field enters a version-1 hash.
+
+Mutable state, wall-clock time, display labels, storage locations, and optional
+descriptive metadata never enter an identity projection. When an existing
+identifier is encountered, its stored identity projection must match
+byte-for-byte; otherwise ingestion stops with an integrity error. Database
+sequence numbers may be private indexes but never domain identifiers.
+
+Signed decimal strings match `0|-?[1-9][0-9]*`; unsigned decimal strings match
+`0|[1-9][0-9]*`. Leading zeroes, a plus sign, and negative zero are invalid.
+`schema_version`, `identity_version`, `stream_index`, dimensions, coordinates,
+and rotation degrees are bounded JSON integers. PTS, duration, rational
+components, byte counts, decode indexes, and sample counts use decimal strings.
 
 ### Exact media time
 
@@ -61,12 +93,18 @@ the exact time in seconds is `value * numerator / denominator`. Negative PTS is
 valid. Code compares times by checked cross multiplication, never by float or
 rounded milliseconds.
 
-`basis` is `measured` when the value came from decoded source PTS and `estimated`
-only when a documented deterministic policy derived it. Estimated time also
-requires an ASCII `estimate_method` and producer version. Missing source PTS
-remains missing at the decoder boundary; it must not silently become zero. A
-sample becomes a durable `FrameRef` only after it has measured or explicitly
-estimated rational time. Ties are ordered by `decode_index`.
+`basis` is `measured` when the value came from decoded source PTS. Its object has
+exactly `basis`, `time_base`, and `value`. Estimated time has this exact shape:
+
+```json
+{"basis":"estimated","estimate":{"method":"previous_pts_plus_duration","producer":{"configuration_sha256":"2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a","name":"visualworld.sampler","version":"0.1.0a0"}},"time_base":{"denominator":"90000","numerator":"1"},"value":"99000"}
+```
+
+`estimate` is required only for `estimated`; `method` and all producer fields
+are ASCII and enter the frame identity through `pts`. Missing source PTS remains
+missing at the decoder boundary; it must not silently become zero. A sample
+becomes a durable `FrameRef` only after it has measured or explicitly estimated
+rational time. Ties are ordered by `decode_index`.
 
 ### Record contracts
 
@@ -83,16 +121,34 @@ identifier.
 `Geometry` is embedded by value. It always includes original-source dimensions
 and a half-open integer `box_xyxy = [x_min, y_min, x_max, y_max]` in source
 pixels. Bounds satisfy `0 <= min < max <= dimension`. `measurement` is one of
-`measured`, `calibrated`, `estimated`, `inferred`, or `unknown`. Geometry
-originating in another pixel space additionally stores the producer-space box
-and an exact six-coefficient rational affine transform to source pixels;
-source-space geometry uses `{"kind":"identity"}`.
+`measured`, `calibrated`, `estimated`, `inferred`, or `unknown`. Source-space
+geometry uses `{"kind":"identity"}`.
+
+Geometry originating in producer pixels also requires `producer_space` with
+positive integer `width`/`height`, its half-open `box_xyxy`, and
+`transform_to_source` with `kind: "affine_rational"` plus coefficients `a`
+through `f`. Each coefficient is
+`{"numerator": <signed-decimal>, "denominator": <positive-unsigned-decimal>}`.
+The exact mapping is `source_x = a*x + b*y + c` and
+`source_y = d*x + e*y + f`. The stored source box must equal the source-bounded
+axis-aligned box obtained by transforming all four producer-box corners and
+rounding minima down and maxima up. This consistency check uses rational
+arithmetic. Identity geometry forbids `producer_space`; affine geometry requires
+it.
+
+This is the exact affine variant shape; coefficients are named, not positional:
+
+```json
+{"box_xyxy":[20,40,100,120],"measurement":"calibrated","producer_space":{"box_xyxy":[10,20,50,60],"height":120,"width":160},"source_height":240,"source_width":320,"space":"source_pixels","transform_to_source":{"coefficients":{"a":{"denominator":"1","numerator":"2"},"b":{"denominator":"1","numerator":"0"},"c":{"denominator":"1","numerator":"0"},"d":{"denominator":"1","numerator":"0"},"e":{"denominator":"1","numerator":"2"},"f":{"denominator":"1","numerator":"0"}},"kind":"affine_rational"}}
+```
 
 `EvidenceRef` binds an immutable artifact by SHA-256 and byte count, and binds it
-to a frame, evidence kind, optional geometry, media type, and retention class.
-Artifact bytes are never embedded in metadata. Its identifier projection uses
-the artifact digest, frame identifier, kind, and geometry; storage paths and
-retention changes are excluded.
+to a frame, evidence kind, nullable geometry, media type, and retention class.
+The `geometry` field is always present: it contains a valid Geometry object or
+JSON `null`. The evidence identity projection includes that exact value, so an
+absent key is invalid and `null` is unambiguous. Artifact bytes are never
+embedded in metadata. Storage paths and retention changes are excluded from
+identity.
 
 `RunManifest` binds one source to exact contract versions, ordered producer
 names/versions/configuration digests, and sampling configuration. These fields
@@ -110,7 +166,8 @@ The identifiers match the canonical identity rules above.
 {
   "schema": "visualworld.source",
   "schema_version": 1,
-  "source_id": "src_af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e",
+  "identity_version": 1,
+  "source_id": "src_8557c30d43a6c7e7a6710008e0e14f0afa86ae409fc4b8ad44bb4b97509486c9",
   "fingerprint": {"algorithm": "sha256", "digest": "af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e", "bytes": "145031"},
   "origin": {"kind": "local_file", "locator_stored": false},
   "access": {"classification": "private", "retention": "source_controlled"},
@@ -122,8 +179,9 @@ The identifiers match the canonical identity rules above.
 {
   "schema": "visualworld.frame_ref",
   "schema_version": 1,
-  "frame_id": "frm_e0e8b4104283d7919e2e26f532d05d0e003111b2779a4fa303b737be1ef67325",
-  "source_id": "src_af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e",
+  "identity_version": 1,
+  "frame_id": "frm_53b715d4410841bda9c052b9583d11e9a8da41903af5643beaff376031f02efc",
+  "source_id": "src_8557c30d43a6c7e7a6710008e0e14f0afa86ae409fc4b8ad44bb4b97509486c9",
   "stream_index": 0,
   "decode_index": "0",
   "pts": {"value": "90000", "time_base": {"numerator": "1", "denominator": "90000"}, "basis": "measured"},
@@ -135,8 +193,9 @@ The identifiers match the canonical identity rules above.
 {
   "schema": "visualworld.evidence_ref",
   "schema_version": 1,
-  "evidence_id": "evi_65fd6bf89e62c7f9a6bed14f29849565dc43cf1da0d421cf39257e7c111ba373",
-  "frame_id": "frm_e0e8b4104283d7919e2e26f532d05d0e003111b2779a4fa303b737be1ef67325",
+  "identity_version": 1,
+  "evidence_id": "evi_aef14ee06f30df79edc781c85b74fc9689199c621058752f907c7e7aeb129c8a",
+  "frame_id": "frm_53b715d4410841bda9c052b9583d11e9a8da41903af5643beaff376031f02efc",
   "kind": "original_frame",
   "artifact": {"sha256": "1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f", "bytes": "691200", "media_type": "application/vnd.visualworld.rgb24"},
   "geometry": {"space": "source_pixels", "source_width": 320, "source_height": 240, "box_xyxy": [0, 0, 320, 240], "measurement": "measured", "transform_to_source": {"kind": "identity"}},
@@ -148,8 +207,9 @@ The identifiers match the canonical identity rules above.
 {
   "schema": "visualworld.run_manifest",
   "schema_version": 1,
-  "run_id": "run_40d088e5f35f55c286ab8a76e6815ff45c20064c255f9dcd27ac7fad522782f2",
-  "source_id": "src_af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e",
+  "identity_version": 1,
+  "run_id": "run_158f21ca6b67a074f5ec83175fc68f0e7eee6440483a883df288d5fbfddaab38",
+  "source_id": "src_8557c30d43a6c7e7a6710008e0e14f0afa86ae409fc4b8ad44bb4b97509486c9",
   "contracts": {"source": 1, "frame_ref": 1, "evidence_ref": 1, "run_manifest": 1},
   "producers": [{"name": "visualworld.sampler", "version": "0.1.0a0", "configuration_sha256": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"}],
   "sampling": {"policy": "nearest_eligible_pts", "target_fps": {"numerator": "5", "denominator": "1"}},
@@ -162,15 +222,19 @@ The identifiers match the canonical identity rules above.
 
 Validation happens before hashing and again before persistence:
 
-- metadata records are at most 256 KiB of canonical JSON, with nesting at most
-  16 levels, at most 128 object members, and at most 64 elements in an embedded
-  array; sample indexes are separate bounded streams;
+- an ingress reader accepts at most 256 KiB of encoded bytes before JSON parsing;
+  it reads at most 256 KiB plus one byte and rejects overflow, including input
+  inflated by whitespace, before decoding or canonicalization;
+- canonical metadata is also at most 256 KiB, with nesting at most 16 levels, at
+  most 128 object members, and at most 64 elements in an embedded array; sample
+  indexes are separate bounded streams;
 - general strings are at most 4,096 UTF-8 bytes; schema names, enums, producer
   names, versions, and estimate methods are ASCII and at most 128 bytes;
 - a source has at most 32 streams and a run at most 64 producers;
-- digest and identifier syntax is exact; byte counts and indexes are unsigned
-  64-bit decimal strings; dimensions and coordinates are bounded 31-bit JSON
-  integers; and time values obey the ranges above;
+- digest and identifier syntax is exact; byte counts, decode indexes, and sample
+  counts are unsigned 64-bit decimal strings; stream indexes, dimensions,
+  coordinates, and rotation degrees are bounded 31-bit JSON integers; and time
+  values obey the ranges above;
 - unknown fields, unknown enum values, invalid UTF-8/NFC, duplicate keys,
   non-finite values, and unknown schema versions fail closed; and
 - paths, URLs, SQL, commands, or model output in descriptive fields remain data
@@ -184,9 +248,9 @@ IDs stay fixed when their identity projection is unchanged. If an identity rule
 must change, increment `identity_version`, mint a new typed ID, and retain an
 explicit `supersedes` reference; never silently rewrite an ID.
 
-The examples above are 537 bytes per `Source`, 448 bytes per `FrameRef`, 600
-bytes per `EvidenceRef`, and 681 bytes per `RunManifest` after canonical
-minification. At 5 FPS, 60 seconds (300 samples) is therefore about 307 KiB of
+The complete record examples above are 558 bytes per `Source`, 469 bytes per
+`FrameRef`, 621 bytes per `EvidenceRef`, and 702 bytes per `RunManifest` after
+canonical minification. At 5 FPS, 60 seconds (300 samples) is about 319 KiB of
 frame/evidence metadata plus one small source and manifest record. Binary
 evidence dominates disk use and is measured separately by the evidence store;
 no optimization decision is made here.
