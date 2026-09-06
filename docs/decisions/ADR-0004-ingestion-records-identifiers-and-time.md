@@ -119,6 +119,28 @@ plus `identity_version`. Optional duration and key-frame facts do not change the
 identifier. The optional JSON members are named `duration` and `key_frame` and
 are omitted, rather than written as `null`, when unknown.
 
+`nearest_eligible_pts` anchors target zero at the first eligible frame PTS and
+places target `n` at `origin + n / target_fps`. A call handles one stream whose
+decode indexes strictly increase and whose exact PTS values do not decrease.
+For each target between adjacent frames, the nearer source PTS wins; an exact
+midpoint chooses the lower decode index. One source frame is emitted at most
+once even when several targets choose it. Frames sharing a PTS use the lowest
+decode index, including when that tie spans a page boundary. At end of stream, targets strictly
+before `last_pts + last_duration` may choose the last frame when that duration
+is positive; without a positive final duration, selection stops at the last
+PTS. A VFR gap therefore selects only its nearest boundary frames, never
+fabricates a timestamp or frame, and has error bounded by half that adjacent
+PTS gap rather than half the target period.
+
+The production sampler returns the original `FrameRef` objects unchanged and
+uses exact rational arithmetic only. Resumable calls carry an immutable cursor
+and repeat the complete prior frame as the first candidate of the next bounded
+page. The cursor binds the source, stream time base, sampling configuration,
+origin, prior frame, equal-PTS tie representative, next target, last emitted
+identity, and total candidates.
+Cancellation publishes neither a result nor an advanced cursor, so retrying the
+same page yields identical sample identities. A completed cursor cannot resume.
+
 `Geometry` is embedded by value. It always includes original-source dimensions
 and a half-open integer `box_xyxy = [x_min, y_min, x_max, y_max]` in source
 pixels. Bounds satisfy `0 <= min < max <= dimension`. `measurement` is one of

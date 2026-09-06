@@ -110,6 +110,22 @@ structured corrupt/oversize/timeout/cancellation/path failures, and CPU-LITE
 wall/RSS evidence. It is not a cross-machine optimization benchmark. The latest
 reviewed result is the [issue #11 validation record](../research/local-video-source.md).
 
+The exact-PTS sampler acceptance reuses that runtime and the same generated
+fixtures:
+
+```sh
+PYTHONPATH=src /opt/visualworld-runtime-probe/python/bin/python3.13 \
+  scripts/run_sampling_acceptance.py \
+  --runtime /opt/visualworld-runtime-probe \
+  --worker /opt/visualworld-runtime-probe/worker/media_worker.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/sampling-acceptance.json
+```
+
+It checks original exact PTS/identities, CFR/VFR goldens, repeated and paged
+resume equivalence, cancellation, frame/duration caps, and a CPU-LITE
+throughput/RSS baseline. It does not tune the policy for this machine.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct
