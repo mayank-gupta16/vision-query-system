@@ -17,6 +17,9 @@ storage, model, codec, and service dependencies remain unapproved.
 | pytest | 9.1.1 initial lock | Unit and contract tests | MIT | Dev-only; preserve license if redistributed | Approved developer/CI tool | 2026-09-06 |
 | coverage.py | 7.16.0 initial lock | Branch coverage | Apache-2.0 | Dev-only; preserve license/notice if redistributed | Approved developer/CI tool | 2026-09-06 |
 | pip-audit | 2.10.1 initial lock | Vulnerability audit | Apache-2.0; ISC-derived example provenance documented upstream | Dev-only; review ISC notice if source/examples are redistributed | Approved developer/CI tool | 2026-09-06 |
+| FFmpeg | 9.0.1, official signed source SHA-256 `cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635` | Adapter-local media libraries | LGPL-2.1-or-later for the exact minimal issue #4 build | Source-build only; no external/GPL/version3/nonfree components; no binary redistribution approved; patent review remains separate | Approved design/experiment input for isolated Linux worker | 2026-09-06 |
+| PyAV | 18.1.0 sdist SHA-256 `47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28` | Adapter-local libav binding | BSD-3-Clause; linked FFmpeg remains separately licensed | Build from reviewed source against the minimal FFmpeg build; official wheels are not approved; no binary redistribution approved | Approved design/experiment input for isolated Linux worker | 2026-09-06 |
+| bubblewrap | 0.11.1 Ubuntu package in measured host | Linux worker namespaces | LGPL-2.0-or-later | OS capability, not bundled; exact platform package and policy must be probed; fail closed if unavailable | Approved Linux isolation direction | 2026-09-06 |
 
 For every future Python/native/container dependency record source URL, exact
 version/revision and digest/lock, SPDX identifier or `LicenseRef-*`, use,
@@ -28,6 +31,13 @@ Core defaults should use reviewed OSI-approved permissive licenses. Weak
 copyleft requires compatibility review. Strong/network copyleft,
 non-commercial, research-only, no-derivatives, unknown, or custom terms are
 deny-by-default for core and require an ADR plus isolation if accepted.
+
+The media approval above does not add a root package dependency. It authorizes
+the issue #11 adapter to reproduce and validate the exact source-built closure.
+The measured official PyAV wheels bundle a different, much broader FFmpeg 8.1.2
+closure and remain denied. Any wheel, installer, container, VM image, or other
+redistributed media runtime needs a new complete notice, corresponding-source,
+relinking, component, vulnerability, and codec-patent review.
 
 The measured development graph also includes MPL-2.0 `pathspec` 1.1.1 and
 `certifi` 2026.7.22. They are approved only as transitive dev/CI tools and are

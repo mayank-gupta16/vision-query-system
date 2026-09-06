@@ -11,6 +11,9 @@ architecture.
 - [Application toolchain clean-install experiment](application-toolchain.md) —
   supports accepted ADR-0002 and issue #3; includes a
   [machine-readable CPU-LITE receipt](toolchain-cpu-lite-receipt.json).
+- [Media runtime and isolation experiment](media-runtime.md) — supports accepted
+  ADR-0003 and issue #4; includes a
+  [machine-readable CPU-LITE receipt](media-runtime-cpu-lite-receipt.json).
 
 ## Implementation validation
 

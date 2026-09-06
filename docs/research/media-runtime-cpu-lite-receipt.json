@@ -1,0 +1,1219 @@
+{
+  "schema_version": 3,
+  "issue": "https://github.com/mayank-gupta16/vision-query-system/issues/4",
+  "experiment_date": "2026-09-06",
+  "source_commit": "4dd1045911ae9fc0ecdc4228f945a75c69a11634",
+  "profile": "CPU-LITE",
+  "host": {
+    "os": "Ubuntu 26.04.1 LTS",
+    "kernel": "Linux 7.0.0-30-generic x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "logical_cpus": 4,
+    "memory_kib": 15841396,
+    "swap_kib": 8388604,
+    "gpu_required": false,
+    "gcc": "15.2.0",
+    "python": "3.13.15",
+    "bubblewrap": "0.11.1",
+    "systemd": "259",
+    "cgroup": "v2",
+    "landlock_abi": 8
+  },
+  "inputs": {
+    "ffmpeg_source": {
+      "version": "9.0.1",
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+      "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+      "signature_sha256": "b613a00005232a1245ace7080088781ac23a916119d3e5b0d6c042368eee0177",
+      "verified_key_fingerprint": "FCF986EA15E6E293A5644F10B4322F04D67658D8"
+    },
+    "pyav_source": {
+      "version": "18.1.0",
+      "url": "https://pypi.org/project/av/18.1.0/",
+      "sha256": "47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28",
+      "bytes": 4451061
+    },
+    "build_inputs": [
+      {
+        "name": "setuptools",
+        "version": "84.0.0",
+        "artifact": "setuptools-84.0.0-py3-none-any.whl",
+        "sha256": "51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670"
+      },
+      {
+        "name": "cython",
+        "version": "3.3.0",
+        "artifact": "cython-3.3.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "23942b0662642927a55676e4b26e6840fb166dd7d76436384685227e7e8619a4"
+      }
+    ],
+    "source_built_pyav_wheel": {
+      "artifact": "av-18.1.0-cp311-abi3-linux_x86_64.whl",
+      "sha256": "6053b47d5b0db538b0adaec4094d33796461a9d5fbf12ebf00f5401cb8299643"
+    },
+    "official_pyav_wheel_control": {
+      "artifact": "av-18.1.0-cp311-abi3-manylinux_2_28_x86_64.whl",
+      "sha256": "8a032e8d8ebc73dec079364b9b4a6837638a2d106e8472314e685ffbf163e700",
+      "bytes": 35786210,
+      "bundled_ffmpeg": "8.1.2",
+      "approved": false
+    },
+    "scripts": {
+      "cancellation_probe.py": "039c9fe283017beb338618bd627290d2ad89c8ed49b740963152f500d6996729",
+      "full_worker_probe.py": "25a8afa9154886a047114b7418e461b3ae9ac386b58efbeb3e4ea8c01c0e2aa0",
+      "generate_fixtures.py": "20f626175e3863db982b5b72d0e2d7ea74b575d8cceb82d38f510a7e1df9b036",
+      "inspect_records.py": "5788d5eafe2ed9d7e31f1921eab5cbbd7f93b8690951d0ff6b5fb2a32f0f9f90",
+      "isolation_probe.py": "8d05a4e5f4e4213ddf35b6c05f2e16a546f8e0900ac49685121c3c73f5434daf",
+      "run_worker_cases.py": "4a09d9f86101bf40f3e7764af31f17f69dd1b697be54811da48f37d717df044b",
+      "worker_probe.py": "f737de604e41f27d6316efc4ba49bc7ad5e113f3bc127e1737c2a5292a0f9e3a"
+    },
+    "fixture_manifest": {
+      "path": "experiments/media-runtime-20260906/measured-fixture-manifest.json",
+      "sha256": "c2c24c3db38c43131a706b24a9025078066ce9a2773e5f5c96473486fa9831be",
+      "generator_argv": [
+        "python3",
+        "generate_fixtures.py",
+        "--ffmpeg",
+        "/usr/bin/ffmpeg",
+        "--output",
+        "/root/visualworld-media-exp/replay-adaf97b/fixtures"
+      ],
+      "files": [
+        {
+          "bytes": 131094,
+          "name": "excessive-metadata.ffmeta",
+          "sha256": "2c5bf1f170fbad1cb1d52341aafcb4c7585048bd56eba6e763d889562f09c615"
+        },
+        {
+          "bytes": 276151,
+          "name": "excessive-metadata.mp4",
+          "sha256": "60bf88263302911b4523c39e21791acc378ba423985dc33ebf40b888134d5095"
+        },
+        {
+          "bytes": 145031,
+          "name": "fixture.mp4",
+          "sha256": "af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e"
+        },
+        {
+          "bytes": 4096,
+          "name": "malformed.bin",
+          "sha256": "c8f5d0341d54d951a71b136e6e2afcb14d11ed8489a7ae126a8fee0df6ecf193"
+        },
+        {
+          "bytes": 89,
+          "name": "nested-reference.m3u8",
+          "sha256": "7ed1eb35d06dc004557772d6deb707a8e08d115982d594bcfde14afe38acdbdd"
+        },
+        {
+          "bytes": 26615,
+          "name": "no-pts.h264",
+          "sha256": "4040c25e536073f6b91cb7ccfa1380958cf1cc7fba336cb26616083f76fe5a1f"
+        },
+        {
+          "bytes": 27454,
+          "name": "oversize.mp4",
+          "sha256": "7f0a2149b41cd393c073a08f7b4a742d3821da296e08266a96c864606c8b25b2"
+        },
+        {
+          "bytes": 145055,
+          "name": "rotated.mp4",
+          "sha256": "aa52bb7a53b50266bd3d7e15bc1e52db3790a2625af2027ed05d0041cbdbffd3"
+        },
+        {
+          "bytes": 67108865,
+          "name": "source-too-large.bin",
+          "sha256": "91990977345985aaf03af1358f4f989d7eaf985b58529efb72f613c588f6599a"
+        },
+        {
+          "bytes": 4096,
+          "name": "truncated.mp4",
+          "sha256": "ec0b5cd5ff64100aa4e4eedcb5b1608364282f83727f9dfe1a45e1d8f039c508"
+        },
+        {
+          "bytes": 148709,
+          "name": "varying-pts.mp4",
+          "sha256": "446e657c59e62098092bffd8687fd5f582a1c1e80a9309eace5da136ae981089"
+        }
+      ]
+    }
+  },
+  "build_replay": {
+    "ffmpeg_configure_argv": [
+      "./configure",
+      "--prefix=/root/visualworld-ffmpeg-9.0.1-mvp-8760fae",
+      "--disable-everything",
+      "--disable-autodetect",
+      "--disable-doc",
+      "--disable-debug",
+      "--disable-network",
+      "--disable-x86asm",
+      "--enable-small",
+      "--enable-shared",
+      "--disable-static",
+      "--enable-pic",
+      "--enable-avcodec",
+      "--enable-avformat",
+      "--enable-avfilter",
+      "--enable-swscale",
+      "--enable-swresample",
+      "--enable-demuxer=mov,h264",
+      "--enable-decoder=h264",
+      "--enable-parser=h264"
+    ],
+    "ffmpeg_make_argv": [
+      [
+        "make",
+        "-j4"
+      ],
+      [
+        "make",
+        "install"
+      ]
+    ],
+    "ffmpeg_result": {
+      "version": "9.0.1",
+      "license": "LGPL version 2.1 or later",
+      "network": false,
+      "demuxers": [
+        "mov",
+        "h264"
+      ],
+      "decoders": [
+        "h264"
+      ],
+      "parsers": [
+        "h264"
+      ],
+      "prefix_bytes": 4908311
+    },
+    "pyav_build_tool_argv": [
+      [
+        "/root/.local/bin/uv",
+        "venv",
+        "--python",
+        "/opt/visualworld-runtime-probe-adaf97b/python/bin/python3.13",
+        "/root/visualworld-pyav-rebuild-fresh-6712193/venv"
+      ],
+      [
+        "/root/.local/bin/uv",
+        "pip",
+        "install",
+        "--offline",
+        "--python",
+        "/root/visualworld-pyav-rebuild-fresh-6712193/venv/bin/python",
+        "--require-hashes",
+        "-r",
+        "/root/visualworld-media-exp/replay-adaf97b/build-constraints.txt"
+      ]
+    ],
+    "pyav_source_build_environment": {
+      "PKG_CONFIG_PATH": "/root/visualworld-ffmpeg-9.0.1-mvp-8760fae/lib/pkgconfig",
+      "LD_LIBRARY_PATH": "/root/visualworld-ffmpeg-9.0.1-mvp-8760fae/lib"
+    },
+    "pyav_source_build_argv": [
+      "/root/.local/bin/uv",
+      "pip",
+      "install",
+      "--offline",
+      "--no-cache",
+      "--python",
+      "/root/visualworld-pyav-rebuild-fresh-6712193/venv/bin/python",
+      "--no-build-isolation",
+      "--no-deps",
+      "/root/visualworld-pyav-source-exp/av-18.1.0.tar.gz"
+    ],
+    "pyav_source_build_result": {
+      "built_from_source": true,
+      "cache_bypassed": true,
+      "build_seconds_reported": 107,
+      "version": "18.1.0",
+      "linked_library_versions": {
+        "libavcodec": [
+          63,
+          1,
+          101
+        ],
+        "libavdevice": [
+          63,
+          1,
+          101
+        ],
+        "libavfilter": [
+          12,
+          1,
+          101
+        ],
+        "libavformat": [
+          63,
+          1,
+          101
+        ],
+        "libavutil": [
+          61,
+          1,
+          101
+        ],
+        "libswresample": [
+          7,
+          1,
+          101
+        ],
+        "libswscale": [
+          10,
+          1,
+          101
+        ]
+      },
+      "decode_replay": {
+        "frames": 30,
+        "decoded_bytes": 6912000,
+        "codec": "h264",
+        "status": "ok"
+      }
+    }
+  },
+  "runtime": {
+    "pyav_version": "18.1.0",
+    "ffmpeg_version": "9.0.1",
+    "ffmpeg_license": "LGPL version 2.1 or later",
+    "ffmpeg_configure_args_file": "experiments/media-runtime-20260906/ffmpeg-configure-args.txt",
+    "runtime_tree_bytes": {
+      "python": 102434430,
+      "pyav_site_package": 24570247,
+      "ffmpeg_prefix": 4908311
+    },
+    "ffmpeg_library_sha256": {
+      "libavcodec.so.63.1.101": "efd15019526db57baae7fed47a865df3e7a6c2600a90bb3faf6a5b12b719a0a3",
+      "libavdevice.so.63.1.101": "b27f1737bfdef301caeb6a02184c65fbba2432bf1e20558f2e62b7047c33893c",
+      "libavfilter.so.12.1.101": "5c6fa7652cf5aae88500846fe8979e26150b169cbca1386b4e35f1046dcfe7f5",
+      "libavformat.so.63.1.101": "81d1f2b22a371339c3c26fcd17bb654d62bd7ddbd7b971710af60645f6a5415f",
+      "libavutil.so.61.1.101": "8b7bd2709bd657d7a9d6605f6597e899a4be6b7805f7e4606fcdc0948014355c",
+      "libswresample.so.7.1.101": "718ec155d82d88e7ecfb73b16f58bb4dc1935b42d02631d54d5257513af3b379",
+      "libswscale.so.10.1.101": "ac131e065c25b0f68f8fc0378643a8b0d85db24957dd596b1bdcfdab35088dbd"
+    }
+  },
+  "benchmark": {
+    "fixture_frames": 30,
+    "worker_wall_seconds": 0.12298379199637566,
+    "worker_frames_per_second": 243.93458286669272,
+    "first_complete_frame_seconds": 0.08012460199825,
+    "first_record_bytes": 231131,
+    "full_cgroup_namespace_observation": {
+      "result": "success",
+      "service_runtime_ms": 116,
+      "cpu_time_ms": 111,
+      "cgroup_memory_peak": "26.1M",
+      "cgroup_swap_peak": "0B",
+      "memory_max_bytes": 268435456,
+      "tasks_max": 64,
+      "cpu_quota": "200%",
+      "output_bytes": 6930319,
+      "output_sha256": "0f4d81f9a04eff7a853dc72126c9d20cd1af51341695229ed3aa00535d5015d4",
+      "replay": {
+        "artifact_sha256": "95604f456d452ca0ef0d8dc2b8d451087a254d6867a712d79caf325cdc2fc3ed",
+        "status": "pass",
+        "source": {
+          "bytes": 145031,
+          "path": "/root/visualworld-media-exp/replay-adaf97b/fixtures/fixture.mp4",
+          "sha256": "af9eee534a9f18e8b2ac2e2c5c87dcc010fdeabf13b6335957749bc579426b9e"
+        },
+        "descriptor_mapping": {
+          "access": "read-only",
+          "bubblewrap_handling": "inherited descriptor 3",
+          "fd": 3,
+          "name": "visualworld-source",
+          "systemd_property": "OpenFile=/root/visualworld-media-exp/replay-adaf97b/fixtures/fixture.mp4:visualworld-source:read-only"
+        },
+        "systemd_properties": [
+          "User=nobody",
+          "Group=nogroup",
+          "NoNewPrivileges=yes",
+          "MemoryMax=268435456",
+          "MemorySwapMax=0",
+          "TasksMax=64",
+          "CPUQuota=200%",
+          "RuntimeMaxSec=20s",
+          "LimitNOFILE=64",
+          "LimitNPROC=64",
+          "LimitFSIZE=8388608",
+          "UMask=0077",
+          "OpenFile=/root/visualworld-media-exp/replay-adaf97b/fixtures/fixture.mp4:visualworld-source:read-only"
+        ],
+        "systemd_run_argv": [
+          "/usr/bin/systemd-run",
+          "--quiet",
+          "--pipe",
+          "--wait",
+          "--collect",
+          "--unit=visualworld-full-worker-probe-final3",
+          "--property=User=nobody",
+          "--property=Group=nogroup",
+          "--property=NoNewPrivileges=yes",
+          "--property=MemoryMax=268435456",
+          "--property=MemorySwapMax=0",
+          "--property=TasksMax=64",
+          "--property=CPUQuota=200%",
+          "--property=RuntimeMaxSec=20s",
+          "--property=LimitNOFILE=64",
+          "--property=LimitNPROC=64",
+          "--property=LimitFSIZE=8388608",
+          "--property=UMask=0077",
+          "--property=OpenFile=/root/visualworld-media-exp/replay-adaf97b/fixtures/fixture.mp4:visualworld-source:read-only",
+          "/usr/bin/bwrap",
+          "--unshare-user",
+          "--uid",
+          "65534",
+          "--gid",
+          "65534",
+          "--unshare-net",
+          "--unshare-pid",
+          "--unshare-ipc",
+          "--unshare-uts",
+          "--disable-userns",
+          "--die-with-parent",
+          "--new-session",
+          "--cap-drop",
+          "ALL",
+          "--clearenv",
+          "--setenv",
+          "PATH",
+          "/runtime/python/bin",
+          "--setenv",
+          "HOME",
+          "/nonexistent",
+          "--setenv",
+          "LANG",
+          "C.UTF-8",
+          "--setenv",
+          "PYTHONPATH",
+          "/runtime/venv/lib/python3.13/site-packages",
+          "--setenv",
+          "LD_LIBRARY_PATH",
+          "/runtime/ffmpeg/lib",
+          "--ro-bind",
+          "/opt/visualworld-runtime-probe-adaf97b",
+          "/runtime",
+          "--dir",
+          "/lib",
+          "--ro-bind",
+          "/usr/lib/x86_64-linux-gnu",
+          "/lib/x86_64-linux-gnu",
+          "--ro-bind",
+          "/usr/lib64",
+          "/lib64",
+          "--proc",
+          "/proc",
+          "--dev",
+          "/dev",
+          "--size",
+          "33554432",
+          "--tmpfs",
+          "/tmp",
+          "--remount-ro",
+          "/",
+          "--chdir",
+          "/",
+          "/runtime/python/bin/python3.13",
+          "/runtime/worker_probe.py"
+        ],
+        "returncode": 0,
+        "wall_seconds": 0.21089247000054456,
+        "stdout_bytes": 6930319,
+        "stdout_sha256": "0f4d81f9a04eff7a853dc72126c9d20cd1af51341695229ed3aa00535d5015d4",
+        "stderr_bytes": 180,
+        "worker_summary": {
+          "codec": "h264",
+          "container_format": "mov,mp4,m4a,3gp,3g2,mj2",
+          "decoded_bytes": 6912000,
+          "frame_sar": "binding_unavailable",
+          "frames": 30,
+          "status": "ok",
+          "timestamp_generation": "disabled"
+        },
+        "records": {
+          "status": "ok",
+          "frames": 30,
+          "pixel_bytes": 6912000,
+          "max_metadata_record_bytes": 715,
+          "first_pts": {
+            "time_base": {
+              "denominator": 90000,
+              "numerator": 1
+            },
+            "value": 90000
+          },
+          "last_pts": {
+            "time_base": {
+              "denominator": 90000,
+              "numerator": 1
+            },
+            "value": 351000
+          },
+          "null_pts": 0
+        }
+      }
+    }
+  },
+  "correctness": {
+    "time_base": {
+      "denominator": 90000,
+      "numerator": 1
+    },
+    "cfr_nonzero_start": {
+      "expected_pts": [
+        90000,
+        99000,
+        108000,
+        117000,
+        126000,
+        135000,
+        144000,
+        153000,
+        162000,
+        171000,
+        180000,
+        189000,
+        198000,
+        207000,
+        216000,
+        225000,
+        234000,
+        243000,
+        252000,
+        261000,
+        270000,
+        279000,
+        288000,
+        297000,
+        306000,
+        315000,
+        324000,
+        333000,
+        342000,
+        351000
+      ],
+      "observed_pts": [
+        90000,
+        99000,
+        108000,
+        117000,
+        126000,
+        135000,
+        144000,
+        153000,
+        162000,
+        171000,
+        180000,
+        189000,
+        198000,
+        207000,
+        216000,
+        225000,
+        234000,
+        243000,
+        252000,
+        261000,
+        270000,
+        279000,
+        288000,
+        297000,
+        306000,
+        315000,
+        324000,
+        333000,
+        342000,
+        351000
+      ],
+      "source_packet_reordering_count": 30,
+      "output_sha256": "0f4d81f9a04eff7a853dc72126c9d20cd1af51341695229ed3aa00535d5015d4"
+    },
+    "varying_discontinuous": {
+      "expected_pts": [
+        90000,
+        99000,
+        108000,
+        126000,
+        135000,
+        144000,
+        162000,
+        171000,
+        180000,
+        198000,
+        207000,
+        216000,
+        234000,
+        243000,
+        252000,
+        270000,
+        279000,
+        288000,
+        306000,
+        315000,
+        324000,
+        342000,
+        351000,
+        360000,
+        378000,
+        387000,
+        396000,
+        414000,
+        423000,
+        432000
+      ],
+      "observed_pts": [
+        90000,
+        99000,
+        108000,
+        126000,
+        135000,
+        144000,
+        162000,
+        171000,
+        180000,
+        198000,
+        207000,
+        216000,
+        234000,
+        243000,
+        252000,
+        270000,
+        279000,
+        288000,
+        306000,
+        315000,
+        324000,
+        342000,
+        351000,
+        360000,
+        378000,
+        387000,
+        396000,
+        414000,
+        423000,
+        432000
+      ],
+      "source_packet_reordering_count": 30,
+      "output_sha256": "2ce6bf2532c21a71d314ff5629df028e7f9520435e0d05c4016ddbbe1570a881"
+    },
+    "missing_pts": {
+      "expected_pts": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "observed_pts": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "output_sha256": "5fdefbbd75572fd89e5c109637dc0d1636f816f14170e445a9eecdc3d3793f4c"
+    },
+    "rotation_and_sar": {
+      "rotation_degrees": [
+        90
+      ],
+      "display_matrix_first": [
+        0,
+        -65536,
+        0,
+        65536,
+        0,
+        0,
+        0,
+        0,
+        1073741824
+      ],
+      "display_matrix_frames": 30,
+      "stream_sar_guess": [
+        {
+          "denominator": 3,
+          "numerator": 4
+        }
+      ],
+      "frame_sar_observed": null
+    },
+    "excessive_metadata": {
+      "input_comment_bytes": 131072,
+      "max_output_metadata_record_bytes": 707
+    },
+    "checks": {
+      "cfr_pts_exact": true,
+      "cfr_source_packets_reordered": true,
+      "cfr_time_base_exact": true,
+      "display_matrix_retained": true,
+      "excessive_container_metadata_output_bounded": true,
+      "missing_pts_remain_null": true,
+      "rotation_exact": true,
+      "stream_sar_labelled_guess": true,
+      "varying_pts_exact": true,
+      "varying_source_packets_reordered": true,
+      "varying_time_base_exact": true
+    }
+  },
+  "hostile_cases": {
+    "decoded-byte-cap": {
+      "returncode": 20,
+      "wall_seconds": 0.08858825800416525,
+      "timed_out": false,
+      "stdout_bytes": 8,
+      "stderr_bytes": 52,
+      "summary": {
+        "limit": "decoded_bytes",
+        "status": "limit_exceeded"
+      }
+    },
+    "excessive-metadata.mp4": {
+      "returncode": 0,
+      "wall_seconds": 0.1451974470037385,
+      "timed_out": false,
+      "stdout_bytes": 6930289,
+      "stderr_bytes": 180,
+      "summary": {
+        "codec": "h264",
+        "container_format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "decoded_bytes": 6912000,
+        "frame_sar": "binding_unavailable",
+        "frames": 30,
+        "status": "ok",
+        "timestamp_generation": "disabled"
+      }
+    },
+    "fixture.mp4": {
+      "returncode": 0,
+      "wall_seconds": 0.12298379199637566,
+      "timed_out": false,
+      "stdout_bytes": 6930319,
+      "stderr_bytes": 180,
+      "summary": {
+        "codec": "h264",
+        "container_format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "decoded_bytes": 6912000,
+        "frame_sar": "binding_unavailable",
+        "frames": 30,
+        "status": "ok",
+        "timestamp_generation": "disabled"
+      }
+    },
+    "frame-cap": {
+      "returncode": 20,
+      "wall_seconds": 0.09717896999791265,
+      "timed_out": false,
+      "stdout_bytes": 231131,
+      "stderr_bytes": 50,
+      "summary": {
+        "limit": "frame_count",
+        "status": "limit_exceeded"
+      }
+    },
+    "malformed.bin": {
+      "returncode": 21,
+      "wall_seconds": 0.08950694499799283,
+      "timed_out": false,
+      "stdout_bytes": 0,
+      "stderr_bytes": 58,
+      "summary": {
+        "error_type": "InvalidDataError",
+        "status": "decode_error"
+      }
+    },
+    "nested-reference.m3u8": {
+      "returncode": 21,
+      "wall_seconds": 0.08104508600081317,
+      "timed_out": false,
+      "stdout_bytes": 0,
+      "stderr_bytes": 58,
+      "summary": {
+        "error_type": "InvalidDataError",
+        "status": "decode_error"
+      }
+    },
+    "no-pts.h264": {
+      "returncode": 0,
+      "wall_seconds": 0.10420151399739552,
+      "timed_out": false,
+      "stdout_bytes": 1154568,
+      "stderr_bytes": 160,
+      "summary": {
+        "codec": "h264",
+        "container_format": "h264",
+        "decoded_bytes": 1152000,
+        "frame_sar": "binding_unavailable",
+        "frames": 5,
+        "status": "ok",
+        "timestamp_generation": "disabled"
+      }
+    },
+    "oversize.mp4": {
+      "returncode": 20,
+      "wall_seconds": 0.1336021739989519,
+      "timed_out": false,
+      "stdout_bytes": 8,
+      "stderr_bytes": 45,
+      "summary": {
+        "limit": "pixels",
+        "status": "limit_exceeded"
+      }
+    },
+    "rotated.mp4": {
+      "returncode": 0,
+      "wall_seconds": 0.1471978589979699,
+      "timed_out": false,
+      "stdout_bytes": 6935390,
+      "stderr_bytes": 180,
+      "summary": {
+        "codec": "h264",
+        "container_format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "decoded_bytes": 6912000,
+        "frame_sar": "binding_unavailable",
+        "frames": 30,
+        "status": "ok",
+        "timestamp_generation": "disabled"
+      }
+    },
+    "source-too-large.bin": {
+      "returncode": 20,
+      "wall_seconds": 0.0956844309985172,
+      "timed_out": false,
+      "stdout_bytes": 0,
+      "stderr_bytes": 51,
+      "summary": {
+        "limit": "source_bytes",
+        "status": "limit_exceeded"
+      }
+    },
+    "truncated.mp4": {
+      "returncode": 21,
+      "wall_seconds": 0.08328910800628364,
+      "timed_out": false,
+      "stdout_bytes": 8,
+      "stderr_bytes": 58,
+      "summary": {
+        "error_type": "InvalidDataError",
+        "status": "decode_error"
+      }
+    },
+    "varying-pts.mp4": {
+      "returncode": 0,
+      "wall_seconds": 0.13765378700190922,
+      "timed_out": false,
+      "stdout_bytes": 6930328,
+      "stderr_bytes": 180,
+      "summary": {
+        "codec": "h264",
+        "container_format": "mov,mp4,m4a,3gp,3g2,mj2",
+        "decoded_bytes": 6912000,
+        "frame_sar": "binding_unavailable",
+        "frames": 30,
+        "status": "ok",
+        "timestamp_generation": "disabled"
+      }
+    }
+  },
+  "isolation": {
+    "host_listener_connections": {
+      "ipv4_tcp": 0,
+      "ipv4_udp": 0,
+      "ipv6_tcp": 0,
+      "unix_abstract": 0,
+      "unix_path": 0
+    },
+    "namespace_argv": [
+      "/usr/bin/bwrap",
+      "--unshare-user",
+      "--uid",
+      "65534",
+      "--gid",
+      "65534",
+      "--unshare-net",
+      "--unshare-pid",
+      "--unshare-ipc",
+      "--unshare-uts",
+      "--disable-userns",
+      "--die-with-parent",
+      "--new-session",
+      "--cap-drop",
+      "ALL",
+      "--clearenv",
+      "--setenv",
+      "PATH",
+      "/runtime/python/bin",
+      "--setenv",
+      "HOME",
+      "/nonexistent",
+      "--setenv",
+      "LANG",
+      "C.UTF-8",
+      "--setenv",
+      "PYTHONPATH",
+      "/runtime/venv/lib/python3.13/site-packages",
+      "--setenv",
+      "LD_LIBRARY_PATH",
+      "/runtime/ffmpeg/lib",
+      "--ro-bind",
+      "/opt/visualworld-runtime-probe-adaf97b",
+      "/runtime",
+      "--dir",
+      "/lib",
+      "--ro-bind",
+      "/usr/lib/x86_64-linux-gnu",
+      "/lib/x86_64-linux-gnu",
+      "--ro-bind",
+      "/usr/lib64",
+      "/lib64",
+      "--proc",
+      "/proc",
+      "--dev",
+      "/dev",
+      "--size",
+      "33554432",
+      "--tmpfs",
+      "/tmp",
+      "--remount-ro",
+      "/",
+      "--chdir",
+      "/",
+      "/runtime/python/bin/python3.13",
+      "/runtime/isolation_probe.py",
+      "probe",
+      "--host-sentinel",
+      "/root/visualworld-isolation-3hddpjdh/host-sentinel",
+      "--ipv4-port",
+      "34571",
+      "--ipv6-port",
+      "37289",
+      "--unix-socket-path",
+      "/root/visualworld-isolation-3hddpjdh/host.sock",
+      "--abstract-socket-name",
+      "visualworld-57103",
+      "--udp-port",
+      "36705"
+    ],
+    "nested_reference": {
+      "host_listener_connections": 0,
+      "namespace_argv": [
+        "/usr/bin/bwrap",
+        "--unshare-user",
+        "--uid",
+        "65534",
+        "--gid",
+        "65534",
+        "--unshare-net",
+        "--unshare-pid",
+        "--unshare-ipc",
+        "--unshare-uts",
+        "--disable-userns",
+        "--die-with-parent",
+        "--new-session",
+        "--cap-drop",
+        "ALL",
+        "--clearenv",
+        "--setenv",
+        "PATH",
+        "/runtime/python/bin",
+        "--setenv",
+        "HOME",
+        "/nonexistent",
+        "--setenv",
+        "LANG",
+        "C.UTF-8",
+        "--setenv",
+        "PYTHONPATH",
+        "/runtime/venv/lib/python3.13/site-packages",
+        "--setenv",
+        "LD_LIBRARY_PATH",
+        "/runtime/ffmpeg/lib",
+        "--ro-bind",
+        "/opt/visualworld-runtime-probe-adaf97b",
+        "/runtime",
+        "--dir",
+        "/lib",
+        "--ro-bind",
+        "/usr/lib/x86_64-linux-gnu",
+        "/lib/x86_64-linux-gnu",
+        "--ro-bind",
+        "/usr/lib64",
+        "/lib64",
+        "--proc",
+        "/proc",
+        "--dev",
+        "/dev",
+        "--size",
+        "33554432",
+        "--tmpfs",
+        "/tmp",
+        "--remount-ro",
+        "/",
+        "--chdir",
+        "/",
+        "/runtime/python/bin/python3.13",
+        "/runtime/worker_probe.py"
+      ],
+      "returncode": 21,
+      "stderr": "{\"error_type\":\"InvalidDataError\",\"status\":\"decode_error\"}",
+      "stderr_bytes": 58,
+      "stdout_bytes": 0
+    },
+    "probe": {
+      "checks": {
+        "capabilities_empty": true,
+        "dns_resolution_denied": true,
+        "effective_gid_non_root": true,
+        "effective_uid_non_root": true,
+        "host_ipv4_denied": true,
+        "host_ipv6_denied": true,
+        "host_sentinel_read_denied": true,
+        "host_unix_abstract_denied": true,
+        "host_unix_path_denied": true,
+        "no_new_privileges": true,
+        "proc_root_escape_denied": true,
+        "public_dns_transport_denied": true,
+        "root_write_denied": true,
+        "runtime_write_denied": true,
+        "symlink_escape_denied": true,
+        "tmp_write_allowed": true
+      },
+      "namespaces": {
+        "cgroup": "cgroup:[4026531835]",
+        "ipc": "ipc:[4026532845]",
+        "mnt": "mnt:[4026532837]",
+        "net": "net:[4026532847]",
+        "pid": "pid:[4026532846]",
+        "user": "user:[4026532903]",
+        "uts": "uts:[4026532844]"
+      },
+      "schema_version": 1,
+      "status": "pass",
+      "status_fields": {
+        "CapEff": "0000000000000000",
+        "NoNewPrivs": "1"
+      },
+      "transport_observations": {
+        "host_delivery_is_verified_by_outer_listener": true,
+        "host_udp_send_raised": false,
+        "public_dns_send_raised": true
+      }
+    },
+    "schema_version": 1,
+    "status": "pass",
+    "systemd_properties": [
+      "User=nobody",
+      "Group=nogroup",
+      "NoNewPrivileges=yes",
+      "MemoryMax=268435456",
+      "MemorySwapMax=0",
+      "TasksMax=64",
+      "CPUQuota=200%",
+      "RuntimeMaxSec=20s",
+      "LimitNOFILE=64",
+      "LimitNPROC=64",
+      "LimitFSIZE=8388608",
+      "UMask=0077"
+    ],
+    "systemd_returncode": 0,
+    "systemd_run_argv": [
+      "/usr/bin/systemd-run",
+      "--quiet",
+      "--pipe",
+      "--wait",
+      "--collect",
+      "--unit=visualworld-isolation-probe-57103",
+      "--property=User=nobody",
+      "--property=Group=nogroup",
+      "--property=NoNewPrivileges=yes",
+      "--property=MemoryMax=268435456",
+      "--property=MemorySwapMax=0",
+      "--property=TasksMax=64",
+      "--property=CPUQuota=200%",
+      "--property=RuntimeMaxSec=20s",
+      "--property=LimitNOFILE=64",
+      "--property=LimitNPROC=64",
+      "--property=LimitFSIZE=8388608",
+      "--property=UMask=0077",
+      "/usr/bin/bwrap",
+      "--unshare-user",
+      "--uid",
+      "65534",
+      "--gid",
+      "65534",
+      "--unshare-net",
+      "--unshare-pid",
+      "--unshare-ipc",
+      "--unshare-uts",
+      "--disable-userns",
+      "--die-with-parent",
+      "--new-session",
+      "--cap-drop",
+      "ALL",
+      "--clearenv",
+      "--setenv",
+      "PATH",
+      "/runtime/python/bin",
+      "--setenv",
+      "HOME",
+      "/nonexistent",
+      "--setenv",
+      "LANG",
+      "C.UTF-8",
+      "--setenv",
+      "PYTHONPATH",
+      "/runtime/venv/lib/python3.13/site-packages",
+      "--setenv",
+      "LD_LIBRARY_PATH",
+      "/runtime/ffmpeg/lib",
+      "--ro-bind",
+      "/opt/visualworld-runtime-probe-adaf97b",
+      "/runtime",
+      "--dir",
+      "/lib",
+      "--ro-bind",
+      "/usr/lib/x86_64-linux-gnu",
+      "/lib/x86_64-linux-gnu",
+      "--ro-bind",
+      "/usr/lib64",
+      "/lib64",
+      "--proc",
+      "/proc",
+      "--dev",
+      "/dev",
+      "--size",
+      "33554432",
+      "--tmpfs",
+      "/tmp",
+      "--remount-ro",
+      "/",
+      "--chdir",
+      "/",
+      "/runtime/python/bin/python3.13",
+      "/runtime/isolation_probe.py",
+      "probe",
+      "--host-sentinel",
+      "/root/visualworld-isolation-3hddpjdh/host-sentinel",
+      "--ipv4-port",
+      "34571",
+      "--ipv6-port",
+      "37289",
+      "--unix-socket-path",
+      "/root/visualworld-isolation-3hddpjdh/host.sock",
+      "--abstract-socket-name",
+      "visualworld-57103",
+      "--udp-port",
+      "36705"
+    ]
+  },
+  "cancellation": {
+    "cancel_after_seconds": 0.25,
+    "checks": {
+      "blocked_output_observed": true,
+      "no_forced_kill": true,
+      "no_token_survivors": true,
+      "process_group_gone": true,
+      "stderr_bounded": true,
+      "stdout_bounded": true,
+      "termination_within_limit": true,
+      "worker_alive_when_cancelled": true
+    },
+    "namespace_argv": [
+      "/usr/bin/bwrap",
+      "--unshare-user",
+      "--uid",
+      "65534",
+      "--gid",
+      "65534",
+      "--unshare-net",
+      "--unshare-pid",
+      "--unshare-ipc",
+      "--unshare-uts",
+      "--disable-userns",
+      "--die-with-parent",
+      "--new-session",
+      "--cap-drop",
+      "ALL",
+      "--clearenv",
+      "--setenv",
+      "PATH",
+      "/runtime/python/bin",
+      "--setenv",
+      "HOME",
+      "/nonexistent",
+      "--setenv",
+      "LANG",
+      "C.UTF-8",
+      "--setenv",
+      "PYTHONPATH",
+      "/runtime/venv/lib/python3.13/site-packages",
+      "--setenv",
+      "LD_LIBRARY_PATH",
+      "/runtime/ffmpeg/lib",
+      "--setenv",
+      "VISUALWORLD_PROBE_TOKEN",
+      "visualworld-cancel-57282-57303647745199",
+      "--ro-bind",
+      "/opt/visualworld-runtime-probe-adaf97b",
+      "/runtime",
+      "--dir",
+      "/lib",
+      "--ro-bind",
+      "/usr/lib/x86_64-linux-gnu",
+      "/lib/x86_64-linux-gnu",
+      "--ro-bind",
+      "/usr/lib64",
+      "/lib64",
+      "--proc",
+      "/proc",
+      "--dev",
+      "/dev",
+      "--size",
+      "33554432",
+      "--tmpfs",
+      "/tmp",
+      "--remount-ro",
+      "/",
+      "--chdir",
+      "/",
+      "/runtime/python/bin/python3.13",
+      "/runtime/worker_probe.py"
+    ],
+    "pipe_bytes": 4096,
+    "returncode": -15,
+    "schema_version": 1,
+    "status": "pass",
+    "stderr_bytes": 0,
+    "stdout_bytes": 1755,
+    "termination_limit_seconds": 0.5,
+    "termination_seconds": 0.0011867120047099888
+  },
+  "output_artifacts": {
+    "worker_cases_sha256": "2101b000ec49bbdbd29eb78ac0774a607027dc1af3b18ed1626b9d28d2f63469",
+    "isolation_sha256": "bf69b69c11839a3da8078ab3b71b8796811c0dca6893360124392e8273c1f7f7",
+    "cancellation_sha256": "c3e26fe67e2c0667add912f3e3bf12897e57a142f3e8601f4e405e7fcfb29a1b"
+  },
+  "platform_matrix": [
+    {
+      "platform": "Linux x86_64 CPU-LITE",
+      "hostile_decode": "supported when mandatory cgroup-v2 and bubblewrap probes pass",
+      "status": "measured"
+    },
+    {
+      "platform": "macOS arm64",
+      "hostile_decode": "fail closed; use a constrained no-network Linux VM",
+      "status": "unsupported before validated boundary"
+    },
+    {
+      "platform": "other",
+      "hostile_decode": "no claim",
+      "status": "untested"
+    }
+  ],
+  "limitations": [
+    "Generated fixtures only; no broad real-video compatibility claim.",
+    "Only MP4/raw-H.264 are approved for the first Linux slice.",
+    "Hostile decode on macOS remains fail-closed.",
+    "PyAV 18.1.0 lacks per-frame SAR and best-effort-timestamp bindings.",
+    "Issue #11 owns the production supervisor, openat2 staging, seccomp/Landlock, and structured errors.",
+    "No binary redistribution is approved by this receipt."
+  ]
+}
