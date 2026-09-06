@@ -38,10 +38,10 @@ groups when practical.
 
 ## Storage boundary
 
-The v0.x default is expected to use a transactional local metadata store and a
-content-addressed filesystem artifact store, both behind ports. Final storage
-selection, migrations, identifiers, and deletion semantics require an ADR.
-Full video blobs do not belong in a relational metadata database.
+[ADR-0005](../decisions/ADR-0005-local-storage-and-deletion.md) selects a local
+SQLite metadata store and a SHA-256 content-addressed filesystem artifact store,
+both behind ports. It defines migrations, crash recovery, audit/repair, and
+cascade deletion. Full video blobs do not belong in the metadata database.
 
 ## Query boundary
 
