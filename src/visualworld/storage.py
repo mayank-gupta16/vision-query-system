@@ -188,6 +188,9 @@ class StagingCleanupHandle:
     staging_name: str | None
     device: int
     inode: int
+    size: int
+    modified_ns: int
+    changed_ns: int
     protocol_version: int = 1
 
     def __post_init__(self) -> None:
@@ -205,6 +208,12 @@ class StagingCleanupHandle:
             or self.device < 0
             or type(self.inode) is not int
             or self.inode < 0
+            or type(self.size) is not int
+            or self.size < 0
+            or type(self.modified_ns) is not int
+            or self.modified_ns < 0
+            or type(self.changed_ns) is not int
+            or self.changed_ns < 0
             or type(self.protocol_version) is not int
             or self.protocol_version != 1
         ):
@@ -214,6 +223,9 @@ class StagingCleanupHandle:
         return {
             "device": self.device,
             "inode": self.inode,
+            "size": self.size,
+            "modified_ns": self.modified_ns,
+            "changed_ns": self.changed_ns,
             "protocol_version": self.protocol_version,
             "run_id": self.run_id,
             "staging_name": self.staging_name,
@@ -227,6 +239,9 @@ class StagingCleanupHandle:
         if not isinstance(value, dict) or set(value) != {
             "device",
             "inode",
+            "size",
+            "modified_ns",
+            "changed_ns",
             "protocol_version",
             "run_id",
             "staging_name",
@@ -238,6 +253,9 @@ class StagingCleanupHandle:
                 staging_name=value["staging_name"],
                 device=value["device"],
                 inode=value["inode"],
+                size=value["size"],
+                modified_ns=value["modified_ns"],
+                changed_ns=value["changed_ns"],
                 protocol_version=value["protocol_version"],
             )
         except (TypeError, ValueError):
@@ -264,6 +282,9 @@ def _cleanup_handle(value: object, operation: str) -> StagingCleanupHandle:
             value.staging_name,
             value.device,
             value.inode,
+            value.size,
+            value.modified_ns,
+            value.changed_ns,
             value.protocol_version,
         )
     except (TypeError, ValueError):
@@ -446,6 +467,25 @@ def _regular_metadata_valid(metadata: os.stat_result, mode: int) -> bool:
         and metadata.st_uid == os.geteuid()
         and metadata.st_nlink == 1
         and stat.S_IMODE(metadata.st_mode) == mode
+    )
+
+
+def _cleanup_identity_matches(
+    cleanup: StagingCleanupHandle,
+    metadata: os.stat_result,
+) -> bool:
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    ) == (
+        cleanup.device,
+        cleanup.inode,
+        cleanup.size,
+        cleanup.modified_ns,
+        cleanup.changed_ns,
     )
 
 
@@ -1498,6 +1538,9 @@ class LocalEvidenceStore:
                             None,
                             run_metadata.st_dev,
                             run_metadata.st_ino,
+                            run_metadata.st_size,
+                            run_metadata.st_mtime_ns,
+                            run_metadata.st_ctime_ns,
                         )
                         entries.append(
                             InventoryEntry(
@@ -1527,6 +1570,9 @@ class LocalEvidenceStore:
                                 file_entry.name,
                                 metadata.st_dev,
                                 metadata.st_ino,
+                                metadata.st_size,
+                                metadata.st_mtime_ns,
+                                metadata.st_ctime_ns,
                             )
                             entries.append(
                                 InventoryEntry(
@@ -1772,13 +1818,10 @@ class LocalEvidenceStore:
                             occupied = next(iterator, None) is not None
                     except OSError:
                         _fail(PortErrorCode.STORAGE_FAILED, operation)
-                    if (metadata.st_dev, metadata.st_ino) != (
-                        selected.device,
-                        selected.inode,
-                    ):
-                        _fail(PortErrorCode.CORRUPT, operation)
                     if occupied:
                         _fail(PortErrorCode.CONFLICT, operation)
+                    if not _cleanup_identity_matches(selected, metadata):
+                        _fail(PortErrorCode.CORRUPT, operation)
                     try:
                         os.rmdir(selected.run_id, dir_fd=staging)
                         os.fsync(staging)
@@ -1800,10 +1843,10 @@ class LocalEvidenceStore:
                     return DeleteDisposition.ALREADY_ABSENT
                 except OSError:
                     _fail(PortErrorCode.STORAGE_FAILED, operation)
-                if not _regular_metadata_valid(metadata, 0o600) or (
-                    metadata.st_dev,
-                    metadata.st_ino,
-                ) != (selected.device, selected.inode):
+                if not _regular_metadata_valid(
+                    metadata,
+                    0o600,
+                ) or not _cleanup_identity_matches(selected, metadata):
                     _fail(PortErrorCode.CORRUPT, operation)
                 try:
                     os.unlink(selected.staging_name, dir_fd=run)

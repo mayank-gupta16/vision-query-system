@@ -116,8 +116,8 @@ def test_configuration_and_value_objects_reject_invalid_shapes(tmp_path: Path) -
     invalid_values: tuple[Callable[[], object], ...] = (
         lambda: StageHandle(RUN_ID, "invalid", artifact),
         lambda: StageHandle(RUN_ID, "0" * 32 + ".part", cast(Artifact, object())),
-        lambda: StagingCleanupHandle(RUN_ID, None, -1, 1),
-        lambda: StagingCleanupHandle(RUN_ID, "invalid", 1, 1),
+        lambda: StagingCleanupHandle(RUN_ID, None, -1, 1, 0, 0, 0),
+        lambda: StagingCleanupHandle(RUN_ID, "invalid", 1, 1, 0, 0, 0),
         lambda: CommitResult(cast(Artifact, object()), CommitDisposition.PROMOTED),
         lambda: CommitResult(artifact, cast(CommitDisposition, "promoted")),
         lambda: ArtifactCheck(cast(Artifact, object()), ArtifactState.VALID),
@@ -243,7 +243,7 @@ def test_stage_handle_round_trips_as_coordinator_state(tmp_path: Path) -> None:
         with pytest.raises(ValueError, match="invalid stage handle"):
             StageHandle.from_mapping(invalid)
 
-    cleanup = StagingCleanupHandle(RUN_ID, "0" * 32 + ".part", 1, 2)
+    cleanup = StagingCleanupHandle(RUN_ID, "0" * 32 + ".part", 1, 2, 3, 4, 5)
     assert StagingCleanupHandle.from_mapping(cleanup.to_mapping()) == cleanup
     assert "<redacted>" in repr(cleanup)
     with pytest.raises(ValueError, match="invalid staging cleanup handle"):
@@ -350,7 +350,9 @@ def test_inventory_cleanup_handles_recover_incomplete_files_and_empty_runs(
     assert not empty_run.exists()
 
 
-def test_stale_cleanup_handle_never_deletes_a_replacement(tmp_path: Path) -> None:
+def test_stale_cleanup_handle_never_deletes_replacement_if_inode_is_reused(
+    tmp_path: Path,
+) -> None:
     store = _store(tmp_path)
     run = store.root / "staging" / "v1" / RUN_ID
     run.mkdir(mode=0o700)
@@ -362,6 +364,10 @@ def test_stale_cleanup_handle_never_deletes_a_replacement(tmp_path: Path) -> Non
     partial.unlink()
     partial.write_bytes(b"replacement")
     partial.chmod(0o600)
+    replacement = partial.stat()
+    # Deterministically model a filesystem that immediately recycles the inode.
+    object.__setattr__(entry.cleanup, "device", replacement.st_dev)
+    object.__setattr__(entry.cleanup, "inode", replacement.st_ino)
 
     with pytest.raises(PortError) as raised:
         store.discard_incomplete(entry.cleanup)
