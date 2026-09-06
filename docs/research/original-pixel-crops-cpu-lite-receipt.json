@@ -2,9 +2,9 @@
   "benchmark": {
     "aggregate_sha256": "84029ed897c1de8bf0d7ac5ae5690cb5a522465cdbe7ed78015ddcb8106c8a86",
     "bounded": true,
-    "bytes_per_second": 487046034,
+    "bytes_per_second": 505648060,
     "copied_bytes": 829440000,
-    "cpu_ns": 1702792388,
+    "cpu_ns": 1640030077,
     "crop_dimensions": {
       "height": 720,
       "width": 1280
@@ -20,9 +20,9 @@
       "width": 960
     },
     "exact_geometry": true,
-    "frames_per_second": 176,
+    "frames_per_second": 182,
     "peak_rss_limit_bytes": 2147483648,
-    "process_peak_rss_bytes": 38338560,
+    "process_peak_rss_bytes": 38256640,
     "rss_measured": true,
     "sampled_frames": 300,
     "sampling_fps": 5,
@@ -38,7 +38,7 @@
     },
     "timing_measured": true,
     "video_seconds": 60,
-    "wall_ns": 1703001238,
+    "wall_ns": 1640350402,
     "workload": "exact_map_copy_and_sha256"
   },
   "crop_manifest_sha256": "dc8afc2e619d1fcb5c4cc2e34382e0bc87f0a330cb79df4ac84450a63c0d4177",

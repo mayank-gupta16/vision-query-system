@@ -366,11 +366,13 @@ def _inode(descriptor: int) -> tuple[int, int]:
 def _unlink_created(
     name: str,
     parent_descriptor: int,
-    created_inode: tuple[int, int],
+    created_inode: tuple[int, int] | None,
 ) -> None:
     try:
         current = os.stat(name, dir_fd=parent_descriptor, follow_symlinks=False)
-        if stat.S_ISREG(current.st_mode) and (current.st_dev, current.st_ino) == created_inode:
+        if stat.S_ISREG(current.st_mode) and (
+            created_inode is None or (current.st_dev, current.st_ino) == created_inode
+        ):
             os.unlink(name, dir_fd=parent_descriptor)
     except OSError:
         pass
@@ -409,6 +411,7 @@ def write_rgb24_crop(
     descriptors = [root_descriptor]
     parent_descriptor = root_descriptor
     file_descriptor: int | None = None
+    created = False
     created_inode: tuple[int, int] | None = None
     completed = False
     directory_flags = os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
@@ -431,6 +434,7 @@ def write_rgb24_crop(
                 0o600,
                 dir_fd=parent_descriptor,
             )
+            created = True
             created_inode = _inode(file_descriptor)
         except OSError:
             _fail("destination_unavailable")
@@ -438,9 +442,8 @@ def write_rgb24_crop(
             _write_all(file_descriptor, crop.pixels)
             os.fchmod(file_descriptor, 0o400)
             os.fsync(file_descriptor)
-            closing_descriptor = file_descriptor
+            os.close(file_descriptor)
             file_descriptor = None
-            os.close(closing_descriptor)
         except OSError:
             _fail("write_failed")
         completed = True
@@ -448,7 +451,7 @@ def write_rgb24_crop(
         if file_descriptor is not None:
             with suppress(OSError):
                 os.close(file_descriptor)
-        if created_inode is not None and not completed:
+        if created and not completed:
             _unlink_created(parts[-1], parent_descriptor, created_inode)
         for descriptor in reversed(descriptors):
             with suppress(OSError):

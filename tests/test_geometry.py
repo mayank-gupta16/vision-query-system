@@ -506,3 +506,64 @@ def test_crop_writer_does_not_unlink_a_replacement_after_failure(
         )
 
     assert destination.read_bytes() == b"replacement"
+
+
+@pytest.mark.parametrize(
+    "interruption", [KeyboardInterrupt(), CropError("destination_unavailable")]
+)
+def test_crop_writer_cleans_up_when_initial_inode_capture_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    interruption: BaseException,
+) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    captured_descriptor: int | None = None
+
+    def fail_inode(descriptor: int) -> tuple[int, int]:
+        nonlocal captured_descriptor
+        captured_descriptor = descriptor
+        raise interruption
+
+    monkeypatch.setattr(geometry_module, "_inode", fail_inode)
+    with pytest.raises(type(interruption)):
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="crop.rgb24",
+        )
+
+    assert captured_descriptor is not None
+    with pytest.raises(OSError):
+        os.fstat(captured_descriptor)
+    assert not (root / "crop.rgb24").exists()
+
+
+def test_crop_writer_retains_descriptor_until_close_succeeds(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    original_close = os.close
+    captured_descriptor: int | None = None
+    interrupted = False
+
+    def interrupt_final_close_once(descriptor: int) -> None:
+        nonlocal captured_descriptor, interrupted
+        if not interrupted and stat.S_ISREG(os.fstat(descriptor).st_mode):
+            captured_descriptor = descriptor
+            interrupted = True
+            raise KeyboardInterrupt
+        original_close(descriptor)
+
+    monkeypatch.setattr(os, "close", interrupt_final_close_once)
+    with pytest.raises(KeyboardInterrupt):
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="crop.rgb24",
+        )
+
+    assert captured_descriptor is not None
+    with pytest.raises(OSError):
+        os.fstat(captured_descriptor)
+    assert not (root / "crop.rgb24").exists()
