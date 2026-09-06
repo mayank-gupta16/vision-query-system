@@ -32,6 +32,9 @@
 - ADR-0004 accepts strict versioned JSON ingestion records, typed SHA-256-based
   identifiers, exact rational PTS with measured/estimated provenance,
   original-pixel geometry, and explicit migration and untrusted-field limits.
+- ADR-0005 accepts local SQLite metadata plus a SHA-256 content-addressed
+  filesystem artifact store with staged commits, recovery/audit, migrations,
+  and reference-aware cascade deletion. Video blobs remain outside SQLite.
 
 ## Known blockers and limitations
 
@@ -58,8 +61,8 @@
 ## Next priorities
 
 1. Resolve OAuth scope blocker #41, create `VisualWorld Roadmap`, and add views/fields.
-2. Resolve storage decision #6, then implement the smallest end-to-end ingestion
-   slice; preserve the root package's zero runtime dependencies by keeping media
+2. Implement the smallest v0.1 end-to-end ingestion slice in issue dependency
+   order; preserve the root package's zero runtime dependencies by keeping media
    dependencies adapter-local.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

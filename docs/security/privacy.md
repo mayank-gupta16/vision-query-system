@@ -19,3 +19,7 @@ Defaults:
 "Preserve original pixels" means retain full available quality while authorized,
 not retain personal data indefinitely. A deletion test must prove no derived
 sensitive artifacts remain and audit any independently retained source reference.
+
+[ADR-0005](../decisions/ADR-0005-local-storage-and-deletion.md) defines the
+accepted local staged-write, recovery, reference-aware cascade deletion, and
+reduced deletion-receipt protocol.
