@@ -1,0 +1,85 @@
+{
+  "benchmark": {
+    "bounded": true,
+    "candidate_count": 64,
+    "candidates_per_second": 72970,
+    "cpu_ns": 854588,
+    "process_peak_rss_bytes": 34418688,
+    "selected_count": 11,
+    "wall_ns": 877063
+  },
+  "failure_cases": {
+    "cancellation": true,
+    "duration_cap": true,
+    "page_cap": true
+  },
+  "fixture_manifest_sha256": "0b5b582ceb979bf6ce0eed181eb323b3343bcc5eb04b939c3dc2ef29fb2e617e",
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "sampling": {
+    "policy": "nearest_eligible_pts",
+    "target_fps": {
+      "denominator": "1",
+      "numerator": "5"
+    }
+  },
+  "schema": "visualworld.sampling-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "successful_fixtures": {
+    "cfr.mov": {
+      "checks": {
+        "bounded_output": true,
+        "exact_pts": true,
+        "exact_records": true,
+        "repeat_ids": true,
+        "resume_ids": true
+      },
+      "selected_pts": [
+        "0",
+        "200",
+        "400",
+        "600"
+      ]
+    },
+    "rotation-90.mov": {
+      "checks": {
+        "bounded_output": true,
+        "exact_pts": true,
+        "exact_records": true,
+        "repeat_ids": true,
+        "resume_ids": true
+      },
+      "selected_pts": [
+        "0",
+        "200",
+        "400",
+        "600"
+      ]
+    },
+    "vfr.mov": {
+      "checks": {
+        "bounded_output": true,
+        "exact_pts": true,
+        "exact_records": true,
+        "repeat_ids": true,
+        "resume_ids": true
+      },
+      "selected_pts": [
+        "0",
+        "100",
+        "350",
+        "500"
+      ]
+    }
+  }
+}

@@ -4,8 +4,10 @@
 - Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
 - Implementation: help/version package, deterministic developer and
   synthetic-fixture commands, version-1 ingestion domain records, the four v0.1
-  ports with deterministic fakes, and a bounded Linux local-video source adapter
-- Benchmark baseline: local source/probe pass on CPU-LITE generated fixtures
+  ports with deterministic fakes, a bounded Linux local-video source adapter,
+  and an exact-PTS deterministic frame sampler
+- Benchmark baseline: local source/probe and exact-PTS sampling pass on CPU-LITE
+  generated fixtures
 
 ## Established facts
 
@@ -42,6 +44,9 @@
 - VideoSource, FrameSampler, EvidenceStore, and WorldStore now have framework-free
   version-1 protocols, capability descriptors, structured errors, bounded call
   records, and deterministic in-memory fakes. Later ports remain conceptual.
+- PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
+  exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
+  cursor-based bounded-page resume.
 
 ## Known blockers and limitations
 

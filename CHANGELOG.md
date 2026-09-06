@@ -4,6 +4,9 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add deterministic exact-rational PTS frame sampling with documented CFR/VFR
+  gap and tie policy, bounded cursor-based resume, cancellation, and CPU-LITE
+  evidence.
 - Add the bounded Linux local-video adapter: sealed local sources, exact rational
   timestamps and frame hashes, root-owned PyAV worker runtime, namespace/cgroup
   isolation, Landlock/seccomp policy, structured failures, and CPU-LITE evidence.

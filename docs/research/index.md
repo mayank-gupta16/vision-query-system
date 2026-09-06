@@ -23,3 +23,6 @@ architecture.
 - [Local video source](local-video-source.md) — issue #11 exact metadata,
   structured failure, isolation, and CPU-LITE validation with a
   [machine-readable receipt](local-video-source-cpu-lite-receipt.json).
+- [Exact-PTS frame sampling](pts-frame-sampling.md) — issue #12 deterministic
+  CFR/VFR selection, bounded resume/cancellation, and CPU-LITE validation with a
+  [machine-readable receipt](pts-frame-sampling-cpu-lite-receipt.json).

@@ -60,3 +60,10 @@ implementation. It accepts only one already-authorized local relative path and
 uses the separately provisioned Linux media runtime; it has no remote/RTSP or
 native macOS fallback. Its extra probe details and resource metrics remain
 adapter diagnostics rather than additions to the stable port contract.
+
+`visualworld.sampling.PtsFrameSampler` is the first production `FrameSampler`.
+Its ordinary `sample` method implements the stable bounded port. Its
+`sample_page` extension implements the same policy across bounded pages using an
+opaque immutable cursor and one exact prior-frame overlap. The cursor binds the
+active limits as well as source and policy state; the sampler has no hidden
+sampling state, ambient effects, adaptive policy, or frame synthesis.
