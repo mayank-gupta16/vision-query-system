@@ -29,3 +29,5 @@ What changed, and what was intentionally excluded?
 - [ ] Relevant documentation and `docs/project/current.md` were updated only when needed.
 - [ ] No secrets, private media, large datasets, or model weights were committed.
 - [ ] New dependencies/models have recorded license and operational implications.
+- [ ] External substantive code/documentation commits carry DCO 1.1 sign-offs,
+  or this requirement is not applicable.

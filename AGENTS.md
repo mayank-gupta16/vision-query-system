@@ -39,6 +39,23 @@ Run `python3 scripts/validate_repository.py` for repository policy checks. Once
 source code exists, also run the relevant format, lint, type, unit, contract,
 integration, and benchmark commands documented by that subtree and issue.
 
+## Pull request merge gate
+
+- The implementing agent must inspect the complete final diff and run every
+  relevant validation before requesting review.
+- Before any PR merges, at least one Codex subagent that did not implement the
+  change must review the final head commit against the linked issue, tests,
+  architecture, security, privacy, licensing, and regression risk.
+- Use at least two independent reviewer subagents for substantive implementation
+  or high-risk security, privacy, licensing, supply-chain, schema/migration, and
+  release changes. Select relevant specialist reviewers when available.
+- Resolve every blocking finding and have an independent reviewer recheck the
+  resulting head commit. Required CI and repository protections must pass.
+- Record reviewer identities, reviewed commit, findings and dispositions, and
+  validation evidence in the PR. Subagents sharing a GitHub identity provide a
+  delegated engineering review; never misrepresent it as approval from a
+  separate GitHub account.
+
 ## Definition of done
 
 Acceptance criteria are met; relevant checks and benchmarks were run and their

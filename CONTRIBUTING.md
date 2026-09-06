@@ -4,11 +4,35 @@ VisualWorld is being developed issue by issue. Before implementation, find or
 request an approved issue in the active milestone. Issues marked `agent:ready`
 have enough scope and acceptance criteria for autonomous work.
 
-**Temporary license gate:** no project license or inbound contribution terms
-have been approved. Do not submit substantive external code or data contributions
-until the license decision is accepted and this notice is replaced. Documentation
-feedback may be proposed in an issue. No implementation issue may receive
-`agent:ready` while this gate is active.
+Only issues whose dependencies and durable decisions are resolved may receive
+`agent:ready`. The accepted project license does not bypass an issue's technical,
+security, privacy, provenance, or third-party-rights gates.
+
+## Contribution license and sign-off
+
+Unless conspicuously designated otherwise before submission and explicitly
+accepted by maintainers, an intentional contribution submitted for inclusion is
+provided under Apache License 2.0, consistent with section 5 of
+[the project license](LICENSE). Contributors retain copyright; no copyright
+assignment or Contributor License Agreement is required. Nonstandard terms must
+be agreed in writing before submission or the contribution will not be merged.
+
+Substantive external code and documentation commits must certify
+[Developer Certificate of Origin 1.1](https://developercertificate.org/) terms
+with a real-name sign-off:
+
+```text
+Signed-off-by: Full Name <email@example.com>
+```
+
+Create it with `git commit --signoff`. The name, email, commit, and sign-off are
+public and retained in Git history. Maintainers verify the sign-off before merge.
+A DCO sign-off does not establish dataset consent, media privacy rights, model or
+weight redistribution rights, or clean generated-code provenance.
+
+Do not submit data, video, annotations, models, weights, fonts/assets, or other
+third-party material through the ordinary code path. Start with an issue and a
+rights/privacy manifest; explicit review is required before inclusion.
 
 ## Workflow
 
@@ -20,6 +44,8 @@ feedback may be proposed in an issue. No implementation issue may receive
 4. Run `python3 scripts/validate_repository.py` plus the checks named by the
    relevant module and issue.
 5. Open a PR that links the issue and includes actual test/benchmark evidence.
+6. If you are an external contributor, sign off each substantive code or
+   documentation commit as described above.
 
 Do not commit secrets, private or copyrighted media, large model weights, or
 private datasets. Use tiny redistributable fixtures and dataset manifests.
