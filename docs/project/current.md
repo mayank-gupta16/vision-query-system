@@ -6,9 +6,11 @@
   synthetic-fixture commands, version-1 ingestion domain records, the four v0.1
   ports with deterministic fakes, a bounded Linux local-video source adapter,
   an exact-PTS deterministic frame sampler, and exact detector/source geometry
-  with byte-preserving original-pixel RGB24 crops
+  with byte-preserving original-pixel RGB24 crops, plus a private staged local
+  evidence CAS with integrity, dedupe, bounded audit, and deletion primitives
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
-  crop mapping/copy pass on CPU-LITE generated fixtures
+  crop mapping/copy plus local evidence disk/hash/write pass on CPU-LITE
+  generated fixtures
 
 ## Established facts
 
@@ -54,6 +56,11 @@
   bytes. Its validation sink rejects public or foreign-owned roots, writable or
   linked destination parents, traversal, overwrite, and incomplete writes;
   durable artifact custody remains assigned to the accepted EvidenceStore.
+- LocalEvidenceStore implements the stable EvidenceStore port through the
+  ADR-0005 `artifacts/v1/sha256` layout, staged atomic promotion, full
+  integrity/dedupe checks, shared/exclusive writer locking, and bounded dry-run
+  audit primitives. Reference classification, SQLite state, and cascade-deletion
+  authorization remain coordinator-owned.
 
 ## Known blockers and limitations
 

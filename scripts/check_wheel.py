@@ -47,6 +47,7 @@ def inspect_wheel(wheel: Path) -> tuple[str, str]:
             "visualworld/media.py",
             "visualworld/ports.py",
             "visualworld/sampling.py",
+            "visualworld/storage.py",
             "visualworld/py.typed",
             f"{info}/METADATA",
             f"{info}/WHEEL",

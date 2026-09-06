@@ -143,6 +143,22 @@ source-pixel crop hashes, private-root and traversal/symlink confinement, and th
 and timing observations fail the receipt. It emits only dimensions, counts,
 hashes, policy names, and resource metrics—not crop bytes.
 
+The dependency-free local EvidenceStore acceptance runs on the same managed
+interpreter and a private existing work directory:
+
+```sh
+PYTHONPATH=src artifacts/toolchain/3.13.15/dev/bin/python \
+  scripts/run_storage_acceptance.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/storage-acceptance.json
+```
+
+It uses deterministic 16 MiB synthetic payloads to check durable unique writes,
+verified reads, dedupe, separate staging/promotion, bounded audit, deletion,
+logical/allocated disk cost, hash/write throughput, wall/process CPU time, and
+peak RSS. The JSON receipt omits store paths, artifact/stage/run identifiers,
+artifact digests, and content.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

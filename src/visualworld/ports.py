@@ -57,6 +57,8 @@ class PortErrorCode(StrEnum):
     CANCELLED = "cancelled"
     TIMEOUT = "timeout"
     DECODE_FAILED = "decode_failed"
+    CORRUPT = "corrupt"
+    STORAGE_FAILED = "storage_failed"
 
 
 class PortError(RuntimeError):
@@ -266,7 +268,7 @@ def _stream_index(value: int, port: PortKind, operation: str) -> int:
 
 
 def _digest(value: str, port: PortKind, operation: str) -> str:
-    if not isinstance(value, str) or not _DIGEST_RE.fullmatch(value):
+    if type(value) is not str or not _DIGEST_RE.fullmatch(value):
         raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
     return value
 
@@ -406,7 +408,13 @@ class FakeEvidenceStore(_InstrumentedFake):
         self._content: dict[str, bytes] = {}
 
     def put(self, artifact: Artifact, content: bytes) -> Artifact:
-        if not isinstance(artifact, Artifact) or not isinstance(content, bytes):
+        if (
+            type(artifact) is not Artifact
+            or type(artifact.sha256) is not str
+            or type(artifact.bytes) is not str
+            or type(artifact.media_type) is not str
+            or type(content) is not bytes
+        ):
             raise _port_error(
                 PortErrorCode.INVALID_REQUEST,
                 PortKind.EVIDENCE_STORE,
