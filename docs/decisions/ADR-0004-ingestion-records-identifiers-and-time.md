@@ -33,7 +33,7 @@ floating-point values. Identity inputs use only normalized NFC strings, exact
 decimal strings, bounded JSON integers, booleans, arrays, and objects. Hashes
 are lowercase SHA-256 hexadecimal.
 
-Identifiers are typed, 68-character strings:
+Identifiers are typed strings:
 
 - `src_<sha256>` hashes the canonical source identity projection;
 - `frm_<sha256>` hashes the canonical frame identity projection;
@@ -116,7 +116,8 @@ the source.
 `FrameRef` identifies one decoded frame by source, stream, non-negative decimal
 `decode_index`, and exact PTS. Its identity projection is exactly those fields
 plus `identity_version`. Optional duration and key-frame facts do not change the
-identifier.
+identifier. The optional JSON members are named `duration` and `key_frame` and
+are omitted, rather than written as `null`, when unknown.
 
 `Geometry` is embedded by value. It always includes original-source dimensions
 and a half-open integer `box_xyxy = [x_min, y_min, x_max, y_max]` in source
@@ -157,6 +158,15 @@ Operational state is `preparing`, `committed`, `failed`, or `cancelled` and is
 excluded from identity. Only `committed` exposes outputs as complete. The
 manifest stores sample count plus a digest of the separately stored ordered
 sample index rather than embedding every sample.
+
+The initial version-1 vocabulary is deliberately narrow: local sources use
+`local_file`, `private`, `source_controlled`, and `video`; original RGB evidence
+uses `original_frame`, `application/vnd.visualworld.rgb24`, and
+`derived_private`; sampling uses `nearest_eligible_pts`; and estimated time uses
+`previous_pts_plus_duration`. Unknown values fail closed until a later contract
+version accepts them. Empty source-stream and run-producer lists are valid, and
+source stream indexes must be unique. A committed run requires `outputs`; every
+other state forbids it.
 
 Representative version-1 records follow. The source digest is the generated
 issue #4 fixture; the other example artifact/configuration digests are synthetic.
@@ -227,14 +237,17 @@ Validation happens before hashing and again before persistence:
   inflated by whitespace, before decoding or canonicalization;
 - canonical metadata is also at most 256 KiB, with nesting at most 16 levels, at
   most 128 object members, and at most 64 elements in an embedded array; sample
-  indexes are separate bounded streams;
+  indexes are separate bounded streams; the root object is depth level 1 and
+  each object or array value advances one level;
 - general strings are at most 4,096 UTF-8 bytes; schema names, enums, producer
   names, versions, and estimate methods are ASCII and at most 128 bytes;
 - a source has at most 32 streams and a run at most 64 producers;
 - digest and identifier syntax is exact; byte counts, decode indexes, and sample
   counts are unsigned 64-bit decimal strings; stream indexes, dimensions,
-  coordinates, and rotation degrees are bounded 31-bit JSON integers; and time
-  values obey the ranges above;
+  and coordinates are JSON integers from zero through `2^31 - 1` (dimensions
+  are positive), rotation is between `-(2^31 - 1)` and `2^31 - 1`, affine
+  numerators are signed 64-bit decimal strings, affine denominators are positive
+  unsigned 32-bit decimal strings, and time values obey the ranges above;
 - unknown fields, unknown enum values, invalid UTF-8/NFC, duplicate keys,
   non-finite values, and unknown schema versions fail closed; and
 - paths, URLs, SQL, commands, or model output in descriptive fields remain data

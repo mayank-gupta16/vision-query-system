@@ -32,7 +32,7 @@ def inspect_wheel(wheel: Path) -> tuple[str, str]:
         if name != "visualworld-engine" or not version or version == "None":
             raise ValueError("Unexpected distribution identity")
         if metadata.get_all("Requires-Dist"):
-            raise ValueError("Scaffold runtime must have zero third-party dependencies")
+            raise ValueError("Application runtime must have zero third-party dependencies")
         if metadata["License-Expression"] != "Apache-2.0":
             raise ValueError("Incorrect license expression")
         if metadata.get_all("License-File") != ["LICENSE"]:
@@ -42,6 +42,7 @@ def inspect_wheel(wheel: Path) -> tuple[str, str]:
             "visualworld/__init__.py",
             "visualworld/__main__.py",
             "visualworld/cli.py",
+            "visualworld/ingestion.py",
             "visualworld/py.typed",
             f"{info}/METADATA",
             f"{info}/WHEEL",

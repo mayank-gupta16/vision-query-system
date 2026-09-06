@@ -331,6 +331,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
         "visualworld/__init__.py": b"",
         "visualworld/__main__.py": b"",
         "visualworld/cli.py": b"",
+        "visualworld/ingestion.py": b"",
         "visualworld/py.typed": b"",
         f"{info}/METADATA": metadata.encode(),
         f"{info}/WHEEL": b"Wheel-Version: 1.0\n",
@@ -349,7 +350,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
     return wheel
 
 
-def test_wheel_accepts_exact_scaffold_contents(tmp_path: Path) -> None:
+def test_wheel_accepts_exact_application_contents(tmp_path: Path) -> None:
     assert check_wheel.inspect_wheel(make_wheel(tmp_path)) == ("visualworld-engine", "0.1.0a0")
 
 

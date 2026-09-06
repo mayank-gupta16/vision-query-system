@@ -37,4 +37,6 @@ geometry is not exact unless calibration supports it.
 [ADR-0004](../decisions/ADR-0004-ingestion-records-identifiers-and-time.md)
 defines the accepted version-1 ingestion records, typed content identifiers,
 exact rational PTS representation, original-pixel geometry, serialization
-limits, and migration rules.
+limits, and migration rules. The framework-free implementation and strict JSON
+reader live in `visualworld.ingestion`; later world-model records remain out of
+scope until their milestones exercise them.
