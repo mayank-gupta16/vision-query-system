@@ -2,11 +2,11 @@
   "benchmark": {
     "bounded": true,
     "candidate_count": 64,
-    "candidates_per_second": 131388,
-    "cpu_ns": 483037,
-    "process_peak_rss_bytes": 34119680,
+    "candidates_per_second": 72970,
+    "cpu_ns": 854588,
+    "process_peak_rss_bytes": 34418688,
     "selected_count": 11,
-    "wall_ns": 487105
+    "wall_ns": 877063
   },
   "failure_cases": {
     "cancellation": true,

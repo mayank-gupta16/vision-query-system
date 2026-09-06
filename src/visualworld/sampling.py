@@ -23,6 +23,7 @@ from visualworld.ports import (
 _FRAME_ID_RE = re.compile(r"frm_[0-9a-f]{64}\Z")
 _SOURCE_ID_RE = re.compile(r"src_[0-9a-f]{64}\Z")
 _MAX_U64 = 2**64 - 1
+_CURSOR_FACTORY = object()
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,7 +37,7 @@ class SamplingLimits:
     def __post_init__(self) -> None:
         if (
             type(self.max_page_candidates) is not int
-            or not 1 <= self.max_page_candidates <= MAX_PORT_BATCH_ITEMS
+            or not 2 <= self.max_page_candidates <= MAX_PORT_BATCH_ITEMS
             or type(self.max_total_candidates) is not int
             or not self.max_page_candidates <= self.max_total_candidates <= 100_000
             or type(self.max_duration_seconds) is not int
@@ -45,14 +46,15 @@ class SamplingLimits:
             raise ValueError("sampling limits are outside the v1 bounds")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class SamplingCursor:
-    """Immutable state required to resume at an exact candidate-page boundary."""
+    """Opaque immutable state issued at an exact candidate-page boundary."""
 
     source_id: str
     stream_index: int
     time_base: TimeBase
     sampling: Sampling
+    limits: SamplingLimits
     origin: MediaTime
     previous: FrameRef
     left: FrameRef
@@ -60,6 +62,42 @@ class SamplingCursor:
     seen_candidates: int
     last_emitted_frame_id: str | None
     finished: bool = False
+
+    def __init__(
+        self,
+        *,
+        _factory: object,
+        source_id: str,
+        stream_index: int,
+        time_base: TimeBase,
+        sampling: Sampling,
+        limits: SamplingLimits,
+        origin: MediaTime,
+        previous: FrameRef,
+        left: FrameRef,
+        next_target_index: int,
+        seen_candidates: int,
+        last_emitted_frame_id: str | None,
+        finished: bool = False,
+    ) -> None:
+        if _factory is not _CURSOR_FACTORY:
+            raise TypeError("SamplingCursor values are issued only by PtsFrameSampler")
+        for name, value in (
+            ("source_id", source_id),
+            ("stream_index", stream_index),
+            ("time_base", time_base),
+            ("sampling", sampling),
+            ("limits", limits),
+            ("origin", origin),
+            ("previous", previous),
+            ("left", left),
+            ("next_target_index", next_target_index),
+            ("seen_candidates", seen_candidates),
+            ("last_emitted_frame_id", last_emitted_frame_id),
+            ("finished", finished),
+        ):
+            object.__setattr__(self, name, value)
+        self.__post_init__()
 
     def __post_init__(self) -> None:
         if not isinstance(self.source_id, str) or not _SOURCE_ID_RE.fullmatch(self.source_id):
@@ -69,6 +107,7 @@ class SamplingCursor:
         if (
             not isinstance(self.time_base, TimeBase)
             or not isinstance(self.sampling, Sampling)
+            or not isinstance(self.limits, SamplingLimits)
             or not isinstance(self.origin, MediaTime)
             or not isinstance(self.previous, FrameRef)
             or not isinstance(self.left, FrameRef)
@@ -285,6 +324,7 @@ class PtsFrameSampler:
                 cursor.finished
                 or cursor.source_id != source.source_id
                 or cursor.sampling != sampling
+                or cursor.limits != self._limits
                 or streams.get(cursor.stream_index) is None
                 or streams[cursor.stream_index].time_base != cursor.time_base
                 or candidates[0] != cursor.previous
@@ -311,16 +351,18 @@ class PtsFrameSampler:
         origin_time = _time(origin)
         left_time = _time(left.pts)
         consumed_time = _time(consumed.pts)
+        maximum_span = Fraction(self._limits.max_duration_seconds, 1)
         if left_time < origin_time or (
             cursor is not None and next_target != _floor((left_time - origin_time) * fps) + 1
         ):
             raise _error(PortErrorCode.CONFLICT, operation)
+        if consumed_time - origin_time > maximum_span:
+            raise _error(PortErrorCode.LIMIT_EXCEEDED, operation)
         positions = {
             (left.stream_index, left.decode_index),
             (consumed.stream_index, consumed.decode_index),
         }
         identities = {left.frame_id, consumed.frame_id}
-        maximum_span = Fraction(self._limits.max_duration_seconds, 1)
         for right in new_candidates:
             self._check_cancelled(cancelled, operation)
             if not isinstance(right, FrameRef) or right.source_id != source.source_id:
@@ -371,17 +413,19 @@ class PtsFrameSampler:
         if next_target > _MAX_U64:
             raise _error(PortErrorCode.LIMIT_EXCEEDED, operation)
         next_cursor = SamplingCursor(
-            source.source_id,
-            stream_index,
-            time_base,
-            sampling,
-            origin,
-            consumed,
-            left,
-            next_target,
-            seen,
-            last_emitted,
-            end_of_stream,
+            _factory=_CURSOR_FACTORY,
+            source_id=source.source_id,
+            stream_index=stream_index,
+            time_base=time_base,
+            sampling=sampling,
+            limits=self._limits,
+            origin=origin,
+            previous=consumed,
+            left=left,
+            next_target_index=next_target,
+            seen_candidates=seen,
+            last_emitted_frame_id=last_emitted,
+            finished=end_of_stream,
         )
         result = SamplingPage(tuple(selected), next_cursor, end_of_stream)
         self._calls.append(PortCall(PortKind.FRAME_SAMPLER, operation, len(result.frames)))

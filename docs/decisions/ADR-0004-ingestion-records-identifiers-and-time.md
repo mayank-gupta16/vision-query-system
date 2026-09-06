@@ -133,11 +133,12 @@ fabricates a timestamp or frame, and has error bounded by half that adjacent
 PTS gap rather than half the target period.
 
 The production sampler returns the original `FrameRef` objects unchanged and
-uses exact rational arithmetic only. Resumable calls carry an immutable cursor
-and repeat the complete prior frame as the first candidate of the next bounded
-page. The cursor binds the source, stream time base, sampling configuration,
-origin, prior frame, equal-PTS tie representative, next target, last emitted
-identity, and total candidates.
+uses exact rational arithmetic only. Resumable calls carry an opaque immutable
+cursor and repeat the complete prior frame as the first candidate of the next
+bounded page. The cursor binds the source, stream time base, sampling
+configuration, origin, prior frame, equal-PTS tie representative, next target, last emitted
+identity, total candidates, and configured limits. Only the sampler issues a
+cursor; callers cannot construct or alter its progress counters.
 Cancellation publishes neither a result nor an advanced cursor, so retrying the
 same page yields identical sample identities. A completed cursor cannot resume.
 

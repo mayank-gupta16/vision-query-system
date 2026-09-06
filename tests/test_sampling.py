@@ -281,6 +281,7 @@ def test_page_total_frame_and_duration_caps_fail_without_partial_progress() -> N
     "changes",
     [
         {"max_page_candidates": 0},
+        {"max_page_candidates": 1},
         {"max_page_candidates": 65},
         {"max_total_candidates": 0},
         {"max_duration_seconds": True},
@@ -334,13 +335,42 @@ def test_invalid_candidates_and_cursor_fail_with_structured_errors() -> None:
             cursor=first.cursor,
             end_of_stream=True,
         )
-    finished = replace(first.cursor, finished=True)
+    with pytest.raises(TypeError):
+        replace(first.cursor, seen_candidates=1)
+
+    finished_page = sampler.sample_page(
+        source,
+        (later,),
+        sampling,
+        cursor=first.cursor,
+        end_of_stream=True,
+    )
+    assert finished_page.cursor is not None
     with pytest.raises(PortError, match="conflict"):
         sampler.sample_page(
             source,
             (later, _frame(source, 2, 400)),
             sampling,
-            cursor=finished,
+            cursor=finished_page.cursor,
+            end_of_stream=True,
+        )
+
+
+def test_cursor_binds_sampling_limits_across_instances() -> None:
+    source = _source()
+    candidates = (_frame(source, 0, 0), _frame(source, 1, 2000))
+    sampling = Sampling(Rational("5", "1"))
+    original = PtsFrameSampler(limits=SamplingLimits(max_duration_seconds=2))
+    first = original.sample_page(source, candidates, sampling)
+    assert first.cursor is not None
+
+    stricter = PtsFrameSampler(limits=SamplingLimits(max_duration_seconds=1))
+    with pytest.raises(PortError, match="conflict"):
+        stricter.sample_page(
+            source,
+            (candidates[-1],),
+            sampling,
+            cursor=first.cursor,
             end_of_stream=True,
         )
 
