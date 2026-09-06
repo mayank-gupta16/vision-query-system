@@ -19,7 +19,15 @@ Use PyAV 18.1.0, built from its verified source distribution against
 project-built FFmpeg 9.0.1 shared libraries, only inside an external media worker.
 The FFmpeg source build is signature-verified, disables autodetection and network,
 uses no external codecs, and omits GPL, version-3, and nonfree configure flags.
-The exact measured component surface is frozen with the issue #4 experiment.
+The exact issue #4 measured component surface remains frozen in its experiment
+receipt. For the V1 worker, issue #7 additionally enables only FFmpeg's built-in
+`rawvideo` decoder so the approved synthetic MOV/RGB fixtures exercise the same
+worker path. A source rebuild from the same verified FFmpeg 9.0.1 archive kept
+network and encoders disabled, retained the LGPL-2.1-or-later result, and decoded
+all fixture PTS, rotation, and RGB hashes exactly through PyAV's inherited-file
+boundary. The approved V1 surface is therefore the `mov,h264` demuxers,
+`h264,rawvideo` decoders, and `h264` parser; the frozen issue #4 receipt itself is
+not rewritten.
 
 The trusted parent opens one bounded regular source and passes its descriptor.
 The worker uses a fixed API path, not media-derived commands or paths. It decodes
@@ -74,9 +82,10 @@ and codec-patent review for its intended jurisdictions.
 
 ## Consequences
 
-The first end-to-end prototype can target generated MP4/H.264 on the Linux
-CPU-LITE path while the core remains portable and dependency-free. Media packages
-stay adapter-local. The cost is a source-built native runtime and a Linux-only
-hostile-media capability in the first slice. Additional containers/codecs,
+The first end-to-end prototype can use generated MOV/rawvideo fixtures and
+MP4/H.264 on the Linux CPU-LITE path while the core remains portable and
+dependency-free. Media packages stay adapter-local. The cost is a source-built
+native runtime and a Linux-only hostile-media capability in the first slice.
+Additional containers/codecs beyond that approved surface,
 macOS isolation, packaging, security-update cadence, and performance tuning are
 incremental follow-up work, not blockers to the first working milestone.

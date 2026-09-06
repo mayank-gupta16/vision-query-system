@@ -4,6 +4,9 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add the deterministic, standard-library synthetic-v1 CFR, VFR, and rotation
+  fixture generator with locked pixel/timestamp/checksum and rights/privacy
+  manifest checks; generated media remains untracked.
 - Add the experimental `visualworld-engine` 0.1.0a0 help/version scaffold,
   checksum-pinned developer bootstrap, exact lock, offline checks, packaging
   integrity tests, separate runtime/development inventories, and four CI lanes.
