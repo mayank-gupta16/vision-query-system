@@ -1,0 +1,92 @@
+{
+  "checks": {
+    "audit_two_artifacts": true,
+    "audit_valid": true,
+    "dedupe_disk_stable": true,
+    "delete_completed": true,
+    "delete_disk_restored": true,
+    "hash_matches": true,
+    "read_matches": true,
+    "stage_commit_promoted": true
+  },
+  "implementation": {
+    "executable_implementation": "cpython",
+    "harness_sha256": "69fc6065fc4c0dfadd8cc4b1328210a45063b06410cb5cbb0a5aefc722848c6b",
+    "python_version": "3.13.15",
+    "storage_module_sha256": "43f86bca324bfe30380cad60875a24c0249300084317281f43b31525cebe09ac"
+  },
+  "measurements": {
+    "audit": {
+      "cpu_ns": 120462617,
+      "wall_ns": 120473440
+    },
+    "commit_rename": {
+      "cpu_ns": 30844150,
+      "wall_ns": 32083008
+    },
+    "deduplicated_put": {
+      "bytes_per_second": 90019782,
+      "cpu_ns": 173313240,
+      "store_allocated_bytes": 16777216,
+      "store_file_count": 2,
+      "store_logical_bytes": 16777216,
+      "wall_ns": 186372545
+    },
+    "delete": {
+      "cpu_ns": 31265640,
+      "remaining_allocated_bytes": 16777216,
+      "remaining_file_count": 2,
+      "remaining_logical_bytes": 16777216,
+      "wall_ns": 31771676
+    },
+    "hash": {
+      "bytes_per_second": 565287908,
+      "cpu_ns": 29681709,
+      "wall_ns": 29679064
+    },
+    "read_verify": {
+      "bytes_per_second": 376683787,
+      "cpu_ns": 44529878,
+      "wall_ns": 44539257
+    },
+    "stage": {
+      "bytes_per_second": 226576927,
+      "cpu_ns": 62222577,
+      "wall_ns": 74046445
+    },
+    "unique_put": {
+      "bytes_per_second": 118589627,
+      "cpu_ns": 128364919,
+      "store_allocated_bytes": 16777216,
+      "store_file_count": 2,
+      "store_logical_bytes": 16777216,
+      "wall_ns": 141472879
+    }
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "resources": {
+    "bounded": true,
+    "peak_rss_limit_bytes": 2147483648,
+    "process_peak_rss_bytes": 90730496,
+    "rss_measured": true,
+    "timing_measured": true
+  },
+  "schema": "visualworld.storage-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "workload": {
+    "artifact_count": 2,
+    "deterministic_synthetic_bytes": true,
+    "payload_bytes": 16777216
+  }
+}

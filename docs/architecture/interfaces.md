@@ -77,3 +77,12 @@ parents. Its confinement boundary covers untrusted destination strings and
 pre-existing links. The trusted caller must serialize same-principal namespace
 mutation during the call; durable custody and the accepted writer-lock/CAS
 commit protocol remain the responsibility of `EvidenceStore`.
+
+`visualworld.storage.LocalEvidenceStore` is the first production
+`EvidenceStore`. The stable port remains only digest/size-verified `put` and
+SHA-256 `get`. Adapter extensions provide serializable staged handles,
+idempotent commit/discard, bounded integrity inspection/inventory, identity-bound
+cleanup handles for incomplete stages, and coordinator-authorized deletion.
+`writer_session()` lets the future coordinator hold the shared store lock across
+filesystem and SQLite intent/reference steps; the filesystem adapter itself
+never decides whether an artifact is referenced, orphaned, or safe to clean.

@@ -30,3 +30,7 @@ architecture.
   detector/source transforms, byte-level crop goldens, destination confinement,
   and CPU-LITE validation with a
   [machine-readable receipt](original-pixel-crops-cpu-lite-receipt.json).
+- [Local EvidenceStore](local-evidence-store.md) — issue #14 crash-recoverable
+  staged CAS writes, integrity/dedupe/audit/delete primitives, confinement, and
+  CPU-LITE validation with a
+  [machine-readable receipt](local-evidence-store-cpu-lite-receipt.json).
