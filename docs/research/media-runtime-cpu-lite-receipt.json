@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "issue": "https://github.com/mayank-gupta16/vision-query-system/issues/4",
+  "experiment_date": "2026-09-06",
+  "source_commit": "a3d7e5dfb70bb94a24fda4ccc9f261eb23406b5b",
+  "profile": "CPU-LITE",
+  "host": {
+    "os": "Ubuntu 26.04.1 LTS",
+    "kernel": "Linux 7.0.0-30-generic x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "logical_cpus": 4,
+    "memory_kib": 15841396,
+    "swap_kib": 8388604,
+    "gpu_required": false,
+    "gcc": "15.2.0",
+    "python": "3.13.15",
+    "bubblewrap": "0.11.1",
+    "systemd": "259",
+    "cgroup": "v2",
+    "landlock_abi": 8
+  },
+  "inputs": {
+    "ffmpeg_source": {
+      "version": "9.0.1",
+      "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+      "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635",
+      "signature_sha256": "b613a00005232a1245ace7080088781ac23a916119d3e5b0d6c042368eee0177",
+      "verified_key_fingerprint": "FCF986EA15E6E293A5644F10B4322F04D67658D8"
+    },
+    "pyav_source": {
+      "version": "18.1.0",
+      "url": "https://pypi.org/project/av/18.1.0/",
+      "sha256": "47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28",
+      "bytes": 4451061
+    },
+    "build_inputs": [
+      {
+        "name": "setuptools",
+        "version": "84.0.0",
+        "artifact": "setuptools-84.0.0-py3-none-any.whl",
+        "sha256": "51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670"
+      },
+      {
+        "name": "cython",
+        "version": "3.3.0",
+        "artifact": "cython-3.3.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "23942b0662642927a55676e4b26e6840fb166dd7d76436384685227e7e8619a4"
+      }
+    ],
+    "source_built_pyav_wheel": {
+      "artifact": "av-18.1.0-cp311-abi3-linux_x86_64.whl",
+      "sha256": "6053b47d5b0db538b0adaec4094d33796461a9d5fbf12ebf00f5401cb8299643"
+    },
+    "official_pyav_wheel_control": {
+      "artifact": "av-18.1.0-cp311-abi3-manylinux_2_28_x86_64.whl",
+      "sha256": "8a032e8d8ebc73dec079364b9b4a6837638a2d106e8472314e685ffbf163e700",
+      "bytes": 35786210,
+      "bundled_ffmpeg": "8.1.2",
+      "approved": false
+    },
+    "scripts": {
+      "measured_worker_probe.py": "77235afc0999f6679b2c80cf657014b35ce5b5c838d90d69184094a51bfa9af9",
+      "measured_inspect_records.py": "300e13d3c790ec25aad74ddd7161abce5f41afce42af9d1a7e6143ebe9bc4e4f",
+      "repository_worker_probe.py": "e16d2e69fca3cc008650e2d2b1f4dd15eadad65265825b4b39385d1b0fb0b23e",
+      "repository_inspect_records.py": "c022ee1063559b97bd6cea81af5a9cf3f39e864ddf83e3696ea9e430e38e1b73",
+      "post_measurement_change": "import sorting and removal of an unused lint suppression only",
+      "repository_revision_regression": "passed on timestamped and missing-PTS fixtures with byte-identical record-stream hashes"
+    },
+    "fixtures": [
+      {
+        "name": "fixture.mp4",
+        "sha256": "7d8436910e4a6dd9e1fb6f0b33467822ce626be022bc805e22b67637cdb998bb",
+        "bytes": 147063,
+        "description": "30 frame 320x240 H.264 MP4, 10 fps, SAR 4:3, start PTS 90000, time base 1/90000"
+      },
+      {
+        "name": "no-pts.h264",
+        "sha256": "deb28229fb17a712f3c94cf31459151e26030229fb2a364417966b84a7c3b7fa",
+        "description": "five-frame elementary H.264 stream without timestamps"
+      },
+      {
+        "name": "rotated.mp4",
+        "sha256": "671bbc714f805a6d912397e3f477074b23ced040bc823dbfdbf8a36449fab522",
+        "description": "MP4 carrying a 90-degree display matrix"
+      }
+    ]
+  },
+  "runtime": {
+    "pyav_version": "18.1.0",
+    "ffmpeg_version": "9.0.1",
+    "ffmpeg_license": "LGPL version 2.1 or later",
+    "ffmpeg_configure_args_file": "experiments/media-runtime-20260906/ffmpeg-configure-args.txt",
+    "runtime_tree_bytes": {
+      "python": 102434430,
+      "pyav_site_package": 24570247,
+      "ffmpeg_prefix": 6303204
+    },
+    "ffmpeg_library_sha256": {
+      "libavutil.so.61.1.101": "fd4987ac6622774e52cb835646fd65ff9ddb62211c6d1dfb19f73247017547e4",
+      "libavdevice.so.63.1.101": "67fead46b9286ca36d8b6e37e034e4306450038d60dca3c3f115e5bc9cab09a2",
+      "libavfilter.so.12.1.101": "7ae792de8fb66ccef8e3253b3a3cf0ec54a943d269674f2137dfc8411db7b311",
+      "libswscale.so.10.1.101": "afa6c5ccf3f71acac0580a2be75f3bce339099e7d641b0be4ea4520950429fe7",
+      "libavformat.so.63.1.101": "d3371e733eab76bc33a9152c94dd7e03c0fe268a7a10bb766a59dbdd094bbb47",
+      "libavcodec.so.63.1.101": "547c9243cb6ac3862561be26ba02a0c4a3c6554d6f78024effd5fe11302f2854",
+      "libswresample.so.7.1.101": "dcdcb1a4e03a93bbe198ac45e56a9a065f6e304421d44acb5a7d798a73b3ff35"
+    }
+  },
+  "benchmark": {
+    "warmups_per_mode": 2,
+    "repetitions_per_mode": 10,
+    "fixture_frames": 30,
+    "fixture_duration_seconds": 3.0,
+    "columns": ["mode", "run", "wall_seconds", "user_seconds", "system_seconds", "max_rss_kib", "exit_code"],
+    "samples": [
+      ["direct", 1, 0.11, 0.09, 0.01, 38332, 0],
+      ["direct", 2, 0.12, 0.11, 0.01, 38364, 0],
+      ["direct", 3, 0.12, 0.10, 0.01, 38280, 0],
+      ["direct", 4, 0.12, 0.10, 0.01, 38332, 0],
+      ["direct", 5, 0.13, 0.11, 0.02, 38364, 0],
+      ["direct", 6, 0.11, 0.09, 0.02, 38456, 0],
+      ["direct", 7, 0.12, 0.11, 0.01, 38332, 0],
+      ["direct", 8, 0.10, 0.09, 0.01, 38276, 0],
+      ["direct", 9, 0.10, 0.08, 0.02, 38264, 0],
+      ["direct", 10, 0.10, 0.08, 0.01, 38412, 0],
+      ["bwrap", 1, 0.11, 0.00, 0.00, 3216, 0],
+      ["bwrap", 2, 0.14, 0.00, 0.00, 3216, 0],
+      ["bwrap", 3, 0.14, 0.00, 0.00, 3176, 0],
+      ["bwrap", 4, 0.11, 0.00, 0.00, 3172, 0],
+      ["bwrap", 5, 0.11, 0.00, 0.00, 3176, 0],
+      ["bwrap", 6, 0.12, 0.00, 0.00, 3172, 0],
+      ["bwrap", 7, 0.11, 0.00, 0.00, 3212, 0],
+      ["bwrap", 8, 0.10, 0.00, 0.00, 3212, 0],
+      ["bwrap", 9, 0.10, 0.00, 0.00, 3220, 0],
+      ["bwrap", 10, 0.10, 0.00, 0.00, 3168, 0]
+    ],
+    "summary": {
+      "direct_wall_median_seconds": 0.115,
+      "direct_wall_max_seconds": 0.13,
+      "direct_median_frames_per_second": 260.87,
+      "direct_max_rss_median_kib": 38332,
+      "bwrap_wall_median_seconds": 0.11,
+      "bwrap_wall_max_seconds": 0.14,
+      "bwrap_launcher_rss_is_not_worker_rss": true
+    },
+    "full_sandbox_observation": {
+      "result": "success",
+      "wall_reported_ms": 122,
+      "cpu_reported_ms": 118,
+      "cgroup_memory_peak_reported": "26.1M",
+      "memory_max_bytes": 268435456,
+      "tasks_max": 32,
+      "output_bytes": 6930319,
+      "output_sha256": "00d60194e5cba54e1e8ed590021161690fbb984ddfd0f4c3b980d62a70c91d0e"
+    },
+    "startup_import_samples": [
+      [1, 0.05, 26080],
+      [2, 0.05, 26072],
+      [3, 0.05, 26056],
+      [4, 0.05, 25884],
+      [5, 0.05, 26088],
+      [6, 0.07, 26096],
+      [7, 0.06, 26064],
+      [8, 0.07, 25804],
+      [9, 0.07, 26128],
+      [10, 0.06, 25972]
+    ],
+    "startup_import_median_seconds": 0.055,
+    "startup_import_max_rss_median_kib": 26068
+  },
+  "correctness": {
+    "timestamped_mp4": {
+      "frames": 30,
+      "first_pts": {"value": 90000, "time_base": [1, 90000]},
+      "last_pts": {"value": 351000, "time_base": [1, 90000]},
+      "pixel_bytes": 6912000,
+      "all_pixel_hashes_verified": true
+    },
+    "missing_pts": {
+      "frames": 5,
+      "null_pts": 5,
+      "generated_pts_disabled": true
+    },
+    "display_matrix": [0, -65536, 0, 65536, 0, 0, 0, 0, 1073741824]
+  },
+  "hostile_cases": {
+    "columns": ["case", "exit_code", "wall_nanoseconds", "output_bytes", "classification"],
+    "samples": [
+      ["malformed", 21, 107069842, 0, "decode_error:InvalidDataError"],
+      ["truncated", 21, 106772044, 8, "decode_error:InvalidDataError"],
+      ["oversize", 20, 207942515, 8, "limit_exceeded:pixels"],
+      ["source_cap", 20, 107275324, 0, "limit_exceeded:source_bytes"],
+      ["decoded_cap", 20, 106907274, 462139, "limit_exceeded:decoded_bytes"],
+      ["frame_cap", 20, 107222362, 462139, "limit_exceeded:frame_count"],
+      ["no_pts", 0, 107901969, 1154568, "ok"],
+      ["rotation", 0, 208823970, 6935390, "ok"]
+    ],
+    "outer_timeout_seconds": 5,
+    "timeouts": 0
+  },
+  "limitations": [
+    "Generated fixtures only; no broad real-video compatibility claim.",
+    "Linux x86_64 only; hostile decode on macOS remains fail-closed.",
+    "PyAV 18.1.0 lacks per-frame SAR and best-effort-timestamp bindings.",
+    "The experiment launcher is not the production issue #9 supervisor.",
+    "The bwrap GNU-time RSS samples measure the launcher and are excluded from worker RSS conclusions.",
+    "No binary redistribution is approved by this receipt."
+  ]
+}

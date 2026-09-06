@@ -21,6 +21,25 @@ instructions.
 3. Read the nearest nested `AGENTS.md` if one exists.
 4. Inspect only the files and tests needed for the issue.
 
+## MVP-first execution through V1
+
+- Until V1, take the shortest safe path through the approved milestone to a
+  working end-to-end prototype or MVP.
+- Work only on the active issue and its explicit acceptance criteria. Do not
+  expand it into speculative hardening, general optimization, or adjacent
+  platform work.
+- Stop research once there is enough evidence to make the current reversible
+  decision. Record non-blocking gaps as follow-up issues and continue toward the
+  next milestone dependency.
+- Optimize for correctness and a demonstrable vertical slice first. Performance
+  tuning and optimization for different machines belong after the V1 workflow
+  works, unless the active issue or release gate explicitly requires them.
+- Use the milestone's required reference profile for necessary measurements;
+  do not add machine-specific tuning matrices before V1.
+- Preserve mandatory security and provenance boundaries with small fail-closed
+  behavior. An unsupported path should return a clear error rather than trigger
+  an open-ended attempt to perfect that platform before the MVP.
+
 ## Durable engineering rules
 
 - Keep detection, tracklets, and persistent entities distinct.

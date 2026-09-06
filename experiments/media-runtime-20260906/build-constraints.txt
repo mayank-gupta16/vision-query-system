@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Linux x86_64 CPython 3.13 build inputs used for the measured PyAV wheel.
+setuptools==84.0.0 \
+    --hash=sha256:51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670
+cython==3.3.0 \
+    --hash=sha256:23942b0662642927a55676e4b26e6840fb166dd7d76436384685227e7e8619a4
