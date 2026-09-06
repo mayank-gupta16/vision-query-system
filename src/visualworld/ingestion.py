@@ -125,7 +125,10 @@ def _decimal(
     pattern = _SIGNED_DECIMAL_RE if signed else _UNSIGNED_DECIMAL_RE
     if not pattern.fullmatch(decimal):
         _fail("invalid_decimal", path)
-    integer = int(decimal)
+    try:
+        integer = int(decimal)
+    except ValueError:
+        _fail("decimal_out_of_range", path)
     if not minimum <= integer <= maximum:
         _fail("decimal_out_of_range", path)
     return decimal
@@ -216,7 +219,7 @@ def _parse_json(data: bytes) -> dict[str, object]:
         )
     except RecordValidationError:
         raise
-    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError) as error:
+    except (UnicodeDecodeError, ValueError, RecursionError) as error:
         raise RecordValidationError("invalid_json") from error
     _validate_shape(value)
     return _mapping(value, "$")
@@ -324,6 +327,8 @@ class MediaTime:
     estimate_producer: Producer | None = None
 
     def __post_init__(self) -> None:
+        if not isinstance(self.time_base, TimeBase):
+            _fail("invalid_time_base", "media_time.time_base")
         _token(self.basis, "media_time.basis", frozenset({"measured", "estimated"}))
         _decimal(
             self.value,
@@ -338,6 +343,8 @@ class MediaTime:
         elif self.estimate_method is None or self.estimate_producer is None:
             _fail("estimate_required", "media_time.estimate")
         else:
+            if not isinstance(self.estimate_producer, Producer):
+                _fail("invalid_producer", "media_time.estimate.producer")
             _token(
                 self.estimate_method,
                 "media_time.estimate.method",
@@ -403,6 +410,8 @@ class SourceStream:
     media_type: str = "video"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.time_base, TimeBase):
+            _fail("invalid_time_base", "stream.time_base")
         _bounded_int(self.stream_index, 0, MAX_I31, "stream.stream_index")
         _bounded_int(self.width, 1, MAX_I31, "stream.width")
         _bounded_int(self.height, 1, MAX_I31, "stream.height")
@@ -506,6 +515,13 @@ class AffineCoefficients:
     e: Rational
     f: Rational
 
+    def __post_init__(self) -> None:
+        if not all(
+            isinstance(value, Rational)
+            for value in (self.a, self.b, self.c, self.d, self.e, self.f)
+        ):
+            _fail("invalid_affine_coefficient", "coefficients")
+
     def to_mapping(self) -> dict[str, object]:
         return {
             "a": self.a.to_mapping(),
@@ -561,6 +577,10 @@ class Geometry:
     space: str = "source_pixels"
 
     def __post_init__(self) -> None:
+        if self.producer_space is not None and not isinstance(self.producer_space, ProducerSpace):
+            _fail("invalid_producer_space", "geometry.producer_space")
+        if self.coefficients is not None and not isinstance(self.coefficients, AffineCoefficients):
+            _fail("invalid_affine_coefficients", "geometry.transform_to_source.coefficients")
         _token(self.space, "geometry.space", frozenset({"source_pixels"}))
         _bounded_int(self.source_width, 1, MAX_I31, "geometry.source_width")
         _bounded_int(self.source_height, 1, MAX_I31, "geometry.source_height")
@@ -739,7 +759,11 @@ class Source(_Record):
     schema: ClassVar[str] = "visualworld.source"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.fingerprint, Fingerprint):
+            _fail("invalid_fingerprint", "fingerprint")
         _typed_id(self.source_id, "src", "source_id")
+        if not isinstance(self.streams, tuple):
+            _fail("streams_must_be_tuple", "streams")
         if len(self.streams) > MAX_STREAMS:
             _fail("too_many_streams", "streams")
         if not all(isinstance(stream, SourceStream) for stream in self.streams):
@@ -752,6 +776,8 @@ class Source(_Record):
 
     @classmethod
     def create(cls, fingerprint: Fingerprint, streams: tuple[SourceStream, ...] = ()) -> Source:
+        if not isinstance(fingerprint, Fingerprint):
+            _fail("invalid_fingerprint", "fingerprint")
         projection = {"fingerprint": fingerprint.to_mapping(), "identity_version": 1}
         return cls(
             source_id=_identifier("src", projection), fingerprint=fingerprint, streams=streams
@@ -810,6 +836,8 @@ class FrameRef(_Record):
     schema: ClassVar[str] = "visualworld.frame_ref"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.pts, MediaTime):
+            _fail("invalid_pts", "pts")
         _typed_id(self.frame_id, "frm", "frame_id")
         _typed_id(self.source_id, "src", "source_id")
         _bounded_int(self.stream_index, 0, MAX_I31, "stream_index")
@@ -837,6 +865,8 @@ class FrameRef(_Record):
         duration: MediaTime | None = None,
         key_frame: bool | None = None,
     ) -> FrameRef:
+        if not isinstance(pts, MediaTime):
+            _fail("invalid_pts", "pts")
         projection: dict[str, object] = {
             "decode_index": decode_index,
             "identity_version": 1,
@@ -913,6 +943,8 @@ class EvidenceRef(_Record):
     schema: ClassVar[str] = "visualworld.evidence_ref"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.artifact, Artifact):
+            _fail("invalid_artifact", "artifact")
         _typed_id(self.evidence_id, "evi", "evidence_id")
         _typed_id(self.frame_id, "frm", "frame_id")
         _token(self.kind, "kind", frozenset({"original_frame"}))
@@ -931,6 +963,10 @@ class EvidenceRef(_Record):
         kind: str = "original_frame",
         retention: str = "derived_private",
     ) -> EvidenceRef:
+        if not isinstance(artifact, Artifact):
+            _fail("invalid_artifact", "artifact")
+        if geometry is not None and not isinstance(geometry, Geometry):
+            _fail("invalid_geometry", "geometry")
         projection: dict[str, object] = {
             "artifact_sha256": artifact.sha256,
             "frame_id": frame_id,
@@ -993,6 +1029,8 @@ class Sampling:
     policy: str = "nearest_eligible_pts"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.target_fps, Rational):
+            _fail("invalid_target_fps", "sampling.target_fps")
         _token(self.policy, "sampling.policy", frozenset({"nearest_eligible_pts"}))
         if int(self.target_fps.numerator) <= 0:
             _fail("target_fps_must_be_positive", "sampling.target_fps.numerator")
@@ -1061,8 +1099,14 @@ class RunManifest(_Record):
     schema: ClassVar[str] = "visualworld.run_manifest"
 
     def __post_init__(self) -> None:
+        if not isinstance(self.sampling, Sampling):
+            _fail("invalid_sampling", "sampling")
+        if self.outputs is not None and not isinstance(self.outputs, RunOutputs):
+            _fail("invalid_outputs", "outputs")
         _typed_id(self.run_id, "run", "run_id")
         _typed_id(self.source_id, "src", "source_id")
+        if not isinstance(self.producers, tuple):
+            _fail("producers_must_be_tuple", "producers")
         if len(self.producers) > MAX_PRODUCERS:
             _fail("too_many_producers", "producers")
         if not all(isinstance(producer, Producer) for producer in self.producers):
@@ -1088,6 +1132,12 @@ class RunManifest(_Record):
         state: str,
         outputs: RunOutputs | None = None,
     ) -> RunManifest:
+        if not isinstance(producers, tuple):
+            _fail("producers_must_be_tuple", "producers")
+        if not all(isinstance(producer, Producer) for producer in producers):
+            _fail("invalid_producer", "producers")
+        if not isinstance(sampling, Sampling):
+            _fail("invalid_sampling", "sampling")
         projection = {
             "contracts": dict(_CONTRACTS),
             "identity_version": 1,
@@ -1215,13 +1265,20 @@ def loads_record(data: bytes) -> Record:
 
 def load_record(reader: BinaryIO) -> Record:
     """Read at most 256 KiB plus one byte before parsing a record."""
+    chunks: list[bytes] = []
+    remaining = MAX_RECORD_BYTES + 1
     try:
-        data = reader.read(MAX_RECORD_BYTES + 1)
+        while remaining > 0:
+            chunk = reader.read(remaining)
+            if not isinstance(chunk, bytes):
+                _fail("record_reader_must_be_binary")
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
     except OSError as error:
         raise RecordValidationError("record_read_failed") from error
-    if not isinstance(data, bytes):
-        _fail("record_reader_must_be_binary")
-    return loads_record(data)
+    return loads_record(b"".join(chunks))
 
 
 __all__ = [

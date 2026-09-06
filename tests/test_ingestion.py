@@ -131,6 +131,92 @@ def test_identity_projections_exclude_non_identity_facts() -> None:
     assert changed_run_state.run_id == manifest.run_id
 
 
+def test_records_reject_caller_owned_mutable_collections() -> None:
+    source, _, _, manifest = records()
+    mutable_streams = list(source.streams)
+    mutable_producers = list(manifest.producers)
+
+    with pytest.raises(RecordValidationError, match="streams_must_be_tuple"):
+        Source.create(source.fingerprint, cast(tuple[SourceStream, ...], mutable_streams))
+    with pytest.raises(RecordValidationError, match="producers_must_be_tuple"):
+        RunManifest.create(
+            source.source_id,
+            cast(tuple[Producer, ...], mutable_producers),
+            manifest.sampling,
+            "preparing",
+        )
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        lambda: SourceStream(0, 1, 1, 0, cast(TimeBase, object())),
+        lambda: MediaTime("0", cast(TimeBase, object())),
+        lambda: Sampling(cast(Rational, object())),
+        lambda: Source(SOURCE_ID, cast(Fingerprint, object())),
+        lambda: FrameRef(FRAME_ID, SOURCE_ID, 0, "0", cast(MediaTime, object())),
+        lambda: EvidenceRef(
+            EVIDENCE_ID,
+            FRAME_ID,
+            cast(Artifact, object()),
+            None,
+        ),
+        lambda: RunManifest(
+            RUN_ID,
+            SOURCE_ID,
+            (),
+            cast(Sampling, object()),
+            "preparing",
+        ),
+        lambda: RunManifest(
+            RUN_ID,
+            SOURCE_ID,
+            (),
+            Sampling(Rational("1", "1")),
+            "committed",
+            cast(RunOutputs, object()),
+        ),
+    ],
+)
+def test_nested_constructor_values_fail_with_domain_error(invalid: Callable[[], object]) -> None:
+    with pytest.raises(RecordValidationError):
+        invalid()
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        lambda: Source.create(cast(Fingerprint, object())),
+        lambda: FrameRef.create(SOURCE_ID, 0, "0", cast(MediaTime, object())),
+        lambda: EvidenceRef.create(
+            FRAME_ID,
+            cast(Artifact, object()),
+            None,
+        ),
+        lambda: EvidenceRef.create(
+            FRAME_ID,
+            Artifact("0" * 64, "0"),
+            cast(Geometry, object()),
+        ),
+        lambda: RunManifest.create(
+            SOURCE_ID,
+            (cast(Producer, object()),),
+            Sampling(Rational("1", "1")),
+            "preparing",
+        ),
+        lambda: RunManifest.create(
+            SOURCE_ID,
+            (),
+            cast(Sampling, object()),
+            "preparing",
+        ),
+    ],
+)
+def test_create_factories_fail_with_domain_error(invalid: Callable[[], object]) -> None:
+    with pytest.raises(RecordValidationError):
+        invalid()
+
+
 def test_estimated_time_and_exact_comparison() -> None:
     producer = Producer("visualworld.sampler", "0.1.0a0", "2a" * 32)
     estimated = MediaTime(
@@ -186,6 +272,7 @@ def test_affine_geometry_round_trip_uses_exact_rationals() -> None:
         (b'{"schema":1,"schema":2}', "duplicate_key"),
         (b'{"schema":1.5}', "floating_point_forbidden"),
         (b'{"schema":NaN}', "floating_point_forbidden"),
+        (b'{"schema":' + b"9" * 5000 + b"}", "invalid_json"),
         (b" " * (MAX_RECORD_BYTES + 1), "encoded_record_too_large"),
     ],
 )
@@ -204,8 +291,24 @@ def test_reader_is_bounded_and_binary() -> None:
         def read(self, _: int) -> str:
             return "not bytes"
 
+    class ChunkedReader:
+        def __init__(self, payload: bytes) -> None:
+            self.payload = payload
+            self.offset = 0
+
+        def read(self, maximum: int) -> bytes:
+            end = min(self.offset + 7, self.offset + maximum, len(self.payload))
+            chunk = self.payload[self.offset : end]
+            self.offset = end
+            return chunk
+
+    encoded = dumps_record(records()[0])
+    assert load_record(cast(BinaryIO, ChunkedReader(encoded))) == records()[0]
     with pytest.raises(RecordValidationError, match="encoded_record_too_large"):
         load_record(BytesIO(b" " * (MAX_RECORD_BYTES + 1)))
+    oversized = encoded + b" " * (MAX_RECORD_BYTES + 1 - len(encoded))
+    with pytest.raises(RecordValidationError, match="encoded_record_too_large"):
+        load_record(cast(BinaryIO, ChunkedReader(oversized)))
     with pytest.raises(RecordValidationError, match="record_read_failed"):
         load_record(cast(BinaryIO, BrokenReader()))
     with pytest.raises(RecordValidationError, match="record_reader_must_be_binary"):
