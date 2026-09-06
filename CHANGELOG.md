@@ -4,6 +4,9 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add exact rational detector-to-source geometry for resize, letterbox, and
+  quarter-turn display rotation plus deterministic, root-confined original-pixel
+  RGB24 crop extraction and CPU-LITE evidence.
 - Add deterministic exact-rational PTS frame sampling with documented CFR/VFR
   gap and tie policy, bounded cursor-based resume, cancellation, and CPU-LITE
   evidence.

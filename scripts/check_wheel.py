@@ -42,6 +42,7 @@ def inspect_wheel(wheel: Path) -> tuple[str, str]:
             "visualworld/__init__.py",
             "visualworld/__main__.py",
             "visualworld/cli.py",
+            "visualworld/geometry.py",
             "visualworld/ingestion.py",
             "visualworld/media.py",
             "visualworld/ports.py",

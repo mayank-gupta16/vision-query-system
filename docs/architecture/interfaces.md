@@ -67,3 +67,9 @@ Its ordinary `sample` method implements the stable bounded port. Its
 opaque immutable cursor and one exact prior-frame overlap. The cursor binds the
 active limits as well as source and policy state; the sampler has no hidden
 sampling state, ambient effects, adaptive policy, or frame synthesis.
+
+Detector-to-source mapping and RGB24 crop extraction are deterministic domain
+utilities rather than a new model or storage port. The crop value can produce
+the `Artifact` descriptor consumed by `EvidenceStore`; the utility's optional
+validation sink writes only beneath an already-created artifact root and does
+not replace the accepted EvidenceStore CAS/commit protocol.

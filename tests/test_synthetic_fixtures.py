@@ -126,7 +126,6 @@ def test_movies_embed_exact_timing_pixels_and_rotation(tmp_path: Path) -> None:
         assert [hashlib.sha256(frame).hexdigest() for frame in decoded_frames] == [
             frame["rgb24_sha256"] for frame in frames
         ]
-
         tkhd = _box_payload(content, b"tkhd")
         matrix = struct.unpack_from(">9i", tkhd, 40)
         expected_matrix = (
@@ -144,6 +143,49 @@ def test_movies_embed_exact_timing_pixels_and_rotation(tmp_path: Path) -> None:
     assert [right - left for left, right in pairwise(cfr_pts)] == [200] * 3
     assert [right - left for left, right in pairwise(vfr_pts)] == [100, 250, 150]
     assert by_id["rotation-90"]["rotation_degrees"] == 90
+
+
+def test_crop_golden_companion_is_bound_and_pixel_exact() -> None:
+    manifest = fixtures.load_manifest()
+    crop_path = fixtures.ROOT / "fixtures" / "synthetic-v1" / "crops.json"
+    crop_manifest = cast(dict[str, object], json.loads(crop_path.read_text(encoding="utf-8")))
+    assert crop_manifest["schema"] == "visualworld.synthetic-crop-goldens"
+    assert crop_manifest["schema_version"] == 1
+    assert crop_manifest["crop_format"] == "packed_rgb24_encoded_source"
+    assert (
+        crop_manifest["source_fixture_manifest_sha256"]
+        == hashlib.sha256(fixtures.MANIFEST_PATH.read_bytes()).hexdigest()
+    )
+    crop_records = cast(dict[str, list[dict[str, object]]], crop_manifest["crops"])
+    expected_fixtures = {cast(str, item["fixture_id"]): item for item in _fixture_records(manifest)}
+    assert set(crop_records) == set(expected_fixtures)
+
+    for spec in fixtures.SPECS:
+        _, frames = fixtures._movie(spec)
+        expected_frames = cast(
+            list[dict[str, object]], expected_fixtures[spec.fixture_id]["frames"]
+        )
+        records = crop_records[spec.fixture_id]
+        assert len(records) == len(frames) == len(expected_frames)
+        for frame, expected_frame, crop_record in zip(
+            frames,
+            expected_frames,
+            records,
+            strict=True,
+        ):
+            region = cast(dict[str, object], expected_frame["moving_region"])
+            x = cast(int, region["x"])
+            y = cast(int, region["y"])
+            width = cast(int, region["width"])
+            height = cast(int, region["height"])
+            box = (x, y, x + width, y + height)
+            stride = fixtures.WIDTH * 3
+            crop = b"".join(
+                frame[row * stride + x * 3 : row * stride + (x + width) * 3]
+                for row in range(y, y + height)
+            )
+            assert crop_record["box_xyxy"] == list(box)
+            assert crop_record["rgb24_sha256"] == hashlib.sha256(crop).hexdigest()
 
 
 def test_output_validation_fails_closed(tmp_path: Path) -> None:

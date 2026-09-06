@@ -40,3 +40,9 @@ exact rational PTS representation, original-pixel geometry, serialization
 limits, and migration rules. The framework-free implementation and strict JSON
 reader live in `visualworld.ingestion`; later world-model records remain out of
 scope until their milestones exercise them.
+
+`visualworld.geometry` implements the version-1 deterministic bridge from a
+resized, optionally letterboxed and display-rotated detector input back to
+encoded source pixels. It uses exact rational affine coefficients, outward
+rounding, source-bound clamping, and byte-preserving packed-RGB24 crops. Crop
+pixels are never included in object representations or errors.

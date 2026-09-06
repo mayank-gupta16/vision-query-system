@@ -160,6 +160,23 @@ rounding minima down and maxima up. This consistency check uses rational
 arithmetic. Identity geometry forbids `producer_space`; affine geometry requires
 it.
 
+The version-1 detector helper treats rotation as clockwise display metadata,
+normalizes quarter turns modulo 360, and rejects non-quarter-turn values. It
+maps a half-open integer detector box through the detector rectangle occupied by
+the resized display image; any surrounding detector pixels are letterbox
+padding. The helper transforms all four box corners exactly, floors minima,
+ceils maxima, clamps the result to the encoded-source bounds, and rejects a box
+that becomes empty. Its recorded affine map therefore covers stretch resize,
+aspect-preserving letterbox resize, and 0/90/180/270-degree display rotation
+without floating-point conversion.
+
+Original-pixel RGB24 cropping consumes the resulting source-space box and copies
+the selected packed rows without interpolation, display rotation, or color
+conversion. Rotation affects coordinate mapping only; the evidence bytes remain
+in encoded-source orientation. A manually specified source box uses identity
+geometry. These utilities do not change evidence identity or the artifact-store
+protocol.
+
 This is the exact affine variant shape; coefficients are named, not positional:
 
 ```json

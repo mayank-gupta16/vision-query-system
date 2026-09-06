@@ -126,6 +126,22 @@ It checks original exact PTS/identities, CFR/VFR goldens, repeated and paged
 resume equivalence, cancellation, frame/duration caps, and a CPU-LITE
 throughput/RSS baseline. It does not tune the policy for this machine.
 
+The dependency-free original-pixel geometry/crop acceptance runs on the
+reference managed interpreter and a private existing work directory:
+
+```sh
+PYTHONPATH=src artifacts/toolchain/3.13.15/python/\
+cpython-3.13.15-linux-x86_64-gnu/bin/python3 \
+  scripts/run_crop_acceptance.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/crop-acceptance.json
+```
+
+It verifies exact and half-scale detector mappings, the rotation fixture's
+source-pixel crop hashes, traversal/symlink confinement, and the 60-second,
+1080p, 5-FPS crop-copy CPU/RSS baseline. It emits only dimensions, counts,
+hashes, policy names, and resource metrics—not crop bytes.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

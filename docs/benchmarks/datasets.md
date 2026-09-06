@@ -30,7 +30,10 @@ three project-authored 16x12 RGB fixtures: constant-rate, varying-rate, and a
 90-degree display-rotation case. The standard-library generator uses no input
 media, codec library, network, person, face, plate, text, font, or imported
 asset. Exact container bytes, rational timestamps, moving source-pixel regions,
-and per-frame RGB hashes are locked in the manifest.
+and per-frame RGB hashes are locked in the manifest. The digest-linked
+[crop-golden companion](../../fixtures/synthetic-v1/crops.json) locks exact
+moving-region source boxes and packed-RGB24 crop hashes without changing the
+fixture manifest used by earlier validation receipts.
 
 Generate and checksum-scan the ephemeral media in a fresh ignored directory:
 

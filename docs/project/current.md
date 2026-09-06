@@ -5,9 +5,10 @@
 - Implementation: help/version package, deterministic developer and
   synthetic-fixture commands, version-1 ingestion domain records, the four v0.1
   ports with deterministic fakes, a bounded Linux local-video source adapter,
-  and an exact-PTS deterministic frame sampler
-- Benchmark baseline: local source/probe and exact-PTS sampling pass on CPU-LITE
-  generated fixtures
+  an exact-PTS deterministic frame sampler, and exact detector/source geometry
+  with byte-preserving original-pixel RGB24 crops
+- Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
+  crop mapping/copy pass on CPU-LITE generated fixtures
 
 ## Established facts
 
@@ -47,6 +48,10 @@
 - PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
   exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
   cursor-based bounded-page resume.
+- DetectorTransform maps resized/letterboxed, quarter-turn display coordinates
+  to encoded source pixels with exact rational affine coefficients, outward
+  rounding, and source clamping. Packed RGB24 crop extraction preserves source
+  bytes and its validation sink cannot follow a path outside its artifact root.
 
 ## Known blockers and limitations
 
