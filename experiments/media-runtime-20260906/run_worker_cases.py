@@ -219,8 +219,11 @@ def run(runtime: Path, fixtures: Path) -> dict[str, Any]:
         "varying_source_packets_reordered": _packets_reordered(manifest, "varying-pts.mp4"),
         "missing_pts_remain_null": _pts(missing_records) == expected_missing["pts"],
         "rotation_exact": rotated_records["rotation_degrees_derived"] == [90.0],
-        "display_matrix_retained": rotated_records["display_matrices"]
-        == [[0, -65536, 0, 65536, 0, 0, 0, 0, 1073741824]],
+        "display_matrix_retained": len(rotated_records["display_matrices"]) == 30
+        and all(
+            matrix == [0, -65536, 0, 65536, 0, 0, 0, 0, 1073741824]
+            for matrix in rotated_records["display_matrices"]
+        ),
         "stream_sar_labelled_guess": cfr_records["stream_sar_guesses"]
         == [{"denominator": 3, "numerator": 4}],
         "excessive_container_metadata_output_bounded": metadata_records["max_metadata_record_bytes"]
