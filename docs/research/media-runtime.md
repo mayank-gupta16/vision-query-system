@@ -84,6 +84,16 @@ safe descriptor opening, exact runtime staging, inner seccomp and Landlock,
 whole-cgroup cancellation, output caps, capability probes, and fail-closed error
 mapping. The research did not implement a production sandbox.
 
+Issue #7 performed the smallest fixture-compatibility follow-up without
+rewriting this frozen experiment. The same signature-verified FFmpeg 9.0.1
+source and configure surface were rebuilt with only the built-in `rawvideo`
+decoder added. Network, encoders, external codecs, GPL, version-3, and nonfree
+features remained disabled and the build still reported LGPL-2.1-or-later.
+Through the existing source-built PyAV 18.1.0 and inherited-file boundary, all
+three synthetic MOV fixtures reproduced their exact PTS, 90-degree rotation,
+and twelve RGB24 frame hashes. ADR-0003 records this V1 component-surface delta;
+the issue #4 receipt remains the immutable evidence for the original H.264 run.
+
 On macOS 26.6.2 arm64, the installed `sandbox-exec` documentation marks it
 deprecated. App Sandbox is useful defense in depth but does not establish the
 same hard job-wide resource and descendant-kill guarantee. Hostile media remains
