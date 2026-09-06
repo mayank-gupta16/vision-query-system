@@ -23,7 +23,7 @@
   a universal lock with wheel-only installs for Linux x86_64 and macOS arm64,
   zero initial runtime dependencies, and a forced hash-verified PEP 517
   packaging lane.
-  Storage, model, and dataset choices remain unresolved.
+  Model and dataset choices remain unresolved.
 - ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
   signature-verified FFmpeg 9.0.1 build for the first Linux ingestion slice.
   Hostile decode is isolated and fail-closed; native hostile decode on macOS is
