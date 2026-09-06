@@ -4,6 +4,8 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Define the four version-1 ingestion ports with capability descriptors,
+  structured errors, bounded instrumentation, and deterministic offline fakes.
 - Add framework-free version-1 Source, FrameRef, Geometry, EvidenceRef, and
   RunManifest records with canonical JSON, typed identities, exact rational
   time, strict input limits, and round-trip contract tests.
