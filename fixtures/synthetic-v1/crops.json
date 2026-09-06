@@ -1,0 +1,62 @@
+{
+  "crop_format": "packed_rgb24_encoded_source",
+  "crops": {
+    "cfr": [
+      {
+        "box_xyxy": [1, 1, 4, 4],
+        "rgb24_sha256": "a0a2f3e2099e42ceee28713a3934ee5dc49142e53722ea3478fa23b867088027"
+      },
+      {
+        "box_xyxy": [4, 3, 7, 6],
+        "rgb24_sha256": "999845dab671f17e529f1eda2d9dc41187f3fab112cd2164c00f8a072afca8c0"
+      },
+      {
+        "box_xyxy": [7, 5, 10, 8],
+        "rgb24_sha256": "9f9313c27eb6f89483a697af7122145f168c391a5cd83c390e4683e7dd404dba"
+      },
+      {
+        "box_xyxy": [10, 7, 13, 10],
+        "rgb24_sha256": "0deece253a9f2f3c4c5d43b7dcc54f3cd352c7f5ddc4f2550019036dc8f2c5e7"
+      }
+    ],
+    "rotation-90": [
+      {
+        "box_xyxy": [3, 3, 6, 6],
+        "rgb24_sha256": "a869b50cbe9d227672471249b1053a3b2477b8d213e3f76ff57937a93058c611"
+      },
+      {
+        "box_xyxy": [6, 5, 9, 8],
+        "rgb24_sha256": "f8d97d5a58a9bbb5b3898a19d225523d94a201eca4c9eaa7c5bcd343ea361030"
+      },
+      {
+        "box_xyxy": [9, 7, 12, 10],
+        "rgb24_sha256": "8c506b62ebff48ac4d746fcba868b534d889501bcda36c6ae4c20e6dd95cbd55"
+      },
+      {
+        "box_xyxy": [12, 9, 15, 12],
+        "rgb24_sha256": "1891a1fcb83873ad214ad985b158c66e5e0028150ae92c908cfcc0c5ae006ba8"
+      }
+    ],
+    "vfr": [
+      {
+        "box_xyxy": [2, 2, 5, 5],
+        "rgb24_sha256": "fb772a112d8081689dedc9cd6099be662ee114fd10bd43f7cfc6a3484fff15ae"
+      },
+      {
+        "box_xyxy": [5, 4, 8, 7],
+        "rgb24_sha256": "ef1c56cc82bb38a645d2b565286585bc750e15541b0a4f4e47a24dbe466cfe4d"
+      },
+      {
+        "box_xyxy": [8, 6, 11, 9],
+        "rgb24_sha256": "5a67123ed7c994d35ff4d26b6eb291710d19194b7d28f253a4660584c318ce09"
+      },
+      {
+        "box_xyxy": [11, 8, 14, 11],
+        "rgb24_sha256": "c109be7e73cc4db88a01957ee8233a5ebb80a59ec81c723917aba05f356b7787"
+      }
+    ]
+  },
+  "schema": "visualworld.synthetic-crop-goldens",
+  "schema_version": 1,
+  "source_fixture_manifest_sha256": "0b5b582ceb979bf6ce0eed181eb323b3343bcc5eb04b939c3dc2ef29fb2e617e"
+}

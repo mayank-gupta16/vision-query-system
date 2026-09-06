@@ -1,0 +1,114 @@
+{
+  "benchmark": {
+    "aggregate_sha256": "84029ed897c1de8bf0d7ac5ae5690cb5a522465cdbe7ed78015ddcb8106c8a86",
+    "bounded": true,
+    "bytes_per_second": 514500119,
+    "copied_bytes": 829440000,
+    "cpu_ns": 1611932474,
+    "crop_dimensions": {
+      "height": 720,
+      "width": 1280
+    },
+    "detector_box_xyxy": [
+      160,
+      90,
+      800,
+      450
+    ],
+    "detector_dimensions": {
+      "height": 540,
+      "width": 960
+    },
+    "exact_geometry": true,
+    "frames_per_second": 186,
+    "peak_rss_limit_bytes": 2147483648,
+    "process_peak_rss_bytes": 38277120,
+    "rss_measured": true,
+    "sampled_frames": 300,
+    "sampling_fps": 5,
+    "source_box_xyxy": [
+      320,
+      180,
+      1600,
+      900
+    ],
+    "source_dimensions": {
+      "height": 1080,
+      "width": 1920
+    },
+    "timing_measured": true,
+    "video_seconds": 60,
+    "wall_ns": 1612127904,
+    "workload": "exact_map_copy_and_sha256"
+  },
+  "crop_manifest_sha256": "dc8afc2e619d1fcb5c4cc2e34382e0bc87f0a330cb79df4ac84450a63c0d4177",
+  "destination_security": {
+    "artifact_digest": true,
+    "exact_bytes": true,
+    "non_private_root_rejected": true,
+    "outside_absent": true,
+    "symlink_parent_rejected": true,
+    "traversal_rejected": true,
+    "writable_parent_rejected": true
+  },
+  "fixture_manifest_sha256": "0b5b582ceb979bf6ce0eed181eb323b3343bcc5eb04b939c3dc2ef29fb2e617e",
+  "fixtures": {
+    "cfr": {
+      "crop_sha256": [
+        "a0a2f3e2099e42ceee28713a3934ee5dc49142e53722ea3478fa23b867088027",
+        "999845dab671f17e529f1eda2d9dc41187f3fab112cd2164c00f8a072afca8c0",
+        "9f9313c27eb6f89483a697af7122145f168c391a5cd83c390e4683e7dd404dba",
+        "0deece253a9f2f3c4c5d43b7dcc54f3cd352c7f5ddc4f2550019036dc8f2c5e7"
+      ],
+      "exact_source_boxes_and_pixel_hashes": true,
+      "half_scale_max_boundary_error_pixels": 1,
+      "rotation_degrees": 0,
+      "within_one_source_pixel": true
+    },
+    "rotation-90": {
+      "crop_sha256": [
+        "a869b50cbe9d227672471249b1053a3b2477b8d213e3f76ff57937a93058c611",
+        "f8d97d5a58a9bbb5b3898a19d225523d94a201eca4c9eaa7c5bcd343ea361030",
+        "8c506b62ebff48ac4d746fcba868b534d889501bcda36c6ae4c20e6dd95cbd55",
+        "1891a1fcb83873ad214ad985b158c66e5e0028150ae92c908cfcc0c5ae006ba8"
+      ],
+      "exact_source_boxes_and_pixel_hashes": true,
+      "half_scale_max_boundary_error_pixels": 1,
+      "rotation_degrees": 90,
+      "within_one_source_pixel": true
+    },
+    "vfr": {
+      "crop_sha256": [
+        "fb772a112d8081689dedc9cd6099be662ee114fd10bd43f7cfc6a3484fff15ae",
+        "ef1c56cc82bb38a645d2b565286585bc750e15541b0a4f4e47a24dbe466cfe4d",
+        "5a67123ed7c994d35ff4d26b6eb291710d19194b7d28f253a4660584c318ce09",
+        "c109be7e73cc4db88a01957ee8233a5ebb80a59ec81c723917aba05f356b7787"
+      ],
+      "exact_source_boxes_and_pixel_hashes": true,
+      "half_scale_max_boundary_error_pixels": 1,
+      "rotation_degrees": 0,
+      "within_one_source_pixel": true
+    }
+  },
+  "policy": {
+    "clamping": "encoded_source_bounds",
+    "coordinates": "half_open_integer",
+    "crop_orientation": "encoded_source",
+    "rotation": "clockwise_display_quarter_turn_to_encoded_source",
+    "rounding": "minimum_floor_maximum_ceil"
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "schema": "visualworld.crop-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass"
+}

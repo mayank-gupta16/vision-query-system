@@ -627,10 +627,10 @@ class Geometry:
         xs = [a * x + b * y + c for x, y in corners]
         ys = [d * x + e * y + f for x, y in corners]
         transformed = (
-            min(xs).__floor__(),
-            min(ys).__floor__(),
-            max(xs).__ceil__(),
-            max(ys).__ceil__(),
+            max(0, min(self.source_width, min(xs).__floor__())),
+            max(0, min(self.source_height, min(ys).__floor__())),
+            max(0, min(self.source_width, max(xs).__ceil__())),
+            max(0, min(self.source_height, max(ys).__ceil__())),
         )
         if transformed != self.box_xyxy:
             _fail("affine_box_mismatch", "geometry.box_xyxy")

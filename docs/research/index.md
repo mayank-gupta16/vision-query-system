@@ -26,3 +26,7 @@ architecture.
 - [Exact-PTS frame sampling](pts-frame-sampling.md) — issue #12 deterministic
   CFR/VFR selection, bounded resume/cancellation, and CPU-LITE validation with a
   [machine-readable receipt](pts-frame-sampling-cpu-lite-receipt.json).
+- [Original-pixel geometry and crops](original-pixel-crops.md) — issue #13 exact
+  detector/source transforms, byte-level crop goldens, destination confinement,
+  and CPU-LITE validation with a
+  [machine-readable receipt](original-pixel-crops-cpu-lite-receipt.json).
