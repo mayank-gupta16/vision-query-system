@@ -38,11 +38,12 @@ rights/privacy manifest; explicit review is required before inclusion.
 
 1. Read `AGENTS.md`, `docs/project/current.md`, the issue, and only the relevant
    indexed documentation.
-2. Create a focused branch such as `feat/123-description`,
-   `fix/456-description`, or `research/789-description`.
+2. Create a focused branch such as `codex/123-description`.
 3. Keep the change within the issue scope and add tests appropriate to the risk.
-4. Run `python3 scripts/validate_repository.py` plus the checks named by the
-   relevant module and issue.
+4. Follow [developer setup](docs/testing/development.md), then run
+   `python3 scripts/dev.py check`, `python3 scripts/dev.py build`, and relevant
+   module/issue checks. Run the network-enabled audit for dependency changes.
+   Repository policy is included in `check` and also runs separately in CI.
 5. Open a PR that links the issue and includes actual test/benchmark evidence.
 6. If you are an external contributor, sign off each substantive code or
    documentation commit as described above.

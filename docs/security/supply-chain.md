@@ -19,3 +19,17 @@ use OIDC/trusted publishing rather than long-lived credentials.
 
 Protected configuration includes workflows, AGENTS files, dependency manifests
 and locks, SECURITY, and security/legal policy. These require explicit review.
+
+## Scaffold controls
+
+[Developer commands](../testing/development.md) acquire SHA-256-verified uv/Python,
+clear resolver/Python environment overrides, and use an exact universal PyPI
+lock. PEP 517 packaging separately verifies the build backend's approved wheel
+hashes, including a mandatory wrong-hash rejection test. These protect acquisition
+integrity; they do not make third-party code harmless or replace host isolation.
+
+CI uses fresh tool directories without restored shared caches, no fork secrets,
+and a four-lane aggregate application gate. The offline check command does not
+install dependencies. Vulnerability auditing is separately network-enabled and
+submits only public tool package names/versions. No media or model data is sent.
+Runtime package inventory excludes unshipped developer tools and interpreters.
