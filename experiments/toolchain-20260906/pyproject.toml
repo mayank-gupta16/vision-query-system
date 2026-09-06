@@ -1,0 +1,69 @@
+[project]
+name = "visualworld-probe"
+version = "0.0.0"
+description = "Disposable clean-install probe for VisualWorld issue 3"
+requires-python = ">=3.13,<3.15"
+license = "Apache-2.0"
+dependencies = []
+
+[project.scripts]
+visualworld-probe = "visualworld_probe.cli:main"
+
+[build-system]
+requires = ["uv_build==0.12.6"]
+build-backend = "uv_build"
+
+[dependency-groups]
+lint = [
+  "mypy>=2.3.1,<2.4",
+  "ruff>=0.16.5,<0.17",
+]
+test = [
+  "coverage>=7.16,<8",
+  "pytest>=9.1.1,<10",
+]
+audit = [
+  "pip-audit>=2.10.1,<2.11",
+]
+dev = [
+  { include-group = "lint" },
+  { include-group = "test" },
+  { include-group = "audit" },
+]
+
+[tool.uv]
+required-version = "==0.12.6"
+build-constraint-dependencies = ["uv-build==0.12.6"]
+default-groups = ["dev"]
+exclude-newer = "2026-08-30T00:00:00Z"
+index-strategy = "first-index"
+no-build = true
+prerelease = "disallow"
+required-environments = [
+  "sys_platform == 'linux' and platform_machine == 'x86_64'",
+  "sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+
+[tool.pytest.ini_options]
+addopts = ["--strict-config", "--strict-markers", "-ra"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["visualworld_probe"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true

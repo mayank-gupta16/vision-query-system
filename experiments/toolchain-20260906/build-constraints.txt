@@ -1,0 +1,3 @@
+uv-build==0.12.6 \
+    --hash=sha256:1597b3f7de552f7ddd23bc1c2f4adddde7cdb5a48d644cd38bdb94aca98e64ab \
+    --hash=sha256:d483396368b57ba21bf89b06cd14d1d248074d90e1677e9e8c9fb10b407e4d8e
