@@ -59,4 +59,6 @@ performance claim or optimization target.
 This issue accepts manually or fake-specified integer boxes and packed RGB24
 source frames. It does not add a detector, segmentation, best-frame scoring,
 color conversion, arbitrary-angle resampling, persistent artifact storage, or
-end-to-end ingestion orchestration.
+end-to-end ingestion orchestration. Final-file descriptors have one underlying
+close attempt through their owning `FileIO`; an ambiguous OS close error is not
+retried by numeric descriptor because POSIX permits that number to be reused.

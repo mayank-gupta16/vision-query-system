@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import os
 import stat
 import traceback
@@ -366,10 +367,10 @@ def test_crop_writer_removes_partial_file_and_redacts_write_failure(
     root = _private_directory(tmp_path / "artifacts")
     crop = Rgb24Crop(1, 1, b"abc")
 
-    def fail_write(_: int, __: object) -> int:
+    def fail_write(_: io.FileIO, __: bytes) -> None:
         raise OSError("private pixels and path")
 
-    monkeypatch.setattr(os, "write", fail_write)
+    monkeypatch.setattr(geometry_module, "_write_all", fail_write)
     with pytest.raises(CropError, match="write_failed") as raised:
         write_rgb24_crop(
             crop,
@@ -443,14 +444,14 @@ def test_crop_writer_cleans_up_and_closes_after_interruption(
     original_fsync = os.fsync
     captured_descriptor: int | None = None
 
-    def interrupt_write(descriptor: int, content: bytes) -> None:
+    def interrupt_write(stream: io.FileIO, content: bytes) -> None:
         nonlocal captured_descriptor
-        captured_descriptor = descriptor
+        captured_descriptor = stream.fileno()
         if interruption == "after_write":
-            original_write_all(descriptor, content)
+            original_write_all(stream, content)
         if interruption in {"before_write", "after_write"}:
             raise KeyboardInterrupt
-        original_write_all(descriptor, content)
+        original_write_all(stream, content)
 
     def interrupt_chmod(descriptor: int, mode: int) -> None:
         nonlocal captured_descriptor
@@ -538,24 +539,25 @@ def test_crop_writer_cleans_up_when_initial_inode_capture_fails(
     assert not (root / "crop.rgb24").exists()
 
 
-def test_crop_writer_retains_descriptor_until_close_succeeds(
+def test_crop_writer_retries_open_owner_after_pre_close_interruption(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     root = _private_directory(tmp_path / "artifacts")
-    original_close = os.close
     captured_descriptor: int | None = None
-    interrupted = False
+    close_calls = 0
 
-    def interrupt_final_close_once(descriptor: int) -> None:
-        nonlocal captured_descriptor, interrupted
-        if not interrupted and stat.S_ISREG(os.fstat(descriptor).st_mode):
-            captured_descriptor = descriptor
-            interrupted = True
-            raise KeyboardInterrupt
-        original_close(descriptor)
+    class InterruptBeforeClose(io.FileIO):
+        def close(self) -> None:
+            nonlocal captured_descriptor, close_calls
+            if not self.closed:
+                close_calls += 1
+                captured_descriptor = self.fileno()
+                if close_calls == 1:
+                    raise KeyboardInterrupt
+            super().close()
 
-    monkeypatch.setattr(os, "close", interrupt_final_close_once)
+    monkeypatch.setattr(io, "FileIO", InterruptBeforeClose)
     with pytest.raises(KeyboardInterrupt):
         write_rgb24_crop(
             Rgb24Crop(1, 1, b"abc"),
@@ -564,6 +566,50 @@ def test_crop_writer_retains_descriptor_until_close_succeeds(
         )
 
     assert captured_descriptor is not None
+    assert close_calls == 2
     with pytest.raises(OSError):
         os.fstat(captured_descriptor)
     assert not (root / "crop.rgb24").exists()
+
+
+def test_crop_writer_does_not_retry_reused_descriptor_after_close_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    victim = tmp_path / "victim"
+    victim.write_bytes(b"victim")
+    closed_descriptor: int | None = None
+    victim_descriptor: int | None = None
+    close_calls = 0
+
+    class ErrorAfterRelease(io.FileIO):
+        def close(self) -> None:
+            nonlocal closed_descriptor, victim_descriptor, close_calls
+            if not self.closed:
+                close_calls += 1
+                closed_descriptor = self.fileno()
+                super().close()
+                victim_descriptor = os.open(victim, os.O_RDONLY | os.O_CLOEXEC)
+                if victim_descriptor != closed_descriptor:
+                    os.dup2(victim_descriptor, closed_descriptor, inheritable=False)
+                    os.close(victim_descriptor)
+                    victim_descriptor = closed_descriptor
+                raise OSError("private close failure")
+            super().close()
+
+    monkeypatch.setattr(io, "FileIO", ErrorAfterRelease)
+    with pytest.raises(CropError, match="write_failed") as raised:
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="crop.rgb24",
+        )
+
+    assert str(raised.value) == "write_failed at crop"
+    assert close_calls == 1
+    assert closed_descriptor is not None
+    assert victim_descriptor == closed_descriptor
+    assert os.fstat(victim_descriptor).st_ino == victim.stat().st_ino
+    assert not (root / "crop.rgb24").exists()
+    os.close(victim_descriptor)

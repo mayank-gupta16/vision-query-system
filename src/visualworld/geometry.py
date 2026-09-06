@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import os
 import re
 import stat
@@ -378,12 +379,12 @@ def _unlink_created(
         pass
 
 
-def _write_all(descriptor: int, content: bytes) -> None:
+def _write_all(stream: io.FileIO, content: bytes) -> None:
     view = memoryview(content)
     offset = 0
     while offset < len(view):
-        written = os.write(descriptor, view[offset:])
-        if written <= 0:
+        written = stream.write(view[offset:])
+        if written is None or written <= 0:
             raise OSError("short write")
         offset += written
 
@@ -410,7 +411,7 @@ def write_rgb24_crop(
     root_descriptor = _root_descriptor(artifact_root)
     descriptors = [root_descriptor]
     parent_descriptor = root_descriptor
-    file_descriptor: int | None = None
+    stream: io.FileIO | None = None
     created = False
     created_inode: tuple[int, int] | None = None
     completed = False
@@ -428,29 +429,34 @@ def write_rgb24_crop(
                     _fail("destination_unavailable")
                 parent_descriptor = candidate
                 descriptors.append(candidate)
-            file_descriptor = os.open(
-                parts[-1],
-                os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
-                0o600,
-                dir_fd=parent_descriptor,
-            )
-            created = True
-            created_inode = _inode(file_descriptor)
+
+            def opener(name: str, flags: int) -> int:
+                nonlocal created
+                descriptor = os.open(
+                    name,
+                    flags | os.O_CLOEXEC | os.O_NOFOLLOW,
+                    0o600,
+                    dir_fd=parent_descriptor,
+                )
+                created = True
+                return descriptor
+
+            stream = io.FileIO(parts[-1], "xb", opener=opener)
+            created_inode = _inode(stream.fileno())
         except OSError:
             _fail("destination_unavailable")
         try:
-            _write_all(file_descriptor, crop.pixels)
-            os.fchmod(file_descriptor, 0o400)
-            os.fsync(file_descriptor)
-            os.close(file_descriptor)
-            file_descriptor = None
+            _write_all(stream, crop.pixels)
+            os.fchmod(stream.fileno(), 0o400)
+            os.fsync(stream.fileno())
+            stream.close()
         except OSError:
             _fail("write_failed")
         completed = True
     finally:
-        if file_descriptor is not None:
+        if stream is not None and not stream.closed:
             with suppress(OSError):
-                os.close(file_descriptor)
+                stream.close()
         if created and not completed:
             _unlink_created(parts[-1], parent_descriptor, created_inode)
         for descriptor in reversed(descriptors):
