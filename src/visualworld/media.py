@@ -20,7 +20,7 @@ import time
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import cast
+from typing import Any, cast
 
 from visualworld.ingestion import (
     Fingerprint,
@@ -42,6 +42,7 @@ from visualworld.ports import (
 _DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 _TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}\Z")
 _MAX_STREAM_INDEX = 2**31 - 1
+_MAX_U32 = 2**32 - 1
 _MAX_U64 = 2**64 - 1
 _OPENAT2 = 437
 _MEMFD_CREATE = 319
@@ -59,6 +60,12 @@ _SYSTEMD_RUN = Path("/usr/bin/systemd-run")
 _SYSTEMCTL = Path("/usr/bin/systemctl")
 _BWRAP = Path("/usr/bin/bwrap")
 _CGROUP_ROOT = Path("/sys/fs/cgroup")
+_RUNTIME_MANIFEST_NAME = "visualworld-runtime.json"
+_APPROVED_RUNTIME_MANIFEST_SHA256 = (
+    "0f2c6c1ece67c35ca5cd52a97f1b5bcb632903b85fa024915e9d94cfe35276c4"
+)
+_APPROVED_RUNTIME_TREE_SHA256 = "24bd6fd652619b2189fc95a8fc1d97789bf6e90e7c5c0cba9b434e26eeca6b43"
+_APPROVED_RUNTIME_WORKER = Path("worker/media_worker.py")
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,6 +224,70 @@ def _source_directory(path: Path) -> bool:
     return stat.S_ISDIR(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode)
 
 
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _digest_field(digest: Any, value: bytes) -> None:
+    digest.update(len(value).to_bytes(8, "big"))
+    digest.update(value)
+
+
+def _runtime_tree_digest(root: Path) -> str | None:
+    digest = hashlib.sha256()
+    try:
+        entries = sorted(root.rglob("*"), key=lambda path: os.fsencode(path.relative_to(root)))
+        for path in entries:
+            relative = path.relative_to(root)
+            if relative == Path(_RUNTIME_MANIFEST_NAME):
+                continue
+            metadata = path.lstat()
+            name = os.fsencode(relative)
+            mode = stat.S_IMODE(metadata.st_mode)
+            if metadata.st_uid != 0:
+                return None
+            if stat.S_ISLNK(metadata.st_mode):
+                kind = b"link"
+                payload = os.fsencode(os.readlink(path))
+            elif stat.S_ISDIR(metadata.st_mode):
+                if mode & 0o022 != 0 or mode & stat.S_IXOTH == 0:
+                    return None
+                kind = b"directory"
+                payload = b""
+            elif stat.S_ISREG(metadata.st_mode):
+                if mode & 0o022 != 0:
+                    return None
+                kind = b"file"
+                payload = f"{metadata.st_size}:{_file_sha256(path)}".encode("ascii")
+            else:
+                return None
+            for field in (kind, name, f"{mode:o}".encode("ascii"), payload):
+                _digest_field(digest, field)
+    except (OSError, ValueError):
+        return None
+    return digest.hexdigest()
+
+
+def _runtime_manifest_valid(runtime: MediaRuntime) -> bool:
+    manifest = runtime.root / _RUNTIME_MANIFEST_NAME
+    if runtime.worker != runtime.root / _APPROVED_RUNTIME_WORKER:
+        return False
+    if not _trusted_regular(manifest):
+        return False
+    try:
+        manifest_digest = _file_sha256(manifest)
+    except OSError:
+        return False
+    return (
+        manifest_digest == _APPROVED_RUNTIME_MANIFEST_SHA256
+        and _runtime_tree_digest(runtime.root) == _APPROVED_RUNTIME_TREE_SHA256
+    )
+
+
 def _capability_check(runtime: MediaRuntime) -> None:
     if platform.system() != "Linux" or platform.machine() != "x86_64" or os.geteuid() != 0:
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
@@ -238,13 +309,7 @@ def _capability_check(runtime: MediaRuntime) -> None:
         runtime.worker
     ):
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
-    required = (
-        runtime.root / "python/bin/python3.13",
-        runtime.root / "python/BUILD",
-        runtime.root / "ffmpeg/lib",
-        runtime.root / "venv/lib/python3.13/site-packages",
-    )
-    if not all(path.exists() and not path.is_symlink() for path in required):
+    if not _runtime_manifest_valid(runtime):
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
     if not (_CGROUP_ROOT / "cgroup.controllers").is_file():
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
@@ -429,6 +494,7 @@ def _systemd_argv(
         "User=nobody",
         "Group=nogroup",
         "NoNewPrivileges=yes",
+        "KillMode=control-group",
         f"MemoryMax={limits.memory_bytes}",
         "MemorySwapMax=0",
         f"TasksMax={limits.task_count}",
@@ -466,13 +532,24 @@ def _read_number(path: Path, field: str | None = None) -> int:
     return 0
 
 
-def _kill_unit(unit: str, cgroup: Path, process: subprocess.Popen[bytes]) -> None:
+def _kill_unit(unit: str, cgroup: Path, process: subprocess.Popen[bytes]) -> bool:
     kill_file = cgroup / "cgroup.kill"
+    signalled = False
     try:
         descriptor = os.open(kill_file, os.O_WRONLY | os.O_CLOEXEC)
     except OSError:
-        with suppress(OSError, subprocess.SubprocessError):
-            subprocess.run(
+        pass
+    else:
+        try:
+            signalled = os.write(descriptor, b"1") == 1
+        except OSError:
+            pass
+        finally:
+            with suppress(OSError):
+                os.close(descriptor)
+    if not signalled:
+        try:
+            result = subprocess.run(
                 [os.fspath(_SYSTEMCTL), "kill", "--kill-whom=all", "--signal=SIGKILL", unit],
                 check=False,
                 stdin=subprocess.DEVNULL,
@@ -480,13 +557,71 @@ def _kill_unit(unit: str, cgroup: Path, process: subprocess.Popen[bytes]) -> Non
                 stderr=subprocess.DEVNULL,
                 timeout=2,
             )
-    else:
-        try:
-            os.write(descriptor, b"1")
-        finally:
-            os.close(descriptor)
+        except (OSError, subprocess.SubprocessError):
+            pass
+        else:
+            signalled = result.returncode == 0
     with suppress(ProcessLookupError):
         os.killpg(process.pid, signal.SIGKILL)
+    return signalled
+
+
+def _cgroup_processes(cgroup: Path) -> tuple[int, ...] | None:
+    try:
+        content = (cgroup / "cgroup.procs").read_text(encoding="ascii")
+    except FileNotFoundError:
+        return ()
+    except OSError:
+        return None
+    values = content.split()
+    if any(not value.isdecimal() or int(value) <= 0 for value in values):
+        return None
+    return tuple(int(value) for value in values)
+
+
+def _unit_inactive(unit: str) -> bool:
+    try:
+        result = subprocess.run(
+            [os.fspath(_SYSTEMCTL), "show", "--property=ActiveState", "--value", unit],
+            check=False,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode in {0, 4} and result.stdout.strip() in {b"inactive", b"failed"}
+
+
+def _wait_unit_stopped(unit: str, cgroup: Path, timeout_seconds: float = 2.0) -> bool:
+    deadline = time.monotonic() + timeout_seconds
+    while True:
+        processes = _cgroup_processes(cgroup)
+        if processes == () and _unit_inactive(unit):
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(0.02)
+
+
+def _ensure_unit_stopped(
+    unit: str,
+    cgroup: Path,
+    process: subprocess.Popen[bytes],
+) -> bool:
+    processes = _cgroup_processes(cgroup)
+    if process.poll() is None or processes != ():
+        _kill_unit(unit, cgroup, process)
+    try:
+        process.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        _kill_unit(unit, cgroup, process)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            return False
+    return _wait_unit_stopped(unit, cgroup)
 
 
 def _drain_worker(
@@ -512,51 +647,63 @@ def _drain_worker(
     memory_peak = 0
     failure: PortErrorCode | None = None
     killed = False
-    while selector.get_map() or process.poll() is None:
-        now = time.monotonic()
-        cpu_peak = max(cpu_peak, _read_number(cgroup / "cpu.stat", "usage_usec"))
-        memory_peak = max(
-            memory_peak,
-            _read_number(cgroup / "memory.peak"),
-            _read_number(cgroup / "memory.current"),
-        )
-        if cancelled is not None and cancelled.is_set():
-            failure = PortErrorCode.CANCELLED
-        elif now >= deadline or cpu_peak > limits.cpu_budget_ms * 1000:
-            failure = PortErrorCode.TIMEOUT
-        if failure is not None and not killed:
-            _kill_unit(f"{unit}.service", cgroup, process)
-            killed = True
-        events = selector.select(0.02)
-        for key, _ in events:
-            descriptor = cast(int, key.fileobj)
-            try:
-                chunk = os.read(descriptor, 65_536)
-            except BlockingIOError:
-                continue
-            if not chunk:
-                selector.unregister(descriptor)
-                continue
-            streams[descriptor].extend(chunk)
-            if sum(len(buffer) for buffer in streams.values()) > limits.max_worker_output_bytes:
-                failure = PortErrorCode.LIMIT_EXCEEDED
-                if not killed:
-                    _kill_unit(f"{unit}.service", cgroup, process)
-                    killed = True
-        if failure is not None and process.poll() is not None and not selector.get_map():
-            break
+    termination_deadline: float | None = None
     try:
-        returncode = process.wait(timeout=2)
-    except subprocess.TimeoutExpired:
-        _kill_unit(f"{unit}.service", cgroup, process)
-        returncode = process.wait(timeout=2)
-    wall_ms = max(0, int((time.monotonic() - started) * 1000))
-    stdout = bytes(streams[process.stdout.fileno()])
-    stderr = bytes(streams[process.stderr.fileno()])
-    selector.close()
-    process.stdout.close()
-    process.stderr.close()
+        while selector.get_map() or process.poll() is None:
+            now = time.monotonic()
+            cpu_peak = max(cpu_peak, _read_number(cgroup / "cpu.stat", "usage_usec"))
+            memory_peak = max(
+                memory_peak,
+                _read_number(cgroup / "memory.peak"),
+                _read_number(cgroup / "memory.current"),
+            )
+            if cancelled is not None and cancelled.is_set():
+                failure = PortErrorCode.CANCELLED
+            elif now >= deadline or cpu_peak > limits.cpu_budget_ms * 1000:
+                failure = PortErrorCode.TIMEOUT
+            if failure is not None and not killed:
+                _kill_unit(f"{unit}.service", cgroup, process)
+                killed = True
+                termination_deadline = time.monotonic() + 2
+            if termination_deadline is not None and now >= termination_deadline:
+                break
+            events = selector.select(0.02)
+            for key, _ in events:
+                descriptor = cast(int, key.fileobj)
+                try:
+                    chunk = os.read(descriptor, 65_536)
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    selector.unregister(descriptor)
+                    continue
+                streams[descriptor].extend(chunk)
+                if sum(len(buffer) for buffer in streams.values()) > limits.max_worker_output_bytes:
+                    failure = PortErrorCode.LIMIT_EXCEEDED
+                    if not killed:
+                        _kill_unit(f"{unit}.service", cgroup, process)
+                        killed = True
+                        termination_deadline = time.monotonic() + 2
+            if failure is not None and process.poll() is not None and not selector.get_map():
+                break
+        try:
+            returncode = process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            _kill_unit(f"{unit}.service", cgroup, process)
+            try:
+                returncode = process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "decode") from None
+        wall_ms = max(0, int((time.monotonic() - started) * 1000))
+        stdout = bytes(streams[process.stdout.fileno()])
+        stderr = bytes(streams[process.stderr.fileno()])
+    finally:
+        selector.close()
+        process.stdout.close()
+        process.stderr.close()
     if failure is not None:
+        if not _wait_unit_stopped(f"{unit}.service", cgroup):
+            raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "decode")
         raise _error(failure, "decode")
     return _WorkerRun(stdout, stderr, returncode, wall_ms, cpu_peak // 1000, memory_peak)
 
@@ -575,8 +722,17 @@ def _run_worker(
         stderr=subprocess.PIPE,
         start_new_session=True,
     )
+    cgroup = _CGROUP_ROOT / "system.slice" / f"{unit}.service"
     try:
-        return _drain_worker(process, unit, limits, cancelled)
+        try:
+            result = _drain_worker(process, unit, limits, cancelled)
+        except BaseException:
+            if not _ensure_unit_stopped(f"{unit}.service", cgroup, process):
+                raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "decode") from None
+            raise
+        if not _ensure_unit_stopped(f"{unit}.service", cgroup, process):
+            raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "decode")
+        return result
     finally:
         with suppress(OSError, subprocess.SubprocessError):
             subprocess.run(
@@ -655,8 +811,8 @@ def _signed_decimal(value: object) -> str:
 
 def _time_base(value: object) -> TimeBase:
     item = _mapping(value, frozenset({"numerator", "denominator"}))
-    numerator = _decimal(item["numerator"], 2**63 - 1)
-    denominator = _decimal(item["denominator"], 2**63 - 1)
+    numerator = _decimal(item["numerator"], _MAX_U32)
+    denominator = _decimal(item["denominator"], _MAX_U32)
     if numerator == "0" or denominator == "0":
         raise _error(PortErrorCode.DECODE_FAILED, "decode")
     return TimeBase(numerator, denominator)
@@ -680,7 +836,7 @@ def _decode_output(
         raise _error(code, "decode")
     sentinel = object()
     raw: object = sentinel
-    with suppress(UnicodeDecodeError, json.JSONDecodeError):
+    with suppress(UnicodeDecodeError, ValueError, RecursionError):
         raw = json.loads(run.stdout)
     if raw is sentinel:
         raise _error(PortErrorCode.DECODE_FAILED, "decode")
@@ -688,7 +844,9 @@ def _decode_output(
         raw,
         frozenset({"schema_version", "status", "runtime", "isolation", "stream", "frames"}),
     )
-    if top["schema_version"] != 1 or top["status"] != "ok":
+    if type(top["schema_version"]) is not int or top["schema_version"] != 1:
+        raise _error(PortErrorCode.DECODE_FAILED, "decode")
+    if top["status"] != "ok":
         raise _error(PortErrorCode.DECODE_FAILED, "decode")
     runtime = _mapping(top["runtime"], frozenset({"pyav", "libavformat", "libavcodec"}))
     pyav_version = _token(runtime["pyav"])

@@ -208,6 +208,7 @@ def test_capability_probe_checks_runtime_tools_and_cgroup(
     monkeypatch.setattr(media, "_CGROUP_ROOT", cgroup)
     monkeypatch.setattr(media, "_trusted_regular", lambda _path: True)
     monkeypatch.setattr(media, "_trusted_directory", lambda _path: True)
+    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime: True)
 
     media._capability_check(runtime)
 
@@ -218,13 +219,90 @@ def test_capability_probe_checks_runtime_tools_and_cgroup(
     with pytest.raises(PortError, match="isolation_unavailable"):
         media._capability_check(runtime)
     monkeypatch.setattr(media, "_trusted_regular", lambda _path: True)
-    (runtime_root / "python/BUILD").unlink()
+    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime: False)
     with pytest.raises(PortError, match="isolation_unavailable"):
         media._capability_check(runtime)
-    (runtime_root / "python/BUILD").write_text("trusted", encoding="utf-8")
+    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime: True)
     (cgroup / "cgroup.controllers").unlink()
     with pytest.raises(PortError, match="isolation_unavailable"):
         media._capability_check(runtime)
+
+
+def test_runtime_manifest_checksum_and_declared_worker_are_exact() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    manifest_path = repository / "workers/visualworld-runtime.json"
+    worker_path = repository / "workers/media_worker.py"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == (
+        media._APPROVED_RUNTIME_MANIFEST_SHA256
+    )
+    assert manifest["tree_sha256"] == media._APPROVED_RUNTIME_TREE_SHA256
+    assert manifest["worker"] == os.fspath(media._APPROVED_RUNTIME_WORKER)
+    assert manifest["worker_sha256"] == hashlib.sha256(worker_path.read_bytes()).hexdigest()
+    assert manifest["network_enabled"] is False
+
+
+def test_runtime_tree_digest_binds_contents_and_permissions(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    runtime = tmp_path / "runtime"
+    package = runtime / "package"
+    package.mkdir(parents=True)
+    runtime.chmod(0o755)
+    package.chmod(0o755)
+    payload = package / "payload"
+    payload.write_bytes(b"approved")
+    payload.chmod(0o644)
+    manifest = runtime / media._RUNTIME_MANIFEST_NAME
+    manifest.write_text("ignored by tree digest", encoding="utf-8")
+    manifest.chmod(0o644)
+    actual_lstat = Path.lstat
+
+    def root_owned(path: Path) -> SimpleNamespace:
+        metadata = actual_lstat(path)
+        return SimpleNamespace(st_mode=metadata.st_mode, st_uid=0, st_size=metadata.st_size)
+
+    monkeypatch.setattr(Path, "lstat", root_owned)
+    approved = media._runtime_tree_digest(runtime)
+    assert approved is not None
+    manifest.write_text("still excluded", encoding="utf-8")
+    assert media._runtime_tree_digest(runtime) == approved
+    payload.write_bytes(b"tampered")
+    assert media._runtime_tree_digest(runtime) != approved
+    payload.chmod(0o666)
+    assert media._runtime_tree_digest(runtime) is None
+
+
+def test_runtime_manifest_rejects_worker_or_tree_drift(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = media.MediaRuntime(
+        Path("/runtime"),
+        Path("/runtime/worker/media_worker.py"),
+    )
+    monkeypatch.setattr(media, "_trusted_regular", lambda _path: True)
+    monkeypatch.setattr(
+        media,
+        "_file_sha256",
+        lambda _path: media._APPROVED_RUNTIME_MANIFEST_SHA256,
+    )
+    monkeypatch.setattr(
+        media,
+        "_runtime_tree_digest",
+        lambda _root: media._APPROVED_RUNTIME_TREE_SHA256,
+    )
+    assert media._runtime_manifest_valid(runtime) is True
+
+    monkeypatch.setattr(media, "_runtime_tree_digest", lambda _root: "0" * 64)
+    assert media._runtime_manifest_valid(runtime) is False
+    assert (
+        media._runtime_manifest_valid(
+            media.MediaRuntime(Path("/runtime"), Path("/runtime/worker/other.py"))
+        )
+        is False
+    )
 
 
 def test_namespace_and_systemd_arguments_are_fixed_and_source_opaque(tmp_path: Path) -> None:
@@ -247,6 +325,7 @@ def test_namespace_and_systemd_arguments_are_fixed_and_source_opaque(tmp_path: P
     assert not any("http://" in item or "https://" in item or "rtsp://" in item for item in systemd)
     assert not any(os.fspath(tmp_path) in item for item in systemd)
     assert any("OpenFile=/proc/" in item and "/fd/19:" in item for item in systemd)
+    assert "--property=KillMode=control-group" in systemd
     assert systemd[0] == "/usr/bin/systemd-run"
 
 
@@ -426,10 +505,14 @@ def invalid_payloads() -> list[object]:
     values: list[object] = []
     for mutator in (
         lambda item: item.update(schema_version=2),
+        lambda item: item.update(schema_version=True),
         lambda item: cast(dict[str, object], item["runtime"]).update(pyav="19.0.0"),
         lambda item: cast(dict[str, object], item["isolation"]).update(network_denied=False),
         lambda item: cast(dict[str, object], item["stream"]).update(width=100_000),
         lambda item: cast(dict[str, object], item["stream"]).update(codec="bad value"),
+        lambda item: cast(
+            dict[str, object], cast(dict[str, object], item["stream"])["time_base"]
+        ).update(numerator=str(2**32)),
         lambda item: cast(list[dict[str, object]], item["frames"])[0].update(pixel_sha256="secret"),
         lambda item: cast(list[dict[str, object]], item["frames"])[1].update(decode_index="0"),
         lambda item: item.update(frames=[]),
@@ -437,7 +520,14 @@ def invalid_payloads() -> list[object]:
         selected = cast(dict[str, object], json.loads(json.dumps(worker_payload())))
         mutator(selected)
         values.append(selected)
-    values.extend((b"not-json", ["not", "mapping"]))
+    values.extend(
+        (
+            b"not-json",
+            b'{"value":' + b"1" * 5_000 + b"}",
+            b"[" * 2_000 + b"0" + b"]" * 2_000,
+            ["not", "mapping"],
+        )
+    )
     return values
 
 
@@ -535,9 +625,10 @@ def _child(code: str) -> subprocess.Popen[bytes]:
     )
 
 
-def _kill_process(_unit: str, _cgroup: Path, process: subprocess.Popen[bytes]) -> None:
+def _kill_process(_unit: str, _cgroup: Path, process: subprocess.Popen[bytes]) -> bool:
     with suppress(ProcessLookupError):
         os.killpg(process.pid, signal.SIGKILL)
+    return True
 
 
 def test_drain_worker_reads_both_pipes_with_bounds(
@@ -560,6 +651,7 @@ def test_drain_worker_kills_on_limit_timeout_or_cancellation(
 ) -> None:
     monkeypatch.setattr(media, "_CGROUP_ROOT", tmp_path)
     monkeypatch.setattr(media, "_kill_unit", _kill_process)
+    monkeypatch.setattr(media, "_wait_unit_stopped", lambda *_args: True)
     cancelled = threading.Event()
     if failure == "output":
         process = _child(
@@ -617,8 +709,13 @@ def test_kill_unit_prefers_cgroup_kill_and_has_fixed_fallback(
     closes: list[int] = []
     signals: list[tuple[int, int]] = []
     process = cast(subprocess.Popen[bytes], SimpleNamespace(pid=123))
+
+    def write(fd: int, value: bytes) -> int:
+        writes.append((fd, value))
+        return 1
+
     monkeypatch.setattr(cast(Any, media).os, "open", lambda *_args: 7)
-    monkeypatch.setattr(cast(Any, media).os, "write", lambda fd, value: writes.append((fd, value)))
+    monkeypatch.setattr(cast(Any, media).os, "write", write)
     monkeypatch.setattr(cast(Any, media).os, "close", lambda fd: closes.append(fd))
     monkeypatch.setattr(
         cast(Any, media).os,
@@ -626,7 +723,7 @@ def test_kill_unit_prefers_cgroup_kill_and_has_fixed_fallback(
         lambda pid, selected_signal: signals.append((pid, selected_signal)),
     )
 
-    media._kill_unit("unit.service", tmp_path, process)
+    assert media._kill_unit("unit.service", tmp_path, process) is True
     assert writes == [(7, b"1")]
     assert closes == [7]
     assert signals == [(123, signal.SIGKILL)]
@@ -636,16 +733,83 @@ def test_kill_unit_prefers_cgroup_kill_and_has_fixed_fallback(
     def missing(*_args: object, **_kwargs: object) -> NoReturn:
         raise OSError
 
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        commands.append(command)
+        return subprocess.CompletedProcess(command, 0)
+
     monkeypatch.setattr(cast(Any, media).os, "open", missing)
-    monkeypatch.setattr(
-        cast(Any, media).subprocess,
-        "run",
-        lambda command, **_kwargs: commands.append(command),
-    )
-    media._kill_unit("unit.service", tmp_path, process)
+    monkeypatch.setattr(cast(Any, media).subprocess, "run", run)
+    assert media._kill_unit("unit.service", tmp_path, process) is True
     assert commands == [
         ["/usr/bin/systemctl", "kill", "--kill-whom=all", "--signal=SIGKILL", "unit.service"]
     ]
+
+    commands.clear()
+    monkeypatch.setattr(cast(Any, media).os, "open", lambda *_args: 8)
+    monkeypatch.setattr(cast(Any, media).os, "write", missing)
+    assert media._kill_unit("unit.service", tmp_path, process) is True
+    assert commands == [
+        ["/usr/bin/systemctl", "kill", "--kill-whom=all", "--signal=SIGKILL", "unit.service"]
+    ]
+
+
+def test_cgroup_and_unit_stop_checks_are_strict(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cgroup = tmp_path / "unit.service"
+    cgroup.mkdir()
+    assert media._cgroup_processes(cgroup) == ()
+    (cgroup / "cgroup.procs").write_text("12\n34\n", encoding="ascii")
+    assert media._cgroup_processes(cgroup) == (12, 34)
+    (cgroup / "cgroup.procs").write_text("12 invalid\n", encoding="ascii")
+    assert media._cgroup_processes(cgroup) is None
+
+    monkeypatch.setattr(media, "_cgroup_processes", lambda _path: ())
+    monkeypatch.setattr(media, "_unit_inactive", lambda _unit: True)
+    assert media._wait_unit_stopped("unit.service", cgroup, timeout_seconds=0) is True
+    monkeypatch.setattr(media, "_unit_inactive", lambda _unit: False)
+    assert media._wait_unit_stopped("unit.service", cgroup, timeout_seconds=0) is False
+
+
+@pytest.mark.parametrize(
+    ("returncode", "state", "expected"),
+    [(0, b"inactive\n", True), (4, b"inactive\n", True), (0, b"active\n", False)],
+)
+def test_unit_inactive_accepts_only_stopped_states(
+    monkeypatch: pytest.MonkeyPatch,
+    returncode: int,
+    state: bytes,
+    expected: bool,
+) -> None:
+    monkeypatch.setattr(
+        cast(Any, media).subprocess,
+        "run",
+        lambda *_args, **_kwargs: subprocess.CompletedProcess([], returncode, state),
+    )
+    assert media._unit_inactive("unit.service") is expected
+
+
+def test_ensure_unit_stopped_kills_when_cgroup_cannot_be_read(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    process = cast(
+        subprocess.Popen[bytes],
+        SimpleNamespace(pid=123, poll=lambda: 0, wait=lambda **_kwargs: 0),
+    )
+    killed: list[str] = []
+
+    def kill(unit: str, _cgroup: Path, _process: subprocess.Popen[bytes]) -> bool:
+        killed.append(unit)
+        return True
+
+    monkeypatch.setattr(media, "_cgroup_processes", lambda _path: None)
+    monkeypatch.setattr(media, "_kill_unit", kill)
+    monkeypatch.setattr(media, "_wait_unit_stopped", lambda *_args: True)
+
+    assert media._ensure_unit_stopped("unit.service", tmp_path, process) is True
+    assert killed == ["unit.service"]
 
 
 def test_run_worker_uses_argument_array_and_cleans_transient_unit(
@@ -662,6 +826,7 @@ def test_run_worker_uses_argument_array_and_cleans_transient_unit(
     expected = worker_run()
     monkeypatch.setattr(cast(Any, media).subprocess, "Popen", popen)
     monkeypatch.setattr(media, "_drain_worker", lambda *_args: expected)
+    monkeypatch.setattr(media, "_ensure_unit_stopped", lambda *_args: True)
     monkeypatch.setattr(
         cast(Any, media).subprocess,
         "run",
@@ -678,6 +843,26 @@ def test_run_worker_uses_argument_array_and_cleans_transient_unit(
     assert popen_calls[0][0][0] == "/usr/bin/systemd-run"
     assert popen_calls[0][1]["start_new_session"] is True
     assert cleanup and cleanup[0][:2] == ["/usr/bin/systemctl", "reset-failed"]
+
+
+def test_run_worker_rejects_unverified_unit_cleanup(monkeypatch: pytest.MonkeyPatch) -> None:
+    process = cast(subprocess.Popen[bytes], SimpleNamespace())
+    monkeypatch.setattr(cast(Any, media).subprocess, "Popen", lambda *_args, **_kwargs: process)
+    monkeypatch.setattr(media, "_drain_worker", lambda *_args: worker_run())
+    monkeypatch.setattr(media, "_ensure_unit_stopped", lambda *_args: False)
+    monkeypatch.setattr(
+        cast(Any, media).subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(command, 0),
+    )
+
+    with pytest.raises(PortError, match="isolation_unavailable"):
+        media._run_worker(
+            media.MediaRuntime(Path("/runtime"), Path("/runtime/worker/media_worker.py")),
+            media.MediaLimits(),
+            3,
+            None,
+        )
 
 
 def test_runner_os_failures_are_mapped_without_backend_chaining(

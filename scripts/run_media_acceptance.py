@@ -9,14 +9,18 @@ import hashlib
 import json
 import os
 import platform
+import subprocess
 import tempfile
 import threading
+import time
 from collections.abc import Callable
+from contextlib import suppress
 from pathlib import Path
 from typing import cast
 
 import generate_synthetic_fixtures as fixtures
 
+import visualworld.media as media
 from visualworld.media import LocalVideoSource, MediaLimits, MediaRuntime
 from visualworld.ports import PortError, PortErrorCode
 
@@ -49,6 +53,104 @@ def _expect_error(operation: Callable[[], object], expected: PortErrorCode) -> b
 
 def _fixture_records(manifest: dict[str, object]) -> list[dict[str, object]]:
     return cast(list[dict[str, object]], manifest["fixtures"])
+
+
+def _process_start_time(pid: int) -> str | None:
+    try:
+        fields = (
+            (Path("/proc") / str(pid) / "stat")
+            .read_text(encoding="ascii")
+            .rpartition(") ")[2]
+            .split()
+        )
+    except OSError:
+        return None
+    return fields[19] if len(fields) > 19 and fields[19].isdigit() else None
+
+
+def _descendant_cleanup(runtime_root: Path) -> tuple[bool, int]:
+    unit = f"visualworld-media-descendant-{os.getpid()}-{time.monotonic_ns()}"
+    service = f"{unit}.service"
+    cgroup = media._CGROUP_ROOT / "system.slice" / service
+    cancelled = threading.Event()
+    monitor_done = threading.Event()
+    observed: dict[int, str] = {}
+    command = [
+        os.fspath(media._SYSTEMD_RUN),
+        "--quiet",
+        "--pipe",
+        "--wait",
+        "--service-type=exec",
+        f"--unit={unit}",
+        "--property=User=nobody",
+        "--property=Group=nogroup",
+        "--property=NoNewPrivileges=yes",
+        "--property=KillMode=control-group",
+        "--property=MemoryMax=67108864",
+        "--property=MemorySwapMax=0",
+        "--property=TasksMax=8",
+        "--property=RuntimeMaxSec=10s",
+        os.fspath(runtime_root / "python/bin/python3.13"),
+        "-c",
+        "import os,time; os.fork(); time.sleep(30)",
+    ]
+    process: subprocess.Popen[bytes] | None = None
+
+    def observe_descendants() -> None:
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and not monitor_done.is_set():
+            pids = media._cgroup_processes(cgroup)
+            identities = (
+                {pid: start for pid in pids if (start := _process_start_time(pid)) is not None}
+                if pids is not None
+                else {}
+            )
+            if len(identities) >= 2:
+                observed.update(identities)
+                cancelled.set()
+                return
+            time.sleep(0.01)
+        cancelled.set()
+
+    structured_cancel = False
+    stopped = False
+    monitor = threading.Thread(target=observe_descendants, daemon=True)
+    try:
+        process = subprocess.Popen(
+            command,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
+        monitor.start()
+        try:
+            media._drain_worker(process, unit, media.MediaLimits(wall_timeout_ms=8_000), cancelled)
+        except PortError as error:
+            structured_cancel = error.code is PortErrorCode.CANCELLED and error.__cause__ is None
+        stopped = media._wait_unit_stopped(service, cgroup)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    finally:
+        monitor_done.set()
+        if monitor.ident is not None:
+            monitor.join(timeout=1)
+        if process is not None and process.poll() is None:
+            media._kill_unit(service, cgroup, process)
+            with suppress(subprocess.TimeoutExpired):
+                process.wait(timeout=2)
+        stopped = media._wait_unit_stopped(service, cgroup)
+        with suppress(OSError, subprocess.SubprocessError):
+            subprocess.run(
+                [os.fspath(media._SYSTEMCTL), "reset-failed", service],
+                check=False,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=2,
+            )
+    identities_gone = all(_process_start_time(pid) != start for pid, start in observed.items())
+    return structured_cancel and stopped and len(observed) >= 2 and identities_gone, len(observed)
 
 
 def _run(runtime_root: Path, worker: Path, work_root: Path) -> dict[str, object]:
@@ -161,6 +263,8 @@ def _run(runtime_root: Path, worker: Path, work_root: Path) -> dict[str, object]
             ),
         }
         all_checks.extend(failures.values())
+        descendant_cleanup, descendant_count = _descendant_cleanup(runtime_root)
+        all_checks.append(descendant_cleanup)
         return {
             "schema": "visualworld.media-acceptance-receipt",
             "schema_version": 1,
@@ -187,7 +291,8 @@ def _run(runtime_root: Path, worker: Path, work_root: Path) -> dict[str, object]
                 "network_denial_required": True,
                 "landlock_denial_required": True,
                 "seccomp_filter_required": True,
-                "whole_cgroup_kill_on_limit": True,
+                "whole_cgroup_kill_on_limit": descendant_cleanup,
+                "descendant_processes_observed": descendant_count,
             },
         }
 

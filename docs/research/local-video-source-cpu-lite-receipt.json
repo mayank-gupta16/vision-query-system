@@ -9,6 +9,7 @@
   },
   "fixture_manifest_sha256": "0b5b582ceb979bf6ce0eed181eb323b3343bcc5eb04b939c3dc2ef29fb2e617e",
   "isolation": {
+    "descendant_processes_observed": 2,
     "landlock_denial_required": true,
     "linux_x86_64_only": true,
     "network_denial_required": true,
@@ -46,11 +47,11 @@
         "time_base": true
       },
       "metrics": {
-        "cpu_ms": 75,
+        "cpu_ms": 77,
         "frame_count": 4,
-        "memory_peak_bytes": 13639680,
+        "memory_peak_bytes": 13373440,
         "source_bytes": 2892,
-        "wall_ms": 103
+        "wall_ms": 105
       },
       "runtime": {
         "libavcodec": "63.1.101",
@@ -72,11 +73,11 @@
         "time_base": true
       },
       "metrics": {
-        "cpu_ms": 75,
+        "cpu_ms": 107,
         "frame_count": 4,
-        "memory_peak_bytes": 13701120,
+        "memory_peak_bytes": 14004224,
         "source_bytes": 2892,
-        "wall_ms": 99
+        "wall_ms": 139
       },
       "runtime": {
         "libavcodec": "63.1.101",
@@ -98,11 +99,11 @@
         "time_base": true
       },
       "metrics": {
-        "cpu_ms": 74,
+        "cpu_ms": 86,
         "frame_count": 4,
-        "memory_peak_bytes": 13381632,
+        "memory_peak_bytes": 13377536,
         "source_bytes": 2916,
-        "wall_ms": 101
+        "wall_ms": 115
       },
       "runtime": {
         "libavcodec": "63.1.101",
