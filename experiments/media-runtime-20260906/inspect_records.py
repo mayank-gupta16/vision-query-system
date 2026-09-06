@@ -16,10 +16,14 @@ MAGIC = b"VWFRAME1"
 def inspect(path: Path) -> dict[str, Any]:
     frames = 0
     pixels = 0
+    max_metadata_bytes = 0
     first_pts: dict[str, Any] | None = None
     last_pts: dict[str, Any] | None = None
     null_pts = 0
     display_matrices: list[list[int]] = []
+    timestamps: list[dict[str, Any]] = []
+    rotations: list[float] = []
+    stream_sar_guesses: list[dict[str, int]] = []
     with path.open("rb") as stream:
         if stream.read(len(MAGIC)) != MAGIC:
             raise ValueError("invalid magic")
@@ -34,6 +38,7 @@ def inspect(path: Path) -> dict[str, Any]:
             if len(metadata_raw) != metadata_size or len(pixel_raw) != pixel_size:
                 raise ValueError("truncated record")
             metadata = json.loads(metadata_raw)
+            max_metadata_bytes = max(max_metadata_bytes, metadata_size)
             if metadata["frame_index"] != frames:
                 raise ValueError("non-sequential frame index")
             if hashlib.sha256(pixel_raw).hexdigest() != metadata["pixel_sha256"]:
@@ -50,15 +55,32 @@ def inspect(path: Path) -> dict[str, Any]:
             for side_data in metadata["side_data"]:
                 if side_data["type"] == "DISPLAYMATRIX":
                     display_matrices.append(side_data["matrix_i32_native"])
+            timestamps.append(
+                {
+                    "frame_index": metadata["frame_index"],
+                    "pts": metadata["pts"],
+                    "dts": metadata["dts"],
+                    "duration": metadata["duration"],
+                }
+            )
+            if metadata["rotation_degrees_derived"] not in rotations:
+                rotations.append(metadata["rotation_degrees_derived"])
+            stream_sar = metadata["stream_sar_guess"]
+            if stream_sar is not None and stream_sar not in stream_sar_guesses:
+                stream_sar_guesses.append(stream_sar)
             frames += 1
             pixels += pixel_size
     return {
         "status": "ok",
         "frames": frames,
         "pixel_bytes": pixels,
+        "max_metadata_record_bytes": max_metadata_bytes,
         "first_pts": first_pts,
         "last_pts": last_pts,
         "null_pts": null_pts,
+        "timestamps": timestamps,
+        "rotation_degrees_derived": rotations,
+        "stream_sar_guesses": stream_sar_guesses,
         "display_matrices": display_matrices,
     }
 

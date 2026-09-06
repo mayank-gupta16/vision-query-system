@@ -41,7 +41,7 @@ a cgroup-v2 supervisor with byte, frame, geometry, output, memory, task, CPU, an
 wall limits. Capability probing is mandatory and failure returns
 `IsolationUnavailable`; there is no ordinary-subprocess fallback. Seccomp,
 Landlock, safe descriptor opening, whole-cgroup cancellation, and bounded output
-draining are requirements for issue #9 rather than additional issue #4 tuning.
+draining are requirements for issue #11 rather than additional issue #4 tuning.
 
 Native hostile decode on macOS is blocked. `sandbox-exec` is deprecated, while a
 native App Sandbox helper does not provide the demonstrated job-wide resource

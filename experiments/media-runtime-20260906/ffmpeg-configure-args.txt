@@ -13,8 +13,6 @@
 --enable-avfilter
 --enable-swscale
 --enable-swresample
---enable-protocol=fd,pipe
---enable-demuxer=mov,matroska,avi,h264,hevc
---enable-decoder=h264,hevc,vp8,vp9,av1,mpeg4,mjpeg,ffv1,rawvideo
---enable-parser=h264,hevc,vp8,vp9,av1,mpeg4video,mjpeg
---enable-filter=format,scale
+--enable-demuxer=mov,h264
+--enable-decoder=h264
+--enable-parser=h264

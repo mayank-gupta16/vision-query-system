@@ -25,7 +25,7 @@ run in the non-root namespace/cgroup boundary and fail with
 `IsolationUnavailable` when its required capabilities are absent. Native hostile
 decode on macOS is unsupported until a separately validated boundary exists.
 
-Issue #9 owns the production launcher. It must safely open the source as a
+Issue #11 owns the production launcher. It must safely open the source as a
 bounded regular-file descriptor, mount only an immutable runtime closure, disable
 network, add the reviewed seccomp/Landlock policy, cap and concurrently drain all
 output, and kill the whole cgroup on cancellation or limit breach. There is no

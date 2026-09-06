@@ -50,7 +50,7 @@ five-second outer timeout.
 One integration failure improved the frozen probe: creating a separate PyAV
 reformatter for every frame accumulated conversion workers and hit a 32-task
 cgroup cap. Reusing one reformatter completed the same decode at that cap. This
-is a correctness/resource-lifetime requirement for issue #9, not a performance
+is a correctness/resource-lifetime requirement for issue #11, not a performance
 optimization project.
 
 ## CPU-LITE observation
@@ -77,7 +77,7 @@ single inherited regular-file descriptor, and required explicit
 `--remount-ro /` to prevent writes outside the capped temporary filesystem.
 Cgroup v2 supplied aggregate memory/task/CPU-bandwidth/deadline controls.
 
-Issue #9 must turn the measured command into a deterministic supervisor with
+Issue #11 must turn the measured command into a deterministic supervisor with
 safe descriptor opening, exact runtime staging, inner seccomp and Landlock,
 whole-cgroup cancellation, output caps, capability probes, and fail-closed error
 mapping. The research did not implement a production sandbox.
@@ -97,7 +97,7 @@ H.264, HEVC, and MPEG-4 patent exposure is separate from copyright licensing and
 requires jurisdiction-specific review before commercial distribution claims.
 
 PyAV 18.1.0 does not expose per-frame SAR or best-effort timestamps. Stream SAR
-is therefore labelled as a guess in the probe. Issue #9 must add the small
+is therefore labelled as a guess in the probe. Issue #11 must add the small
 binding before storing SAR as observed evidence. The experiment uses synthetic
 media only, exercises Linux x86_64 only, and does not establish broad real-video
 codec coverage.

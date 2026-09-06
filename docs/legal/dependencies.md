@@ -33,7 +33,7 @@ non-commercial, research-only, no-derivatives, unknown, or custom terms are
 deny-by-default for core and require an ADR plus isolation if accepted.
 
 The media approval above does not add a root package dependency. It authorizes
-the issue #9 adapter to reproduce and validate the exact source-built closure.
+the issue #11 adapter to reproduce and validate the exact source-built closure.
 The measured official PyAV wheels bundle a different, much broader FFmpeg 8.1.2
 closure and remain denied. Any wheel, installer, container, VM image, or other
 redistributed media runtime needs a new complete notice, corresponding-source,

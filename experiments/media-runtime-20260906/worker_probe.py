@@ -24,10 +24,8 @@ import av
 MAGIC = b"VWFRAME1"
 AVFMT_FLAG_GENPTS = 0x0001
 AVFMT_FLAG_NOFILLIN = 0x0010
-ALLOWED_FORMATS = frozenset({"avi", "h264", "hevc", "matroska", "mov"})
-ALLOWED_CODECS = frozenset(
-    {"av1", "ffv1", "h264", "hevc", "mjpeg", "mpeg4", "rawvideo", "vp8", "vp9"}
-)
+ALLOWED_FORMATS = frozenset({"h264", "mov"})
+ALLOWED_CODECS = frozenset({"h264"})
 
 
 class LimitExceeded(RuntimeError):

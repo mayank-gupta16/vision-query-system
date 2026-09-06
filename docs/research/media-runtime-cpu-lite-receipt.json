@@ -201,7 +201,7 @@
     "Generated fixtures only; no broad real-video compatibility claim.",
     "Linux x86_64 only; hostile decode on macOS remains fail-closed.",
     "PyAV 18.1.0 lacks per-frame SAR and best-effort-timestamp bindings.",
-    "The experiment launcher is not the production issue #9 supervisor.",
+    "The experiment launcher is not the production issue #11 supervisor.",
     "The bwrap GNU-time RSS samples measure the launcher and are excluded from worker RSS conclusions.",
     "No binary redistribution is approved by this receipt."
   ]
