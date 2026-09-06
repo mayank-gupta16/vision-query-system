@@ -33,3 +33,8 @@ than fabricating one exact value.
 Metric geometry must be tagged `measured`, `calibrated`, `estimated`,
 `inferred`, or `unknown`. Pixel-space geometry is deterministic; physical-world
 geometry is not exact unless calibration supports it.
+
+[ADR-0004](../decisions/ADR-0004-ingestion-records-identifiers-and-time.md)
+defines the accepted version-1 ingestion records, typed content identifiers,
+exact rational PTS representation, original-pixel geometry, serialization
+limits, and migration rules.
