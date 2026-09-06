@@ -103,6 +103,24 @@ import, `python -m`, and console-script smoke tests.
 
 ## Results
 
+The [machine-readable CPU-LITE receipt](toolchain-cpu-lite-receipt.json) preserves
+a final fresh-cache replay of the frozen input hashes: OS/kernel, CPU model and
+count, memory, uv identity, exact command arrays, exit statuses, raw output,
+per-command wall/CPU time and peak RSS, artifacts, and allocated disk. It measured
+the selected editable sync at **0.62 s / 70,712 KiB peak RSS**, Python acquisition
+at **0.72 s**, and the forced PEP 517 build at **0.22 s**. All checks and the clean
+runtime smoke passed, and artifact hashes match the table below. CPU model was
+reported by the VM as Intel Core Processor (Skylake, IBRS, no TSX), with 4 vCPU.
+
+This is one fresh task-cache run, not a statistical benchmark. Host filesystem and
+network caches are uncontrolled. Disk allocations are measured per tree and may
+double-count hardlinks; the receipt explicitly forbids summing them as unique
+disk use. Its source commit identifies the unchanged frozen probe, before this
+receipt was added. The earlier exploratory observations below used non-editable
+sync and remain diagnostic context; their raw output was retained in the original
+session rather than in the repository. Use the receipt for durable CPU-LITE
+evidence of the final selected workflow.
+
 | Host/runtime | Operation | Wall time | Peak RSS | Allocated footprint/result |
 | --- | --- | ---: | ---: | --- |
 | CPU-LITE / CPython 3.13.15 | Managed Python cold install | 0.78 s | 55,316 KiB | 104 MiB interpreter tree |
