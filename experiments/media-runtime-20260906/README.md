@@ -96,10 +96,14 @@ read-only runtime directory, then replay the bounded experiment on Linux:
 
 ```text
 python3 run_worker_cases.py --runtime /opt/visualworld-runtime-probe --fixtures /DISPOSABLE/fixtures --output /DISPOSABLE/worker-cases.json
+python3 full_worker_probe.py --runtime /opt/visualworld-runtime-probe --source /DISPOSABLE/fixtures/fixture.mp4 --records /DISPOSABLE/full-worker.records --result /DISPOSABLE/full-worker.json --unit-suffix replay
 python3 isolation_probe.py controller --runtime /opt/visualworld-runtime-probe --nested-fixture /DISPOSABLE/fixtures/nested-reference.m3u8
 python3 cancellation_probe.py --runtime /opt/visualworld-runtime-probe --source /DISPOSABLE/fixtures/fixture.mp4
 ```
 
-These scripts emit the exact namespace/systemd argument arrays and structured
+`full_worker_probe.py` is the combined replay: systemd opens the source
+read-only as descriptor 3, bubblewrap inherits that descriptor, and the real
+worker decodes it under the recorded cgroup and namespace controls. These
+scripts emit the exact namespace/systemd argument arrays and structured
 outcomes. They are experimental evidence only; issue #11 owns the production
 launcher and structured application errors.
