@@ -46,14 +46,28 @@ def _memory_bytes() -> int:
     return 0
 
 
-def _peak_rss_bytes() -> int:
+_PEAK_RSS_LIMIT_BYTES = 2 * 1024 * 1024 * 1024
+
+
+def _peak_rss_bytes() -> int | None:
     try:
         for line in Path("/proc/self/status").read_text(encoding="ascii").splitlines():
             if line.startswith("VmHWM:"):
-                return int(line.split()[1]) * 1024
+                result = int(line.split()[1]) * 1024
+                return result if result > 0 else None
     except (OSError, ValueError):
         pass
-    return 0
+    return None
+
+
+def _rss_result(peak_rss: int | None) -> dict[str, object]:
+    measured = peak_rss is not None
+    return {
+        "process_peak_rss_bytes": peak_rss,
+        "peak_rss_limit_bytes": _PEAK_RSS_LIMIT_BYTES,
+        "rss_measured": measured,
+        "bounded": peak_rss is not None and peak_rss <= _PEAK_RSS_LIMIT_BYTES,
+    }
 
 
 def _display_box(
@@ -233,6 +247,7 @@ def _destination_checks(work_root: Path, crop: Rgb24Crop) -> dict[str, bool]:
         root = temporary_path / "artifacts"
         destination_parent = root / "v1" / "sha256"
         destination_parent.mkdir(parents=True)
+        root.chmod(0o700)
         destination = "v1/sha256/crop.rgb24"
         artifact = write_rgb24_crop(
             crop,
@@ -243,6 +258,12 @@ def _destination_checks(work_root: Path, crop: Rgb24Crop) -> dict[str, bool]:
         outside = temporary_path / "outside.rgb24"
         escape = root / "escape"
         escape.symlink_to(temporary_path, target_is_directory=True)
+        unsafe_root = temporary_path / "unsafe"
+        unsafe_root.mkdir(mode=0o755)
+        unsafe_root.chmod(0o755)
+        unsafe_parent = root / "unsafe"
+        unsafe_parent.mkdir(mode=0o777)
+        unsafe_parent.chmod(0o777)
         return {
             "exact_bytes": stored.read_bytes() == crop.pixels,
             "artifact_digest": artifact.sha256 == crop.sha256,
@@ -259,6 +280,22 @@ def _destination_checks(work_root: Path, crop: Rgb24Crop) -> dict[str, bool]:
                     crop,
                     artifact_root=root,
                     relative_destination="escape/outside.rgb24",
+                ),
+                "destination_unavailable",
+            ),
+            "non_private_root_rejected": _expect_crop_error(
+                lambda: write_rgb24_crop(
+                    crop,
+                    artifact_root=unsafe_root,
+                    relative_destination="outside.rgb24",
+                ),
+                "invalid_artifact_root",
+            ),
+            "writable_parent_rejected": _expect_crop_error(
+                lambda: write_rgb24_crop(
+                    crop,
+                    artifact_root=root,
+                    relative_destination="unsafe/outside.rgb24",
                 ),
                 "destination_unavailable",
             ),
@@ -288,8 +325,10 @@ def _copy_benchmark() -> dict[str, object]:
         exact_geometry = exact_geometry and geometry.box_xyxy == expected_source_box
         aggregate.update(bytes.fromhex(crop.sha256))
         copied_bytes += len(crop.pixels)
-    cpu_ns = max(0, time.process_time_ns() - started_cpu)
-    wall_ns = max(1, time.perf_counter_ns() - started_wall)
+    cpu_ns = time.process_time_ns() - started_cpu
+    wall_ns = time.perf_counter_ns() - started_wall
+    timing_measured = cpu_ns > 0 and wall_ns > 0
+    rate_denominator = max(1, wall_ns)
     peak_rss = _peak_rss_bytes()
     return {
         "source_dimensions": {"width": width, "height": height},
@@ -305,12 +344,11 @@ def _copy_benchmark() -> dict[str, object]:
         "aggregate_sha256": aggregate.hexdigest(),
         "wall_ns": wall_ns,
         "cpu_ns": cpu_ns,
-        "frames_per_second": sampled_frames * 1_000_000_000 // wall_ns,
-        "bytes_per_second": copied_bytes * 1_000_000_000 // wall_ns,
-        "process_peak_rss_bytes": peak_rss,
-        "peak_rss_limit_bytes": 2 * 1024 * 1024 * 1024,
+        "frames_per_second": sampled_frames * 1_000_000_000 // rate_denominator,
+        "bytes_per_second": copied_bytes * 1_000_000_000 // rate_denominator,
+        "timing_measured": timing_measured,
         "exact_geometry": exact_geometry,
-        "bounded": peak_rss <= 2 * 1024 * 1024 * 1024,
+        **_rss_result(peak_rss),
     }
 
 
@@ -327,7 +365,14 @@ def _run(work_root: Path) -> dict[str, object]:
     destination = _destination_checks(work_root, last_crop)
     benchmark = _copy_benchmark()
     checks.extend(destination.values())
-    checks.extend((cast(bool, benchmark["exact_geometry"]), cast(bool, benchmark["bounded"])))
+    checks.extend(
+        (
+            cast(bool, benchmark["exact_geometry"]),
+            cast(bool, benchmark["timing_measured"]),
+            cast(bool, benchmark["rss_measured"]),
+            cast(bool, benchmark["bounded"]),
+        )
+    )
     checks.append(profile_ok)
     return {
         "schema": "visualworld.crop-acceptance-receipt",

@@ -71,5 +71,9 @@ sampling state, ambient effects, adaptive policy, or frame synthesis.
 Detector-to-source mapping and RGB24 crop extraction are deterministic domain
 utilities rather than a new model or storage port. The crop value can produce
 the `Artifact` descriptor consumed by `EvidenceStore`; the utility's optional
-validation sink writes only beneath an already-created artifact root and does
-not replace the accepted EvidenceStore CAS/commit protocol.
+validation sink accepts only a private, effective-UID-owned artifact root and
+descriptor-relative destinations through trusted, non-writable-by-others
+parents. Its confinement boundary covers untrusted destination strings and
+pre-existing links. The trusted caller must serialize same-principal namespace
+mutation during the call; durable custody and the accepted writer-lock/CAS
+commit protocol remain the responsibility of `EvidenceStore`.

@@ -6,12 +6,14 @@ from __future__ import annotations
 import hashlib
 import os
 import stat
+import traceback
 from collections.abc import Callable
 from fractions import Fraction
 from pathlib import Path
 
 import pytest
 
+import visualworld.geometry as geometry_module
 from visualworld.geometry import (
     CropError,
     DetectorTransform,
@@ -33,6 +35,12 @@ def _frame(width: int, height: int) -> bytes:
     return bytes(
         channel for y in range(height) for x in range(width) for channel in (x, y, (x + y) % 256)
     )
+
+
+def _private_directory(path: Path) -> Path:
+    path.mkdir()
+    path.chmod(0o700)
+    return path
 
 
 def _expected_crop(
@@ -264,6 +272,7 @@ def test_crop_writer_is_root_confined_no_follow_and_exclusive(tmp_path: Path) ->
     root = tmp_path / "artifacts"
     nested = root / "v1" / "sha256"
     nested.mkdir(parents=True)
+    root.chmod(0o700)
     crop = extract_rgb24_crop(_frame(4, 3), 4, 3, source_geometry(4, 3, (1, 1, 4, 3)))
 
     artifact = write_rgb24_crop(
@@ -296,8 +305,7 @@ def test_crop_writer_is_root_confined_no_follow_and_exclusive(tmp_path: Path) ->
     ],
 )
 def test_crop_writer_rejects_non_relative_destination(tmp_path: Path, destination: str) -> None:
-    root = tmp_path / "artifacts"
-    root.mkdir()
+    root = _private_directory(tmp_path / "artifacts")
     crop = Rgb24Crop(1, 1, b"abc")
 
     with pytest.raises(CropError, match="invalid_destination"):
@@ -320,8 +328,7 @@ def test_crop_writer_rejects_symlink_root_and_parent(tmp_path: Path) -> None:
             relative_destination="crop.rgb24",
         )
 
-    root = tmp_path / "root"
-    root.mkdir()
+    root = _private_directory(tmp_path / "root")
     (root / "escape").symlink_to(tmp_path, target_is_directory=True)
     with pytest.raises(CropError, match="destination_unavailable") as raised:
         write_rgb24_crop(
@@ -356,8 +363,7 @@ def test_crop_writer_removes_partial_file_and_redacts_write_failure(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    root = tmp_path / "artifacts"
-    root.mkdir()
+    root = _private_directory(tmp_path / "artifacts")
     crop = Rgb24Crop(1, 1, b"abc")
 
     def fail_write(_: int, __: object) -> int:
@@ -373,3 +379,130 @@ def test_crop_writer_removes_partial_file_and_redacts_write_failure(
     assert str(raised.value) == "write_failed at crop"
     assert raised.value.__suppress_context__ is True
     assert not (root / "crop.rgb24").exists()
+
+
+@pytest.mark.parametrize("mode", [0o750, 0o707])
+def test_crop_writer_rejects_non_private_root(tmp_path: Path, mode: int) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    root.chmod(mode)
+
+    with pytest.raises(CropError, match="invalid_artifact_root"):
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="crop.rgb24",
+        )
+
+    assert not (root / "crop.rgb24").exists()
+
+
+def test_crop_writer_rejects_root_not_owned_by_effective_uid(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    monkeypatch.setattr(os, "geteuid", lambda: root.stat().st_uid + 1)
+
+    with pytest.raises(CropError, match="invalid_artifact_root"):
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="crop.rgb24",
+        )
+
+
+@pytest.mark.parametrize("mode", [0o770, 0o707])
+def test_crop_writer_rejects_writable_destination_parent(tmp_path: Path, mode: int) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    parent = root / "parent"
+    parent.mkdir(mode=mode)
+    parent.chmod(mode)
+
+    with pytest.raises(CropError, match="destination_unavailable"):
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="parent/crop.rgb24",
+        )
+
+    assert not (parent / "crop.rgb24").exists()
+
+
+@pytest.mark.parametrize("interruption", ["before_write", "after_write", "chmod", "fsync"])
+def test_crop_writer_cleans_up_and_closes_after_interruption(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    interruption: str,
+) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    private_pixels = b"secret-pixels!!"
+    private_destination = "secret-destination.rgb24"
+    crop = Rgb24Crop(5, 1, private_pixels)
+    original_write_all = geometry_module._write_all
+    original_fchmod = os.fchmod
+    original_fsync = os.fsync
+    captured_descriptor: int | None = None
+
+    def interrupt_write(descriptor: int, content: bytes) -> None:
+        nonlocal captured_descriptor
+        captured_descriptor = descriptor
+        if interruption == "after_write":
+            original_write_all(descriptor, content)
+        if interruption in {"before_write", "after_write"}:
+            raise KeyboardInterrupt
+        original_write_all(descriptor, content)
+
+    def interrupt_chmod(descriptor: int, mode: int) -> None:
+        nonlocal captured_descriptor
+        captured_descriptor = descriptor
+        if interruption == "chmod":
+            raise KeyboardInterrupt
+        original_fchmod(descriptor, mode)
+
+    def interrupt_fsync(descriptor: int) -> None:
+        nonlocal captured_descriptor
+        captured_descriptor = descriptor
+        if interruption == "fsync":
+            raise KeyboardInterrupt
+        original_fsync(descriptor)
+
+    monkeypatch.setattr(geometry_module, "_write_all", interrupt_write)
+    monkeypatch.setattr(os, "fchmod", interrupt_chmod)
+    monkeypatch.setattr(os, "fsync", interrupt_fsync)
+    with pytest.raises(KeyboardInterrupt) as raised:
+        write_rgb24_crop(
+            crop,
+            artifact_root=root,
+            relative_destination=private_destination,
+        )
+
+    assert captured_descriptor is not None
+    with pytest.raises(OSError):
+        os.fstat(captured_descriptor)
+    assert not (root / private_destination).exists()
+    rendered = "".join(traceback.format_exception(raised.value))
+    assert private_destination not in rendered
+    assert private_pixels.decode("ascii") not in rendered
+
+
+def test_crop_writer_does_not_unlink_a_replacement_after_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    root = _private_directory(tmp_path / "artifacts")
+    destination = root / "crop.rgb24"
+
+    def replace_then_fail(descriptor: int, _: bytes) -> None:
+        destination.unlink()
+        destination.write_bytes(b"replacement")
+        raise OSError("private pixels and path")
+
+    monkeypatch.setattr(geometry_module, "_write_all", replace_then_fail)
+    with pytest.raises(CropError, match="write_failed"):
+        write_rgb24_crop(
+            Rgb24Crop(1, 1, b"abc"),
+            artifact_root=root,
+            relative_destination="crop.rgb24",
+        )
+
+    assert destination.read_bytes() == b"replacement"

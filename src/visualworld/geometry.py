@@ -317,8 +317,8 @@ def _root_descriptor(root: Path) -> int:
         _fail("invalid_artifact_root")
     if not stat.S_ISDIR(metadata.st_mode) or stat.S_ISLNK(metadata.st_mode):
         _fail("invalid_artifact_root")
-    required_flags = ("O_CLOEXEC", "O_DIRECTORY", "O_NOFOLLOW")
-    if any(not hasattr(os, name) for name in required_flags):
+    required_attributes = ("O_CLOEXEC", "O_DIRECTORY", "O_NOFOLLOW", "geteuid")
+    if any(not hasattr(os, name) for name in required_attributes):
         _fail("unsupported_destination_platform")
     flags = os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
     descriptor: int | None = None
@@ -330,10 +330,50 @@ def _root_descriptor(root: Path) -> int:
             with suppress(OSError):
                 os.close(descriptor)
         _fail("invalid_artifact_root")
-    if (opened.st_dev, opened.st_ino) != (metadata.st_dev, metadata.st_ino):
+    if (
+        (opened.st_dev, opened.st_ino) != (metadata.st_dev, metadata.st_ino)
+        or not stat.S_ISDIR(opened.st_mode)
+        or opened.st_uid != os.geteuid()
+        or stat.S_IMODE(opened.st_mode) & 0o077
+    ):
         os.close(descriptor)
         _fail("invalid_artifact_root")
     return descriptor
+
+
+def _trusted_destination_directory(descriptor: int) -> bool:
+    try:
+        metadata = os.fstat(descriptor)
+    except OSError:
+        return False
+    return (
+        stat.S_ISDIR(metadata.st_mode)
+        and metadata.st_uid == os.geteuid()
+        and stat.S_IMODE(metadata.st_mode) & 0o022 == 0
+    )
+
+
+def _inode(descriptor: int) -> tuple[int, int]:
+    try:
+        metadata = os.fstat(descriptor)
+    except OSError:
+        _fail("destination_unavailable")
+    if not stat.S_ISREG(metadata.st_mode):
+        _fail("destination_unavailable")
+    return (metadata.st_dev, metadata.st_ino)
+
+
+def _unlink_created(
+    name: str,
+    parent_descriptor: int,
+    created_inode: tuple[int, int],
+) -> None:
+    try:
+        current = os.stat(name, dir_fd=parent_descriptor, follow_symlinks=False)
+        if stat.S_ISREG(current.st_mode) and (current.st_dev, current.st_ino) == created_inode:
+            os.unlink(name, dir_fd=parent_descriptor)
+    except OSError:
+        pass
 
 
 def _write_all(descriptor: int, content: bytes) -> None:
@@ -352,51 +392,65 @@ def write_rgb24_crop(
     artifact_root: Path,
     relative_destination: str,
 ) -> Artifact:
-    """Write one crop beneath an existing root without following links or overwriting.
+    """Write one crop beneath a private root without following links or overwriting.
 
     This small sink exists for crop validation and bounded hand-off. The accepted
     EvidenceStore remains responsible for its later CAS layout and commit protocol.
+    The root must be private and owned by the effective UID; opened parents must
+    share that owner and deny group/other writes. Same-principal mutation is a
+    trusted caller concern and must be serialized for the duration of this call.
     """
 
     if not isinstance(crop, Rgb24Crop):
         _fail("invalid_crop")
+    artifact = crop.artifact()
     parts = _destination_parts(relative_destination)
     root_descriptor = _root_descriptor(artifact_root)
     descriptors = [root_descriptor]
     parent_descriptor = root_descriptor
+    file_descriptor: int | None = None
+    created_inode: tuple[int, int] | None = None
+    completed = False
     directory_flags = os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
     try:
         try:
             for component in parts[:-1]:
-                parent_descriptor = os.open(
+                candidate = os.open(
                     component,
                     directory_flags,
                     dir_fd=parent_descriptor,
                 )
-                descriptors.append(parent_descriptor)
+                if not _trusted_destination_directory(candidate):
+                    os.close(candidate)
+                    _fail("destination_unavailable")
+                parent_descriptor = candidate
+                descriptors.append(candidate)
             file_descriptor = os.open(
                 parts[-1],
                 os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
                 0o600,
                 dir_fd=parent_descriptor,
             )
+            created_inode = _inode(file_descriptor)
         except OSError:
             _fail("destination_unavailable")
         try:
             _write_all(file_descriptor, crop.pixels)
             os.fchmod(file_descriptor, 0o400)
             os.fsync(file_descriptor)
+            closing_descriptor = file_descriptor
+            file_descriptor = None
+            os.close(closing_descriptor)
         except OSError:
-            with suppress(OSError):
-                os.close(file_descriptor)
-            with suppress(OSError):
-                os.unlink(parts[-1], dir_fd=parent_descriptor)
             _fail("write_failed")
-        else:
+        completed = True
+    finally:
+        if file_descriptor is not None:
             with suppress(OSError):
                 os.close(file_descriptor)
-    finally:
+        if created_inode is not None and not completed:
+            _unlink_created(parts[-1], parent_descriptor, created_inode)
         for descriptor in reversed(descriptors):
             with suppress(OSError):
                 os.close(descriptor)
-    return crop.artifact()
+    return artifact

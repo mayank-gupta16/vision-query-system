@@ -138,8 +138,9 @@ cpython-3.13.15-linux-x86_64-gnu/bin/python3 \
 ```
 
 It verifies exact and half-scale detector mappings, the rotation fixture's
-source-pixel crop hashes, traversal/symlink confinement, and the 60-second,
-1080p, 5-FPS crop-copy CPU/RSS baseline. It emits only dimensions, counts,
+source-pixel crop hashes, private-root and traversal/symlink confinement, and the
+60-second, 1080p, 5-FPS crop-copy CPU/RSS baseline. Missing or non-positive RSS
+and timing observations fail the receipt. It emits only dimensions, counts,
 hashes, policy names, and resource metrics—not crop bytes.
 
 ## Updates

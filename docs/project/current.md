@@ -51,7 +51,9 @@
 - DetectorTransform maps resized/letterboxed, quarter-turn display coordinates
   to encoded source pixels with exact rational affine coefficients, outward
   rounding, and source clamping. Packed RGB24 crop extraction preserves source
-  bytes and its validation sink cannot follow a path outside its artifact root.
+  bytes. Its validation sink rejects public or foreign-owned roots, writable or
+  linked destination parents, traversal, overwrite, and incomplete writes;
+  durable artifact custody remains assigned to the accepted EvidenceStore.
 
 ## Known blockers and limitations
 
