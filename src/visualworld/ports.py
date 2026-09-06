@@ -53,6 +53,10 @@ class PortErrorCode(StrEnum):
     CONFLICT = "conflict"
     CAPABILITY_DENIED = "capability_denied"
     UNSUPPORTED = "unsupported"
+    ISOLATION_UNAVAILABLE = "isolation_unavailable"
+    CANCELLED = "cancelled"
+    TIMEOUT = "timeout"
+    DECODE_FAILED = "decode_failed"
 
 
 class PortError(RuntimeError):

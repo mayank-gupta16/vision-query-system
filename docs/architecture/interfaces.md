@@ -54,3 +54,9 @@ in-memory fakes for all four contracts. Fake batches contain at most 64 records;
 the evidence fake advertises its configurable payload bound and defaults to 1
 MiB. The other ports listed above remain conceptual until a milestone exercises
 them.
+
+`visualworld.media.LocalVideoSource` is the first production `VideoSource`
+implementation. It accepts only one already-authorized local relative path and
+uses the separately provisioned Linux media runtime; it has no remote/RTSP or
+native macOS fallback. Its extra probe details and resource metrics remain
+adapter diagnostics rather than additions to the stable port contract.

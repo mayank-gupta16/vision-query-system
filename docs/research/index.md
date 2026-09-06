@@ -20,3 +20,6 @@ architecture.
 - [Package scaffold](package-scaffold.md) — issue #8 reproducibility,
   clean-runtime packaging, dependency inventory, and
   [raw CPU-LITE setup evidence](scaffold-cpu-lite-receipt.json).
+- [Local video source](local-video-source.md) — issue #11 exact metadata,
+  structured failure, isolation, and CPU-LITE validation with a
+  [machine-readable receipt](local-video-source-cpu-lite-receipt.json).

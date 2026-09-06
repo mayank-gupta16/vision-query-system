@@ -1,4 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-"""VisualWorld's vendor-neutral ingestion records, ports, and deterministic fakes."""
+"""VisualWorld's evidence-safe ingestion records, ports, fakes, and local media adapter."""
 
 __version__ = "0.1.0a0"

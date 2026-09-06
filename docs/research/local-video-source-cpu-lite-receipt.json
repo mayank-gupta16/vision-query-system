@@ -1,0 +1,116 @@
+{
+  "failure_and_security_cases": {
+    "cancellation": true,
+    "corrupt": true,
+    "oversize": true,
+    "symlink": true,
+    "timeout": true,
+    "traversal": true
+  },
+  "fixture_manifest_sha256": "0b5b582ceb979bf6ce0eed181eb323b3343bcc5eb04b939c3dc2ef29fb2e617e",
+  "isolation": {
+    "descendant_processes_observed": 2,
+    "landlock_denial_required": true,
+    "linux_x86_64_only": true,
+    "network_denial_required": true,
+    "no_new_privileges_required": true,
+    "non_root_worker_required": true,
+    "seccomp_filter_required": true,
+    "whole_cgroup_kill_on_limit": true
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "schema": "visualworld.media-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "successful_fixtures": {
+    "cfr.mov": {
+      "checks": {
+        "codec": true,
+        "dimensions": true,
+        "durations": true,
+        "fingerprint": true,
+        "frame_count": true,
+        "pixels": true,
+        "pts": true,
+        "rotation": true,
+        "stream_duration": true,
+        "time_base": true
+      },
+      "metrics": {
+        "cpu_ms": 77,
+        "frame_count": 4,
+        "memory_peak_bytes": 13373440,
+        "source_bytes": 2892,
+        "wall_ms": 105
+      },
+      "runtime": {
+        "libavcodec": "63.1.101",
+        "libavformat": "63.1.101",
+        "pyav": "18.1.0"
+      }
+    },
+    "rotation-90.mov": {
+      "checks": {
+        "codec": true,
+        "dimensions": true,
+        "durations": true,
+        "fingerprint": true,
+        "frame_count": true,
+        "pixels": true,
+        "pts": true,
+        "rotation": true,
+        "stream_duration": true,
+        "time_base": true
+      },
+      "metrics": {
+        "cpu_ms": 107,
+        "frame_count": 4,
+        "memory_peak_bytes": 14004224,
+        "source_bytes": 2892,
+        "wall_ms": 139
+      },
+      "runtime": {
+        "libavcodec": "63.1.101",
+        "libavformat": "63.1.101",
+        "pyav": "18.1.0"
+      }
+    },
+    "vfr.mov": {
+      "checks": {
+        "codec": true,
+        "dimensions": true,
+        "durations": true,
+        "fingerprint": true,
+        "frame_count": true,
+        "pixels": true,
+        "pts": true,
+        "rotation": true,
+        "stream_duration": true,
+        "time_base": true
+      },
+      "metrics": {
+        "cpu_ms": 86,
+        "frame_count": 4,
+        "memory_peak_bytes": 13377536,
+        "source_bytes": 2916,
+        "wall_ms": 115
+      },
+      "runtime": {
+        "libavcodec": "63.1.101",
+        "libavformat": "63.1.101",
+        "pyav": "18.1.0"
+      }
+    }
+  },
+  "worker_sha256": "6104c56592b5007a882f131e6defd42d31d56248d1337a3668f09978bbf340a2"
+}

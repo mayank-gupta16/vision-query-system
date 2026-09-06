@@ -4,6 +4,9 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add the bounded Linux local-video adapter: sealed local sources, exact rational
+  timestamps and frame hashes, root-owned PyAV worker runtime, namespace/cgroup
+  isolation, Landlock/seccomp policy, structured failures, and CPU-LITE evidence.
 - Define the four version-1 ingestion ports with capability descriptors,
   structured errors, bounded instrumentation, and deterministic offline fakes.
 - Add framework-free version-1 Source, FrameRef, Geometry, EvidenceRef, and

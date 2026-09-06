@@ -15,8 +15,9 @@ video -> observations -> tracklets -> entities -> world state -> queries
 ## Project status
 
 VisualWorld has an experimental Python package (`0.1.0a0`) with help/version
-commands and a reproducible developer toolchain. Video ingestion, storage, and
-queries are not implemented yet.
+commands, a reproducible developer toolchain, stable ingestion records/ports, and
+a bounded Linux-only local-video source/probe adapter. End-to-end ingestion,
+storage, and queries are not implemented yet.
 See [current project state](docs/project/current.md) and the
 [roadmap](docs/project/roadmap.md) for the proposed sequencing and explicit
 non-goals.

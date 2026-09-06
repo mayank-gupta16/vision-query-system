@@ -244,6 +244,7 @@ def test_developer_commands_preserve_lock_and_network_boundaries(
             "coverage",
             "python",
         ]
+        assert all("workers" in call for call in calls[1:4])
         assert calls[-1][-1] == "scripts/validate_repository.py"
     else:
         assert len(calls) == 2
@@ -332,6 +333,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
         "visualworld/__main__.py": b"",
         "visualworld/cli.py": b"",
         "visualworld/ingestion.py": b"",
+        "visualworld/media.py": b"",
         "visualworld/ports.py": b"",
         "visualworld/py.typed": b"",
         f"{info}/METADATA": metadata.encode(),
