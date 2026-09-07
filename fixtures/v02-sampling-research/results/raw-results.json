@@ -24,7 +24,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 193
+            "overall": 328
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -52,10 +52,10 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 662073344
+            "overall": 714379264
           },
           "real_time_factor_milli": {
-            "overall": 3646
+            "overall": 3725
           },
           "samples_per_source_minute": {
             "overall": 460
@@ -94,10 +94,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1514306473,
-          "decode_and_motion_wall_ns": 1405705566,
-          "detection_cpu_ns": 7553998999,
-          "detection_process_wall_ns": 4747257124,
+          "cpu_ns": 1494036184,
+          "decode_and_motion_wall_ns": 1384733513,
+          "detection_cpu_ns": 6820400000,
+          "detection_process_wall_ns": 4438203467,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -128,10 +128,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3839
+              "overall": 4053
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -5107,7 +5107,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 6250257180,
+          "wall_ns": 5921367613,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5142,10 +5142,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1509131833,
-          "decode_and_motion_wall_ns": 1398841850,
-          "detection_cpu_ns": 8112404000,
-          "detection_process_wall_ns": 5028530236,
+          "cpu_ns": 1453425179,
+          "decode_and_motion_wall_ns": 1343904888,
+          "detection_cpu_ns": 8613442999,
+          "detection_process_wall_ns": 4820524564,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5176,10 +5176,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3678
+              "overall": 3832
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -5202,7 +5202,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 6525098592,
+          "wall_ns": 6262223760,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5237,10 +5237,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1527909625,
-          "decode_and_motion_wall_ns": 1416479062,
-          "detection_cpu_ns": 8831715000,
-          "detection_process_wall_ns": 5065553968,
+          "cpu_ns": 1631518057,
+          "decode_and_motion_wall_ns": 1514718148,
+          "detection_cpu_ns": 8063780000,
+          "detection_process_wall_ns": 5545136876,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5271,10 +5271,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3646
+              "overall": 3351
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -5297,7 +5297,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 6580831758,
+          "wall_ns": 7161684295,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5332,10 +5332,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2414611063,
-          "decode_and_motion_wall_ns": 2261490746,
-          "detection_cpu_ns": 9629581000,
-          "detection_process_wall_ns": 5653205951,
+          "cpu_ns": 1508473410,
+          "decode_and_motion_wall_ns": 1398347104,
+          "detection_cpu_ns": 8398013000,
+          "detection_process_wall_ns": 4946501194,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5366,10 +5366,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 2979
+              "overall": 3725
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -5392,7 +5392,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 8054302041,
+          "wall_ns": 6442934357,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5427,10 +5427,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1841274604,
-          "decode_and_motion_wall_ns": 1718905296,
-          "detection_cpu_ns": 9646407999,
-          "detection_process_wall_ns": 5587334351,
+          "cpu_ns": 1611067278,
+          "decode_and_motion_wall_ns": 1496423799,
+          "detection_cpu_ns": 7835209000,
+          "detection_process_wall_ns": 5484375227,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5461,10 +5461,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3236
+              "overall": 3389
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -5487,7 +5487,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 7414965100,
+          "wall_ns": 7081627521,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5523,7 +5523,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 115
+            "overall": 21
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -5551,10 +5551,10 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 662073344
+            "overall": 714379264
           },
           "real_time_factor_milli": {
-            "overall": 3621
+            "overall": 3582
           },
           "samples_per_source_minute": {
             "overall": 460
@@ -5593,10 +5593,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1674118224,
-          "decode_and_motion_wall_ns": 1560097972,
-          "detection_cpu_ns": 8629109999,
-          "detection_process_wall_ns": 5550010531,
+          "cpu_ns": 1998724094,
+          "decode_and_motion_wall_ns": 1823096564,
+          "detection_cpu_ns": 10780191999,
+          "detection_process_wall_ns": 6544554769,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5627,10 +5627,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3328
+              "overall": 2815
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -10606,7 +10606,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 7210633795,
+          "wall_ns": 8524640130,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10641,10 +10641,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1603546332,
-          "decode_and_motion_wall_ns": 1486615688,
-          "detection_cpu_ns": 7660543000,
-          "detection_process_wall_ns": 4831574060,
+          "cpu_ns": 1530579187,
+          "decode_and_motion_wall_ns": 1418459733,
+          "detection_cpu_ns": 8857874000,
+          "detection_process_wall_ns": 5142089335,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10675,10 +10675,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3736
+              "overall": 3603
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -10701,7 +10701,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 6423399275,
+          "wall_ns": 6659944505,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10736,10 +10736,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1591464701,
-          "decode_and_motion_wall_ns": 1481151121,
-          "detection_cpu_ns": 7125742999,
-          "detection_process_wall_ns": 4549951881,
+          "cpu_ns": 1799146809,
+          "decode_and_motion_wall_ns": 1658541509,
+          "detection_cpu_ns": 11012202000,
+          "detection_process_wall_ns": 6784059093,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10770,10 +10770,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3914
+              "overall": 2802
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -10796,7 +10796,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 6131110970,
+          "wall_ns": 8563395686,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10831,10 +10831,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1572475229,
-          "decode_and_motion_wall_ns": 1460146261,
-          "detection_cpu_ns": 9041851999,
-          "detection_process_wall_ns": 5267656725,
+          "cpu_ns": 1534677686,
+          "decode_and_motion_wall_ns": 1420757119,
+          "detection_cpu_ns": 7848816000,
+          "detection_process_wall_ns": 5177646939,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10865,10 +10865,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3515
+              "overall": 3582
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -10891,7 +10891,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 6826970645,
+          "wall_ns": 6699194805,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10926,10 +10926,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1662251944,
-          "decode_and_motion_wall_ns": 1550063109,
-          "detection_cpu_ns": 8057947999,
-          "detection_process_wall_ns": 4976401072,
+          "cpu_ns": 1572496017,
+          "decode_and_motion_wall_ns": 1444767069,
+          "detection_cpu_ns": 8164103000,
+          "detection_process_wall_ns": 5113375017,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10960,10 +10960,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3621
+              "overall": 3596
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -10986,7 +10986,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 6626424339,
+          "wall_ns": 6673384363,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -11022,7 +11022,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 207
+            "overall": 352
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -11050,10 +11050,10 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 662073344
+            "overall": 714379264
           },
           "real_time_factor_milli": {
-            "overall": 3626
+            "overall": 3580
           },
           "samples_per_source_minute": {
             "overall": 460
@@ -11092,10 +11092,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1583740670,
-          "decode_and_motion_wall_ns": 1467518243,
-          "detection_cpu_ns": 9008291000,
-          "detection_process_wall_ns": 5831801381,
+          "cpu_ns": 1536300528,
+          "decode_and_motion_wall_ns": 1418761697,
+          "detection_cpu_ns": 10317735999,
+          "detection_process_wall_ns": 5912584902,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -11126,10 +11126,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3242
+              "overall": 3228
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -16105,7 +16105,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 7400564714,
+          "wall_ns": 7434198243,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16140,10 +16140,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1539097431,
-          "decode_and_motion_wall_ns": 1427171697,
-          "detection_cpu_ns": 8075828000,
-          "detection_process_wall_ns": 5090956998,
+          "cpu_ns": 1519423617,
+          "decode_and_motion_wall_ns": 1401269938,
+          "detection_cpu_ns": 8434543000,
+          "detection_process_wall_ns": 5195764312,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16174,10 +16174,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3626
+              "overall": 3580
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -16200,7 +16200,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 6617269797,
+          "wall_ns": 6702333175,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16235,10 +16235,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1595208439,
-          "decode_and_motion_wall_ns": 1481759085,
-          "detection_cpu_ns": 8914277000,
-          "detection_process_wall_ns": 5201353700,
+          "cpu_ns": 1801804455,
+          "decode_and_motion_wall_ns": 1661157245,
+          "detection_cpu_ns": 8159403000,
+          "detection_process_wall_ns": 5456787118,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16269,10 +16269,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3537
+              "overall": 3313
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -16295,7 +16295,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 6783959666,
+          "wall_ns": 7243787429,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16330,10 +16330,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1597577831,
-          "decode_and_motion_wall_ns": 1483282503,
-          "detection_cpu_ns": 7295785999,
-          "detection_process_wall_ns": 4626187057,
+          "cpu_ns": 1487230289,
+          "decode_and_motion_wall_ns": 1377310054,
+          "detection_cpu_ns": 6659981999,
+          "detection_process_wall_ns": 4440533278,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16364,10 +16364,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3862
+              "overall": 4055
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -16390,7 +16390,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 6212957894,
+          "wall_ns": 5917394972,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16425,10 +16425,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1536401911,
-          "decode_and_motion_wall_ns": 1424926540,
-          "detection_cpu_ns": 7467137999,
-          "detection_process_wall_ns": 4735873980,
+          "cpu_ns": 1526960280,
+          "decode_and_motion_wall_ns": 1416855317,
+          "detection_cpu_ns": 6951706999,
+          "detection_process_wall_ns": 4393379719,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16459,10 +16459,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3833
+              "overall": 4060
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -16485,7 +16485,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 6261027085,
+          "wall_ns": 5910378074,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16521,7 +16521,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 87
+            "overall": 98
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -16549,10 +16549,10 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 662073344
+            "overall": 714379264
           },
           "real_time_factor_milli": {
-            "overall": 3682
+            "overall": 3863
           },
           "samples_per_source_minute": {
             "overall": 460
@@ -16591,10 +16591,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1496682963,
-          "decode_and_motion_wall_ns": 1386969483,
-          "detection_cpu_ns": 8661873000,
-          "detection_process_wall_ns": 4959585930,
+          "cpu_ns": 1509929228,
+          "decode_and_motion_wall_ns": 1397922402,
+          "detection_cpu_ns": 7340166000,
+          "detection_process_wall_ns": 4598593138,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16625,10 +16625,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3723
+              "overall": 3935
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -21604,7 +21604,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 6444691886,
+          "wall_ns": 6097719188,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21639,10 +21639,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1530951579,
-          "decode_and_motion_wall_ns": 1418145683,
-          "detection_cpu_ns": 8796852000,
-          "detection_process_wall_ns": 5215837048,
+          "cpu_ns": 1481862193,
+          "decode_and_motion_wall_ns": 1361410812,
+          "detection_cpu_ns": 7412585000,
+          "detection_process_wall_ns": 4742144860,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21673,10 +21673,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3563
+              "overall": 3863
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -21699,7 +21699,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 6734284523,
+          "wall_ns": 6212311494,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21734,10 +21734,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1528208608,
-          "decode_and_motion_wall_ns": 1417883528,
-          "detection_cpu_ns": 8088637000,
-          "detection_process_wall_ns": 4850521147,
+          "cpu_ns": 1505705959,
+          "decode_and_motion_wall_ns": 1396579677,
+          "detection_cpu_ns": 6848839000,
+          "detection_process_wall_ns": 4401744146,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21768,10 +21768,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3769
+              "overall": 4069
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -21794,7 +21794,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 6367285430,
+          "wall_ns": 5897058835,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21829,10 +21829,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1560423492,
-          "decode_and_motion_wall_ns": 1448928197,
-          "detection_cpu_ns": 7604406000,
-          "detection_process_wall_ns": 4969226183,
+          "cpu_ns": 1509093078,
+          "decode_and_motion_wall_ns": 1397223009,
+          "detection_cpu_ns": 8385710000,
+          "detection_process_wall_ns": 4877158056,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21863,10 +21863,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3682
+              "overall": 3765
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -21889,7 +21889,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 6517105119,
+          "wall_ns": 6374120146,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21924,10 +21924,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1587326313,
-          "decode_and_motion_wall_ns": 1468387474,
-          "detection_cpu_ns": 11123893000,
-          "detection_process_wall_ns": 6442202746,
+          "cpu_ns": 2191243875,
+          "decode_and_motion_wall_ns": 2040182902,
+          "detection_cpu_ns": 6995784000,
+          "detection_process_wall_ns": 4448100255,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21958,10 +21958,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 2995
+              "overall": 3620
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -21984,7 +21984,7 @@
           "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 8011419417,
+          "wall_ns": 6629440107,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -22052,10 +22052,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2246699743,
-          "decode_and_motion_wall_ns": 2076237662,
-          "detection_cpu_ns": 16565694000,
-          "detection_process_wall_ns": 8706215381,
+          "cpu_ns": 2288408838,
+          "decode_and_motion_wall_ns": 2114886940,
+          "detection_cpu_ns": 16146563000,
+          "detection_process_wall_ns": 8412504994,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -22086,10 +22086,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3293
+              "overall": 3370
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -29757,7 +29757,7 @@
           "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 10930449822,
+          "wall_ns": 10679579377,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -29804,10 +29804,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2628098680,
-          "decode_and_motion_wall_ns": 2438234114,
-          "detection_cpu_ns": 14880235000,
-          "detection_process_wall_ns": 8153631583,
+          "cpu_ns": 2365332734,
+          "decode_and_motion_wall_ns": 2192518688,
+          "detection_cpu_ns": 13520086000,
+          "detection_process_wall_ns": 7741300039,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -29838,10 +29838,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3345
+              "overall": 3568
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -29864,7 +29864,7 @@
           "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 10761191502,
+          "wall_ns": 10088331256,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -29911,10 +29911,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2475853822,
-          "decode_and_motion_wall_ns": 2300058443,
-          "detection_cpu_ns": 15661378000,
-          "detection_process_wall_ns": 8865866328,
+          "cpu_ns": 2463449917,
+          "decode_and_motion_wall_ns": 2274007554,
+          "detection_cpu_ns": 12819159000,
+          "detection_process_wall_ns": 7500800204,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -29945,10 +29945,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3180
+              "overall": 3619
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -29971,7 +29971,7 @@
           "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 11318274509,
+          "wall_ns": 9946620321,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -30018,10 +30018,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2577868291,
-          "decode_and_motion_wall_ns": 2389545967,
-          "detection_cpu_ns": 16038309000,
-          "detection_process_wall_ns": 9314756284,
+          "cpu_ns": 2452240392,
+          "decode_and_motion_wall_ns": 2279578692,
+          "detection_cpu_ns": 13321268000,
+          "detection_process_wall_ns": 8589002664,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -30052,10 +30052,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3033
+              "overall": 3267
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -30078,7 +30078,7 @@
           "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 11868264003,
+          "wall_ns": 11018273376,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -30125,10 +30125,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2786056797,
-          "decode_and_motion_wall_ns": 2586828933,
-          "detection_cpu_ns": 15726302000,
-          "detection_process_wall_ns": 8809140424,
+          "cpu_ns": 2883854647,
+          "decode_and_motion_wall_ns": 2679539390,
+          "detection_cpu_ns": 11112404999,
+          "detection_process_wall_ns": 6924801984,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -30159,10 +30159,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 3110
+              "overall": 3676
             },
             "samples_per_source_minute": {
               "overall": 460
@@ -30185,7 +30185,7 @@
           "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 11572442316,
+          "wall_ns": 9792275960,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -30245,10 +30245,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 595410020,
-          "decode_and_motion_wall_ns": 564402417,
-          "detection_cpu_ns": 1604839000,
-          "detection_process_wall_ns": 1882773894,
+          "cpu_ns": 557171547,
+          "decode_and_motion_wall_ns": 530353868,
+          "detection_cpu_ns": 1761661000,
+          "detection_process_wall_ns": 1814762242,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -30279,10 +30279,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 14566
+              "overall": 15216
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31142,7 +31142,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 2471435405,
+          "wall_ns": 2365860622,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31189,10 +31189,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 596606270,
-          "decode_and_motion_wall_ns": 567653259,
-          "detection_cpu_ns": 1953215999,
-          "detection_process_wall_ns": 1853390246,
+          "cpu_ns": 565513408,
+          "decode_and_motion_wall_ns": 538395429,
+          "detection_cpu_ns": 1921132000,
+          "detection_process_wall_ns": 1978559270,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31223,10 +31223,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 14732
+              "overall": 14187
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31246,7 +31246,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 2443517977,
+          "wall_ns": 2537410033,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31293,10 +31293,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 707379793,
-          "decode_and_motion_wall_ns": 671447485,
-          "detection_cpu_ns": 2200096999,
-          "detection_process_wall_ns": 2411682847,
+          "cpu_ns": 555315634,
+          "decode_and_motion_wall_ns": 529547319,
+          "detection_cpu_ns": 1362339000,
+          "detection_process_wall_ns": 1577025593,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31327,10 +31327,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 11578
+              "overall": 16923
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31350,7 +31350,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 3109318778,
+          "wall_ns": 2127220449,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31397,10 +31397,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 611223987,
-          "decode_and_motion_wall_ns": 582594399,
-          "detection_cpu_ns": 1872668999,
-          "detection_process_wall_ns": 1928507103,
+          "cpu_ns": 581033552,
+          "decode_and_motion_wall_ns": 555582558,
+          "detection_cpu_ns": 1283893000,
+          "detection_process_wall_ns": 1546140705,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31431,10 +31431,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 14209
+              "overall": 16963
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31454,7 +31454,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 2533503135,
+          "wall_ns": 2122224551,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31501,10 +31501,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 779645310,
-          "decode_and_motion_wall_ns": 713608861,
-          "detection_cpu_ns": 2019695000,
-          "detection_process_wall_ns": 2643420460,
+          "cpu_ns": 543015708,
+          "decode_and_motion_wall_ns": 515679679,
+          "detection_cpu_ns": 1778326999,
+          "detection_process_wall_ns": 1817836466,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31535,10 +31535,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 10608
+              "overall": 15289
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31558,7 +31558,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 3393371157,
+          "wall_ns": 2354517282,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31618,10 +31618,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 598614709,
-          "decode_and_motion_wall_ns": 548542164,
-          "detection_cpu_ns": 3951327000,
-          "detection_process_wall_ns": 2864117424,
+          "cpu_ns": 553473781,
+          "decode_and_motion_wall_ns": 506258227,
+          "detection_cpu_ns": 3951625000,
+          "detection_process_wall_ns": 2598137632,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31652,10 +31652,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 10422
+              "overall": 11449
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33556,7 +33556,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 3454142888,
+          "wall_ns": 3144174861,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33603,10 +33603,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 645456425,
-          "decode_and_motion_wall_ns": 590857256,
-          "detection_cpu_ns": 3711403999,
-          "detection_process_wall_ns": 3424537571,
+          "cpu_ns": 546095059,
+          "decode_and_motion_wall_ns": 499051890,
+          "detection_cpu_ns": 2763247000,
+          "detection_process_wall_ns": 2413142653,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33637,10 +33637,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 8870
+              "overall": 12193
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33660,7 +33660,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 4058208530,
+          "wall_ns": 2952324744,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33707,10 +33707,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 657461588,
-          "decode_and_motion_wall_ns": 602156197,
-          "detection_cpu_ns": 4090845000,
-          "detection_process_wall_ns": 3008137633,
+          "cpu_ns": 553811612,
+          "decode_and_motion_wall_ns": 502627632,
+          "detection_cpu_ns": 2983975000,
+          "detection_process_wall_ns": 2447216598,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33741,10 +33741,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 9846
+              "overall": 12024
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33764,7 +33764,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 3656010530,
+          "wall_ns": 2993965646,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33811,10 +33811,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 701518579,
-          "decode_and_motion_wall_ns": 638797544,
-          "detection_cpu_ns": 3254948000,
-          "detection_process_wall_ns": 2906099422,
+          "cpu_ns": 571798274,
+          "decode_and_motion_wall_ns": 522869759,
+          "detection_cpu_ns": 3095573999,
+          "detection_process_wall_ns": 2424930325,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33845,10 +33845,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 10006
+              "overall": 12040
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33868,7 +33868,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 3597759018,
+          "wall_ns": 2989947619,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33915,10 +33915,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 656923692,
-          "decode_and_motion_wall_ns": 602002587,
-          "detection_cpu_ns": 4200349999,
-          "detection_process_wall_ns": 3266158690,
+          "cpu_ns": 561850690,
+          "decode_and_motion_wall_ns": 511726039,
+          "detection_cpu_ns": 3471284000,
+          "detection_process_wall_ns": 2723578714,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33949,10 +33949,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 9200
+              "overall": 10984
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33972,7 +33972,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 3912769838,
+          "wall_ns": 3277386408,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -34032,10 +34032,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 650371700,
-          "decode_and_motion_wall_ns": 570743047,
-          "detection_cpu_ns": 5962900000,
-          "detection_process_wall_ns": 3966802008,
+          "cpu_ns": 762328080,
+          "decode_and_motion_wall_ns": 674198491,
+          "detection_cpu_ns": 5145150000,
+          "detection_process_wall_ns": 3516569997,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -34066,10 +34066,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 7816
+              "overall": 8433
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37016,7 +37016,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 4605517530,
+          "wall_ns": 4268931908,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37063,10 +37063,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 594873665,
-          "decode_and_motion_wall_ns": 527244833,
-          "detection_cpu_ns": 5097255000,
-          "detection_process_wall_ns": 3368230007,
+          "cpu_ns": 565513557,
+          "decode_and_motion_wall_ns": 497545061,
+          "detection_cpu_ns": 5724979000,
+          "detection_process_wall_ns": 3439243831,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37097,10 +37097,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 9104
+              "overall": 9010
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37120,7 +37120,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 3954205850,
+          "wall_ns": 3995398342,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37167,10 +37167,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 587225349,
-          "decode_and_motion_wall_ns": 521114260,
-          "detection_cpu_ns": 4386107999,
-          "detection_process_wall_ns": 2969066066,
+          "cpu_ns": 602267802,
+          "decode_and_motion_wall_ns": 525272036,
+          "detection_cpu_ns": 4771796999,
+          "detection_process_wall_ns": 3730763096,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37201,10 +37201,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 10144
+              "overall": 8328
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37224,7 +37224,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 3548892498,
+          "wall_ns": 4322569079,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37271,10 +37271,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 653286489,
-          "decode_and_motion_wall_ns": 580818653,
-          "detection_cpu_ns": 4780562000,
-          "detection_process_wall_ns": 3454963243,
+          "cpu_ns": 593285480,
+          "decode_and_motion_wall_ns": 506941919,
+          "detection_cpu_ns": 5725728999,
+          "detection_process_wall_ns": 3595269385,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37305,10 +37305,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 8783
+              "overall": 8643
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37328,7 +37328,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 4098654673,
+          "wall_ns": 4164980273,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37375,10 +37375,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 612377539,
-          "decode_and_motion_wall_ns": 543526302,
-          "detection_cpu_ns": 4917598000,
-          "detection_process_wall_ns": 3665560773,
+          "cpu_ns": 995583284,
+          "decode_and_motion_wall_ns": 877140430,
+          "detection_cpu_ns": 4781038000,
+          "detection_process_wall_ns": 3613863169,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37409,10 +37409,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 8435
+              "overall": 7829
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37432,7 +37432,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 4267755482,
+          "wall_ns": 4597869645,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37492,10 +37492,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 679501497,
-          "decode_and_motion_wall_ns": 561550513,
-          "detection_cpu_ns": 9471983000,
-          "detection_process_wall_ns": 5371409596,
+          "cpu_ns": 631074822,
+          "decode_and_motion_wall_ns": 517538925,
+          "detection_cpu_ns": 7675193999,
+          "detection_process_wall_ns": 5273280727,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37526,10 +37526,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 5962
+              "overall": 6111
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42463,7 +42463,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 6037660652,
+          "wall_ns": 5890761184,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42510,10 +42510,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 656173808,
-          "decode_and_motion_wall_ns": 545385828,
-          "detection_cpu_ns": 8460556000,
-          "detection_process_wall_ns": 5216279924,
+          "cpu_ns": 619633471,
+          "decode_and_motion_wall_ns": 512442557,
+          "detection_cpu_ns": 6807409999,
+          "detection_process_wall_ns": 4380427689,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42544,10 +42544,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 6143
+              "overall": 7215
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42567,7 +42567,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 5859611837,
+          "wall_ns": 4989560296,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42614,10 +42614,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 721970555,
-          "decode_and_motion_wall_ns": 590464613,
-          "detection_cpu_ns": 8146297000,
-          "detection_process_wall_ns": 4808911502,
+          "cpu_ns": 620780889,
+          "decode_and_motion_wall_ns": 511119424,
+          "detection_cpu_ns": 8097429000,
+          "detection_process_wall_ns": 4627318851,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42648,10 +42648,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 6523
+              "overall": 6873
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42671,7 +42671,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 5518928317,
+          "wall_ns": 5237280364,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42718,10 +42718,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 651542900,
-          "decode_and_motion_wall_ns": 536966356,
-          "detection_cpu_ns": 11557506000,
-          "detection_process_wall_ns": 6189067550,
+          "cpu_ns": 623139510,
+          "decode_and_motion_wall_ns": 514496282,
+          "detection_cpu_ns": 7509130000,
+          "detection_process_wall_ns": 4617626156,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42752,10 +42752,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 5275
+              "overall": 6883
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42775,7 +42775,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 6823480582,
+          "wall_ns": 5230065402,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42822,10 +42822,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 794044262,
-          "decode_and_motion_wall_ns": 675793927,
-          "detection_cpu_ns": 8232700000,
-          "detection_process_wall_ns": 5019558468,
+          "cpu_ns": 644263050,
+          "decode_and_motion_wall_ns": 523625772,
+          "detection_cpu_ns": 10467049000,
+          "detection_process_wall_ns": 5729023687,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42856,10 +42856,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 6205
+              "overall": 5662
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42879,7 +42879,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 5801174109,
+          "wall_ns": 6358139096,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42939,10 +42939,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 705472708,
-          "decode_and_motion_wall_ns": 536431471,
-          "detection_cpu_ns": 12026267000,
-          "detection_process_wall_ns": 7360166109,
+          "cpu_ns": 729937943,
+          "decode_and_motion_wall_ns": 557461198,
+          "detection_cpu_ns": 11710998000,
+          "detection_process_wall_ns": 7424154367,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42973,10 +42973,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 4472
+              "overall": 4424
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50737,7 +50737,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 8048628760,
+          "wall_ns": 8136528987,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50784,10 +50784,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 833152053,
-          "decode_and_motion_wall_ns": 635319639,
-          "detection_cpu_ns": 12540559000,
-          "detection_process_wall_ns": 7223989680,
+          "cpu_ns": 788563137,
+          "decode_and_motion_wall_ns": 609284484,
+          "detection_cpu_ns": 11504560000,
+          "detection_process_wall_ns": 7231376084,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -50818,10 +50818,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 4477
+              "overall": 4498
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50841,7 +50841,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 8040095826,
+          "wall_ns": 8002950862,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50888,10 +50888,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 702972587,
-          "decode_and_motion_wall_ns": 530535430,
-          "detection_cpu_ns": 14447025000,
-          "detection_process_wall_ns": 8125218752,
+          "cpu_ns": 712592661,
+          "decode_and_motion_wall_ns": 545248360,
+          "detection_cpu_ns": 13392132999,
+          "detection_process_wall_ns": 7337479371,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -50922,10 +50922,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 4087
+              "overall": 4481
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50945,7 +50945,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 8808345903,
+          "wall_ns": 8032607294,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50992,10 +50992,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 732530350,
-          "decode_and_motion_wall_ns": 551436237,
-          "detection_cpu_ns": 10894967999,
-          "detection_process_wall_ns": 7165396731,
+          "cpu_ns": 744085457,
+          "decode_and_motion_wall_ns": 564127958,
+          "detection_cpu_ns": 11050121000,
+          "detection_process_wall_ns": 7000564135,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -51026,10 +51026,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 4567
+              "overall": 4658
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -51049,7 +51049,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 7881799568,
+          "wall_ns": 7728152469,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -51096,10 +51096,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 697903051,
-          "decode_and_motion_wall_ns": 529013688,
-          "detection_cpu_ns": 11663980000,
-          "detection_process_wall_ns": 7123142904,
+          "cpu_ns": 708148681,
+          "decode_and_motion_wall_ns": 540895090,
+          "detection_cpu_ns": 10797553000,
+          "detection_process_wall_ns": 7045989552,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -51130,10 +51130,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 662073344
+              "overall": 714379264
             },
             "real_time_factor_milli": {
-              "overall": 4612
+              "overall": 4652
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -51153,7 +51153,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 7805376580,
+          "wall_ns": 7737707774,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -51188,45 +51188,45 @@
   "outputs": {
     "adaptive-3-to-8-fps": {
       "gate": "adaptive-3-to-8-fps-gate.json",
-      "gate_sha256": "2e7809c545ed371adff96c54ceabb957ab92151004f05d2db8d8c62a783c4ae3",
+      "gate_sha256": "b1b21099a08518634b46dfdfcbccc90ee091e3adb93f6611d18a69a579bc3ebc",
       "gate_status": "pass",
       "receipt": "adaptive-3-to-8-fps-receipt.json",
-      "receipt_sha256": "8350a8dba41a764aa1e7462f36b20b085f0deb2619a56732d57067c0155c75c3"
+      "receipt_sha256": "a4b8f0df7e7a08fb6fdf9f1e91f73a69d88667a70f3d15fc62337fe73ae78035"
     },
     "fixed-1-fps": {
       "gate": "fixed-1-fps-gate.json",
-      "gate_sha256": "9b123889ba782308f360d37ed441c655232c0218884f3e8d3a48d473d8a2f172",
+      "gate_sha256": "e24c4adb5d791107e07a4b23ab0a6a50cb3902ac4bacb7f09452dc61f51625c6",
       "gate_status": "fail",
       "receipt": "fixed-1-fps-receipt.json",
-      "receipt_sha256": "c9ce9aa324a0b8f965f5c7c884c535b09c7e94fa9b842c89ea20ec79f1816381"
+      "receipt_sha256": "66df2d2ab9f4f78955851bd1a2f7e16e888b13de5842e83443ffe4f6c7879b48"
     },
     "fixed-2-fps": {
       "gate": "fixed-2-fps-gate.json",
-      "gate_sha256": "47fd47896a8f2ef799bfb4b1eaac2cc0747e890b4b5b413e1f282f1edbb10222",
+      "gate_sha256": "6449743e19f084d4e452923a0c26472ee491f001531f2380122cfabc85ca088f",
       "gate_status": "fail",
       "receipt": "fixed-2-fps-receipt.json",
-      "receipt_sha256": "8cd68e7f52700d326cb8998e746fdd681085cc651defe99d85157252e3735601"
+      "receipt_sha256": "416f43082e301becb62bb3002fd6400ecd7f9a344725a2ab4ac22cff168092a5"
     },
     "fixed-3-fps": {
       "gate": "fixed-3-fps-gate.json",
-      "gate_sha256": "e88be40c544f766bd6b26c27d81ff18a280f133f90e23b0f258024c444830b2e",
+      "gate_sha256": "f3c4beb462b9e2c1226ffdfde9cfa3447ccd9382696f496cd0b86431fff8a138",
       "gate_status": "fail",
       "receipt": "fixed-3-fps-receipt.json",
-      "receipt_sha256": "86bf094bfe830e9dd04e2adbb3f721f32e56cae64befa2a15299b8386c1bbede"
+      "receipt_sha256": "aad9f9912bb05b94df79f52f952227f055884c205dca291ebd9b3b173fa99509"
     },
     "fixed-5-fps": {
       "gate": "fixed-5-fps-gate.json",
-      "gate_sha256": "b2c9faf62aad6a559631be30fe403c5d8fec829b62d0838643e9d5c7b87540cb",
+      "gate_sha256": "a3289a458f42ca4a54f09469507cc50ee43de62740bb95a34658e18af1545945",
       "gate_status": "pass",
       "receipt": "fixed-5-fps-receipt.json",
-      "receipt_sha256": "a5831657e27f6af6d8e1c7933cded6fd29550ca17685f24470b9de88c8fbcad6"
+      "receipt_sha256": "6f9b37f6b5e5e660d7034cd37a7bdeee223681733a27f7684a2bc4cce58108a6"
     },
     "fixed-8-fps": {
       "gate": "fixed-8-fps-gate.json",
-      "gate_sha256": "5d8e9609c0c64125bf08520dcbf0e75aaeab0e126752e94e9e7560c411ee7c78",
+      "gate_sha256": "ad1ec5fc43110e786e315b5a08392a2c15fd0ea7c9b49ca365f7834a20a7bedb",
       "gate_status": "pass",
       "receipt": "fixed-8-fps-receipt.json",
-      "receipt_sha256": "84b31e180ccab6bffe06a8b482e49c5eaa788cb7e3fc47e11b8ecf7948d032cf"
+      "receipt_sha256": "f8191f7b145a719ae58e78f09cc9aba193951679ba4db70ed552b27b64d5c6c5"
     }
   },
   "provenance": {
@@ -51235,10 +51235,10 @@
     "dataset_manifest_sha256": "e51ebe8ae7c1732e4c2344e2b409cd22e60a51e41ac3f22d341353403d6ae4ef",
     "detection_candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
     "detection_worker_sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
-    "evaluation_harness_sha256": "fe7afdb2ea98daf2d919367b7789e93f83f3609159698e734111022b24dbb9aa",
+    "evaluation_harness_sha256": "927fec031464f61cd21c5260f7c9e71b829de1ba379f3ae7dbe823395c12af33",
     "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
     "source_manifest_sha256": "4a53262d93f2473a747bfc3c36b38209d42cafff38c9d8251cc3e503eba81139",
-    "source_revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2"
+    "source_revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a"
   },
   "schema": "visualworld.v02-sampling-raw-results",
   "schema_version": 1

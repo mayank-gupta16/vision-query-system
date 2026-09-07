@@ -22,7 +22,7 @@
         "overall": 0
       },
       "real_time_factor_milli": {
-        "overall": 113
+        "overall": 108
       },
       "samples_per_source_minute": {
         "overall": 0
@@ -50,10 +50,10 @@
         "vfr_gap": 10000
       },
       "peak_rss_bytes": {
-        "overall": 662073344
+        "overall": 714379264
       },
       "real_time_factor_milli": {
-        "overall": 3180
+        "overall": 3568
       },
       "samples_per_source_minute": {
         "overall": 460
@@ -315,20 +315,20 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-sampling-harness",
-      "revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2",
-      "sha256": "fe7afdb2ea98daf2d919367b7789e93f83f3609159698e734111022b24dbb9aa",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/2da8307d042588fbf7906aa2877b5a973dfa7da2/scripts/run_v02_sampling_benchmark.py"
+      "revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a",
+      "sha256": "927fec031464f61cd21c5260f7c9e71b829de1ba379f3ae7dbe823395c12af33",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/a9ff343ac733ce66ddf1b3ffef2270526334b89a/scripts/run_v02_sampling_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-sampling-metrics",
-      "revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2",
-      "sha256": "fe7afdb2ea98daf2d919367b7789e93f83f3609159698e734111022b24dbb9aa",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/2da8307d042588fbf7906aa2877b5a973dfa7da2/scripts/run_v02_sampling_benchmark.py"
+      "revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a",
+      "sha256": "927fec031464f61cd21c5260f7c9e71b829de1ba379f3ae7dbe823395c12af33",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/a9ff343ac733ce66ddf1b3ffef2270526334b89a/scripts/run_v02_sampling_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2"
+    "source_revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a"
   },
   "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
@@ -365,10 +365,10 @@
           "vfr_gap": 10000
         },
         "peak_rss_bytes": {
-          "overall": 662073344
+          "overall": 714379264
         },
         "real_time_factor_milli": {
-          "overall": 3293
+          "overall": 3370
         },
         "samples_per_source_minute": {
           "overall": 460
@@ -403,10 +403,10 @@
           "vfr_gap": 10000
         },
         "peak_rss_bytes": {
-          "overall": 662073344
+          "overall": 714379264
         },
         "real_time_factor_milli": {
-          "overall": 3345
+          "overall": 3568
         },
         "samples_per_source_minute": {
           "overall": 460
@@ -441,10 +441,10 @@
           "vfr_gap": 10000
         },
         "peak_rss_bytes": {
-          "overall": 662073344
+          "overall": 714379264
         },
         "real_time_factor_milli": {
-          "overall": 3180
+          "overall": 3619
         },
         "samples_per_source_minute": {
           "overall": 460
@@ -479,10 +479,10 @@
           "vfr_gap": 10000
         },
         "peak_rss_bytes": {
-          "overall": 662073344
+          "overall": 714379264
         },
         "real_time_factor_milli": {
-          "overall": 3033
+          "overall": 3267
         },
         "samples_per_source_minute": {
           "overall": 460
@@ -517,10 +517,10 @@
           "vfr_gap": 10000
         },
         "peak_rss_bytes": {
-          "overall": 662073344
+          "overall": 714379264
         },
         "real_time_factor_milli": {
-          "overall": 3110
+          "overall": 3676
         },
         "samples_per_source_minute": {
           "overall": 460
