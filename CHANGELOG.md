@@ -4,6 +4,10 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+No changes yet.
+
+## 0.1.0 - 2026-09-07
+
 - Add the pinned combined v0.1 CPU-LITE benchmark over a generated 60-second
   1080p/5-FPS workload with exact application-path goldens, per-stage wall/CPU
   measurements, FPS/real-time factor, RSS/disk/index evidence, a fail-closed
@@ -58,4 +62,5 @@ All notable project changes will be recorded here.
 - Enable private vulnerability reporting, secret scanning/push protection, and
   Dependabot alerts/security updates.
 
-No software version has been released.
+This is the first VisualWorld release. Its public Python interfaces and
+fake/manual CLI slice remain explicitly experimental.

@@ -285,7 +285,7 @@ def test_build_enforces_sdist_wheel_and_explicit_negative_hash_gate(
         if "build" in args:
             output = Path(args[args.index("--out-dir") + 1])
             suffix = ".tar.gz" if "--sdist" in args else ".whl"
-            (output / f"visualworld_engine-0.1.0a0{suffix}").write_bytes(b"fake artifact")
+            (output / f"visualworld_engine-0.1.0{suffix}").write_bytes(b"fake artifact")
 
     def negative(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         assert {"--sdist", "--force-pep517", "--no-sources", "--require-hashes"} <= set(args)
@@ -314,9 +314,9 @@ def test_build_enforces_sdist_wheel_and_explicit_negative_hash_gate(
 
 
 def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
-    info = "visualworld_engine-0.1.0a0.dist-info"
+    info = "visualworld_engine-0.1.0.dist-info"
     metadata = (
-        "Metadata-Version: 2.4\nName: visualworld-engine\nVersion: 0.1.0a0\n"
+        "Metadata-Version: 2.4\nName: visualworld-engine\nVersion: 0.1.0\n"
         "Requires-Python: >=3.13,<3.15\nLicense-Expression: Apache-2.0\nLicense-File: LICENSE\n"
     )
     replacements = {
@@ -351,7 +351,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
         contents["unreviewed.py"] = b""
     elif defect == "license_text":
         contents[f"{info}/licenses/LICENSE"] = b"not the reviewed license"
-    wheel = tmp_path / "visualworld_engine-0.1.0a0-py3-none-any.whl"
+    wheel = tmp_path / "visualworld_engine-0.1.0-py3-none-any.whl"
     with zipfile.ZipFile(wheel, "w") as archive:
         for name, content in contents.items():
             archive.writestr(name, content)
@@ -359,7 +359,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
 
 
 def test_wheel_accepts_exact_application_contents(tmp_path: Path) -> None:
-    assert check_wheel.inspect_wheel(make_wheel(tmp_path)) == ("visualworld-engine", "0.1.0a0")
+    assert check_wheel.inspect_wheel(make_wheel(tmp_path)) == ("visualworld-engine", "0.1.0")
 
 
 @pytest.mark.parametrize(
@@ -393,13 +393,13 @@ def test_wheel_smoke_uses_fresh_offline_runtime_and_records_only_shipped_package
         if "-c" in args:
             output = json.dumps(
                 {
-                    "packages": [["visualworld-engine", "0.1.0a0"]],
-                    "version": "0.1.0a0",
+                    "packages": [["visualworld-engine", "0.1.0"]],
+                    "version": "0.1.0",
                     "file": str(directory / "runtime/lib/visualworld/__init__.py"),
                 }
             )
         elif args[-1] == "--version":
-            output = "visualworld 0.1.0a0\n"
+            output = "visualworld 0.1.0\n"
         elif args[-1] == "--help":
             output = "usage: visualworld\n"
         elif args[-1] == "probe":
