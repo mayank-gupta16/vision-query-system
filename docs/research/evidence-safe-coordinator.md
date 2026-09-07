@@ -35,7 +35,7 @@ The source deletion completed, removed the unique artifact, and left 167,936
 logical store bytes. All declared offline, determinism, evidence, retry,
 deletion, timing, RSS, and disk checks passed.
 
-The acceptance process peaked at 26,669,056 bytes RSS, below the 2 GiB bound.
+The acceptance process peaked at 26,710,016 bytes RSS, below the 2 GiB bound.
 The receipt records individual coordinator stage wall times plus exact hashes
 for the coordinator, stores, and harness. These generated-fixture values are a
 correctness and provenance baseline, not a cross-machine optimization claim.

@@ -566,6 +566,21 @@ def test_coordinator_maps_adapter_failures_and_rejects_invalid_adapters(tmp_path
     assert exploding.value.code is CoordinatorErrorCode.INVALID_REQUEST
     assert exploding.value.__context__ is None
 
+    class DescriptorSubclass(CapabilityDescriptor):
+        pass
+
+    base = FakeVideoSource(*_fixture()[:2]).descriptor
+    subclass = DescriptorSubclass(
+        base.port,
+        base.implementation,
+        base.implementation_version,
+        base.deterministic,
+        base.offline,
+    )
+    with pytest.raises(CoordinatorError) as subclassed:
+        coordinator._validate_adapter(subclass, PortKind.VIDEO_SOURCE)
+    assert subclassed.value.code is CoordinatorErrorCode.INVALID_REQUEST
+
 
 def test_adapter_coordinator_error_chain_is_rebuilt_without_private_context(
     tmp_path: Path,

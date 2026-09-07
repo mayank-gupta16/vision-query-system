@@ -444,7 +444,7 @@ class IngestionCoordinator:
                 else CoordinatorStage.SAMPLE,
             ) from None
         if (
-            not isinstance(descriptor, CapabilityDescriptor)
+            type(descriptor) is not CapabilityDescriptor
             or descriptor.port is not port
             or not descriptor.deterministic
             or not descriptor.offline
