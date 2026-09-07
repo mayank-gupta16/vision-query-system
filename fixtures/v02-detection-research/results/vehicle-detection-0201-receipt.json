@@ -2,13 +2,13 @@
   "aggregate": {
     "dispersion": {
       "cold_start_wall_ms": {
-        "overall": 11
+        "overall": 37
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 8272
+        "overall": 10323
       },
       "install_and_model_bytes": {
         "overall": 0
@@ -19,7 +19,7 @@
         "small_distant": 0
       },
       "peak_rss_bytes": {
-        "overall": 126976
+        "overall": 188416
       },
       "precision_basis_points": {
         "easy": 0,
@@ -27,7 +27,7 @@
         "small_distant": 0
       },
       "real_time_factor_milli": {
-        "overall": 1654
+        "overall": 2065
       },
       "recall_basis_points": {
         "easy": 0,
@@ -35,18 +35,18 @@
         "small_distant": 0
       },
       "warm_start_wall_ms": {
-        "overall": 1
+        "overall": 2
       }
     },
     "metrics": {
       "cold_start_wall_ms": {
-        "overall": 605
+        "overall": 656
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 85048
+        "overall": 89502
       },
       "install_and_model_bytes": {
         "overall": 243344441
@@ -57,7 +57,7 @@
         "small_distant": 10000
       },
       "peak_rss_bytes": {
-        "overall": 246484992
+        "overall": 182353920
       },
       "precision_basis_points": {
         "easy": 10000,
@@ -65,7 +65,7 @@
         "small_distant": 10000
       },
       "real_time_factor_milli": {
-        "overall": 17009
+        "overall": 17900
       },
       "recall_basis_points": {
         "easy": 10000,
@@ -329,22 +329,22 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-harness",
-      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
-      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-metrics",
-      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
-      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "8896c166c69429dfeb5297eebe4b9833a90d880a"
+    "source_revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338"
   },
-  "policy_sha256": "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519",
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
   "profile": {
     "architecture": "x86_64",
@@ -362,13 +362,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 613
+          "overall": 693
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 84592
+          "overall": 62592
         },
         "install_and_model_bytes": {
           "overall": 243344441
@@ -379,7 +379,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 246444032
+          "overall": 181972992
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -387,7 +387,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 16918
+          "overall": 12518
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -395,7 +395,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 10
+          "overall": 16
         }
       },
       "processed_item_count": 12,
@@ -407,13 +407,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 621
+          "overall": 670
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 76776
+          "overall": 79179
         },
         "install_and_model_bytes": {
           "overall": 243344441
@@ -424,7 +424,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 246104064
+          "overall": 181903360
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -432,7 +432,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 15355
+          "overall": 15835
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -440,7 +440,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 14
+          "overall": 15
         }
       },
       "processed_item_count": 12,
@@ -452,13 +452,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 594
+          "overall": 576
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 100849
+          "overall": 91026
         },
         "install_and_model_bytes": {
           "overall": 243344441
@@ -469,7 +469,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 246181888
+          "overall": 181669888
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -477,7 +477,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 20169
+          "overall": 18205
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -497,13 +497,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 605
+          "overall": 552
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 106717
+          "overall": 107974
         },
         "install_and_model_bytes": {
           "overall": 243344441
@@ -514,7 +514,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 246484992
+          "overall": 181714944
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -522,7 +522,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 21343
+          "overall": 21594
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -542,13 +542,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 592
+          "overall": 656
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 85048
+          "overall": 89502
         },
         "install_and_model_bytes": {
           "overall": 243344441
@@ -559,7 +559,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 246231040
+          "overall": 182353920
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -567,7 +567,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 17009
+          "overall": 17900
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -575,7 +575,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 12
+          "overall": 11
         }
       },
       "processed_item_count": 12,

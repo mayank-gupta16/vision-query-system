@@ -2,13 +2,13 @@
   "aggregate": {
     "dispersion": {
       "cold_start_wall_ms": {
-        "overall": 30
+        "overall": 15
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 2590
+        "overall": 8068
       },
       "install_and_model_bytes": {
         "overall": 0
@@ -19,7 +19,7 @@
         "small_distant": 0
       },
       "peak_rss_bytes": {
-        "overall": 16384
+        "overall": 98304
       },
       "precision_basis_points": {
         "easy": 0,
@@ -27,7 +27,7 @@
         "small_distant": 0
       },
       "real_time_factor_milli": {
-        "overall": 518
+        "overall": 1614
       },
       "recall_basis_points": {
         "easy": 0,
@@ -35,18 +35,18 @@
         "small_distant": 0
       },
       "warm_start_wall_ms": {
-        "overall": 2
+        "overall": 1
       }
     },
     "metrics": {
       "cold_start_wall_ms": {
-        "overall": 640
+        "overall": 622
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 40851
+        "overall": 52537
       },
       "install_and_model_bytes": {
         "overall": 243344521
@@ -57,7 +57,7 @@
         "small_distant": 10000
       },
       "peak_rss_bytes": {
-        "overall": 255840256
+        "overall": 191393792
       },
       "precision_basis_points": {
         "easy": 8571,
@@ -65,7 +65,7 @@
         "small_distant": 10000
       },
       "real_time_factor_milli": {
-        "overall": 8170
+        "overall": 10507
       },
       "recall_basis_points": {
         "easy": 10000,
@@ -73,7 +73,7 @@
         "small_distant": 10000
       },
       "warm_start_wall_ms": {
-        "overall": 24
+        "overall": 18
       }
     }
   },
@@ -329,22 +329,22 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-harness",
-      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
-      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-metrics",
-      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
-      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "8896c166c69429dfeb5297eebe4b9833a90d880a"
+    "source_revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338"
   },
-  "policy_sha256": "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519",
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
   "profile": {
     "architecture": "x86_64",
@@ -362,13 +362,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 610
+          "overall": 617
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 56430
+          "overall": 52537
         },
         "install_and_model_bytes": {
           "overall": 243344521
@@ -379,7 +379,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 255803392
+          "overall": 191393792
         },
         "precision_basis_points": {
           "easy": 8571,
@@ -387,7 +387,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 11286
+          "overall": 10507
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -395,7 +395,7 @@
           "small_distant": 10000
         },
         "warm_start_wall_ms": {
-          "overall": 18
+          "overall": 19
         }
       },
       "processed_item_count": 12,
@@ -407,13 +407,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 591
+          "overall": 637
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 40851
+          "overall": 38832
         },
         "install_and_model_bytes": {
           "overall": 243344521
@@ -424,7 +424,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 255787008
+          "overall": 190844928
         },
         "precision_basis_points": {
           "easy": 8571,
@@ -432,52 +432,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 8170
-        },
-        "recall_basis_points": {
-          "easy": 10000,
-          "overall": 10000,
-          "small_distant": 10000
-        },
-        "warm_start_wall_ms": {
-          "overall": 25
-        }
-      },
-      "processed_item_count": 12,
-      "seed": 3253,
-      "status": "pass"
-    },
-    {
-      "failed_item_count": 0,
-      "failure_code": null,
-      "metrics": {
-        "cold_start_wall_ms": {
-          "overall": 668
-        },
-        "failure_rate_basis_points": {
-          "overall": 0
-        },
-        "frames_per_second_milli": {
-          "overall": 38590
-        },
-        "install_and_model_bytes": {
-          "overall": 243344521
-        },
-        "map50_basis_points": {
-          "easy": 10000,
-          "overall": 10000,
-          "small_distant": 10000
-        },
-        "peak_rss_bytes": {
-          "overall": 255803392
-        },
-        "precision_basis_points": {
-          "easy": 8571,
-          "overall": 9230,
-          "small_distant": 10000
-        },
-        "real_time_factor_milli": {
-          "overall": 7718
+          "overall": 7766
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -489,7 +444,7 @@
         }
       },
       "processed_item_count": 12,
-      "seed": 5081,
+      "seed": 3253,
       "status": "pass"
     },
     {
@@ -497,13 +452,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 788
+          "overall": 645
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 38261
+          "overall": 49010
         },
         "install_and_model_bytes": {
           "overall": 243344521
@@ -514,7 +469,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 255840256
+          "overall": 191348736
         },
         "precision_basis_points": {
           "easy": 8571,
@@ -522,7 +477,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 7652
+          "overall": 9802
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -530,7 +485,52 @@
           "small_distant": 10000
         },
         "warm_start_wall_ms": {
-          "overall": 24
+          "overall": 18
+        }
+      },
+      "processed_item_count": 12,
+      "seed": 5081,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 622
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 60605
+        },
+        "install_and_model_bytes": {
+          "overall": 243344521
+        },
+        "map50_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "peak_rss_bytes": {
+          "overall": 191295488
+        },
+        "precision_basis_points": {
+          "easy": 8571,
+          "overall": 9230,
+          "small_distant": 10000
+        },
+        "real_time_factor_milli": {
+          "overall": 12121
+        },
+        "recall_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "warm_start_wall_ms": {
+          "overall": 17
         }
       },
       "processed_item_count": 12,
@@ -542,13 +542,13 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 640
+          "overall": 606
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 58714
+          "overall": 62584
         },
         "install_and_model_bytes": {
           "overall": 243344521
@@ -559,7 +559,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 255827968
+          "overall": 191148032
         },
         "precision_basis_points": {
           "easy": 8571,
@@ -567,7 +567,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 11742
+          "overall": 12516
         },
         "recall_basis_points": {
           "easy": 10000,

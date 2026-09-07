@@ -6,7 +6,7 @@
         "maximum": 30000,
         "minimum": null,
         "status": "pass",
-        "value": 640
+        "value": 622
       }
     },
     "failure_rate_basis_points": {
@@ -24,7 +24,7 @@
         "maximum": null,
         "minimum": 5000,
         "status": "pass",
-        "value": 40851
+        "value": 52537
       }
     },
     "install_and_model_bytes": {
@@ -65,7 +65,7 @@
         "maximum": 2147483648,
         "minimum": null,
         "status": "pass",
-        "value": 255840256
+        "value": 191393792
       }
     },
     "precision_basis_points": {
@@ -97,7 +97,7 @@
         "maximum": null,
         "minimum": 1000,
         "status": "pass",
-        "value": 8170
+        "value": 10507
       }
     },
     "recall_basis_points": {
@@ -129,7 +129,7 @@
         "maximum": 5000,
         "minimum": null,
         "status": "pass",
-        "value": 24
+        "value": 18
       }
     }
   },
@@ -154,22 +154,22 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-harness",
-      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
-      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-metrics",
-      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
-      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "8896c166c69429dfeb5297eebe4b9833a90d880a"
+    "source_revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338"
   },
-  "policy_sha256": "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519",
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
   "profile": {
     "architecture": "x86_64",
@@ -181,7 +181,7 @@
     "operating_system": "Linux",
     "vcpu": 4
   },
-  "receipt_sha256": "468f1c4c094eea227cdcde7d9ccecaf397c44171bc4c70baa3824f3f66fbabf7",
+  "receipt_sha256": "0a1fb12a45a79a6ff3896310ae61ba6d8baa8d877a6ca8892bd4ec804e337da4",
   "regression": {},
   "schema": "visualworld.v02-evaluation-result",
   "schema_version": 1,
