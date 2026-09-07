@@ -24,6 +24,9 @@
   the deterministic vertical slice and bounded v0.1 golden/recovery/security
   regression-suite cost, plus the
   [combined 60-second application baseline](../benchmarks/v0.1-cpu-lite-baseline.md)
+  and the [v0.2 detector/runtime selection](../benchmarks/v0.2-detection-results.md),
+  which chooses `vehicle-detection-0201` at confidence 0.95 as an evaluation-only
+  baseline
 
 ## Established facts
 
@@ -44,7 +47,9 @@
   a universal lock with wheel-only installs for Linux x86_64 and macOS arm64,
   zero initial runtime dependencies, and a forced hash-verified PEP 517
   packaging lane.
-  Model and external dataset choices remain unresolved.
+  `vehicle-detection-0201` with OpenVINO 2026.3.1 is the selected v0.2
+  evaluation baseline; product model/runtime distribution and production data
+  remain unresolved.
 - ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
   signature-verified FFmpeg 9.0.1 build for the first Linux ingestion slice.
   Hostile decode is isolated and fail-closed; native hostile decode on macOS is
@@ -118,11 +123,9 @@
 
 ## Next priorities
 
-1. Execute detector/runtime research #21 against the frozen v0.2 thresholds and
-   receipt/waiver protocol from issue #64 and ADR-0006.
-2. Resolve sampling-recall, crop-value, and tracking research #22–#24 against
+1. Resolve sampling-recall, crop-value, and tracking research #22–#24 against
    the selected detector baseline before selecting shipped adapters.
-3. Decompose roadmap epic #30 into focused implementation issues only after its
+2. Decompose roadmap epic #30 into focused implementation issues only after its
    research thresholds and license boundaries are ratified.
-4. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

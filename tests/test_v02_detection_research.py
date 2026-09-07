@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import date
 from pathlib import Path
 from typing import cast
 
@@ -15,6 +16,7 @@ import run_v02_detection_benchmark as benchmark
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "fixtures" / "v02-detection-research"
+RESULT_ROOT = FIXTURE_ROOT / "results"
 
 
 def _json(path: Path) -> dict[str, object]:
@@ -198,6 +200,65 @@ def test_candidate_manifest_and_worker_result_fail_closed() -> None:
             seed=1729,
             annotation_sha256=hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
         )
+
+
+def test_published_machine_results_reproduce_frozen_gate_outputs() -> None:
+    raw_path = RESULT_ROOT / "raw-results.json"
+    raw_bytes = raw_path.read_bytes()
+    raw = cast(dict[str, object], json.loads(raw_bytes))
+    assert hashlib.sha256(raw_bytes).hexdigest() == (
+        "df3cdbf68e5bd40c861b2f374d65882a749f273bbb2848e36a283d3373cc4a2e"
+    )
+    assert b"/root" not in raw_bytes
+    provenance = cast(dict[str, object], raw["provenance"])
+    assert provenance["source_revision"] == "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd"
+    assert (
+        provenance["evaluation_harness_sha256"]
+        == hashlib.sha256(
+            (ROOT / "scripts" / "run_v02_detection_benchmark.py").read_bytes()
+        ).hexdigest()
+    )
+
+    policy, policy_sha256 = evaluator.load_policy(
+        ROOT / "fixtures" / "v02-evaluation" / "policy.json"
+    )
+    dataset, dataset_sha256 = evaluator.load_manifest(
+        FIXTURE_ROOT / "dataset-manifest.json", policy
+    )
+    outputs = cast(dict[str, dict[str, object]], raw["outputs"])
+    expected_status = {
+        "vehicle-detection-0200": "fail",
+        "vehicle-detection-0201": "pass",
+        "vehicle-detection-0202": "pass",
+    }
+    for short_name, status in expected_status.items():
+        candidate = f"{short_name}-fp32-openvino-2026.3.1"
+        output = outputs[candidate]
+        receipt_path = RESULT_ROOT / cast(str, output["receipt"])
+        receipt_bytes = receipt_path.read_bytes()
+        receipt = cast(dict[str, object], json.loads(receipt_bytes))
+        receipt_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
+        assert receipt_sha256 == output["receipt_sha256"]
+        validated = evaluator.validate_receipt(
+            receipt,
+            policy,
+            policy_sha256,
+            dataset,
+            dataset_sha256,
+        )
+        generated_gate = evaluator.evaluate(
+            policy,
+            validated,
+            baseline=None,
+            baseline_receipt_sha256=None,
+            receipt_sha256=receipt_sha256,
+            as_of=date(2026, 9, 7),
+        )
+        gate_path = RESULT_ROOT / cast(str, output["gate"])
+        gate_bytes = gate_path.read_bytes()
+        assert hashlib.sha256(gate_bytes).hexdigest() == output["gate_sha256"]
+        assert cast(dict[str, object], json.loads(gate_bytes)) == generated_gate
+        assert generated_gate["status"] == status
 
 
 def test_rgb24_primitives_are_deterministic_and_exact() -> None:

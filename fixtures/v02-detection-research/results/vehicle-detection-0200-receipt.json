@@ -1,0 +1,442 @@
+{
+  "aggregate": {
+    "dispersion": {
+      "cold_start_wall_ms": {
+        "overall": 2
+      },
+      "failure_rate_basis_points": {
+        "overall": 0
+      },
+      "frames_per_second_milli": {
+        "overall": 11084
+      },
+      "install_and_model_bytes": {
+        "overall": 0
+      },
+      "map50_basis_points": {
+        "easy": 0,
+        "overall": 0,
+        "small_distant": 0
+      },
+      "peak_rss_bytes": {
+        "overall": 122880
+      },
+      "precision_basis_points": {
+        "easy": 0,
+        "overall": 0,
+        "small_distant": 0
+      },
+      "real_time_factor_milli": {
+        "overall": 2216
+      },
+      "recall_basis_points": {
+        "easy": 0,
+        "overall": 0,
+        "small_distant": 0
+      },
+      "warm_start_wall_ms": {
+        "overall": 0
+      }
+    },
+    "metrics": {
+      "cold_start_wall_ms": {
+        "overall": 459
+      },
+      "failure_rate_basis_points": {
+        "overall": 0
+      },
+      "frames_per_second_milli": {
+        "overall": 224629
+      },
+      "install_and_model_bytes": {
+        "overall": 243382667
+      },
+      "map50_basis_points": {
+        "easy": 10000,
+        "overall": 10000,
+        "small_distant": 10000
+      },
+      "peak_rss_bytes": {
+        "overall": 230215680
+      },
+      "precision_basis_points": {
+        "easy": 6000,
+        "overall": 7142,
+        "small_distant": 10000
+      },
+      "real_time_factor_milli": {
+        "overall": 44925
+      },
+      "recall_basis_points": {
+        "easy": 10000,
+        "overall": 8333,
+        "small_distant": 6666
+      },
+      "warm_start_wall_ms": {
+        "overall": 4
+      }
+    }
+  },
+  "candidate": {
+    "artifacts": [
+      {
+        "commercial_use_allowed": true,
+        "executable_serialization": false,
+        "format": "openvino-ir",
+        "isolation": "isolated-worker",
+        "kind": "weights",
+        "license_expression": "Apache-2.0",
+        "name": "vehicle-detection-0200-fp32-xml",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "86ba23e80b27eb9149da911e5c023b108cb06e80/2023.0-fp32",
+        "sha256": "6a238f0d781922b66ebfb0556a8386762f7a151635897cbc07abb57692d565cc",
+        "source_url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0200/FP32/vehicle-detection-0200.xml",
+        "terms_url": "https://github.com/openvinotoolkit/open_model_zoo/blob/86ba23e80b27eb9149da911e5c023b108cb06e80/LICENSE",
+        "trust_remote_code": false,
+        "use": "vehicle-only object detection evaluation"
+      },
+      {
+        "commercial_use_allowed": true,
+        "executable_serialization": false,
+        "format": "openvino-ir",
+        "isolation": "isolated-worker",
+        "kind": "weights",
+        "license_expression": "Apache-2.0",
+        "name": "vehicle-detection-0200-fp32-bin",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "86ba23e80b27eb9149da911e5c023b108cb06e80/2023.0-fp32",
+        "sha256": "5955a5b4769d335d779b9a5052417a4a12b6e08c0146b1dba45a1df039147cc8",
+        "source_url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0200/FP32/vehicle-detection-0200.bin",
+        "terms_url": "https://github.com/openvinotoolkit/open_model_zoo/blob/86ba23e80b27eb9149da911e5c023b108cb06e80/LICENSE",
+        "trust_remote_code": false,
+        "use": "vehicle-only object detection evaluation"
+      },
+      {
+        "commercial_use_allowed": true,
+        "executable_serialization": false,
+        "format": "native-library",
+        "isolation": "isolated-worker",
+        "kind": "runtime",
+        "license_expression": "Apache-2.0",
+        "name": "openvino",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "759c5a6ab8c066af5f4bc5ebd04643706012a37d",
+        "sha256": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
+        "source_url": "https://files.pythonhosted.org/packages/73/f9/b40f5c5921cac3906f74911ca038d28e6a2905b632e37a51289137ae1817/openvino-2026.3.1-22476-cp313-cp313-manylinux_2_28_x86_64.whl",
+        "terms_url": "https://github.com/openvinotoolkit/openvino/blob/759c5a6ab8c066af5f4bc5ebd04643706012a37d/LICENSE",
+        "trust_remote_code": false,
+        "use": "offline CPU inference runtime closure"
+      },
+      {
+        "commercial_use_allowed": true,
+        "executable_serialization": false,
+        "format": "native-library",
+        "isolation": "isolated-worker",
+        "kind": "runtime",
+        "license_expression": "BSD-3-Clause",
+        "name": "numpy",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "dd88c0c19b54ad9ed3533224221285bf0873249a",
+        "sha256": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
+        "source_url": "https://files.pythonhosted.org/packages/3a/1b/3b16a9bc514a440a7a0883684111dcb1ef1aee960af2ca95da8fc775f124/numpy-2.5.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "terms_url": "https://github.com/numpy/numpy/blob/v2.5.3/LICENSE.txt",
+        "trust_remote_code": false,
+        "use": "offline CPU inference runtime closure"
+      },
+      {
+        "commercial_use_allowed": true,
+        "executable_serialization": false,
+        "format": "python-source",
+        "isolation": "isolated-worker",
+        "kind": "runtime",
+        "license_expression": "Apache-2.0",
+        "name": "openvino-telemetry",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "2025.2.0+sha256.bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+        "sha256": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+        "source_url": "https://files.pythonhosted.org/packages/3b/ac/5ab0ca0aa269ad3c73f7bfc3801b10e5f56f75a31bf68c1ae8bd51cf70a4/openvino_telemetry-2025.2.0-py3-none-any.whl",
+        "terms_url": "https://pypi.org/project/openvino-telemetry/2025.2.0/",
+        "trust_remote_code": false,
+        "use": "offline CPU inference runtime closure"
+      }
+    ],
+    "configuration_sha256": "4b0b7016ecde446a0d4b405db37a91d290e889434460476c0213e393b0cc5d20",
+    "name": "vehicle-detection-0200-fp32-openvino-2026.3.1"
+  },
+  "dataset_manifest_sha256": "7c41fda4b14553922727e31801478b569a17dda176dd85a7c2fe8789ae9c1599",
+  "evaluated_on": "2026-09-07",
+  "evaluation_phase": "selection",
+  "experiment": "detection",
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-detection-harness",
+      "revision": "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd",
+      "sha256": "fcc0c0bae8d57806f1fda5b4a59e352fca559e66a227233930d39b254435f99f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd/scripts/run_v02_detection_benchmark.py"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-detection-metrics",
+      "revision": "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd",
+      "sha256": "fcc0c0bae8d57806f1fda5b4a59e352fca559e66a227233930d39b254435f99f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd/scripts/run_v02_detection_benchmark.py"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd"
+  },
+  "policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
+  "policy_version": "v0.2-gates-1",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "gpu_present": false,
+    "kernel_release": "7.0.0-31-generic",
+    "memory_bytes": 16221585408,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "repetitions": [
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 461
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 192897
+        },
+        "install_and_model_bytes": {
+          "overall": 243382667
+        },
+        "map50_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "peak_rss_bytes": {
+          "overall": 229986304
+        },
+        "precision_basis_points": {
+          "easy": 6000,
+          "overall": 7142,
+          "small_distant": 10000
+        },
+        "real_time_factor_milli": {
+          "overall": 38579
+        },
+        "recall_basis_points": {
+          "easy": 10000,
+          "overall": 8333,
+          "small_distant": 6666
+        },
+        "warm_start_wall_ms": {
+          "overall": 4
+        }
+      },
+      "processed_item_count": 12,
+      "seed": 1729,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 451
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 231876
+        },
+        "install_and_model_bytes": {
+          "overall": 243382667
+        },
+        "map50_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "peak_rss_bytes": {
+          "overall": 229859328
+        },
+        "precision_basis_points": {
+          "easy": 6000,
+          "overall": 7142,
+          "small_distant": 10000
+        },
+        "real_time_factor_milli": {
+          "overall": 46375
+        },
+        "recall_basis_points": {
+          "easy": 10000,
+          "overall": 8333,
+          "small_distant": 6666
+        },
+        "warm_start_wall_ms": {
+          "overall": 4
+        }
+      },
+      "processed_item_count": 12,
+      "seed": 3253,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 462
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 213545
+        },
+        "install_and_model_bytes": {
+          "overall": 243382667
+        },
+        "map50_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "peak_rss_bytes": {
+          "overall": 229912576
+        },
+        "precision_basis_points": {
+          "easy": 6000,
+          "overall": 7142,
+          "small_distant": 10000
+        },
+        "real_time_factor_milli": {
+          "overall": 42709
+        },
+        "recall_basis_points": {
+          "easy": 10000,
+          "overall": 8333,
+          "small_distant": 6666
+        },
+        "warm_start_wall_ms": {
+          "overall": 6
+        }
+      },
+      "processed_item_count": 12,
+      "seed": 5081,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 459
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 245107
+        },
+        "install_and_model_bytes": {
+          "overall": 243382667
+        },
+        "map50_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "peak_rss_bytes": {
+          "overall": 230215680
+        },
+        "precision_basis_points": {
+          "easy": 6000,
+          "overall": 7142,
+          "small_distant": 10000
+        },
+        "real_time_factor_milli": {
+          "overall": 49021
+        },
+        "recall_basis_points": {
+          "easy": 10000,
+          "overall": 8333,
+          "small_distant": 6666
+        },
+        "warm_start_wall_ms": {
+          "overall": 4
+        }
+      },
+      "processed_item_count": 12,
+      "seed": 7919,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 459
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 224629
+        },
+        "install_and_model_bytes": {
+          "overall": 243382667
+        },
+        "map50_basis_points": {
+          "easy": 10000,
+          "overall": 10000,
+          "small_distant": 10000
+        },
+        "peak_rss_bytes": {
+          "overall": 230109184
+        },
+        "precision_basis_points": {
+          "easy": 6000,
+          "overall": 7142,
+          "small_distant": 10000
+        },
+        "real_time_factor_milli": {
+          "overall": 44925
+        },
+        "recall_basis_points": {
+          "easy": 10000,
+          "overall": 8333,
+          "small_distant": 6666
+        },
+        "warm_start_wall_ms": {
+          "overall": 6
+        }
+      },
+      "processed_item_count": 12,
+      "seed": 104729,
+      "status": "pass"
+    }
+  ],
+  "schema": "visualworld.v02-evaluation-receipt",
+  "schema_version": 1,
+  "split": "test",
+  "waiver": null
+}
