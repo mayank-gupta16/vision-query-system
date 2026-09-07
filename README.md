@@ -14,15 +14,14 @@ video -> observations -> tracklets -> entities -> world state -> queries
 
 ## Project status
 
-VisualWorld has an experimental Python package (`0.1.0a0`) with help/version
-commands, a reproducible developer toolchain, stable ingestion records/ports, and
-a bounded Linux-only local-video source/probe adapter plus deterministic exact-PTS
-frame sampling, original-pixel crop utilities, and a crash-recoverable local
-evidence CAS plus transactional local SQLite metadata. The library now provides
-a deterministic end-to-end ingestion path for fake/manual regions, including
-recovery and source deletion. Its user-facing CLI now exposes that deterministic
-fake/manual slice; real video CLI input, perception, and queries are not
-implemented yet.
+VisualWorld `0.1.0` is the first experimental source/wheel release. It provides
+help/version commands, a reproducible developer toolchain, stable ingestion
+records/ports, a bounded Linux-only local-video source/probe adapter,
+deterministic exact-PTS frame sampling, original-pixel crop utilities, a
+crash-recoverable local evidence CAS, and transactional local SQLite metadata.
+The library and CLI expose a deterministic end-to-end ingestion path for
+fake/manual regions, including recovery and source deletion. Real-video CLI
+input, perception, and queries are not implemented yet.
 See [current project state](docs/project/current.md) and the
 [roadmap](docs/project/roadmap.md) for the proposed sequencing and explicit
 non-goals.
@@ -68,9 +67,12 @@ store.
 
 Setup downloads checksum-pinned developer tools into ignored local directories;
 it does not change system Python or download models/media. The application has
-no third-party runtime dependencies. See [developer setup](docs/testing/development.md)
-for compatibility, build/audit commands, network boundaries, and exact versions.
-Nothing is published to a package registry by these commands.
+no third-party runtime dependencies. The reviewed wheel, source archive, SBOM,
+and checksums are published in the
+[v0.1.0 GitHub Release](https://github.com/mayank-gupta16/vision-query-system/releases/tag/v0.1.0).
+See [developer setup](docs/testing/development.md) for compatibility, build/audit
+commands, network boundaries, and exact versions. Nothing is published to a
+package registry by these commands or this release.
 
 ## Principles
 

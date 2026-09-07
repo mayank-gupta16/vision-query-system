@@ -1,9 +1,9 @@
 # Developer setup and validation
 
-The `0.1.0a0` package is an experimental ingestion foundation with a
-deterministic fake/manual CLI slice, not yet a real-video ingestion or query
-application. It has no third-party runtime packages and no publishing
-configuration.
+The `0.1.0` package is the first experimental ingestion-foundation release with
+a deterministic fake/manual CLI slice, not yet a real-video ingestion or query
+application. It has no third-party runtime packages. Release artifacts are
+published on GitHub; no package-registry publishing configuration exists.
 
 ## Supported environments
 

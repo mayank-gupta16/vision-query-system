@@ -1,7 +1,7 @@
 # Current project state
 
-- Stable version: none; experimental package version 0.1.0a0 is unreleased
-- Active GitHub milestone: v0.1 — Evidence-safe ingestion foundation
+- Stable version: 0.1.0, first released 2026-09-07 with experimental public APIs
+- Next GitHub milestone: v0.2 — Detection and short-term tracklets
 - Implementation: help/version package, deterministic developer and
   synthetic-fixture commands, version-1 ingestion domain records, the four v0.1
   ports with deterministic fakes, a bounded Linux local-video source adapter,
@@ -96,8 +96,10 @@
   reporting are enabled.
 - Non-provider secret patterns and secret validity checks remain disabled after
   an enable attempt; availability/requirements need follow-up.
-- The `VisualWorld Roadmap` Project is blocked because the current token lacks
-  `read:project`/`project` scopes.
+- The `VisualWorld Roadmap` Project remains blocked because the current token
+  lacks `read:project`/`project` scopes. Issue #41 records the named v0.1 release
+  waiver: owner `mayank-gupta16`, organizational-view-only risk, canonical
+  issue/milestone/documentation controls, and the scoped follow-up.
 - Bootstrap PR #39 merged into `main` and closed issue #1 after its
   `repository-policy` check passed. Classic branch protection on `main` requires
   PRs, that status check, and resolved conversations; force pushes and deletion
@@ -116,7 +118,9 @@
 
 ## Next priorities
 
-1. Cut and verify the v0.1 release through issue #20 after every prerequisite
-   closes.
-2. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+1. Start v0.2 by resolving detector/runtime, sampling-recall, crop-value, and
+   tracking research issues #21–#24 before selecting shipped adapters.
+2. Decompose roadmap epic #30 into focused implementation issues only after its
+   research thresholds and license boundaries are ratified.
+3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.
