@@ -165,8 +165,12 @@ For amended receipts, every artifact distinguishes upstream redistribution
 permission from project distribution approval. Project distribution remains
 `not-approved`. Runtime wheels carry a gate-enforced license-evidence object:
 the package metadata expression, the complete embedded license/notice path and
-digest inventory, and explicitly named bundled native components. The receipt
-also binds a verified runtime-closure digest. The pinned CPython build is exempt
+digest inventory, and explicitly named bundled native components. The amendment
+keeps the original permissive top-level candidate allowlist unchanged and uses
+separate exact allowlists for runtime artifacts and their bundled components;
+copyleft runtime-component evidence therefore cannot admit copyleft model or
+configuration artifacts. The receipt also binds a verified runtime-closure
+digest. The pinned CPython build is exempt
 from wheel evidence because its composite license and no-redistribution boundary
 are maintained in the interpreter ledger; its archive, executable, and
 location-independent runtime-tree digests remain part of the benchmark closure.

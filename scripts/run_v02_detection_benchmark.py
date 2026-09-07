@@ -192,7 +192,16 @@ def _read_regular(
             os.close(descriptor)
 
 
-def _create_private_directory(path: Path) -> None:
+def _close_once(descriptor: int) -> None:
+    """Release descriptor ownership without an unsafe close retry."""
+
+    with suppress(OSError):
+        os.close(descriptor)
+
+
+def _create_private_directory(path: Path) -> int:
+    """Create and return an anchored private directory descriptor."""
+
     if not path.is_absolute() or path == Path("/"):
         raise BenchmarkError("output_failed")
     descriptor = os.open("/", os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY)
@@ -200,6 +209,7 @@ def _create_private_directory(path: Path) -> None:
         parts = path.parts[1:]
         for index, part in enumerate(parts):
             final = index == len(parts) - 1
+            created = False
             try:
                 child = os.open(
                     part,
@@ -211,8 +221,7 @@ def _create_private_directory(path: Path) -> None:
                     os.mkdir(part, 0o700, dir_fd=descriptor)
                 except FileExistsError as error:
                     raise BenchmarkError("output_failed") from error
-                if final:
-                    return
+                created = True
                 child = os.open(
                     part,
                     os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
@@ -220,17 +229,19 @@ def _create_private_directory(path: Path) -> None:
                 )
             except OSError as error:
                 raise BenchmarkError("output_exists" if final else "output_failed") from error
-            else:
-                if final:
-                    os.close(child)
+            if final:
+                if not created:
+                    _close_once(child)
                     raise BenchmarkError("output_exists")
-            os.close(descriptor)
+                return child
+            previous = descriptor
             descriptor = child
+            _close_once(previous)
         raise BenchmarkError("output_failed")
     except FileNotFoundError as error:
         raise BenchmarkError("output_failed") from error
     finally:
-        os.close(descriptor)
+        _close_once(descriptor)
 
 
 def _terminate(process: subprocess.Popen[bytes], code: str) -> None:
@@ -1716,15 +1727,18 @@ def _profile() -> dict[str, object]:
     }
 
 
-def _write_new(path: Path, value: object) -> str:
+def _write_new(root_descriptor: int, name: str, value: object) -> str:
+    path = PurePosixPath(name)
+    if path.is_absolute() or len(path.parts) != 1 or path.name != name or "\\" in name:
+        raise BenchmarkError("output_failed")
     raw = json.dumps(value, allow_nan=False, indent=2, sort_keys=True).encode("ascii") + b"\n"
     descriptor = -1
     try:
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         descriptor = os.open(
-            path,
+            name,
             os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
             0o600,
+            dir_fd=root_descriptor,
         )
         written = 0
         while written < len(raw):
@@ -1738,18 +1752,17 @@ def _write_new(path: Path, value: object) -> str:
     return _sha256_bytes(raw)
 
 
-def run_benchmark(
+def _run_benchmark(
     dataset_root: Path,
     models_root: Path,
     base_python: Path,
     wheels_root: Path,
-    output_root: Path,
+    output_descriptor: int,
     source_revision: str,
     evaluated_on: str,
 ) -> dict[str, object]:
     if _REVISION.fullmatch(source_revision) is None:
         raise BenchmarkError("invalid_source_revision")
-    _create_private_directory(output_root)
     try:
         import evaluate_v02_gates as gate_evaluator
     except ImportError as error:
@@ -1776,7 +1789,7 @@ def run_benchmark(
     test_items = _items(annotations, "test")
     wheels = _verify_runtime_wheels(runtime, wheels_root)
     python_attestation = _verify_base_python(base_python, runtime)
-    temporary = tempfile.TemporaryDirectory(prefix=".runtime-", dir=output_root)
+    temporary = tempfile.TemporaryDirectory(prefix="visualworld-v02-runtime-")
     runtime_root = Path(temporary.name) / "site-packages"
     environment_sha256 = _extract_runtime(wheels, runtime_root)
     runtime_closure_sha256 = _sha256_bytes(
@@ -1940,7 +1953,7 @@ def run_benchmark(
             "waiver": None,
         }
         receipt_name = f"{model_short}-receipt.json"
-        receipt_sha256 = _write_new(output_root / receipt_name, receipt)
+        receipt_sha256 = _write_new(output_descriptor, receipt_name, receipt)
         try:
             validated_receipt = gate_evaluator.validate_receipt(
                 receipt,
@@ -1960,7 +1973,7 @@ def run_benchmark(
         except gate_evaluator.EvaluationError as error:
             raise BenchmarkError("generated_receipt_invalid") from error
         gate_name = f"{model_short}-gate.json"
-        gate_sha256 = _write_new(output_root / gate_name, gate_result)
+        gate_sha256 = _write_new(output_descriptor, gate_name, gate_result)
         raw_candidates[name] = {
             "calibration": {
                 "grid": calibration_grid,
@@ -2003,9 +2016,33 @@ def run_benchmark(
         "schema": "visualworld.v02-detection-raw-results",
         "schema_version": 1,
     }
-    raw_sha256 = _write_new(output_root / "raw-results.json", raw_result)
+    raw_sha256 = _write_new(output_descriptor, "raw-results.json", raw_result)
     temporary.cleanup()
     return {"outputs": output_index, "raw_results_sha256": raw_sha256, "status": "pass"}
+
+
+def run_benchmark(
+    dataset_root: Path,
+    models_root: Path,
+    base_python: Path,
+    wheels_root: Path,
+    output_root: Path,
+    source_revision: str,
+    evaluated_on: str,
+) -> dict[str, object]:
+    output_descriptor = _create_private_directory(output_root)
+    try:
+        return _run_benchmark(
+            dataset_root,
+            models_root,
+            base_python,
+            wheels_root,
+            output_descriptor,
+            source_revision,
+            evaluated_on,
+        )
+    finally:
+        _close_once(output_descriptor)
 
 
 def main() -> int:

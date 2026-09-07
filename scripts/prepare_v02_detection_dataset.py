@@ -16,7 +16,7 @@ import sys
 import tempfile
 import time
 from contextlib import suppress
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import NoReturn, TextIO, cast
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -157,8 +157,15 @@ def _regular_file(path: Path, *, maximum: int) -> bytes:
             os.close(descriptor)
 
 
-def _create_private_directory(path: Path) -> None:
-    """Create an absolute directory without following any path-component links."""
+def _close_once(descriptor: int) -> None:
+    """Release descriptor ownership without an unsafe close retry."""
+
+    with suppress(OSError):
+        os.close(descriptor)
+
+
+def _create_private_directory(path: Path) -> int:
+    """Create and return an anchored private directory descriptor."""
 
     if not path.is_absolute() or path == Path("/"):
         raise PreparationError("output_failed")
@@ -167,6 +174,7 @@ def _create_private_directory(path: Path) -> None:
         parts = path.parts[1:]
         for index, part in enumerate(parts):
             final = index == len(parts) - 1
+            created = False
             try:
                 child = os.open(
                     part,
@@ -178,8 +186,7 @@ def _create_private_directory(path: Path) -> None:
                     os.mkdir(part, 0o700, dir_fd=descriptor)
                 except FileExistsError as error:
                     raise PreparationError("output_failed") from error
-                if final:
-                    return
+                created = True
                 child = os.open(
                     part,
                     os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
@@ -187,17 +194,19 @@ def _create_private_directory(path: Path) -> None:
                 )
             except OSError as error:
                 raise PreparationError("output_exists" if final else "output_failed") from error
-            else:
-                if final:
-                    os.close(child)
+            if final:
+                if not created:
+                    _close_once(child)
                     raise PreparationError("output_exists")
-            os.close(descriptor)
+                return child
+            previous = descriptor
             descriptor = child
+            _close_once(previous)
         raise PreparationError("output_failed")
     except FileNotFoundError as error:
         raise PreparationError("output_failed") from error
     finally:
-        os.close(descriptor)
+        _close_once(descriptor)
 
 
 def _terminate(process: subprocess.Popen[bytes]) -> None:
@@ -545,27 +554,49 @@ def _decode(source: Path, expected_width: int, expected_height: int) -> tuple[in
     return width, height, pixels
 
 
-def _write_new(path: Path, raw: bytes) -> None:
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    descriptor = -1
+def _write_new(root_descriptor: int, relative_path: str, raw: bytes) -> None:
+    path = PurePosixPath(relative_path)
+    if path.is_absolute() or not path.name or any(part in {"", ".", ".."} for part in path.parts):
+        raise PreparationError("output_failed")
+    directory_descriptor = os.dup(root_descriptor)
     try:
+        for part in path.parts[:-1]:
+            try:
+                child = os.open(
+                    part,
+                    os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=directory_descriptor,
+                )
+            except FileNotFoundError:
+                os.mkdir(part, 0o700, dir_fd=directory_descriptor)
+                child = os.open(
+                    part,
+                    os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=directory_descriptor,
+                )
+            previous = directory_descriptor
+            directory_descriptor = child
+            _close_once(previous)
         descriptor = os.open(
-            path,
+            path.name,
             os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
             0o600,
+            dir_fd=directory_descriptor,
         )
-        written = 0
-        while written < len(raw):
-            written += os.write(descriptor, raw[written:])
-        os.fsync(descriptor)
+        try:
+            written = 0
+            while written < len(raw):
+                written += os.write(descriptor, raw[written:])
+            os.fsync(descriptor)
+        finally:
+            _close_once(descriptor)
     except OSError as error:
         raise PreparationError("output_failed") from error
     finally:
-        if descriptor >= 0:
-            os.close(descriptor)
+        _close_once(directory_descriptor)
 
 
-def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
+def _prepare(source_root: Path, output_descriptor: int) -> dict[str, object]:
     manifest, manifest_sha256 = _load_json(SOURCE_MANIFEST)
     if (
         set(manifest)
@@ -649,8 +680,6 @@ def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
     sources_value = manifest.get("sources")
     if not isinstance(sources_value, list) or len(sources_value) != 10:
         raise PreparationError("invalid_manifest")
-    _create_private_directory(output_root)
-
     annotations: list[dict[str, object]] = []
     seen: set[str] = set()
     split_counts = {"calibration": 0, "test": 0}
@@ -759,7 +788,7 @@ def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
                 limits,
             )
             relative_path = f"{split}/{item_id}.ppm"
-            _write_new(output_root / relative_path, frame)
+            _write_new(output_descriptor, relative_path, frame)
             annotations.append(
                 {
                     "frame_sha256": _sha256_bytes(frame),
@@ -782,12 +811,20 @@ def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
         "source_manifest_sha256": manifest_sha256,
     }
     serialized = json.dumps(lock, allow_nan=False, indent=2, sort_keys=True).encode("ascii") + b"\n"
-    _write_new(output_root / "annotations.generated.json", serialized)
+    _write_new(output_descriptor, "annotations.generated.json", serialized)
     if ANNOTATION_LOCK.exists():
         expected, _ = _load_json(ANNOTATION_LOCK)
         if _canonical(expected) != _canonical(lock):
             raise PreparationError("annotation_lock_mismatch")
     return lock
+
+
+def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
+    output_descriptor = _create_private_directory(output_root)
+    try:
+        return _prepare(source_root, output_descriptor)
+    finally:
+        _close_once(output_descriptor)
 
 
 def main() -> int:

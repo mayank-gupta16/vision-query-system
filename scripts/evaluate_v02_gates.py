@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_POLICY = ROOT / "fixtures" / "v02-evaluation" / "policy.json"
 PINNED_POLICY_SHA256 = "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb"
-PINNED_POLICY_V2_SHA256 = "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519"
+PINNED_POLICY_V2_SHA256 = "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f"
 _MAX_JSON_BYTES = 1024 * 1024
 _MAX_INTEGER = (1 << 63) - 1
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
@@ -344,6 +344,8 @@ def validate_policy(value: object) -> dict[str, object]:
     }
     if version == "v0.2-gates-2":
         fields |= {
+            "allowed_bundled_component_license_expressions",
+            "allowed_runtime_license_expressions",
             "required_runtime_license_evidence_sha256",
             "runtime_license_evidence_exempt_sha256",
         }
@@ -366,6 +368,14 @@ def validate_policy(value: object) -> dict[str, object]:
     ):
         _fail(code)
     if version == "v0.2-gates-2":
+        bundled_licenses = _string_list(
+            policy["allowed_bundled_component_license_expressions"], code
+        )
+        runtime_licenses = _string_list(policy["allowed_runtime_license_expressions"], code)
+        if bundled_licenses != sorted(bundled_licenses) or runtime_licenses != sorted(
+            runtime_licenses
+        ):
+            _fail(code)
         evidence = _mapping(policy["required_runtime_license_evidence_sha256"], code)
         exemptions = _string_list(policy["runtime_license_evidence_exempt_sha256"], code)
         if len(evidence) != 3 or len(exemptions) != 1:
@@ -491,7 +501,8 @@ def load_policy(path: Path = DEFAULT_POLICY) -> tuple[dict[str, object], str]:
         amendment = _exact(
             loaded,
             {
-                "allowed_candidate_license_expressions",
+                "allowed_bundled_component_license_expressions",
+                "allowed_runtime_license_expressions",
                 "amended_on",
                 "amendment_scope",
                 "base_policy_sha256",
@@ -517,8 +528,11 @@ def load_policy(path: Path = DEFAULT_POLICY) -> tuple[dict[str, object], str]:
             _fail("invalid_policy")
         policy = validate_policy(base_loaded)
         amended = cast(dict[str, object], json.loads(json.dumps(policy)))
-        amended["allowed_candidate_license_expressions"] = amendment[
-            "allowed_candidate_license_expressions"
+        amended["allowed_bundled_component_license_expressions"] = amendment[
+            "allowed_bundled_component_license_expressions"
+        ]
+        amended["allowed_runtime_license_expressions"] = amendment[
+            "allowed_runtime_license_expressions"
         ]
         amended["policy_version"] = amendment["policy_version"]
         amended["required_runtime_license_evidence_sha256"] = amendment[
@@ -690,7 +704,8 @@ def _metric_map(
 
 def _validate_license_evidence(
     value: object,
-    allowed_licenses: list[str],
+    allowed_metadata_licenses: list[str],
+    allowed_bundled_licenses: list[str],
     code: str,
 ) -> dict[str, object]:
     evidence = _exact(
@@ -699,7 +714,7 @@ def _validate_license_evidence(
         code,
     )
     metadata_expression = evidence["metadata_license_expression"]
-    if metadata_expression is not None and metadata_expression not in allowed_licenses:
+    if metadata_expression is not None and metadata_expression not in allowed_metadata_licenses:
         _fail(code)
     bundled = evidence["bundled_components"]
     notices = evidence["notice_files"]
@@ -714,7 +729,7 @@ def _validate_license_evidence(
     for raw_component in bundled:
         component = _exact(raw_component, {"license_expression", "name"}, code)
         component_names.append(_text(component["name"], code, maximum=128))
-        if component["license_expression"] not in allowed_licenses:
+        if component["license_expression"] not in allowed_bundled_licenses:
             _fail(code)
     if len(component_names) != len(set(component_names)):
         _fail(code)
@@ -752,7 +767,15 @@ def _validate_candidate(
         _fail(code)
     selected_artifacts: list[dict[str, object]] = []
     names: list[str] = []
-    allowed_licenses = cast(list[str], policy["allowed_candidate_license_expressions"])
+    allowed_candidate_licenses = cast(list[str], policy["allowed_candidate_license_expressions"])
+    allowed_runtime_licenses = cast(
+        list[str],
+        policy.get("allowed_runtime_license_expressions", allowed_candidate_licenses),
+    )
+    allowed_bundled_licenses = cast(
+        list[str],
+        policy.get("allowed_bundled_component_license_expressions", allowed_candidate_licenses),
+    )
     base_fields = {
         "commercial_use_allowed",
         "executable_serialization",
@@ -792,7 +815,12 @@ def _validate_candidate(
         }:
             _fail(code)
         if (
-            artifact["license_expression"] not in allowed_licenses
+            artifact["license_expression"]
+            not in (
+                allowed_runtime_licenses
+                if version_two and artifact["kind"] == "runtime"
+                else allowed_candidate_licenses
+            )
             or artifact["commercial_use_allowed"] is not True
             or artifact["redistribution_allowed"] is not True
             or artifact["trust_remote_code"] is not False
@@ -813,7 +841,10 @@ def _validate_candidate(
                     if "license_evidence" not in artifact:
                         _fail(code)
                     evidence = _validate_license_evidence(
-                        artifact["license_evidence"], allowed_licenses, code
+                        artifact["license_evidence"],
+                        allowed_runtime_licenses,
+                        allowed_bundled_licenses,
+                        code,
                     )
                     if (
                         hashlib.sha256(_canonical(evidence, code)).hexdigest()

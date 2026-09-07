@@ -1,17 +1,14 @@
 {
-  "allowed_candidate_license_expressions": [
-    "0BSD",
-    "Apache-2.0",
-    "BSD-2-Clause",
+  "allowed_bundled_component_license_expressions": [
     "BSD-3-Clause",
-    "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
     "BSD-3-Clause-Open-MPI",
-    "CC0-1.0",
     "GPL-3.0-or-later WITH GCC-exception-3.1",
-    "LGPL-2.1-or-later",
-    "LicenseRef-python-build-standalone-composite-20260825",
-    "MIT",
-    "Zlib"
+    "LGPL-2.1-or-later"
+  ],
+  "allowed_runtime_license_expressions": [
+    "Apache-2.0",
+    "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+    "LicenseRef-python-build-standalone-composite-20260825"
   ],
   "amended_on": "2026-09-07",
   "amendment_scope": "license evidence schema only; all datasets, metrics, numeric gates, repetitions, statistics, profiles, and waivers are inherited unchanged",

@@ -381,6 +381,31 @@ def test_output_directory_creation_rejects_final_and_ancestor_links(
     assert not (ancestor_target / "child").exists()
 
 
+@pytest.mark.parametrize("module", [preparation, benchmark])
+def test_output_writes_remain_anchored_after_root_path_replacement(
+    module: object,
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "output"
+    moved = tmp_path / "moved"
+    redirected = tmp_path / "redirected"
+    redirected.mkdir()
+    descriptor = module._create_private_directory(output)  # type: ignore[attr-defined]
+    try:
+        output.rename(moved)
+        output.symlink_to(redirected, target_is_directory=True)
+        if module is preparation:
+            preparation._write_new(descriptor, "nested/value.bin", b"anchored")
+            assert (moved / "nested" / "value.bin").read_bytes() == b"anchored"
+            assert not (redirected / "nested").exists()
+        else:
+            benchmark._write_new(descriptor, "result.json", {"anchored": True})
+            assert _json(moved / "result.json") == {"anchored": True}
+            assert not (redirected / "result.json").exists()
+    finally:
+        module._close_once(descriptor)  # type: ignore[attr-defined]
+
+
 def test_benchmark_cli_redacts_paths_and_survives_broken_stdout(tmp_path: Path) -> None:
     script = ROOT / "scripts" / "run_v02_detection_benchmark.py"
     marker = "private-token-never-print"
@@ -480,11 +505,10 @@ def test_v2_policy_enforces_bound_runtime_license_evidence() -> None:
     original, _ = evaluator.load_policy()
     inherited = cast(dict[str, object], json.loads(json.dumps(policy)))
     inherited["policy_version"] = original["policy_version"]
+    inherited.pop("allowed_bundled_component_license_expressions")
+    inherited.pop("allowed_runtime_license_expressions")
     inherited.pop("required_runtime_license_evidence_sha256")
     inherited.pop("runtime_license_evidence_exempt_sha256")
-    inherited["allowed_candidate_license_expressions"] = original[
-        "allowed_candidate_license_expressions"
-    ]
     assert inherited == original
     manifest = _json(FIXTURE_ROOT / "candidates.json")
     candidates = cast(list[dict[str, object]], manifest["candidates"])
@@ -496,6 +520,21 @@ def test_v2_policy_enforces_bound_runtime_license_evidence() -> None:
         "runtime_closure_sha256": "2" * 64,
     }
     evaluator._validate_candidate(candidate, policy, date(2026, 9, 7), "invalid_receipt")
+    for copyleft_expression in (
+        "GPL-3.0-or-later WITH GCC-exception-3.1",
+        "LGPL-2.1-or-later",
+    ):
+        top_level_copyleft = cast(dict[str, object], json.loads(json.dumps(candidate)))
+        top_level_artifacts = cast(list[dict[str, object]], top_level_copyleft["artifacts"])
+        model_weight = next(
+            artifact for artifact in top_level_artifacts if artifact["kind"] == "weights"
+        )
+        model_weight["license_expression"] = copyleft_expression
+        with pytest.raises(evaluator.EvaluationError, match="invalid_receipt"):
+            evaluator._validate_candidate(
+                top_level_copyleft, policy, date(2026, 9, 7), "invalid_receipt"
+            )
+
     changed = cast(dict[str, object], json.loads(json.dumps(candidate)))
     artifacts = cast(list[dict[str, object]], changed["artifacts"])
     numpy_artifact = next(artifact for artifact in artifacts if artifact["name"] == "numpy")
