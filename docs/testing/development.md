@@ -1,8 +1,9 @@
 # Developer setup and validation
 
-The `0.1.0a0` package is an experimental ingestion foundation, not yet an
-end-to-end video ingestion or query application. It has no third-party runtime
-packages and no publishing configuration.
+The `0.1.0a0` package is an experimental ingestion foundation with a
+deterministic fake/manual CLI slice, not yet a real-video ingestion or query
+application. It has no third-party runtime packages and no publishing
+configuration.
 
 ## Supported environments
 
@@ -70,7 +71,8 @@ Build output goes to fresh ignored `artifacts/build-*` directories with exact
 sizes/hashes printed. Runtime-only CycloneDX 1.6 inventory comes from the newly
 installed wheel, excluding dev tools and the external interpreter. The runtime
 must contain only `visualworld-engine`, import outside the checkout, and pass
-module/console help/version checks. No upload step exists.
+module/console help/version/probe plus the exact-crop CLI quickstart. No upload
+step exists.
 
 Forced PEP 517 and `--require-hashes` are mandatory: uv's bundled fast path does
 not exercise the external backend hash. The negative control must report a hash
@@ -194,6 +196,23 @@ record/deletion identifiers, and pixel bytes. The combined 60-second application
 baseline remains assigned to the v0.1 benchmark issue. The reviewed CPU-LITE
 result is retained in the
 [machine-readable receipt](../research/evidence-safe-coordinator-cpu-lite-receipt.json).
+
+The deterministic CLI acceptance runs each user-visible command in a fresh
+process and checks canonical success/error JSON, stable exit behavior, the
+byte-exact default RGB24 crop, path/control-sequence redaction, process wall
+time, child peak RSS, and store disk use:
+
+```sh
+PYTHONPATH=src artifacts/toolchain/3.13.15/dev/bin/python \
+  scripts/run_cli_acceptance.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/cli-acceptance.json
+```
+
+It uses only the built-in 2×2 deterministic fixture and omits store paths,
+record identifiers, and pixel bytes from its receipt. The reviewed CPU-LITE
+result is retained in the
+[machine-readable receipt](../research/cli-vertical-slice-cpu-lite-receipt.json).
 
 ## Updates
 

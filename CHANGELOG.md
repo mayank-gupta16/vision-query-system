@@ -4,6 +4,11 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add the deterministic v0.1 CLI vertical slice with `probe`, fake/manual
+  `ingest`, `inspect-run`, run-owned `list-samples`, and exact RGB24
+  `show-evidence`; data commands use canonical JSON, stable exit codes,
+  path/input redaction, checked-in goldens, a fresh-wheel quickstart, and
+  CPU-LITE evidence.
 - Add deterministic evidence-safe ingestion coordination with fake/manual
   original-pixel regions, staged commit markers, crash-boundary retry, orphan
   repair, reference-aware cascade deletion, redacted stage timings, and a

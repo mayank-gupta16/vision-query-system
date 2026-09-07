@@ -11,18 +11,22 @@
   and a private transactional SQLite WorldStore with migration and run/intents
   coordination primitives, plus a deterministic coordinator for bounded
   fake/manual original-pixel ingestion, crash recovery, orphan repair, and
-  reference-aware source deletion
+  reference-aware source deletion, exposed through a canonical-JSON CLI for
+  probing the built-in fixture, ingesting a manual box, inspecting run-owned
+  samples, and exporting exact RGB24 evidence
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
-  CPU-LITE generated fixtures
+  CPU-LITE generated fixtures, plus fresh-process CLI wall/RSS/disk overhead for
+  the deterministic vertical slice
 
 ## Established facts
 
 - The product name is VisualWorld; the repository remains
   `mayank-gupta16/vision-query-system` pending a naming decision.
 - The first installable package is `visualworld-engine`, import/CLI `visualworld`.
-  Only help/version behavior exists; no video or query functionality is claimed.
+  Its v0.1 CLI exposes only the deterministic built-in fake/manual ingestion
+  slice; no real-video CLI input, model inference, or query behavior is claimed.
   ADR-0002 governs its toolchain, exact lock, and four Linux/macOS Python lanes.
 - The architecture separates observations, tracklets, persistent entities,
   temporal claims, evidence, uncertainty, and queries behind stable ports.
@@ -95,17 +99,18 @@
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
 - The first end-to-end library path requires caller-supplied RGB24 pixels and
-  manual/fake regions; its user-facing CLI is not implemented. No query engine,
-  real perception model adapter, or combined 60-second application benchmark
-  exists. The local-video adapter is Linux x86_64 only and tests generate only
-  the approved tiny synthetic-v1 media plus temporary metadata/archive fixtures.
+  manual/fake regions; the CLI deliberately supplies only a built-in 2×2 fixture.
+  No query engine, real perception model adapter, real-video CLI input, or
+  combined 60-second application benchmark exists. The local-video adapter is
+  Linux x86_64 only and tests generate only the approved tiny synthetic-v1 media
+  plus temporary metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,
   runtimes, codecs, services, or other third-party material.
 
 ## Next priorities
 
-1. Expose the v0.1 fake/manual ingestion slice through the inspectable CLI in
-   issue dependency order; preserve the root package's zero runtime dependencies
-   by keeping media dependencies adapter-local.
-2. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+1. Add issue #18's end-to-end golden, recovery, and hostile-input regressions for
+   the now-exposed CLI/store vertical slice.
+2. Establish issue #19's combined CPU-LITE application harness and baseline.
+3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

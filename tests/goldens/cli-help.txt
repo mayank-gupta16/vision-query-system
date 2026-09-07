@@ -1,0 +1,20 @@
+usage: visualworld [-h] [--version]
+                   {probe,ingest,inspect-run,list-samples,show-evidence} ...
+
+VisualWorld deterministic local evidence CLI.
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+
+commands:
+  {probe,ingest,inspect-run,list-samples,show-evidence}
+    probe               inspect the built-in deterministic RGB24 fixture
+    ingest              ingest one manual region from the deterministic
+                        fixture
+    inspect-run         read one run manifest
+    list-samples        list frame and evidence records owned by one run
+    show-evidence       export exact packed RGB24 evidence without terminal
+                        pixel output
+
+Commands emit canonical JSON; evidence bytes are written only with --output.

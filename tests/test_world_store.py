@@ -8,6 +8,7 @@ import inspect
 import os
 import sqlite3
 import stat
+import threading
 import traceback
 from collections.abc import Callable, Iterator
 from contextlib import closing, contextmanager
@@ -350,10 +351,193 @@ def test_preparing_run_batches_remain_hidden_until_atomic_finalization(tmp_path:
     store.finalize_run(committed)
 
     assert store.get(preparing.run_id) == committed
+    assert store.list_run_frames(preparing.run_id, limit=3) == frames
+    assert store.list_run_evidence(preparing.run_id, limit=3) == tuple(
+        sorted(evidence, key=lambda item: item.evidence_id)
+    )
     assert store.list_frames(source.source_id, stream_index=0, limit=3) == frames
     assert store.list_evidence(frames[0].frame_id, limit=2) == evidence[:1]
     assert store.list_artifact_intents(preparing.run_id) == ()
     assert store.pending_runs() == ()
+
+
+def test_run_owned_reads_are_ordered_paged_and_reject_hidden_runs(tmp_path: Path) -> None:
+    source, frames, evidence, preparing, committed = _records()
+    store = _store(tmp_path)
+    store.commit((source, preparing))
+    store.commit_for_run(preparing.run_id, (*reversed(frames), *reversed(evidence)))
+
+    for method in (store.list_run_frames, store.list_run_evidence):
+        with pytest.raises(PortError) as hidden:
+            method(preparing.run_id, limit=3)
+        assert hidden.value.code is PortErrorCode.NOT_FOUND
+
+    store.finalize_run(committed)
+
+    assert store.list_run_frames(preparing.run_id, limit=2) == frames[:2]
+    assert (
+        store.list_run_frames(
+            preparing.run_id,
+            after_stream_index=frames[1].stream_index,
+            after_decode_index=frames[1].decode_index,
+            limit=2,
+        )
+        == frames[2:]
+    )
+    ordered_evidence = tuple(sorted(evidence, key=lambda item: item.evidence_id))
+    assert store.list_run_evidence(preparing.run_id, limit=2) == ordered_evidence[:2]
+    assert (
+        store.list_run_evidence(
+            preparing.run_id,
+            after_evidence_id=ordered_evidence[1].evidence_id,
+            limit=2,
+        )
+        == ordered_evidence[2:]
+    )
+
+    with pytest.raises(PortError) as invalid_run:
+        store.list_run_frames("run_invalid\x1b[31m", limit=1)
+    assert invalid_run.value.code is PortErrorCode.INVALID_REQUEST
+    with pytest.raises(PortError) as invalid_cursor:
+        store.list_run_evidence(
+            preparing.run_id,
+            after_evidence_id="../escape",
+            limit=1,
+        )
+    assert invalid_cursor.value.code is PortErrorCode.INVALID_REQUEST
+
+
+def test_run_frame_cursor_is_complete_and_deterministic_across_streams(tmp_path: Path) -> None:
+    time_base = TimeBase("1", "1000")
+    source = Source.create(
+        Fingerprint("b1" * 32, "10"),
+        (
+            SourceStream(1, 16, 12, 0, time_base),
+            SourceStream(0, 16, 12, 0, time_base),
+        ),
+    )
+    frames = (
+        FrameRef.create(source.source_id, 0, "0", MediaTime("0", time_base)),
+        FrameRef.create(source.source_id, 1, "0", MediaTime("0", time_base)),
+    )
+    sampling = Sampling(Rational("5", "1"))
+    preparing = RunManifest.create(source.source_id, (), sampling, "preparing")
+    committed = RunManifest.create(
+        source.source_id,
+        (),
+        sampling,
+        "committed",
+        RunOutputs("2", hashlib.sha256(b"two-stream-index").hexdigest()),
+    )
+    store = _store(tmp_path)
+    store.commit((source, preparing))
+    store.commit_for_run(preparing.run_id, tuple(reversed(frames)))
+    store.finalize_run(committed)
+
+    first = store.list_run_frames(preparing.run_id, limit=1)
+    second = store.list_run_frames(
+        preparing.run_id,
+        after_stream_index=first[-1].stream_index,
+        after_decode_index=first[-1].decode_index,
+        limit=1,
+    )
+
+    assert first + second == frames
+    with pytest.raises(PortError) as partial_cursor:
+        store.list_run_frames(preparing.run_id, after_decode_index="0", limit=1)
+    assert partial_cursor.value.code is PortErrorCode.INVALID_REQUEST
+    with pytest.raises(PortError) as other_partial_cursor:
+        store.list_run_frames(preparing.run_id, after_stream_index=0, limit=1)
+    assert other_partial_cursor.value.code is PortErrorCode.INVALID_REQUEST
+
+
+@pytest.mark.parametrize("record_kind", ["frame", "evidence"])
+def test_run_owned_reads_hold_one_snapshot_across_concurrent_source_deletion(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    record_kind: str,
+) -> None:
+    source, frames, evidence, preparing, committed = _records()
+    store = _store(tmp_path)
+    store.commit((source, preparing))
+    store.commit_for_run(preparing.run_id, (*frames, *evidence))
+    store.finalize_run(committed)
+    reached_snapshot = threading.Event()
+    resume = threading.Event()
+    original = LocalWorldStore._committed_run
+
+    def pause_after_manifest(
+        selected: LocalWorldStore,
+        connection: sqlite3.Connection,
+        run_id: str,
+        operation: str,
+    ) -> RunManifest:
+        manifest = original(selected, connection, run_id, operation)
+        reached_snapshot.set()
+        if not resume.wait(timeout=5):
+            raise TimeoutError
+        return manifest
+
+    monkeypatch.setattr(LocalWorldStore, "_committed_run", pause_after_manifest)
+    pages: list[object] = []
+    failures: list[BaseException] = []
+
+    def read_page() -> None:
+        try:
+            if record_kind == "frame":
+                pages.append(store.list_run_frames(preparing.run_id, limit=3))
+            else:
+                pages.append(store.list_run_evidence(preparing.run_id, limit=3))
+        except BaseException as error:
+            failures.append(error)
+
+    thread = threading.Thread(target=read_page)
+    thread.start()
+    try:
+        assert reached_snapshot.wait(timeout=5)
+        store.begin_source_deletion(source.source_id, "del_" + "d" * 64)
+    finally:
+        resume.set()
+        thread.join(timeout=5)
+
+    assert not thread.is_alive()
+    assert failures == []
+    expected: object = (
+        frames if record_kind == "frame" else tuple(sorted(evidence, key=lambda x: x.evidence_id))
+    )
+    assert pages == [expected]
+
+
+@pytest.mark.parametrize("record_type", ["frame", "evidence"])
+def test_run_owned_reads_fail_closed_on_dangling_associations(
+    tmp_path: Path, record_type: str
+) -> None:
+    source, frames, evidence, preparing, committed = _records()
+    store = _store(tmp_path)
+    store.commit((source, preparing))
+    store.commit_for_run(preparing.run_id, (*frames, *evidence))
+    store.finalize_run(committed)
+    prefix = "frm" if record_type == "frame" else "evi"
+    with _database(store.root) as connection:
+        connection.execute(
+            """UPDATE run_records SET record_id = ?
+            WHERE run_id = ? AND record_type = ? AND record_id = (
+                SELECT record_id FROM run_records
+                WHERE run_id = ? AND record_type = ? LIMIT 1
+            )""",
+            (
+                prefix + "_" + "f" * 64,
+                preparing.run_id,
+                record_type,
+                preparing.run_id,
+                record_type,
+            ),
+        )
+
+    method = store.list_run_frames if record_type == "frame" else store.list_run_evidence
+    with pytest.raises(PortError) as corrupt:
+        method(preparing.run_id, limit=3)
+    assert corrupt.value.code is PortErrorCode.CORRUPT
 
 
 def test_artifact_intents_are_recoverable_through_bounded_pages(tmp_path: Path) -> None:
