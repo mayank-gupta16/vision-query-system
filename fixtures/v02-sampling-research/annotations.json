@@ -58,12 +58,12 @@
           "frame_index": 5,
           "object_box": [
             19,
-            125,
-            123,
+            90,
+            163,
             216
           ],
           "pts_ms": 334,
-          "rgb24_sha256": "c638286f25cddf9133afe3f44f4bfe6eb90c3cba0014701e51df78544538b051",
+          "rgb24_sha256": "c1efaaaae4b3465bf0020c47ccb613b41c5ca7286ee2eb595d16dd6a953071b0",
           "stratum": "small_fast"
         },
         {
@@ -72,12 +72,12 @@
           "frame_index": 6,
           "object_box": [
             38,
-            125,
-            142,
+            90,
+            182,
             216
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "b16f138d35b556c14f06858c9f63cc8f5a06472eac451de3241cd24eca7296a1",
+          "rgb24_sha256": "4d32ce37be87fb130e31b4421b3887bdde9c16f5adb7a90279a74cb519fa9400",
           "stratum": "small_fast"
         },
         {
@@ -86,12 +86,12 @@
           "frame_index": 7,
           "object_box": [
             58,
-            125,
-            162,
+            90,
+            202,
             216
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "276c427d067d90e7d430d8c3112bf881385fc3a8dc81abe2784ce3bfbfc51db8",
+          "rgb24_sha256": "e428c26ac37b24df9b65fca5e9b780e688285aa49e25fb68031c7104162d646b",
           "stratum": "small_fast"
         },
         {
@@ -100,12 +100,12 @@
           "frame_index": 8,
           "object_box": [
             77,
-            125,
-            181,
+            90,
+            221,
             216
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "a3cd1fc5c857c18ac975e56e247ffef0d8a959d3fa475092cb2744569727aaac",
+          "rgb24_sha256": "e629103f45b8fbc641de92593abb3c5f8581bb1d87ea0a804c47c329f01fd97b",
           "stratum": "small_fast"
         },
         {
@@ -114,12 +114,12 @@
           "frame_index": 9,
           "object_box": [
             96,
-            125,
-            200,
+            90,
+            240,
             216
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "84d1ccc63baadbd661c7fb0f79a82ca46126fde2da50726ee699c36292034f79",
+          "rgb24_sha256": "cd5922ee9fe45b4c48ab32c3b190ef4cea53915fa247fda0efc79d2592046c85",
           "stratum": "small_fast"
         },
         {
@@ -128,12 +128,12 @@
           "frame_index": 10,
           "object_box": [
             116,
-            125,
-            220,
+            90,
+            260,
             216
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "1355bc61dbfe89c1a9c9bac54274f268fab9824faa503cb4cce98a873be03726",
+          "rgb24_sha256": "dcc764e32810c5f2da97cf2f7974fb977e75d7bec5f2decba190253ea631a68b",
           "stratum": "small_fast"
         },
         {
@@ -142,12 +142,12 @@
           "frame_index": 11,
           "object_box": [
             135,
-            125,
-            239,
+            90,
+            279,
             216
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "3bd26b8e2c07ec350cb3eee47496bf1f1428ca037023037a86c3fdb9ae67f3db",
+          "rgb24_sha256": "2e35b9c6acdb89c120516a4c7bff0ff8330e5e22b6c619e07d9bf40b788a6f84",
           "stratum": "small_fast"
         },
         {
@@ -156,12 +156,12 @@
           "frame_index": 12,
           "object_box": [
             154,
-            125,
-            258,
+            90,
+            298,
             216
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "032abb18a14be2fdb9af4fd8aa1f231b71ba16106a2d441565b501036d506e82",
+          "rgb24_sha256": "92ba4eb01963933e3b072459cd724c79932f91e00336e0c4a93e1158e30b60e8",
           "stratum": "small_fast"
         },
         {
@@ -170,12 +170,12 @@
           "frame_index": 13,
           "object_box": [
             173,
-            125,
-            277,
+            90,
+            317,
             216
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "c3d0a317c66384f4ddce977584f62f52b1bf99a2f3810121479360484d345926",
+          "rgb24_sha256": "61b52cede44d736555d83354e3f274e2159dd6f27d416fa32845f244a4578870",
           "stratum": "small_fast"
         },
         {
@@ -184,12 +184,12 @@
           "frame_index": 14,
           "object_box": [
             193,
-            125,
-            297,
+            90,
+            337,
             216
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "be90af7d3dcb01adf7b5875f76a0d652271f37b27a6912b35f449192a191fd3c",
+          "rgb24_sha256": "465a63b693249394c7b8e2256557abb2aad6b56ab0f25ea2dce4310c837b9147",
           "stratum": "small_fast"
         },
         {
@@ -198,12 +198,12 @@
           "frame_index": 15,
           "object_box": [
             212,
-            125,
-            316,
+            90,
+            356,
             216
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "2d55d51b1b9c1d1d2f8d0c2bd69cd989ae7bf7d2f98e33da731c8677925b4225",
+          "rgb24_sha256": "2789d1ed8f9bc5c7af45ccd349687c0357e8ea977e11f0346534fa005ff821b0",
           "stratum": "small_fast"
         },
         {
@@ -212,12 +212,12 @@
           "frame_index": 16,
           "object_box": [
             231,
-            125,
-            335,
+            90,
+            375,
             216
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "300a1f160ec7c52356e24416719f330903b15a739115b7a01d66e4983ff24be2",
+          "rgb24_sha256": "118e85a738efb226449fd79d9aedede886ceacbfd77b2964e7a12a7ae33f712a",
           "stratum": "small_fast"
         },
         {
@@ -225,13 +225,13 @@
           "event_id": "calibration-kit-buggy-small-fast",
           "frame_index": 17,
           "object_box": [
-            251,
-            125,
-            355,
+            240,
+            90,
+            384,
             216
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "104e1fb161b90171615f7be649cd1b016950783bc3c52ac8da1597949c6e07cc",
+          "rgb24_sha256": "a57d26e9cddf631af3ba7983b180334709c17bb8680087561cfb2e1a84bc0dad",
           "stratum": "small_fast"
         },
         {
@@ -1113,7 +1113,7 @@
         }
       ],
       "relative_path": "calibration/calibration-kit-buggy.mov",
-      "sha256": "1fd7de92ab48ca6be1508b3b2e4d402fb9eb987078cbad6b2f98c8312f6e771c",
+      "sha256": "217b92839d3afeb6464c9edc792441000221a8c5b3d07355382317c5f58d7e3e",
       "source_id": "kit-buggy",
       "split": "calibration"
     },
@@ -1176,11 +1176,11 @@
           "object_box": [
             14,
             136,
-            118,
-            186
+            158,
+            206
           ],
           "pts_ms": 334,
-          "rgb24_sha256": "77488021d364273fdd037284796fdfaa488df18eeae596cdda1e401506a0ac3a",
+          "rgb24_sha256": "d1290cb3d84ea6848e0076b69006174fe03b49ac5ea0fc409031f876a6a3afef",
           "stratum": "small_fast"
         },
         {
@@ -1190,11 +1190,11 @@
           "object_box": [
             34,
             136,
-            138,
-            186
+            178,
+            206
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "35cc11a890cbb1a6011982b487364c81af2b92e21c5dad53891dadda7dc7db4c",
+          "rgb24_sha256": "95f10b765628e812fefd84707436709ea25ec3b964d22a76ae8caa425d0ce8cc",
           "stratum": "small_fast"
         },
         {
@@ -1204,11 +1204,11 @@
           "object_box": [
             53,
             136,
-            157,
-            186
+            197,
+            206
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "f384ff6419f0774cbb67eb6541ee1ee812a05c6c3f6b712ad5dfb6bb5f546436",
+          "rgb24_sha256": "86f031b3b1699d28dec749d40c0aa42e717a49b8ae2e58023e7a916e1fa681f5",
           "stratum": "small_fast"
         },
         {
@@ -1218,11 +1218,11 @@
           "object_box": [
             72,
             136,
-            176,
-            186
+            216,
+            206
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "55ede88096941b0081e84a34c9501edad1fca23e44396fdc8bed95c66f977403",
+          "rgb24_sha256": "30c00e238dcfd0650c0664f43e97d4a0c4d726b20422b2ab1e1614ea2ab8cf0c",
           "stratum": "small_fast"
         },
         {
@@ -1232,11 +1232,11 @@
           "object_box": [
             91,
             136,
-            195,
-            186
+            235,
+            206
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "f18ce6ef143b89d10a801e9090ffd75ddeaf528f61667dffcf0be70d9d18579d",
+          "rgb24_sha256": "a25380121708a8ef87863dc9803de5bc1e88a85e6942ae4f2690af422652f004",
           "stratum": "small_fast"
         },
         {
@@ -1246,11 +1246,11 @@
           "object_box": [
             111,
             136,
-            215,
-            186
+            255,
+            206
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "4b5ee322e45ddd49794e17e98999e43a1dc82d8e544ac44a804a5b2493e9eee1",
+          "rgb24_sha256": "710eb3fcc06facdee36490c7f430cb31a7cd5ad7e3325c9f5613706b60db2c63",
           "stratum": "small_fast"
         },
         {
@@ -1260,11 +1260,11 @@
           "object_box": [
             130,
             136,
-            234,
-            186
+            274,
+            206
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "91a05694576e348dc2990153d46c8b83e7df6daeb1e79a7606ab6fc31de46890",
+          "rgb24_sha256": "19e49b758337ad21ef6388ed994b477f2cb65eee5d717e23c3a1ec07fdc47f1e",
           "stratum": "small_fast"
         },
         {
@@ -1274,11 +1274,11 @@
           "object_box": [
             149,
             136,
-            253,
-            186
+            293,
+            206
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "d1ba7ebb61bc0d413e70fe6640583f2fa48c3c477834476ea6f32e11652c5eb8",
+          "rgb24_sha256": "a0c881c7f4350b7fc35c5668d641ae818243e1cbe523622fd7b1072b87430265",
           "stratum": "small_fast"
         },
         {
@@ -1288,11 +1288,11 @@
           "object_box": [
             169,
             136,
-            273,
-            186
+            313,
+            206
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "f0720c451abe4457bd8da5461b82a73b8b073b1f43584bcd7e956e409d4895d5",
+          "rgb24_sha256": "6463454279a46aeb502fa522bb8f3921f4e159c41b8f4cc5659b09305dd1aed2",
           "stratum": "small_fast"
         },
         {
@@ -1302,11 +1302,11 @@
           "object_box": [
             188,
             136,
-            292,
-            186
+            332,
+            206
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "ad33d14e05542127d9baf5bf6b580ef298a3c22f598c1bb01bc709d90619299d",
+          "rgb24_sha256": "36e4a95e182a737c24d7a0dcd35ea5f6a3c8b5df9e984f78e2babcbbb7b868d6",
           "stratum": "small_fast"
         },
         {
@@ -1316,11 +1316,11 @@
           "object_box": [
             207,
             136,
-            311,
-            186
+            351,
+            206
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "b031340dae73afe672b5461e9712e4a9265337f877364d3da21de129bf967aab",
+          "rgb24_sha256": "ada64b0cf733db9d72e03e6c9662c5e427fce8e92babd234e3fc7af17f0df85c",
           "stratum": "small_fast"
         },
         {
@@ -1330,11 +1330,11 @@
           "object_box": [
             226,
             136,
-            330,
-            186
+            370,
+            206
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "b32d994ae2ccb3c45cb781a644684205eb86912e8dd8cf34d45afe7f3aea682d",
+          "rgb24_sha256": "9b8b873af158d793599c1dff9e7626d01261669249fd362d3d60d530b20fe1f0",
           "stratum": "small_fast"
         },
         {
@@ -1342,13 +1342,13 @@
           "event_id": "calibration-vintage-green-small-fast",
           "frame_index": 17,
           "object_box": [
-            246,
+            240,
             136,
-            350,
-            186
+            384,
+            206
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "6e4e34c3a8f53769d85122036ae03560be708bf2cddfc28c7e0a30e68d7dd0e2",
+          "rgb24_sha256": "577d47b06493023e9687c441d467a216fc238b92f29ee179b3894cfb838e1bcf",
           "stratum": "small_fast"
         },
         {
@@ -1356,13 +1356,13 @@
           "event_id": "calibration-vintage-green-small-fast",
           "frame_index": 18,
           "object_box": [
-            265,
+            240,
             136,
-            369,
-            186
+            384,
+            206
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "f945c05a9d137785196250c75a19b818c5ad8271656eaa59cac192edccfb918e",
+          "rgb24_sha256": "577d47b06493023e9687c441d467a216fc238b92f29ee179b3894cfb838e1bcf",
           "stratum": "small_fast"
         },
         {
@@ -2230,7 +2230,7 @@
         }
       ],
       "relative_path": "calibration/calibration-vintage-green.mov",
-      "sha256": "4c2a7858c88d6c6535633a0c60a415cc0444f2bb95b514fe915ef1fa539fd2ca",
+      "sha256": "3b2a173a85e623e8268dbb9541f894b74d0b794d69e31e22c2670e9f97ed4f9d",
       "source_id": "vintage-green",
       "split": "calibration"
     },
@@ -2292,12 +2292,12 @@
           "frame_index": 5,
           "object_box": [
             10,
-            130,
-            114,
+            96,
+            154,
             216
           ],
           "pts_ms": 334,
-          "rgb24_sha256": "8b1ac4da2008a07e59fc057fa94f1fdce0fafd10597fc900e6d8499289b38497",
+          "rgb24_sha256": "3043e7d5879512a36518eb3cbb8fe88b33ee041f166a9b2ade0ad66a96cf7939",
           "stratum": "small_fast"
         },
         {
@@ -2306,12 +2306,12 @@
           "frame_index": 6,
           "object_box": [
             29,
-            130,
-            133,
+            96,
+            173,
             216
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "88da4ffbf0cb392d1eb21046ae70b71ee331334a8ba352d6a0c863e4e0402989",
+          "rgb24_sha256": "7f6cba50efad021fa93450e92097e8c9d0832075ef92ceb961a84e58df215f95",
           "stratum": "small_fast"
         },
         {
@@ -2320,12 +2320,12 @@
           "frame_index": 7,
           "object_box": [
             49,
-            130,
-            153,
+            96,
+            193,
             216
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "3f915c5d205e39916cdfdeb7c196a5a922deb84055201ce0aa9b8b3fec785b25",
+          "rgb24_sha256": "8e446414d6f3378305995ec3a9a194cf8e90b66e1e3d6dbf805f318998c6d548",
           "stratum": "small_fast"
         },
         {
@@ -2334,12 +2334,12 @@
           "frame_index": 8,
           "object_box": [
             68,
-            130,
-            172,
+            96,
+            212,
             216
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "024256a710d6f6f4ae34557bd6996b73c492644681a2672a397e68495155475a",
+          "rgb24_sha256": "5203ec27abe254bcee03468e7f731a38cf6a542b15353a1a8037b210e6e47755",
           "stratum": "small_fast"
         },
         {
@@ -2348,12 +2348,12 @@
           "frame_index": 9,
           "object_box": [
             87,
-            130,
-            191,
+            96,
+            231,
             216
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "66401e4c295031ec508eae982850313a7739a017b7f1e9741c3796593340ef20",
+          "rgb24_sha256": "08fedcdea352b54570e7037a098eaf07b7109bc24ecaabef3ef3ccfeb3925791",
           "stratum": "small_fast"
         },
         {
@@ -2362,12 +2362,12 @@
           "frame_index": 10,
           "object_box": [
             107,
-            130,
-            211,
+            96,
+            251,
             216
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "fd97e304c34003414cd89842bf6cc604cec4e28b514958d769a016d015554b65",
+          "rgb24_sha256": "78c89e9e53dd1fc9bf0c6af4e349df1461dcc91c1a922455baf2bbc1536bc3b5",
           "stratum": "small_fast"
         },
         {
@@ -2376,12 +2376,12 @@
           "frame_index": 11,
           "object_box": [
             126,
-            130,
-            230,
+            96,
+            270,
             216
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "879212e8c715076d81aebc6e9f1bd5add364f564583c4678842ac91783be4659",
+          "rgb24_sha256": "7ce7c58091e9b71596657fa1be7dfb1ab4f45109b23d1bea3e17a1fd6e6e5668",
           "stratum": "small_fast"
         },
         {
@@ -2390,12 +2390,12 @@
           "frame_index": 12,
           "object_box": [
             145,
-            130,
-            249,
+            96,
+            289,
             216
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "c2ad2fb01708281078cac67c2c53c4144c594c3925beb4c63c099d83602dec30",
+          "rgb24_sha256": "f9253bb5b0db8b1f7c58db64415dfa7b9d2ee23ce62a2e801640b39a6a21d5db",
           "stratum": "small_fast"
         },
         {
@@ -2404,12 +2404,12 @@
           "frame_index": 13,
           "object_box": [
             165,
-            130,
-            269,
+            96,
+            309,
             216
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "94797d7fa8b9823947b959aef52e76e6a1b753aae55cdb9cbf52180ad33b6887",
+          "rgb24_sha256": "1c896330c10602f8b2e83b5dc1503f129c22023264aefd7b02ce025b48b14f0b",
           "stratum": "small_fast"
         },
         {
@@ -2418,12 +2418,12 @@
           "frame_index": 14,
           "object_box": [
             184,
-            130,
-            288,
+            96,
+            328,
             216
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "d8694a938517a005a2c25be489b5398d127f0d9cbbeb25f48f32e026ab8d36dd",
+          "rgb24_sha256": "dfd05569fb87cddf66bab2797291b8e864f888620a194b1ad1571c478bc584c6",
           "stratum": "small_fast"
         },
         {
@@ -2432,12 +2432,12 @@
           "frame_index": 15,
           "object_box": [
             203,
-            130,
-            307,
+            96,
+            347,
             216
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "2705410c00f3e2f1f421456463b7b66c8f4d112b1240ba6c99111fb0aa754910",
+          "rgb24_sha256": "47bdb549b21e9702f2315ca099ab94ecf51730e34e549611c88ddeb9eca4250c",
           "stratum": "small_fast"
         },
         {
@@ -2446,12 +2446,12 @@
           "frame_index": 16,
           "object_box": [
             222,
-            130,
-            326,
+            96,
+            366,
             216
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "a42b7126f2f9ea6338bee880f2d2bb4ad2a9512af796891c38059ff612caf0be",
+          "rgb24_sha256": "4305b7957e91d4af41da453ed61e065a9052817567181ca7922e0f4cf2f93959",
           "stratum": "small_fast"
         },
         {
@@ -2459,13 +2459,13 @@
           "event_id": "calibration-lime-van-small-fast",
           "frame_index": 17,
           "object_box": [
-            242,
-            130,
-            346,
+            240,
+            96,
+            384,
             216
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "6a4bf1961c409013d28cb854130fcb1ca9f1e44b72614f8e36048d132adc0609",
+          "rgb24_sha256": "c3ba2af7f4d2d157ac7083aaaff3d378a87d8aacd3d36a031cd9468f7d617856",
           "stratum": "small_fast"
         },
         {
@@ -2473,13 +2473,13 @@
           "event_id": "calibration-lime-van-small-fast",
           "frame_index": 18,
           "object_box": [
-            261,
-            130,
-            365,
+            240,
+            96,
+            384,
             216
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "15d9a21e3b5e93d069c988e2deb5efbaad5a11448d59ef9e21b9557dd023f397",
+          "rgb24_sha256": "c3ba2af7f4d2d157ac7083aaaff3d378a87d8aacd3d36a031cd9468f7d617856",
           "stratum": "small_fast"
         },
         {
@@ -3347,7 +3347,7 @@
         }
       ],
       "relative_path": "calibration/calibration-lime-van.mov",
-      "sha256": "799a63ec446f83e0ae891c1ead614a1131a5eba7b54e8144665d7a056e640433",
+      "sha256": "e7049214f5b519793b9f7072bea76b6ed983180b16f64daec671d1245aafc00b",
       "source_id": "lime-van",
       "split": "calibration"
     },
@@ -3419,11 +3419,11 @@
           "object_box": [
             26,
             136,
-            130,
-            176
+            170,
+            192
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "e2abfba47615ee228cbcf726dc3a1b3f2dcd815ab3ea36d278e30bc964b37937",
+          "rgb24_sha256": "f65a7210a1a3a124788d6f9c6fa068adad982676dd1ba7e57da1abfa712c3090",
           "stratum": "small_fast"
         },
         {
@@ -3433,11 +3433,11 @@
           "object_box": [
             45,
             136,
-            149,
-            176
+            189,
+            192
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "d252827adf781e36f8dba7a04c9e6a01c5f476b6f2cd6d33d4775f999a2260e3",
+          "rgb24_sha256": "027b5388435595e69b483f981b60f5f8efc7a72778642f85d4bec9931784ff89",
           "stratum": "small_fast"
         },
         {
@@ -3447,11 +3447,11 @@
           "object_box": [
             65,
             136,
-            169,
-            176
+            209,
+            192
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "2b3a9da6b83b16210481efe1ba83e8700169631b0da088956a100d018224ce76",
+          "rgb24_sha256": "fc5f07858fd77ca0a42b48b46aea65c6813a264c789d04b560c514ef99e48c0f",
           "stratum": "small_fast"
         },
         {
@@ -3461,11 +3461,11 @@
           "object_box": [
             84,
             136,
-            188,
-            176
+            228,
+            192
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "b336071c9a714b24f1d4987b662e46e1eddba9d77eefc4c1367cfa7fb384a89e",
+          "rgb24_sha256": "71502d249c2e82ae7ccd53639f0d9f961036f064b85e9ac44a9a843dff295135",
           "stratum": "small_fast"
         },
         {
@@ -3475,11 +3475,11 @@
           "object_box": [
             103,
             136,
-            207,
-            176
+            247,
+            192
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "75677ad4f6bdeb603195106d6545a81009eb848a84ec8f182b8bcd8572123851",
+          "rgb24_sha256": "57de57a5a842457fd89e796a0a28fe7a2c74e2531fe91df8246f9dde694c5f1b",
           "stratum": "small_fast"
         },
         {
@@ -3489,11 +3489,11 @@
           "object_box": [
             123,
             136,
-            227,
-            176
+            267,
+            192
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "9ef124c1810a80cd74d3d8e53c600212c06596491239ae77b6d67b1645a76fce",
+          "rgb24_sha256": "2b2a07c31686b3a2a6e3068e586ee5889e20259efbce97b46200851458e90718",
           "stratum": "small_fast"
         },
         {
@@ -3503,11 +3503,11 @@
           "object_box": [
             142,
             136,
-            246,
-            176
+            286,
+            192
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "5a276f8f97cd02fc8c881bc443528ca334d5c5739c6e05c79f10ed1a7f28b5ee",
+          "rgb24_sha256": "c2365461669eb6f80177588e9c67ea35673d5dd074accc79094ab0af92adcf5a",
           "stratum": "small_fast"
         },
         {
@@ -3517,11 +3517,11 @@
           "object_box": [
             161,
             136,
-            265,
-            176
+            305,
+            192
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "a4c9ce020e2b6fff07c00b5faa115ca696ad9a638e8d0e95fb29b718e90ae42a",
+          "rgb24_sha256": "c111450fee8ff01144c4ee3937537aee96f6152ab33150fbb6027c1f1302ac78",
           "stratum": "small_fast"
         },
         {
@@ -3531,11 +3531,11 @@
           "object_box": [
             180,
             136,
-            284,
-            176
+            324,
+            192
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "43a1185795d4e259eac239770980f2ec2c5126ec0c845298b853582280c5b6a8",
+          "rgb24_sha256": "e43b7908c82d43f6accc70017b70a38c98fb79901173c17f56d4932c65c00792",
           "stratum": "small_fast"
         },
         {
@@ -3545,11 +3545,11 @@
           "object_box": [
             200,
             136,
-            304,
-            176
+            344,
+            192
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "ee7fa42c0efe0ceed0c1481c3728078f662a0625ad570ce57c018c0cbdd9e204",
+          "rgb24_sha256": "77b1ddf44a2bacd6641cb8fc107b4dd51bd8295d892f753b5501ad5f6272d4a5",
           "stratum": "small_fast"
         },
         {
@@ -3559,11 +3559,11 @@
           "object_box": [
             219,
             136,
-            323,
-            176
+            363,
+            192
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "9dd79ca26e9b2e3c73f533dc0292fd1b8c4377458a279cda296dd92e6ebd10db",
+          "rgb24_sha256": "33d1b538e589548d2579f12d9814ff8892ca666207fe1a2cdc0c378bf14e1d4c",
           "stratum": "small_fast"
         },
         {
@@ -3573,11 +3573,11 @@
           "object_box": [
             238,
             136,
-            342,
-            176
+            382,
+            192
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "784b1e0e8e628bac5e97242a74e818392ed844d4c1b64fbb66a8436bf839574d",
+          "rgb24_sha256": "0f1daffee4dfbcee63740291b4e087cf885a43d9b3f43f3789115664411e1fd1",
           "stratum": "small_fast"
         },
         {
@@ -3585,13 +3585,13 @@
           "event_id": "calibration-li-l7-side-small-fast",
           "frame_index": 18,
           "object_box": [
-            257,
+            240,
             136,
-            361,
-            176
+            384,
+            192
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "4d682297c0492a625424f3e25300b514962d54bf444622080a7658a267086155",
+          "rgb24_sha256": "1bf2b4a324c47e979c165e8c7db32f562ec85ab28e570d4a147bce6012988aad",
           "stratum": "small_fast"
         },
         {
@@ -4469,7 +4469,7 @@
         }
       ],
       "relative_path": "calibration/calibration-li-l7-side.mov",
-      "sha256": "fb0a635eb5199a7d61e8359ebd1cf609952551f63ae7f41298ec91319fcaa014",
+      "sha256": "699a03cd3f2d017a594783f91560b46e78791e50025d44c479ffa543e1b4c50a",
       "source_id": "li-l7-side",
       "split": "calibration"
     },
@@ -4531,12 +4531,12 @@
           "frame_index": 5,
           "object_box": [
             17,
-            136,
             121,
-            204
+            161,
+            216
           ],
           "pts_ms": 334,
-          "rgb24_sha256": "db028f870ffc74db885d6559cad8fd54842a70b951e1252632b697e3fa3bf610",
+          "rgb24_sha256": "3cc1169105e3ffde72881565d14dbabf5eef0e3010e11ef81079219e8ec581ff",
           "stratum": "small_fast"
         },
         {
@@ -4545,12 +4545,12 @@
           "frame_index": 6,
           "object_box": [
             36,
-            136,
-            140,
-            204
+            121,
+            180,
+            216
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "343eb6a8999b4732d3cbeb9f82e4263c8c0d849fa48c91d819005233a8b65713",
+          "rgb24_sha256": "2dd569bc73208612c4cafec558b879a42c99a8b82bbed26e42c12dbf9cdae0fe",
           "stratum": "small_fast"
         },
         {
@@ -4559,12 +4559,12 @@
           "frame_index": 7,
           "object_box": [
             56,
-            136,
-            160,
-            204
+            121,
+            200,
+            216
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "7b9fcb435c4660d5e455a1876caa7da5876021db1fb8edba23d29856e0783552",
+          "rgb24_sha256": "066c07c28697881169ec001f8b0757e0c816f853fde90354b9cde9b0f48fcaa4",
           "stratum": "small_fast"
         },
         {
@@ -4573,12 +4573,12 @@
           "frame_index": 8,
           "object_box": [
             75,
-            136,
-            179,
-            204
+            121,
+            219,
+            216
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "df6430ad33db5d33e9768c244b1167ed8bcb4c5893751841e14a1605483175c2",
+          "rgb24_sha256": "975eafabadaec6d0cbf3aa7981dd444720bb16c0e90d93f3dc6ef72dfb2003bd",
           "stratum": "small_fast"
         },
         {
@@ -4587,12 +4587,12 @@
           "frame_index": 9,
           "object_box": [
             94,
-            136,
-            198,
-            204
+            121,
+            238,
+            216
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "cbfb68b9f6f4037a1fc442c70af73322fb6ae808dbc7d0b341434ddf4fa6217e",
+          "rgb24_sha256": "d1a1fe89f3823034e5b79ede12e3d75161a061e5a02812dccc3b10d78ba85d9d",
           "stratum": "small_fast"
         },
         {
@@ -4601,12 +4601,12 @@
           "frame_index": 10,
           "object_box": [
             114,
-            136,
-            218,
-            204
+            121,
+            258,
+            216
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "5887316056b1693ecae85c0494f806a433dee4406d8def9eb80179f1bd613498",
+          "rgb24_sha256": "96cd4c104749f8cb0d12fbee60bbd07246c07958b7acf7c422566041f3790c20",
           "stratum": "small_fast"
         },
         {
@@ -4615,12 +4615,12 @@
           "frame_index": 11,
           "object_box": [
             133,
-            136,
-            237,
-            204
+            121,
+            277,
+            216
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "7e5e3590dc9888ace9add0e4180a9f9c808d0c9131b14c5a906ef68ebea00bd4",
+          "rgb24_sha256": "5f8e3ab0a0b48b2f5082400d035305b80557bf3bba376ced34bef93bee4d1951",
           "stratum": "small_fast"
         },
         {
@@ -4629,12 +4629,12 @@
           "frame_index": 12,
           "object_box": [
             152,
-            136,
-            256,
-            204
+            121,
+            296,
+            216
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "52f7c7ddb39fcf19612fb89ea7f344e564a43f8d8a0c41cd67ce0cac4c9e95bc",
+          "rgb24_sha256": "66931a78e066c7db7f175189828bb0919af969ff5458a43e626f89c397d456f9",
           "stratum": "small_fast"
         },
         {
@@ -4643,12 +4643,12 @@
           "frame_index": 13,
           "object_box": [
             171,
-            136,
-            275,
-            204
+            121,
+            315,
+            216
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "5bd740dd7e10f3df31f8822d715b6c929e6d6c2db276b74b1e3166922a7e9afb",
+          "rgb24_sha256": "075c433c14f700eef2ebd59fb17dc01abe3b3394b9eb987e7f6c1dd6e9f29d1c",
           "stratum": "small_fast"
         },
         {
@@ -4657,12 +4657,12 @@
           "frame_index": 14,
           "object_box": [
             191,
-            136,
-            295,
-            204
+            121,
+            335,
+            216
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "d24175ec576db0578df780fbd818f8984542151b71778bdcf20e6d92314d8743",
+          "rgb24_sha256": "23ccab5a78f6eef4a83424a699662e4fe45bc9926540610bf5c20597e2570186",
           "stratum": "small_fast"
         },
         {
@@ -4671,12 +4671,12 @@
           "frame_index": 15,
           "object_box": [
             210,
-            136,
-            314,
-            204
+            121,
+            354,
+            216
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "d15d50c0232b068ac6f2a8b708b943c2c2660fff237073edd4e0eed34cdbfc94",
+          "rgb24_sha256": "a9baee0396244077d7697b6db7e20cbb142bc65c313793bafbee1b11e542bc6e",
           "stratum": "small_fast"
         },
         {
@@ -4685,12 +4685,12 @@
           "frame_index": 16,
           "object_box": [
             229,
-            136,
-            333,
-            204
+            121,
+            373,
+            216
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "dc37a12bf10ed86d8ca25136e58d233fa069ec9720c199d18f41cd4a544a4681",
+          "rgb24_sha256": "281424777929da2fce60aebf90c2bb56367531d77c1011c81c2e8b87a5226dbc",
           "stratum": "small_fast"
         },
         {
@@ -4698,13 +4698,13 @@
           "event_id": "test-bmw-i3-small-fast",
           "frame_index": 17,
           "object_box": [
-            249,
-            136,
-            353,
-            204
+            240,
+            121,
+            384,
+            216
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "289423115047a03493ad726f1bace2d322c4f33c3e383ab781c8f38cc09a6c00",
+          "rgb24_sha256": "9907466eaf8ddee7e0eae03c7584c00d78e95d957f5a13e01bc1a61b7ef9dfa3",
           "stratum": "small_fast"
         },
         {
@@ -4712,13 +4712,13 @@
           "event_id": "test-bmw-i3-small-fast",
           "frame_index": 18,
           "object_box": [
-            268,
-            136,
-            372,
-            204
+            240,
+            121,
+            384,
+            216
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "dca71809dcbf5296c3089fbdb49b632afefad60337a63f6c5ba2e98d0ed3dfca",
+          "rgb24_sha256": "9907466eaf8ddee7e0eae03c7584c00d78e95d957f5a13e01bc1a61b7ef9dfa3",
           "stratum": "small_fast"
         },
         {
@@ -5586,7 +5586,7 @@
         }
       ],
       "relative_path": "test/test-bmw-i3.mov",
-      "sha256": "df72bf68ff2a91e62d88e177505081c962c02cf97c2356db8f9b23aaf4fb715d",
+      "sha256": "395031619804a090537da7185d9598898893755beca3f3788d408b0fe49155e1",
       "source_id": "bmw-i3",
       "split": "test"
     },
@@ -5648,12 +5648,12 @@
           "frame_index": 5,
           "object_box": [
             14,
-            136,
-            118,
-            196
+            133,
+            158,
+            216
           ],
           "pts_ms": 334,
-          "rgb24_sha256": "5cfd6a94c7145ee1abcae00a81ef1895569c5c6bb3c5c303b5bc015953a48c38",
+          "rgb24_sha256": "7b86c778a46bec65e8fb8c3f9f42703ba5b8ddf92050be6fd4747c634286b867",
           "stratum": "small_fast"
         },
         {
@@ -5662,12 +5662,12 @@
           "frame_index": 6,
           "object_box": [
             33,
-            136,
-            137,
-            196
+            133,
+            177,
+            216
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "1d77b59ae10f9e232e4b706b1cd291c225412113ccd6d5b93742d5194f087930",
+          "rgb24_sha256": "1a17d39886d0766f1540f4ebca88fe5ef768829abf82848340c80dc4aeb5f47b",
           "stratum": "small_fast"
         },
         {
@@ -5676,12 +5676,12 @@
           "frame_index": 7,
           "object_box": [
             52,
-            136,
-            156,
-            196
+            133,
+            196,
+            216
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "7250caaee105d5de6c6dfa87e072b1bbd874d0f91c0e7e524589676d626514eb",
+          "rgb24_sha256": "f4eb3949bbc8679a51efbb8b76dba202e61c9dd2a016d0e15617a9461069e16c",
           "stratum": "small_fast"
         },
         {
@@ -5690,12 +5690,12 @@
           "frame_index": 8,
           "object_box": [
             72,
-            136,
-            176,
-            196
+            133,
+            216,
+            216
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "139d7a932ec5e10346cae54c1aa68b71cbabf533682ca42d5c2908b1e70340e7",
+          "rgb24_sha256": "c16e13dbb3b032e1a4fc24e265874b41a0060982ec4661b757ffc8167ccaf326",
           "stratum": "small_fast"
         },
         {
@@ -5704,12 +5704,12 @@
           "frame_index": 9,
           "object_box": [
             91,
-            136,
-            195,
-            196
+            133,
+            235,
+            216
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "59e81ec1bb361f78d277f4b491ef03d8d277be34043ee994ff94adb58e7c1daf",
+          "rgb24_sha256": "2ae73b688f6cbd79c7865cd962cf9811469172c08e1c82f0aa950c4870480439",
           "stratum": "small_fast"
         },
         {
@@ -5718,12 +5718,12 @@
           "frame_index": 10,
           "object_box": [
             110,
-            136,
-            214,
-            196
+            133,
+            254,
+            216
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "63ef0812942abd67311e652a9d5442e3c6495330c938d541699d238b26e906a7",
+          "rgb24_sha256": "c884322762fc386be5c9c3a5b88f5fa53aeade7d857598f11d1340dfceee5449",
           "stratum": "small_fast"
         },
         {
@@ -5732,12 +5732,12 @@
           "frame_index": 11,
           "object_box": [
             130,
-            136,
-            234,
-            196
+            133,
+            274,
+            216
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "c4237e3492ce1ff57cf6ad78ac3b725b69e3da19cfc74dacc688d0c076971a9e",
+          "rgb24_sha256": "211ac43d25e58bbad30fcc0eeb74168928f45963d8126f333d4117e8cfebe9e2",
           "stratum": "small_fast"
         },
         {
@@ -5746,12 +5746,12 @@
           "frame_index": 12,
           "object_box": [
             149,
-            136,
-            253,
-            196
+            133,
+            293,
+            216
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "0cc20ba882363ad5e9164eace6bf1cd643cb12678281aa5ae2dd1be35c3c8b3f",
+          "rgb24_sha256": "c4577df0d98b0bd1cb244f7b6fd1b01dcbab6b10c3e7e48691b34e3befd9c9d1",
           "stratum": "small_fast"
         },
         {
@@ -5760,12 +5760,12 @@
           "frame_index": 13,
           "object_box": [
             168,
-            136,
-            272,
-            196
+            133,
+            312,
+            216
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "3571cc5239b6613e72c7f7af33beb4a464beee05f50f1c6c64e9a54f67511eba",
+          "rgb24_sha256": "f9fd294695b9a4433553e32208d0180cb9f0fc5e2f02b318b9c860a51b2fc4e2",
           "stratum": "small_fast"
         },
         {
@@ -5774,12 +5774,12 @@
           "frame_index": 14,
           "object_box": [
             187,
-            136,
-            291,
-            196
+            133,
+            331,
+            216
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "a62642cc40acaab03e7ba2895f4c989dfb3793f39bb24329292fe38887e7ee4d",
+          "rgb24_sha256": "ffd382dad08790c840599c4e78e41e408993485182573f40aa63477b6c0491d8",
           "stratum": "small_fast"
         },
         {
@@ -5788,12 +5788,12 @@
           "frame_index": 15,
           "object_box": [
             206,
-            136,
-            310,
-            196
+            133,
+            350,
+            216
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "8e6c33d5a0654d7671efcc2450a452935e512ddebfda09532fdad03b31de3ae5",
+          "rgb24_sha256": "af4deef320961c0fff1bd47ff6441f65351867ec5f8dac337cc829145b87e796",
           "stratum": "small_fast"
         },
         {
@@ -5802,12 +5802,12 @@
           "frame_index": 16,
           "object_box": [
             226,
-            136,
-            330,
-            196
+            133,
+            370,
+            216
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "a864240152d06f3d2afbe75fe01779a613abadbd3c2893c24c1bf6810e50a1e3",
+          "rgb24_sha256": "263fa3f24decfed2bdf2db8e1063576d0742779d459d4e0a4d109d6e1620ed4b",
           "stratum": "small_fast"
         },
         {
@@ -5815,13 +5815,13 @@
           "event_id": "test-pink-cadillac-small-fast",
           "frame_index": 17,
           "object_box": [
-            245,
-            136,
-            349,
-            196
+            240,
+            133,
+            384,
+            216
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "436c1cffbc86b4e7b5bac4bb9495c8e8cd179478ecc98cb629b5e24b680a7097",
+          "rgb24_sha256": "90ad27bac23203a6448f132d626c70c0743187a8190086ac53e488b4484593b1",
           "stratum": "small_fast"
         },
         {
@@ -5829,13 +5829,13 @@
           "event_id": "test-pink-cadillac-small-fast",
           "frame_index": 18,
           "object_box": [
-            264,
-            136,
-            368,
-            196
+            240,
+            133,
+            384,
+            216
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "b34946655ba9f8a774284c97a8b40ce617818b330e27a4882a25bd1ddbc38a71",
+          "rgb24_sha256": "90ad27bac23203a6448f132d626c70c0743187a8190086ac53e488b4484593b1",
           "stratum": "small_fast"
         },
         {
@@ -6703,7 +6703,7 @@
         }
       ],
       "relative_path": "test/test-pink-cadillac.mov",
-      "sha256": "97e40477f5497da58c5f0d9a416a06922464baeda076a88565ccfa4a6bac4792",
+      "sha256": "0cfa4b6b07e3821d5669ed8eea81429454281427893ce4b3eb81194577ece771",
       "source_id": "pink-cadillac",
       "split": "test"
     },
@@ -6765,12 +6765,12 @@
           "frame_index": 5,
           "object_box": [
             11,
-            136,
-            115,
-            210
+            113,
+            155,
+            216
           ],
           "pts_ms": 334,
-          "rgb24_sha256": "0629ee9a6c2a48d02aa11f4955214d8c206f373ad6b6a94dfcf73b323236c3b4",
+          "rgb24_sha256": "23ffd9903f2af6a587c57f4a8398af7735ba44af29de4367ff53c49a3e1ba438",
           "stratum": "small_fast"
         },
         {
@@ -6779,12 +6779,12 @@
           "frame_index": 6,
           "object_box": [
             30,
-            136,
-            134,
-            210
+            113,
+            174,
+            216
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "ac7159d913c148aed96310a056379c27e2014f650414ce8358af9bfbef4f7780",
+          "rgb24_sha256": "692206a91076da30288ee710d08594f1cfd8f14bb1d9d98a388c2d852ffefc93",
           "stratum": "small_fast"
         },
         {
@@ -6793,12 +6793,12 @@
           "frame_index": 7,
           "object_box": [
             49,
-            136,
-            153,
-            210
+            113,
+            193,
+            216
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "b12095505dc3ef6b61865b61c19f8d2f8a558b2902456c8d43689285ddf7766c",
+          "rgb24_sha256": "e025c578a40b546e62f2c46c7f55eb456def9f2287addbe5e4d712f9e836b9db",
           "stratum": "small_fast"
         },
         {
@@ -6807,12 +6807,12 @@
           "frame_index": 8,
           "object_box": [
             69,
-            136,
-            173,
-            210
+            113,
+            213,
+            216
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "76303163f18470feacc7b5dcacaa5318c82879107ad9fa7e461c4d1b82e849d8",
+          "rgb24_sha256": "46e1705ca2281fc9448a9355f6c963515b9f4e94938fe5e110d57b3789a7c8a4",
           "stratum": "small_fast"
         },
         {
@@ -6821,12 +6821,12 @@
           "frame_index": 9,
           "object_box": [
             88,
-            136,
-            192,
-            210
+            113,
+            232,
+            216
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "39ccfeb7bb461189a6ccd29475e40b7d4a516494b2a66e6810a34c4b3430ba79",
+          "rgb24_sha256": "1432a5e71843ce2815e45d398c786724c508e33a6e88eaa6e75bcad0d12ad389",
           "stratum": "small_fast"
         },
         {
@@ -6835,12 +6835,12 @@
           "frame_index": 10,
           "object_box": [
             107,
-            136,
-            211,
-            210
+            113,
+            251,
+            216
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "1719e65bc9b366fa994050dacdcf76cbf31a77c7b8b6e2fbe07d2cc8e4e8e88a",
+          "rgb24_sha256": "d3b44727d849d8392064a747b75d9207a934bc01b4f913fc6aee20174e63ce03",
           "stratum": "small_fast"
         },
         {
@@ -6849,12 +6849,12 @@
           "frame_index": 11,
           "object_box": [
             127,
-            136,
-            231,
-            210
+            113,
+            271,
+            216
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "91a97601f253b8c71dc12c0074202ac22461d0083eacc83703d5943ef0278e5c",
+          "rgb24_sha256": "0cd649fe259ac2f4e525ef14707ce5ae616a7b5f19be2405b97542f9fc54c0ae",
           "stratum": "small_fast"
         },
         {
@@ -6863,12 +6863,12 @@
           "frame_index": 12,
           "object_box": [
             146,
-            136,
-            250,
-            210
+            113,
+            290,
+            216
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "63f84b9ece4ff98ad4466b44d6fb37d7ab560a93d998e7ddab1c44d54e1f5904",
+          "rgb24_sha256": "e2cfc473ba81ad9c8dcf3be8a9e61b5c85a70e2495dc2c978a5c031c1dd8a48b",
           "stratum": "small_fast"
         },
         {
@@ -6877,12 +6877,12 @@
           "frame_index": 13,
           "object_box": [
             165,
-            136,
-            269,
-            210
+            113,
+            309,
+            216
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "6f37d0b3fd1721fc5cbecb32f97a231a4c1d093c5651f36cf9c6be371b8a6cc7",
+          "rgb24_sha256": "18908f96e07cd9a4357e91fc1b140991fc4dc8cdd6ab07da37cf8bf6e9221d26",
           "stratum": "small_fast"
         },
         {
@@ -6891,12 +6891,12 @@
           "frame_index": 14,
           "object_box": [
             184,
-            136,
-            288,
-            210
+            113,
+            328,
+            216
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "cb2dc50a26318516b51844ebe096bbd3f9799afbe5980782d6fb82e3deefc13f",
+          "rgb24_sha256": "0db517cc9542dd4f9fd409bb1095c4f3165db1a553fda7e47c4f68e377a0f33e",
           "stratum": "small_fast"
         },
         {
@@ -6905,12 +6905,12 @@
           "frame_index": 15,
           "object_box": [
             204,
-            136,
-            308,
-            210
+            113,
+            348,
+            216
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "aa2cbc7ceff5cfc1808d6bb3c9cb3e9a8919406f546d45a9bde1324c774a5145",
+          "rgb24_sha256": "21c82feaaf6576851a8f06d38501dfc6da0d174ae732677c5983cff56f56d9e4",
           "stratum": "small_fast"
         },
         {
@@ -6919,12 +6919,12 @@
           "frame_index": 16,
           "object_box": [
             223,
-            136,
-            327,
-            210
+            113,
+            367,
+            216
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "b4b5d331aee8360df41e29b96b201c49c3380a96b508e640a3e6df6a2ff72d05",
+          "rgb24_sha256": "00d2de97251a345e3255b3bec8776d27b4cfd2f201be9083786bec5a1c4380f0",
           "stratum": "small_fast"
         },
         {
@@ -6932,13 +6932,13 @@
           "event_id": "test-red-opel-small-fast",
           "frame_index": 17,
           "object_box": [
-            242,
-            136,
-            346,
-            210
+            240,
+            113,
+            384,
+            216
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "d282f8544f1979babfddfdc66e8dbb155a97cb40be9a32c7b58b797c755a9026",
+          "rgb24_sha256": "4b7f2336b35be2edc73fa9059d18c4606e59a5cca6a9549a2d1e44344e76335f",
           "stratum": "small_fast"
         },
         {
@@ -6946,13 +6946,13 @@
           "event_id": "test-red-opel-small-fast",
           "frame_index": 18,
           "object_box": [
-            261,
-            136,
-            365,
-            210
+            240,
+            113,
+            384,
+            216
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "ff5b7761da219e74654eabca875a00fe09da64d897db959d58a4df6bc2c4611c",
+          "rgb24_sha256": "4b7f2336b35be2edc73fa9059d18c4606e59a5cca6a9549a2d1e44344e76335f",
           "stratum": "small_fast"
         },
         {
@@ -7820,7 +7820,7 @@
         }
       ],
       "relative_path": "test/test-red-opel.mov",
-      "sha256": "0dd03ea4df96b28942de0b0f1e4f28c29d5ed3d566ff041339646bfd6bdb3550",
+      "sha256": "12f6c553c65c74bee6c8455bafadeb0dded27c04fcc54aa7a73d44cabdfe5bf9",
       "source_id": "red-opel",
       "split": "test"
     },
@@ -7892,11 +7892,11 @@
           "object_box": [
             28,
             136,
-            132,
-            174
+            172,
+            189
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "a4a3ef3eecafce1bacdd2aed08ef8dd77559f0141f7a559bb9298e84318a62b0",
+          "rgb24_sha256": "063cd6a0ea8675b9da9fad37c10d773e21c9fa53148578b6b879f4d8b7304736",
           "stratum": "small_fast"
         },
         {
@@ -7906,11 +7906,11 @@
           "object_box": [
             47,
             136,
-            151,
-            174
+            191,
+            189
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "97c435e55f64606dcfb27fe1890978a6c1894f248d963e4db4334a53d1612e23",
+          "rgb24_sha256": "a0ce7283f16d8f9d54ee247438f7dd60771a4a1bf79bcf392d31af27d8fa345b",
           "stratum": "small_fast"
         },
         {
@@ -7920,11 +7920,11 @@
           "object_box": [
             66,
             136,
-            170,
-            174
+            210,
+            189
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "3de6b2104d6139c3d65b85cb1ba0a083706594579c6c3d997e907311ba871d56",
+          "rgb24_sha256": "0d874575014d68c82b72b889eabfa87c30f4da4ad539dcb0fd62a54f2e367997",
           "stratum": "small_fast"
         },
         {
@@ -7934,11 +7934,11 @@
           "object_box": [
             86,
             136,
-            190,
-            174
+            230,
+            189
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "57adc0bd7fe5ce7a19c188ee394b1224e2775f8f1af3ba731c4324a4f95e4bf0",
+          "rgb24_sha256": "b0ed809840358813cb82afa3354f72add3f1ab94d8539fd0b72ea6fd4f94efbf",
           "stratum": "small_fast"
         },
         {
@@ -7948,11 +7948,11 @@
           "object_box": [
             105,
             136,
-            209,
-            174
+            249,
+            189
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "611167fdcec4ba5381f065d9e4bc01675ac9912cca4f806c773fd0b6e32703c7",
+          "rgb24_sha256": "8bfda96d127286c4f0fc2baa0a43c9ab213b0f82a81523f60bc2f8acc0de8d49",
           "stratum": "small_fast"
         },
         {
@@ -7962,11 +7962,11 @@
           "object_box": [
             124,
             136,
-            228,
-            174
+            268,
+            189
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "3ad9b6edc7916727847268197d5dbf4ca5b830fc63b12b3c5c2f88dbfc24ffa4",
+          "rgb24_sha256": "ed94550cd668dcdf3c0571ac2215a14c1810db10422e8dec67f37b2696d185a8",
           "stratum": "small_fast"
         },
         {
@@ -7976,11 +7976,11 @@
           "object_box": [
             143,
             136,
-            247,
-            174
+            287,
+            189
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "a9c832bf83273621088d5c676f652729964860af265de0663f2ca1db51bb4fe7",
+          "rgb24_sha256": "b2607deb8634858080754feaff105b4313979d6a8eb00fe9347b05cafe3016a2",
           "stratum": "small_fast"
         },
         {
@@ -7990,11 +7990,11 @@
           "object_box": [
             163,
             136,
-            267,
-            174
+            307,
+            189
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "2fa835f41fccc9d3ba06b2d96ec898b2b3020df250f6afea7a0562834061ed3b",
+          "rgb24_sha256": "1d2aaa1eb1f5e4513ae2e999b01ca5e64b0373105dc3adba6f4b4f1cf411947d",
           "stratum": "small_fast"
         },
         {
@@ -8004,11 +8004,11 @@
           "object_box": [
             182,
             136,
-            286,
-            174
+            326,
+            189
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "c65bafd9a33e1cf914ffddf79215b25c9ab7ceddff6ddb7f9df7d31f7b89db21",
+          "rgb24_sha256": "ccebf5eb56e5b9ee51210570f4588f63a1cac4b87b989ce5cb507724f4fed894",
           "stratum": "small_fast"
         },
         {
@@ -8018,11 +8018,11 @@
           "object_box": [
             201,
             136,
-            305,
-            174
+            345,
+            189
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "be9971364526eeb5bfae4204bd8e1e1176cd98e122670cd2ff79a3862219afc9",
+          "rgb24_sha256": "160c5e099c23235cdaeb6211ef596f564eaf44ced45484b96e0fa9ac17a1b121",
           "stratum": "small_fast"
         },
         {
@@ -8032,11 +8032,11 @@
           "object_box": [
             221,
             136,
-            325,
-            174
+            365,
+            189
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "dfe36f5c636a3cea8dce7732a2b5ca80c9230cd3f405bb2a9ed6c9737c9ea75c",
+          "rgb24_sha256": "3d0d43c1f25f677a4ac6018455f6457ea448741a09c2619f3bca8cbc1cb52855",
           "stratum": "small_fast"
         },
         {
@@ -8046,11 +8046,11 @@
           "object_box": [
             240,
             136,
-            344,
-            174
+            384,
+            189
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "b49483371ce7b3f5bc0921fc98a0adf18e19a7465cd6173ead2763129d6dc464",
+          "rgb24_sha256": "f2f403a0100b87498ecb2293b5ff4b07eb5200f20a36453ef0d5711b64835207",
           "stratum": "small_fast"
         },
         {
@@ -8058,13 +8058,13 @@
           "event_id": "test-li-l9-side-small-fast",
           "frame_index": 18,
           "object_box": [
-            259,
+            240,
             136,
-            363,
-            174
+            384,
+            189
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "ebdabe6b00f681e85e5a35a1b1a835c022ac824e7c7f7b3a227eabc86b53f214",
+          "rgb24_sha256": "f2f403a0100b87498ecb2293b5ff4b07eb5200f20a36453ef0d5711b64835207",
           "stratum": "small_fast"
         },
         {
@@ -8942,7 +8942,7 @@
         }
       ],
       "relative_path": "test/test-li-l9-side.mov",
-      "sha256": "9c7272bdb6f24ee0f05eaea565928431f8f9cedb03a4d74171a6720f2f7ca21a",
+      "sha256": "5b93c14e71ef61541b2dabdcf0e480859ee506dc0bccf1f4d36e6c19b606045e",
       "source_id": "li-l9-side",
       "split": "test"
     },
@@ -9014,11 +9014,11 @@
           "object_box": [
             25,
             136,
-            129,
-            180
+            169,
+            197
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "55476c55379cc6f1bd5e03e0afe58ad1adb9acc4b39ba63e959d24e556e31339",
+          "rgb24_sha256": "9d31ff236c26e6a63aaeb78a07d88d35b058afa8e83b7b86ec741fe59cfd550d",
           "stratum": "small_fast"
         },
         {
@@ -9028,11 +9028,11 @@
           "object_box": [
             44,
             136,
-            148,
-            180
+            188,
+            197
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "646e16c49629812884412e499a92521ed5ecd3256b901a0e5338544285de4df5",
+          "rgb24_sha256": "7b39e6091476fd6b7182c7d39eaca5eac97cf169f11aaec74bafa903bd31ac5e",
           "stratum": "small_fast"
         },
         {
@@ -9042,11 +9042,11 @@
           "object_box": [
             64,
             136,
-            168,
-            180
+            208,
+            197
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "2b739d7a126af94cfbef58cc5cf06617d35cf722b15c8fe05883f2859f744344",
+          "rgb24_sha256": "04975fb0f046afe27734791b50447980c8e0b99592383df1e46496878d2a474c",
           "stratum": "small_fast"
         },
         {
@@ -9056,11 +9056,11 @@
           "object_box": [
             83,
             136,
-            187,
-            180
+            227,
+            197
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "2b27b0099e99e2965e0b21b2235b82216a305215842a06a0f23a844e13df67b5",
+          "rgb24_sha256": "99f06f82e48474e0b7ecc50e04e9c9cb3eb79595a700e785e181c1e1c9793b69",
           "stratum": "small_fast"
         },
         {
@@ -9070,11 +9070,11 @@
           "object_box": [
             102,
             136,
-            206,
-            180
+            246,
+            197
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "1e27e56b6718ce153e1502eed7c4a4cc684c072bf90571d1a23e3c279e2ea04e",
+          "rgb24_sha256": "24ddca57e13d66740a4a9065fc6913979b756b99a232289f2415cfaac7fad0d7",
           "stratum": "small_fast"
         },
         {
@@ -9084,11 +9084,11 @@
           "object_box": [
             121,
             136,
-            225,
-            180
+            265,
+            197
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "b98f9e06e4724e47e0c2683f8c7915dfdc9e40478fd559e6523868c5d0d20d5f",
+          "rgb24_sha256": "3f10e485ab12466c71cd5f1b8ca10b606222b86b1871780dd754aa2932f6e7f0",
           "stratum": "small_fast"
         },
         {
@@ -9098,11 +9098,11 @@
           "object_box": [
             141,
             136,
-            245,
-            180
+            285,
+            197
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "bf8adc2f0d24d6e0a032ef53cd6b238016a993411bba939f22bdf97de0b0ce9d",
+          "rgb24_sha256": "6fe2dd6af0f149ff0ed2a2ddec0dfb9d3e7892d2229ddc67e63ae8bfa0f30f19",
           "stratum": "small_fast"
         },
         {
@@ -9112,11 +9112,11 @@
           "object_box": [
             160,
             136,
-            264,
-            180
+            304,
+            197
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "8fe8deecdd2e896f3030483a574cccab15705a27d2e6f3c21bb04a82974e7957",
+          "rgb24_sha256": "11ed85b0b60318c6151fedf1eaae70873034ed7a940d85c0518986148b554012",
           "stratum": "small_fast"
         },
         {
@@ -9126,11 +9126,11 @@
           "object_box": [
             179,
             136,
-            283,
-            180
+            323,
+            197
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "a5fab647df29878658ef1395f2697853b19bb7584697ba1ffee5563f0be33b02",
+          "rgb24_sha256": "8944f616df6106b53957622051c5914f10f07139180e6c947fb9116a61ec5413",
           "stratum": "small_fast"
         },
         {
@@ -9140,11 +9140,11 @@
           "object_box": [
             198,
             136,
-            302,
-            180
+            342,
+            197
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "ad821d04f8a66125f812ef9543807bec6e85e0e367d05a12a7015fb7fdb7bc24",
+          "rgb24_sha256": "93c104ad7d7e382d213135b0b56a828573a5b5125738ee1f39d35c262becc1b1",
           "stratum": "small_fast"
         },
         {
@@ -9154,11 +9154,11 @@
           "object_box": [
             218,
             136,
-            322,
-            180
+            362,
+            197
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "c8b293a9904342c3ff761b722c0912fa71c1545dd78d3e5750fe408c9f0e4cce",
+          "rgb24_sha256": "186317f68bdb9c141af69cf1990e5d21cfba99430868a86b896780b1b7348741",
           "stratum": "small_fast"
         },
         {
@@ -9168,11 +9168,11 @@
           "object_box": [
             237,
             136,
-            341,
-            180
+            381,
+            197
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "02cec6468bb4437262b79a66a965e7e81903bdbffaa1ff4011ac9ee3f7e6f2dc",
+          "rgb24_sha256": "a425f5add59ace65863f2ca4d37eb2dafb41a6db8b11ca6e526bb1de796625de",
           "stratum": "small_fast"
         },
         {
@@ -9180,13 +9180,13 @@
           "event_id": "test-li-l9-rear-small-fast",
           "frame_index": 18,
           "object_box": [
-            256,
+            240,
             136,
-            360,
-            180
+            384,
+            197
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "922a8e35edeb02b01bb002bce270347de943cf8c9df97f7a1c0d4eb304b0e0a8",
+          "rgb24_sha256": "f0a03f79040f29f569e615a8086b82c9c6ca66d2553513b4994c41d433e43c46",
           "stratum": "small_fast"
         },
         {
@@ -10064,7 +10064,7 @@
         }
       ],
       "relative_path": "test/test-li-l9-rear.mov",
-      "sha256": "b106ac756e2c06b1d83f5047178076f86cc3522afd4473d7d32f6348bc994d21",
+      "sha256": "5b4c84039f4554a1045aed2427a736f538cd46752040c6325c15a5742a98e2f2",
       "source_id": "li-l9-rear",
       "split": "test"
     },
@@ -10136,11 +10136,11 @@
           "object_box": [
             21,
             136,
-            125,
-            183
+            165,
+            201
           ],
           "pts_ms": 400,
-          "rgb24_sha256": "e252839e2f423ebc6b1746332fb4e20b8ba1df5c4a80c77885d847f78da54ed7",
+          "rgb24_sha256": "0ed6fc81d569947a19741f396b464479d7add6fd61d7cb8ad549be60aec9261a",
           "stratum": "small_fast"
         },
         {
@@ -10150,11 +10150,11 @@
           "object_box": [
             41,
             136,
-            145,
-            183
+            185,
+            201
           ],
           "pts_ms": 467,
-          "rgb24_sha256": "a51173fb047c49c176e632892a045587fb20479bc985282d2a153c7be813f2ba",
+          "rgb24_sha256": "dff2045ff02477dd319c5048628f95a45b40e329d5d32f13002f3e4a4e521b04",
           "stratum": "small_fast"
         },
         {
@@ -10164,11 +10164,11 @@
           "object_box": [
             60,
             136,
-            164,
-            183
+            204,
+            201
           ],
           "pts_ms": 534,
-          "rgb24_sha256": "5dd91f09dcf96b616bd37882b09659ab5c4ed77e114a4b3a8431dbabb72052d2",
+          "rgb24_sha256": "ca91396e8c1c67af569f9bfecdb958832b38aeffd5123ad32f6d3424612ad7d2",
           "stratum": "small_fast"
         },
         {
@@ -10178,11 +10178,11 @@
           "object_box": [
             79,
             136,
-            183,
-            183
+            223,
+            201
           ],
           "pts_ms": 600,
-          "rgb24_sha256": "8394c66e2f8a21ca2d5854a1594dee5577bf593335527ab649e4e1b049ddd4de",
+          "rgb24_sha256": "d8f9ea98a0f3f965e30d17f6e3060323b0a1eebef3e180ad8f1b6a364602588f",
           "stratum": "small_fast"
         },
         {
@@ -10192,11 +10192,11 @@
           "object_box": [
             99,
             136,
-            203,
-            183
+            243,
+            201
           ],
           "pts_ms": 667,
-          "rgb24_sha256": "00de00e1f716a099283ca61949591c2f503c66bdd68f9ac3b11265e45af30f80",
+          "rgb24_sha256": "7fe72dc0e480ef1c12e4180e8cea083415243d7cf50d5550f35a1fc5771e593a",
           "stratum": "small_fast"
         },
         {
@@ -10206,11 +10206,11 @@
           "object_box": [
             118,
             136,
-            222,
-            183
+            262,
+            201
           ],
           "pts_ms": 734,
-          "rgb24_sha256": "08b8ab4a0b166df6334cb83d8bbbc228745953c39349c78c800bd0ca1258d367",
+          "rgb24_sha256": "1d30899a6f77c150a08ee400aa4ea27e71da57d8220bc37847ff8d7432728bc3",
           "stratum": "small_fast"
         },
         {
@@ -10220,11 +10220,11 @@
           "object_box": [
             137,
             136,
-            241,
-            183
+            281,
+            201
           ],
           "pts_ms": 800,
-          "rgb24_sha256": "e5cf38c1438d3567885b82727998689c0c08d8737b199fe7d422ead1720f14c4",
+          "rgb24_sha256": "bb9d9276557e03fb8c722149cd84a3e09b8ee963114c2faf241a3de95688a3d5",
           "stratum": "small_fast"
         },
         {
@@ -10234,11 +10234,11 @@
           "object_box": [
             156,
             136,
-            260,
-            183
+            300,
+            201
           ],
           "pts_ms": 867,
-          "rgb24_sha256": "4b5d6801a68753d1853c2521f993229634577fff38a5de3169820a065ed287be",
+          "rgb24_sha256": "09d18d4d7a46494eb62f54f8156aa78b412583efee64f61804cfa7e9a3726bc8",
           "stratum": "small_fast"
         },
         {
@@ -10248,11 +10248,11 @@
           "object_box": [
             176,
             136,
-            280,
-            183
+            320,
+            201
           ],
           "pts_ms": 934,
-          "rgb24_sha256": "adbf9b78656225f14cbe170879c71efde2f0dbd4a03d4be5cac516053d31086a",
+          "rgb24_sha256": "774c87a5c4d7547caa9e2b4981a5b1f6e9a337286ec2032ca7b5c2dd02bee609",
           "stratum": "small_fast"
         },
         {
@@ -10262,11 +10262,11 @@
           "object_box": [
             195,
             136,
-            299,
-            183
+            339,
+            201
           ],
           "pts_ms": 1000,
-          "rgb24_sha256": "8177ff512e4f3af1d5bd368c4c125b71f1b75482fc4fd49d00d05ff552b849a6",
+          "rgb24_sha256": "f5797f53a82a0e8b982f296ed35eab6d50f2b9908a2ab4b85cc019c75bbceafe",
           "stratum": "small_fast"
         },
         {
@@ -10276,11 +10276,11 @@
           "object_box": [
             214,
             136,
-            318,
-            183
+            358,
+            201
           ],
           "pts_ms": 1067,
-          "rgb24_sha256": "730fc96a00241838d8a401de8ad0ff04481afae17cedf124e6226cbd5a914ccf",
+          "rgb24_sha256": "b71b7aaafed796ab3575da4afe5f298192ec1d58902a6e9ecfd457d3bad1a9b5",
           "stratum": "small_fast"
         },
         {
@@ -10290,11 +10290,11 @@
           "object_box": [
             234,
             136,
-            338,
-            183
+            378,
+            201
           ],
           "pts_ms": 1134,
-          "rgb24_sha256": "c9cd9b234a0a30182a2f8e3e34841edc4050df2d4f8f10f4fbbebbbcad669e5b",
+          "rgb24_sha256": "39ab8de14b8e9362c47bd691ab256c835a7d876350552a7d035bbc5fd00a2169",
           "stratum": "small_fast"
         },
         {
@@ -10302,13 +10302,13 @@
           "event_id": "test-li-l7-white-small-fast",
           "frame_index": 18,
           "object_box": [
-            253,
+            240,
             136,
-            357,
-            183
+            384,
+            201
           ],
           "pts_ms": 1200,
-          "rgb24_sha256": "1464c54a9888342263462a16b025f558a2b39d52bbc2c86e0457500a147081bf",
+          "rgb24_sha256": "a8183786a344cebc58db9d737edbf8176bedc5139aa6878cd45acf7dd9dd3be2",
           "stratum": "small_fast"
         },
         {
@@ -11181,7 +11181,7 @@
         }
       ],
       "relative_path": "test/test-li-l7-white.mov",
-      "sha256": "1c419e1438344e728f18e116385372180b4c2a432baf8b5f38401c4b95b3bf39",
+      "sha256": "3b03e74421c43766f58b71256476b0a5376b8382d2fab89c53dc7e2ee8b5b381",
       "source_id": "li-l7-white",
       "split": "test"
     }
@@ -11670,5 +11670,5 @@
   ],
   "schema": "visualworld.v02-sampling-annotation-lock",
   "schema_version": 1,
-  "source_manifest_sha256": "5de7f5c08709bcb98c0b056d85203bce7fbb3bbf85563f397b9536067178402c"
+  "source_manifest_sha256": "4a53262d93f2473a747bfc3c36b38209d42cafff38c9d8251cc3e503eba81139"
 }

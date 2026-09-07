@@ -3,7 +3,7 @@
     "method": "deterministic rawvideo clips from ten locked plate-sanitized CC0 issue-21 derivatives; source identities, frame hashes, transforms, timing, events, and privacy are locked in source-manifest.json and annotations.json",
     "owner": "Wikimedia Commons source artists and VisualWorld derivative generator",
     "revision": "v02-sampling-cc0-derived-1",
-    "sha256": "5de7f5c08709bcb98c0b056d85203bce7fbb3bbf85563f397b9536067178402c",
+    "sha256": "4a53262d93f2473a747bfc3c36b38209d42cafff38c9d8251cc3e503eba81139",
     "url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-sampling-research"
   },
   "experiment": "sampling",
@@ -33,7 +33,7 @@
   "schema_version": 1,
   "splits": {
     "calibration": {
-      "annotation_sha256": "210fa6f22d849b1cdea6ae27ecc70b7c8756551361da8896fee37c605bd94620",
+      "annotation_sha256": "2ba33b5b8ee583640a38072092b7468e7b2f4003c8a908f43a547d1198e84095",
       "item_count": 16,
       "item_ids_sha256": "9b2a491580e56dad09c410706fc330e87c909ba0262974314fe7cebfb4c4d171",
       "stratum_item_counts": {
@@ -45,7 +45,7 @@
       }
     },
     "test": {
-      "annotation_sha256": "e96171c8720a3d440d7b887e2bbe30f12d1e581e4209bc746e216da84d85be1e",
+      "annotation_sha256": "8fa73b22b729432e0a1d97284d693a43bb7d79bb9df83d95f68c5831bd5b2c06",
       "item_count": 24,
       "item_ids_sha256": "f2ceecff79386ec55360433ec6788ab2cce2bb98c10ec6dbd8ce5b8f03d31ec1",
       "stratum_item_counts": {

@@ -83,6 +83,7 @@ def test_sampling_sources_are_cc0_privacy_sanitized_and_bounded() -> None:
     clips, events = preparation._validate_source_manifest(source, detection_annotations)
     assert len(clips) == 10
     assert [event["stratum"] for event in events] == list(benchmark.STRATA[1:])
+    assert events[0]["target_width"] == 144
     assert preparation._durations()[70] == 333
     assert sum(preparation._durations()) == 6000
 
@@ -266,7 +267,7 @@ def test_sampling_benchmark_cli_redacts_paths_and_has_stable_errors(tmp_path: Pa
 
 
 def test_local_generated_clip_matches_every_locked_frame_when_available() -> None:
-    dataset_root = ROOT / "artifacts" / "issue22" / "dataset-v2"
+    dataset_root = ROOT / "artifacts" / "issue22" / "dataset-v8"
     if not dataset_root.is_dir():
         pytest.skip("generated sampling clips are optional research prerequisites")
     annotations = _json(FIXTURE_ROOT / "annotations.json")
