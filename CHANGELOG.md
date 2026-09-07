@@ -4,6 +4,10 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add the private versioned local WorldStore with checksummed transactional
+  SQLite migrations, canonical-record/projection integrity, WAL concurrency,
+  run/intents coordination primitives, adversarial tests, and CPU-LITE
+  transaction/index/disk evidence.
 - Add the private versioned local EvidenceStore with staged atomic CAS writes,
   integrity verification, deduplication, coordinator-held locking, crash-remnant
   cleanup handles, bounded streaming audit and deletion primitives, adversarial

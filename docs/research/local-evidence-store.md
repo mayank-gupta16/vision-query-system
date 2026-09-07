@@ -21,8 +21,9 @@ The adapter also exposes coordinator-facing staged write, idempotent promotion,
 discard, integrity inspection, paginated inventory, metadata-fingerprint-bound
 cleanup handles for incomplete files and empty run directories, and low-level
 deletion operations.
-A writer session holds the one kernel advisory lock across staging, future
-SQLite intent work, CAS promotion, cleanup, and metadata completion. The adapter
+A registered, active writer session is bound to the live kernel-lock owner and
+holds that one advisory lock across staging, future SQLite intent work, CAS
+promotion, cleanup, and metadata completion. The adapter
 does not infer references or delete orphans: the WorldStore/coordinator remains
 the reference authority and must classify inventory results and prove that no
 live/preparing run owns a remnant before authorizing cleanup or repair.
@@ -67,13 +68,13 @@ inode and verifies its bytes. The package-content check includes the new
 zero-dependency module.
 
 The CPU-LITE baseline used two deterministic 16 MiB synthetic payloads. A raw
-SHA-256 pass took 29.7 ms (565 MB/s). The unique durable `put` took 141.5 ms
-(118 MB/s), a verified read took 44.5 ms (376 MB/s), and a deduplicated `put`
-took 186.4 ms (90 MB/s). Staging the second artifact took 74.0 ms (226 MB/s),
-atomic promotion and directory sync took 32.1 ms, the two-artifact integrity
-audit took 120.5 ms, and deletion plus directory sync took 31.8 ms. One retained
+SHA-256 pass took 29.1 ms (577 MB/s). The unique durable `put` took 125.1 ms
+(134 MB/s), a verified read took 44.1 ms (380 MB/s), and a deduplicated `put`
+took 162.3 ms (103 MB/s). Staging the second artifact took 62.6 ms (268 MB/s),
+atomic promotion and directory sync took 31.4 ms, the two-artifact integrity
+audit took 126.8 ms, and deletion plus directory sync took 32.5 ms. One retained
 artifact occupied 16,777,216 logical and allocated bytes; dedupe did not change
-that count. Peak process RSS was 90,730,496 bytes, below the 2 GiB harness bound.
+that count. Peak process RSS was 90,619,904 bytes, below the 2 GiB harness bound.
 These are single-run correctness baselines, not optimization targets or
 cross-machine performance claims.
 

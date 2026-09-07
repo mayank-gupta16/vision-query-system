@@ -18,8 +18,8 @@ VisualWorld has an experimental Python package (`0.1.0a0`) with help/version
 commands, a reproducible developer toolchain, stable ingestion records/ports, and
 a bounded Linux-only local-video source/probe adapter plus deterministic exact-PTS
 frame sampling, original-pixel crop utilities, and a crash-recoverable local
-evidence CAS. End-to-end ingestion, metadata storage, and queries are not
-implemented yet.
+evidence CAS plus transactional local SQLite metadata. End-to-end ingestion and
+queries are not implemented yet.
 See [current project state](docs/project/current.md) and the
 [roadmap](docs/project/roadmap.md) for the proposed sequencing and explicit
 non-goals.

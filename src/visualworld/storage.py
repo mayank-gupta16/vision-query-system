@@ -707,7 +707,7 @@ def _locked(
     timeout_ms: int,
     poison: Callable[[BinaryFile], None],
     create: bool = False,
-) -> Iterator[None]:
+) -> Iterator[BinaryFile]:
     stream = _open_lock(root_descriptor, operation, create=create)
     mode = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
     deadline = time.monotonic_ns() + timeout_ms * 1_000_000
@@ -727,7 +727,7 @@ def _locked(
                     time.sleep(0.01)
                     continue
                 _fail(PortErrorCode.STORAGE_FAILED, operation)
-        yield
+        yield stream
     finally:
         _close_lock_owner(stream, operation, poison)
 
@@ -936,6 +936,7 @@ class LocalEvidenceStore:
         self._lock_timeout_ms = lock_timeout_ms
         self._poisoned = False
         self._retained_lock_streams: list[BinaryFile] = []
+        self._active_writer_session: EvidenceWriterSession | None = None
         self._descriptor = CapabilityDescriptor(
             PortKind.EVIDENCE_STORE,
             "local-cas",
@@ -1332,12 +1333,35 @@ class LocalEvidenceStore:
     def writer_session(self) -> Iterator[EvidenceWriterSession]:
         """Hold the store lock across coordinator-owned metadata and CAS steps."""
 
-        with self._operation("writer_session", exclusive=True) as root_descriptor:
-            session = EvidenceWriterSession(self, root_descriptor)
-            try:
-                yield session
-            finally:
-                session._deactivate()
+        operation = "writer_session"
+        if self._poisoned:
+            _fail(PortErrorCode.STORAGE_FAILED, operation)
+        root_descriptor = _open_root(self._root, operation, create=False)
+        try:
+            with _locked(
+                root_descriptor,
+                operation,
+                exclusive=True,
+                timeout_ms=self._lock_timeout_ms,
+                poison=self._poison_lock,
+            ) as lock_owner:
+                session = EvidenceWriterSession(self, root_descriptor, lock_owner)
+                existing = self._active_writer_session
+                if existing is not None:
+                    if existing._lock_owner is None or existing._lock_owner.closed:
+                        existing._root_descriptor = None
+                        existing._lock_owner = None
+                        self._active_writer_session = None
+                    else:
+                        _fail(PortErrorCode.STORAGE_FAILED, operation)
+                self._active_writer_session = session
+                try:
+                    yield session
+                finally:
+                    session._deactivate()
+        finally:
+            with suppress(OSError):
+                os.close(root_descriptor)
 
     def get(self, digest: str) -> bytes:
         operation = "get"
@@ -1866,6 +1890,7 @@ class EvidenceWriterSession:
 
     _store: LocalEvidenceStore
     _root_descriptor: int | None
+    _lock_owner: BinaryFile | None = None
 
     def __repr__(self) -> str:
         return (
@@ -1875,12 +1900,21 @@ class EvidenceWriterSession:
         )
 
     def _descriptor(self) -> int:
-        if self._root_descriptor is None:
+        if (
+            self._root_descriptor is None
+            or self._store._active_writer_session is not self
+            or self._store._poisoned
+            or self._lock_owner is None
+            or self._lock_owner.closed
+        ):
             _fail(PortErrorCode.INVALID_REQUEST, "writer_session")
         return self._root_descriptor
 
     def _deactivate(self) -> None:
         self._root_descriptor = None
+        self._lock_owner = None
+        if self._store._active_writer_session is self:
+            self._store._active_writer_session = None
 
     def stage(self, run_id: str, artifact: Artifact, content: bytes) -> StageHandle:
         return self._store._stage_locked(

@@ -13,54 +13,54 @@
     "executable_implementation": "cpython",
     "harness_sha256": "69fc6065fc4c0dfadd8cc4b1328210a45063b06410cb5cbb0a5aefc722848c6b",
     "python_version": "3.13.15",
-    "storage_module_sha256": "43f86bca324bfe30380cad60875a24c0249300084317281f43b31525cebe09ac"
+    "storage_module_sha256": "9c1a046e2cf612502aaf3e402d6dd8a959e7bb9cb1a110ad0b4f1437de1e575f"
   },
   "measurements": {
     "audit": {
-      "cpu_ns": 120462617,
-      "wall_ns": 120473440
+      "cpu_ns": 126747532,
+      "wall_ns": 126759085
     },
     "commit_rename": {
-      "cpu_ns": 30844150,
-      "wall_ns": 32083008
+      "cpu_ns": 31378311,
+      "wall_ns": 31384690
     },
     "deduplicated_put": {
-      "bytes_per_second": 90019782,
-      "cpu_ns": 173313240,
+      "bytes_per_second": 103356484,
+      "cpu_ns": 162311103,
       "store_allocated_bytes": 16777216,
       "store_file_count": 2,
       "store_logical_bytes": 16777216,
-      "wall_ns": 186372545
+      "wall_ns": 162323788
     },
     "delete": {
-      "cpu_ns": 31265640,
+      "cpu_ns": 32547546,
       "remaining_allocated_bytes": 16777216,
       "remaining_file_count": 2,
       "remaining_logical_bytes": 16777216,
-      "wall_ns": 31771676
+      "wall_ns": 32545944
     },
     "hash": {
-      "bytes_per_second": 565287908,
-      "cpu_ns": 29681709,
-      "wall_ns": 29679064
+      "bytes_per_second": 576956878,
+      "cpu_ns": 29081264,
+      "wall_ns": 29078804
     },
     "read_verify": {
-      "bytes_per_second": 376683787,
-      "cpu_ns": 44529878,
-      "wall_ns": 44539257
+      "bytes_per_second": 380310631,
+      "cpu_ns": 44116056,
+      "wall_ns": 44114507
     },
     "stage": {
-      "bytes_per_second": 226576927,
-      "cpu_ns": 62222577,
-      "wall_ns": 74046445
+      "bytes_per_second": 267984996,
+      "cpu_ns": 62596932,
+      "wall_ns": 62605057
     },
     "unique_put": {
-      "bytes_per_second": 118589627,
-      "cpu_ns": 128364919,
+      "bytes_per_second": 134103823,
+      "cpu_ns": 125105034,
       "store_allocated_bytes": 16777216,
       "store_file_count": 2,
       "store_logical_bytes": 16777216,
-      "wall_ns": 141472879
+      "wall_ns": 125106172
     }
   },
   "profile": {
@@ -77,7 +77,7 @@
   "resources": {
     "bounded": true,
     "peak_rss_limit_bytes": 2147483648,
-    "process_peak_rss_bytes": 90730496,
+    "process_peak_rss_bytes": 90619904,
     "rss_measured": true,
     "timing_measured": true
   },
