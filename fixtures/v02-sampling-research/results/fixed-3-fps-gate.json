@@ -89,7 +89,7 @@
         "maximum": 2147483648,
         "minimum": null,
         "status": "pass",
-        "value": 572407808
+        "value": 662073344
       }
     },
     "real_time_factor_milli": {
@@ -98,7 +98,7 @@
         "maximum": null,
         "minimum": 1000,
         "status": "pass",
-        "value": 9248
+        "value": 8783
       }
     },
     "samples_per_source_minute": {
@@ -143,20 +143,20 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-sampling-harness",
-      "revision": "87ca4562fba5dfac5818ff9c81b75bb0f1be4959",
-      "sha256": "42554d74b95a0bc788f9d8b41a42cfa69fdae818ace943d0abb1f317a3ee5c14",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/87ca4562fba5dfac5818ff9c81b75bb0f1be4959/scripts/run_v02_sampling_benchmark.py"
+      "revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2",
+      "sha256": "fe7afdb2ea98daf2d919367b7789e93f83f3609159698e734111022b24dbb9aa",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/2da8307d042588fbf7906aa2877b5a973dfa7da2/scripts/run_v02_sampling_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-sampling-metrics",
-      "revision": "87ca4562fba5dfac5818ff9c81b75bb0f1be4959",
-      "sha256": "42554d74b95a0bc788f9d8b41a42cfa69fdae818ace943d0abb1f317a3ee5c14",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/87ca4562fba5dfac5818ff9c81b75bb0f1be4959/scripts/run_v02_sampling_benchmark.py"
+      "revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2",
+      "sha256": "fe7afdb2ea98daf2d919367b7789e93f83f3609159698e734111022b24dbb9aa",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/2da8307d042588fbf7906aa2877b5a973dfa7da2/scripts/run_v02_sampling_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "87ca4562fba5dfac5818ff9c81b75bb0f1be4959"
+    "source_revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2"
   },
   "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
@@ -170,7 +170,7 @@
     "operating_system": "Linux",
     "vcpu": 4
   },
-  "receipt_sha256": "bd516dfa6170c5f4b43f36daac521ffbe7feebaa8fee390c4d002ebbeb680d43",
+  "receipt_sha256": "86bf094bfe830e9dd04e2adbb3f721f32e56cae64befa2a15299b8386c1bbede",
   "regression": {},
   "schema": "visualworld.v02-evaluation-result",
   "schema_version": 1,

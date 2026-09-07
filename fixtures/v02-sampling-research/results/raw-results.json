@@ -24,7 +24,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 67
+            "overall": 193
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -52,16 +52,16 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 572407808
+            "overall": 662073344
           },
           "real_time_factor_milli": {
-            "overall": 3179
+            "overall": 3646
           },
           "samples_per_source_minute": {
-            "overall": 452
+            "overall": 460
           },
           "store_bytes_per_source_minute": {
-            "overall": 112596480
+            "overall": 114462720
           }
         }
       },
@@ -73,19 +73,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -94,10 +94,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1646065257,
-          "decode_and_motion_wall_ns": 1522979345,
-          "detection_cpu_ns": 8938068000,
-          "detection_process_wall_ns": 5849280833,
+          "cpu_ns": 1514306473,
+          "decode_and_motion_wall_ns": 1405705566,
+          "detection_cpu_ns": 7553998999,
+          "detection_process_wall_ns": 4747257124,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -128,16 +128,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3208
+              "overall": 3839
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -148,10 +148,11 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
           "representative_predictions": {
             "calibration-kit-buggy-frame-000": [],
+            "calibration-kit-buggy-frame-004": [],
             "calibration-kit-buggy-frame-006": [
               {
                 "box_milli_pixels": [
@@ -557,7 +558,7 @@
             "calibration-kit-buggy-frame-082": [],
             "calibration-kit-buggy-frame-084": [],
             "calibration-li-l7-side-frame-000": [],
-            "calibration-li-l7-side-frame-005": [],
+            "calibration-li-l7-side-frame-004": [],
             "calibration-li-l7-side-frame-006": [
               {
                 "box_milli_pixels": [
@@ -973,6 +974,7 @@
             ],
             "calibration-li-l7-side-frame-084": [],
             "calibration-lime-van-frame-000": [],
+            "calibration-lime-van-frame-004": [],
             "calibration-lime-van-frame-006": [
               {
                 "box_milli_pixels": [
@@ -1358,6 +1360,7 @@
             "calibration-lime-van-frame-082": [],
             "calibration-lime-van-frame-084": [],
             "calibration-vintage-green-frame-000": [],
+            "calibration-vintage-green-frame-004": [],
             "calibration-vintage-green-frame-006": [],
             "calibration-vintage-green-frame-007": [],
             "calibration-vintage-green-frame-009": [
@@ -1624,6 +1627,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-kit-buggy-frame-000.ppm",
+              "source_id": "kit-buggy",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "77d995674c21a74e6175139ce8136558b8c86cb8ff595e4d32fe718555d6bd37",
+              "height": 216,
+              "item_id": "calibration-kit-buggy-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-kit-buggy-frame-004.ppm",
               "source_id": "kit-buggy",
               "split": "calibration",
               "stratum": "no_event",
@@ -2486,6 +2504,21 @@
             },
             {
               "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "5726493d40e29afeb331f174e12dc9f58fec02969a884333a3a54ea16daca701",
+              "height": 216,
+              "item_id": "calibration-vintage-green-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-vintage-green-frame-004.ppm",
+              "source_id": "vintage-green",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
               "event_id": "calibration-vintage-green-small-fast",
               "frame_index": 6,
               "frame_sha256": "1d728520e54bd32f68cb5a4e38205d5ca26dfe0b0431e321cce6013bb40df383",
@@ -3334,6 +3367,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-lime-van-frame-000.ppm",
+              "source_id": "lime-van",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "f726373b1c48e7c13ffe635c70d2c35289d2039e37ff74ce159d01e7ee90ead7",
+              "height": 216,
+              "item_id": "calibration-lime-van-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-lime-van-frame-004.ppm",
               "source_id": "lime-van",
               "split": "calibration",
               "stratum": "no_event",
@@ -4195,15 +4243,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "1e339197166424108d9fd673d158a5e54554de5203131abbb0da15537318c0c9",
               "height": 216,
-              "item_id": "calibration-li-l7-side-frame-005",
+              "item_id": "calibration-li-l7-side-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "calibration-li-l7-side-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "calibration-li-l7-side-frame-004.ppm",
               "source_id": "li-l7-side",
               "split": "calibration",
               "stratum": "no_event",
@@ -5055,11 +5103,11 @@
               "width": 384
             }
           ],
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 7479690719,
+          "wall_ns": 6250257180,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5073,19 +5121,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -5094,10 +5142,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1571331335,
-          "decode_and_motion_wall_ns": 1448576147,
-          "detection_cpu_ns": 9199477000,
-          "detection_process_wall_ns": 5682143598,
+          "cpu_ns": 1509131833,
+          "decode_and_motion_wall_ns": 1398841850,
+          "detection_cpu_ns": 8112404000,
+          "detection_process_wall_ns": 5028530236,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5128,16 +5176,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3315
+              "overall": 3678
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -5148,13 +5196,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 7238407182,
+          "wall_ns": 6525098592,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5168,19 +5216,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -5189,10 +5237,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1889193603,
-          "decode_and_motion_wall_ns": 1761111152,
-          "detection_cpu_ns": 10001486000,
-          "detection_process_wall_ns": 5836766973,
+          "cpu_ns": 1527909625,
+          "decode_and_motion_wall_ns": 1416479062,
+          "detection_cpu_ns": 8831715000,
+          "detection_process_wall_ns": 5065553968,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5223,16 +5271,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3112
+              "overall": 3646
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -5243,13 +5291,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 7710346464,
+          "wall_ns": 6580831758,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5263,19 +5311,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -5284,10 +5332,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1763137509,
-          "decode_and_motion_wall_ns": 1643314185,
-          "detection_cpu_ns": 8897134000,
-          "detection_process_wall_ns": 5799141410,
+          "cpu_ns": 2414611063,
+          "decode_and_motion_wall_ns": 2261490746,
+          "detection_cpu_ns": 9629581000,
+          "detection_process_wall_ns": 5653205951,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5318,16 +5366,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3179
+              "overall": 2979
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -5338,13 +5386,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 7547303718,
+          "wall_ns": 8054302041,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5358,19 +5406,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -5379,10 +5427,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1781261120,
-          "decode_and_motion_wall_ns": 1660460379,
-          "detection_cpu_ns": 9619874000,
-          "detection_process_wall_ns": 6057753310,
+          "cpu_ns": 1841274604,
+          "decode_and_motion_wall_ns": 1718905296,
+          "detection_cpu_ns": 9646407999,
+          "detection_process_wall_ns": 5587334351,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5413,16 +5461,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3067
+              "overall": 3236
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -5433,13 +5481,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 7823167228,
+          "wall_ns": 7414965100,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -5448,7 +5496,7 @@
           }
         }
       ],
-      "sample_count": 181,
+      "sample_count": 184,
       "threshold_millionths": 30000
     },
     {
@@ -5475,7 +5523,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 37
+            "overall": 115
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -5503,16 +5551,16 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 572407808
+            "overall": 662073344
           },
           "real_time_factor_milli": {
-            "overall": 3368
+            "overall": 3621
           },
           "samples_per_source_minute": {
-            "overall": 452
+            "overall": 460
           },
           "store_bytes_per_source_minute": {
-            "overall": 112596480
+            "overall": 114462720
           }
         }
       },
@@ -5524,19 +5572,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -5545,10 +5593,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1675546011,
-          "decode_and_motion_wall_ns": 1558410976,
-          "detection_cpu_ns": 9088166000,
-          "detection_process_wall_ns": 5384949417,
+          "cpu_ns": 1674118224,
+          "decode_and_motion_wall_ns": 1560097972,
+          "detection_cpu_ns": 8629109999,
+          "detection_process_wall_ns": 5550010531,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -5579,16 +5627,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3405
+              "overall": 3328
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -5599,10 +5647,11 @@
             "motion_threshold_millionths": 50000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
           "representative_predictions": {
             "calibration-kit-buggy-frame-000": [],
+            "calibration-kit-buggy-frame-004": [],
             "calibration-kit-buggy-frame-006": [
               {
                 "box_milli_pixels": [
@@ -6008,7 +6057,7 @@
             "calibration-kit-buggy-frame-082": [],
             "calibration-kit-buggy-frame-084": [],
             "calibration-li-l7-side-frame-000": [],
-            "calibration-li-l7-side-frame-005": [],
+            "calibration-li-l7-side-frame-004": [],
             "calibration-li-l7-side-frame-006": [
               {
                 "box_milli_pixels": [
@@ -6424,6 +6473,7 @@
             ],
             "calibration-li-l7-side-frame-084": [],
             "calibration-lime-van-frame-000": [],
+            "calibration-lime-van-frame-004": [],
             "calibration-lime-van-frame-006": [
               {
                 "box_milli_pixels": [
@@ -6809,6 +6859,7 @@
             "calibration-lime-van-frame-082": [],
             "calibration-lime-van-frame-084": [],
             "calibration-vintage-green-frame-000": [],
+            "calibration-vintage-green-frame-004": [],
             "calibration-vintage-green-frame-006": [],
             "calibration-vintage-green-frame-007": [],
             "calibration-vintage-green-frame-009": [
@@ -7075,6 +7126,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-kit-buggy-frame-000.ppm",
+              "source_id": "kit-buggy",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "77d995674c21a74e6175139ce8136558b8c86cb8ff595e4d32fe718555d6bd37",
+              "height": 216,
+              "item_id": "calibration-kit-buggy-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-kit-buggy-frame-004.ppm",
               "source_id": "kit-buggy",
               "split": "calibration",
               "stratum": "no_event",
@@ -7937,6 +8003,21 @@
             },
             {
               "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "5726493d40e29afeb331f174e12dc9f58fec02969a884333a3a54ea16daca701",
+              "height": 216,
+              "item_id": "calibration-vintage-green-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-vintage-green-frame-004.ppm",
+              "source_id": "vintage-green",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
               "event_id": "calibration-vintage-green-small-fast",
               "frame_index": 6,
               "frame_sha256": "1d728520e54bd32f68cb5a4e38205d5ca26dfe0b0431e321cce6013bb40df383",
@@ -8785,6 +8866,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-lime-van-frame-000.ppm",
+              "source_id": "lime-van",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "f726373b1c48e7c13ffe635c70d2c35289d2039e37ff74ce159d01e7ee90ead7",
+              "height": 216,
+              "item_id": "calibration-lime-van-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-lime-van-frame-004.ppm",
               "source_id": "lime-van",
               "split": "calibration",
               "stratum": "no_event",
@@ -9646,15 +9742,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "1e339197166424108d9fd673d158a5e54554de5203131abbb0da15537318c0c9",
               "height": 216,
-              "item_id": "calibration-li-l7-side-frame-005",
+              "item_id": "calibration-li-l7-side-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "calibration-li-l7-side-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "calibration-li-l7-side-frame-004.ppm",
               "source_id": "li-l7-side",
               "split": "calibration",
               "stratum": "no_event",
@@ -10506,11 +10602,11 @@
               "width": 384
             }
           ],
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 7047358811,
+          "wall_ns": 7210633795,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10524,19 +10620,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -10545,10 +10641,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1621936457,
-          "decode_and_motion_wall_ns": 1509928806,
-          "detection_cpu_ns": 8683498999,
-          "detection_process_wall_ns": 5516379142,
+          "cpu_ns": 1603546332,
+          "decode_and_motion_wall_ns": 1486615688,
+          "detection_cpu_ns": 7660543000,
+          "detection_process_wall_ns": 4831574060,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10579,16 +10675,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3368
+              "overall": 3736
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -10599,13 +10695,13 @@
             "motion_threshold_millionths": 50000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 7124156459,
+          "wall_ns": 6423399275,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10619,19 +10715,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -10640,10 +10736,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1783940489,
-          "decode_and_motion_wall_ns": 1652329087,
-          "detection_cpu_ns": 8762361000,
-          "detection_process_wall_ns": 5418471389,
+          "cpu_ns": 1591464701,
+          "decode_and_motion_wall_ns": 1481151121,
+          "detection_cpu_ns": 7125742999,
+          "detection_process_wall_ns": 4549951881,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10674,16 +10770,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3338
+              "overall": 3914
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -10694,13 +10790,13 @@
             "motion_threshold_millionths": 50000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 7188473135,
+          "wall_ns": 6131110970,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10714,19 +10810,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -10735,10 +10831,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1972905003,
-          "decode_and_motion_wall_ns": 1847031342,
-          "detection_cpu_ns": 8601543000,
-          "detection_process_wall_ns": 5353752124,
+          "cpu_ns": 1572475229,
+          "decode_and_motion_wall_ns": 1460146261,
+          "detection_cpu_ns": 9041851999,
+          "detection_process_wall_ns": 5267656725,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10769,16 +10865,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3283
+              "overall": 3515
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -10789,13 +10885,13 @@
             "motion_threshold_millionths": 50000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 7309151715,
+          "wall_ns": 6826970645,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10809,19 +10905,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -10830,10 +10926,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1668475201,
-          "decode_and_motion_wall_ns": 1552018774,
-          "detection_cpu_ns": 7849990000,
-          "detection_process_wall_ns": 4682350826,
+          "cpu_ns": 1662251944,
+          "decode_and_motion_wall_ns": 1550063109,
+          "detection_cpu_ns": 8057947999,
+          "detection_process_wall_ns": 4976401072,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -10864,16 +10960,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3785
+              "overall": 3621
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -10884,13 +10980,13 @@
             "motion_threshold_millionths": 50000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 6339845576,
+          "wall_ns": 6626424339,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -10899,7 +10995,7 @@
           }
         }
       ],
-      "sample_count": 181,
+      "sample_count": 184,
       "threshold_millionths": 50000
     },
     {
@@ -10926,7 +11022,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 130
+            "overall": 207
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -10954,16 +11050,16 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 572407808
+            "overall": 662073344
           },
           "real_time_factor_milli": {
-            "overall": 3516
+            "overall": 3626
           },
           "samples_per_source_minute": {
-            "overall": 452
+            "overall": 460
           },
           "store_bytes_per_source_minute": {
-            "overall": 112596480
+            "overall": 114462720
           }
         }
       },
@@ -10975,19 +11071,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -10996,10 +11092,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1496931282,
-          "decode_and_motion_wall_ns": 1386525303,
-          "detection_cpu_ns": 7973534999,
-          "detection_process_wall_ns": 5340451633,
+          "cpu_ns": 1583740670,
+          "decode_and_motion_wall_ns": 1467518243,
+          "detection_cpu_ns": 9008291000,
+          "detection_process_wall_ns": 5831801381,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -11030,16 +11126,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3516
+              "overall": 3242
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -11050,10 +11146,11 @@
             "motion_threshold_millionths": 70000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
           "representative_predictions": {
             "calibration-kit-buggy-frame-000": [],
+            "calibration-kit-buggy-frame-004": [],
             "calibration-kit-buggy-frame-006": [
               {
                 "box_milli_pixels": [
@@ -11459,7 +11556,7 @@
             "calibration-kit-buggy-frame-082": [],
             "calibration-kit-buggy-frame-084": [],
             "calibration-li-l7-side-frame-000": [],
-            "calibration-li-l7-side-frame-005": [],
+            "calibration-li-l7-side-frame-004": [],
             "calibration-li-l7-side-frame-006": [
               {
                 "box_milli_pixels": [
@@ -11875,6 +11972,7 @@
             ],
             "calibration-li-l7-side-frame-084": [],
             "calibration-lime-van-frame-000": [],
+            "calibration-lime-van-frame-004": [],
             "calibration-lime-van-frame-006": [
               {
                 "box_milli_pixels": [
@@ -12260,6 +12358,7 @@
             "calibration-lime-van-frame-082": [],
             "calibration-lime-van-frame-084": [],
             "calibration-vintage-green-frame-000": [],
+            "calibration-vintage-green-frame-004": [],
             "calibration-vintage-green-frame-006": [],
             "calibration-vintage-green-frame-007": [],
             "calibration-vintage-green-frame-009": [
@@ -12526,6 +12625,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-kit-buggy-frame-000.ppm",
+              "source_id": "kit-buggy",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "77d995674c21a74e6175139ce8136558b8c86cb8ff595e4d32fe718555d6bd37",
+              "height": 216,
+              "item_id": "calibration-kit-buggy-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-kit-buggy-frame-004.ppm",
               "source_id": "kit-buggy",
               "split": "calibration",
               "stratum": "no_event",
@@ -13388,6 +13502,21 @@
             },
             {
               "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "5726493d40e29afeb331f174e12dc9f58fec02969a884333a3a54ea16daca701",
+              "height": 216,
+              "item_id": "calibration-vintage-green-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-vintage-green-frame-004.ppm",
+              "source_id": "vintage-green",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
               "event_id": "calibration-vintage-green-small-fast",
               "frame_index": 6,
               "frame_sha256": "1d728520e54bd32f68cb5a4e38205d5ca26dfe0b0431e321cce6013bb40df383",
@@ -14236,6 +14365,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-lime-van-frame-000.ppm",
+              "source_id": "lime-van",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "f726373b1c48e7c13ffe635c70d2c35289d2039e37ff74ce159d01e7ee90ead7",
+              "height": 216,
+              "item_id": "calibration-lime-van-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-lime-van-frame-004.ppm",
               "source_id": "lime-van",
               "split": "calibration",
               "stratum": "no_event",
@@ -15097,15 +15241,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "1e339197166424108d9fd673d158a5e54554de5203131abbb0da15537318c0c9",
               "height": 216,
-              "item_id": "calibration-li-l7-side-frame-005",
+              "item_id": "calibration-li-l7-side-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "calibration-li-l7-side-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "calibration-li-l7-side-frame-004.ppm",
               "source_id": "li-l7-side",
               "split": "calibration",
               "stratum": "no_event",
@@ -15957,11 +16101,11 @@
               "width": 384
             }
           ],
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 6824208814,
+          "wall_ns": 7400564714,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -15975,19 +16119,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -15996,10 +16140,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1554998879,
-          "decode_and_motion_wall_ns": 1438880883,
-          "detection_cpu_ns": 7681425000,
-          "detection_process_wall_ns": 5039953644,
+          "cpu_ns": 1539097431,
+          "decode_and_motion_wall_ns": 1427171697,
+          "detection_cpu_ns": 8075828000,
+          "detection_process_wall_ns": 5090956998,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16030,16 +16174,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3646
+              "overall": 3626
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -16050,13 +16194,13 @@
             "motion_threshold_millionths": 70000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 6582243385,
+          "wall_ns": 6617269797,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16070,19 +16214,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -16091,10 +16235,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1607695932,
-          "decode_and_motion_wall_ns": 1495804699,
-          "detection_cpu_ns": 8163906000,
-          "detection_process_wall_ns": 5400499164,
+          "cpu_ns": 1595208439,
+          "decode_and_motion_wall_ns": 1481759085,
+          "detection_cpu_ns": 8914277000,
+          "detection_process_wall_ns": 5201353700,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16125,16 +16269,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3431
+              "overall": 3537
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -16145,13 +16289,13 @@
             "motion_threshold_millionths": 70000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 6994821775,
+          "wall_ns": 6783959666,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16165,19 +16309,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -16186,10 +16330,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1555109294,
-          "decode_and_motion_wall_ns": 1446885786,
-          "detection_cpu_ns": 7232328999,
-          "detection_process_wall_ns": 4546257883,
+          "cpu_ns": 1597577831,
+          "decode_and_motion_wall_ns": 1483282503,
+          "detection_cpu_ns": 7295785999,
+          "detection_process_wall_ns": 4626187057,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16220,16 +16364,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3940
+              "overall": 3862
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -16240,13 +16384,13 @@
             "motion_threshold_millionths": 70000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 6090924844,
+          "wall_ns": 6212957894,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16260,19 +16404,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 70,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -16281,10 +16425,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1601325705,
-          "decode_and_motion_wall_ns": 1490102631,
-          "detection_cpu_ns": 8407812999,
-          "detection_process_wall_ns": 5626133889,
+          "cpu_ns": 1536401911,
+          "decode_and_motion_wall_ns": 1424926540,
+          "detection_cpu_ns": 7467137999,
+          "detection_process_wall_ns": 4735873980,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16315,16 +16459,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3327
+              "overall": 3833
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -16335,13 +16479,13 @@
             "motion_threshold_millionths": 70000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 7213261972,
+          "wall_ns": 6261027085,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -16350,7 +16494,7 @@
           }
         }
       ],
-      "sample_count": 181,
+      "sample_count": 184,
       "threshold_millionths": 70000
     },
     {
@@ -16377,7 +16521,7 @@
             "overall": 0
           },
           "real_time_factor_milli": {
-            "overall": 103
+            "overall": 87
           },
           "samples_per_source_minute": {
             "overall": 0
@@ -16405,16 +16549,16 @@
             "vfr_gap": 10000
           },
           "peak_rss_bytes": {
-            "overall": 572407808
+            "overall": 662073344
           },
           "real_time_factor_milli": {
-            "overall": 3631
+            "overall": 3682
           },
           "samples_per_source_minute": {
-            "overall": 452
+            "overall": 460
           },
           "store_bytes_per_source_minute": {
-            "overall": 112596480
+            "overall": 114462720
           }
         }
       },
@@ -16426,19 +16570,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 63,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 64,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -16447,10 +16591,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1618663597,
-          "decode_and_motion_wall_ns": 1485433204,
-          "detection_cpu_ns": 9306696999,
-          "detection_process_wall_ns": 5325126415,
+          "cpu_ns": 1496682963,
+          "decode_and_motion_wall_ns": 1386969483,
+          "detection_cpu_ns": 8661873000,
+          "detection_process_wall_ns": 4959585930,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -16481,16 +16625,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3463
+              "overall": 3723
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -16501,10 +16645,11 @@
             "motion_threshold_millionths": 90000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
           "representative_predictions": {
             "calibration-kit-buggy-frame-000": [],
+            "calibration-kit-buggy-frame-004": [],
             "calibration-kit-buggy-frame-006": [
               {
                 "box_milli_pixels": [
@@ -16910,7 +17055,7 @@
             "calibration-kit-buggy-frame-082": [],
             "calibration-kit-buggy-frame-084": [],
             "calibration-li-l7-side-frame-000": [],
-            "calibration-li-l7-side-frame-005": [],
+            "calibration-li-l7-side-frame-004": [],
             "calibration-li-l7-side-frame-006": [
               {
                 "box_milli_pixels": [
@@ -17326,6 +17471,7 @@
             ],
             "calibration-li-l7-side-frame-084": [],
             "calibration-lime-van-frame-000": [],
+            "calibration-lime-van-frame-004": [],
             "calibration-lime-van-frame-006": [
               {
                 "box_milli_pixels": [
@@ -17711,6 +17857,7 @@
             "calibration-lime-van-frame-082": [],
             "calibration-lime-van-frame-084": [],
             "calibration-vintage-green-frame-000": [],
+            "calibration-vintage-green-frame-004": [],
             "calibration-vintage-green-frame-006": [],
             "calibration-vintage-green-frame-007": [],
             "calibration-vintage-green-frame-009": [
@@ -17977,6 +18124,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-kit-buggy-frame-000.ppm",
+              "source_id": "kit-buggy",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "77d995674c21a74e6175139ce8136558b8c86cb8ff595e4d32fe718555d6bd37",
+              "height": 216,
+              "item_id": "calibration-kit-buggy-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-kit-buggy-frame-004.ppm",
               "source_id": "kit-buggy",
               "split": "calibration",
               "stratum": "no_event",
@@ -18839,6 +19001,21 @@
             },
             {
               "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "5726493d40e29afeb331f174e12dc9f58fec02969a884333a3a54ea16daca701",
+              "height": 216,
+              "item_id": "calibration-vintage-green-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-vintage-green-frame-004.ppm",
+              "source_id": "vintage-green",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
               "event_id": "calibration-vintage-green-small-fast",
               "frame_index": 6,
               "frame_sha256": "1d728520e54bd32f68cb5a4e38205d5ca26dfe0b0431e321cce6013bb40df383",
@@ -19687,6 +19864,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "calibration-lime-van-frame-000.ppm",
+              "source_id": "lime-van",
+              "split": "calibration",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "f726373b1c48e7c13ffe635c70d2c35289d2039e37ff74ce159d01e7ee90ead7",
+              "height": 216,
+              "item_id": "calibration-lime-van-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "calibration-lime-van-frame-004.ppm",
               "source_id": "lime-van",
               "split": "calibration",
               "stratum": "no_event",
@@ -20548,15 +20740,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "1e339197166424108d9fd673d158a5e54554de5203131abbb0da15537318c0c9",
               "height": 216,
-              "item_id": "calibration-li-l7-side-frame-005",
+              "item_id": "calibration-li-l7-side-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "calibration-li-l7-side-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "calibration-li-l7-side-frame-004.ppm",
               "source_id": "li-l7-side",
               "split": "calibration",
               "stratum": "no_event",
@@ -21408,11 +21600,11 @@
               "width": 384
             }
           ],
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 6930186744,
+          "wall_ns": 6444691886,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21426,19 +21618,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 63,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 64,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -21447,10 +21639,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1536108509,
-          "decode_and_motion_wall_ns": 1428275941,
-          "detection_cpu_ns": 7570986999,
-          "detection_process_wall_ns": 4779359536,
+          "cpu_ns": 1530951579,
+          "decode_and_motion_wall_ns": 1418145683,
+          "detection_cpu_ns": 8796852000,
+          "detection_process_wall_ns": 5215837048,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21481,16 +21673,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3806
+              "overall": 3563
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -21501,13 +21693,13 @@
             "motion_threshold_millionths": 90000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 6304267447,
+          "wall_ns": 6734284523,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21521,19 +21713,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 63,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 64,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -21542,10 +21734,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1559222687,
-          "decode_and_motion_wall_ns": 1449656290,
-          "detection_cpu_ns": 9263820000,
-          "detection_process_wall_ns": 5062609827,
+          "cpu_ns": 1528208608,
+          "decode_and_motion_wall_ns": 1417883528,
+          "detection_cpu_ns": 8088637000,
+          "detection_process_wall_ns": 4850521147,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21576,16 +21768,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3631
+              "overall": 3769
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -21596,13 +21788,13 @@
             "motion_threshold_millionths": 90000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 6609704908,
+          "wall_ns": 6367285430,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21616,19 +21808,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 63,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 64,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -21637,10 +21829,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1617285344,
-          "decode_and_motion_wall_ns": 1507382146,
-          "detection_cpu_ns": 8085745999,
-          "detection_process_wall_ns": 4821128597,
+          "cpu_ns": 1560423492,
+          "decode_and_motion_wall_ns": 1448928197,
+          "detection_cpu_ns": 7604406000,
+          "detection_process_wall_ns": 4969226183,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21671,16 +21863,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3734
+              "overall": 3682
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -21691,13 +21883,13 @@
             "motion_threshold_millionths": 90000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 6427162752,
+          "wall_ns": 6517105119,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21711,19 +21903,19 @@
               "clip_id": "calibration-kit-buggy",
               "maximum_motion_score_millionths": 444852,
               "motion_trigger_count": 63,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-vintage-green",
               "maximum_motion_score_millionths": 356971,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-lime-van",
               "maximum_motion_score_millionths": 477015,
               "motion_trigger_count": 64,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "calibration-li-l7-side",
@@ -21732,10 +21924,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 1656770882,
-          "decode_and_motion_wall_ns": 1540146017,
-          "detection_cpu_ns": 7016014999,
-          "detection_process_wall_ns": 4989119221,
+          "cpu_ns": 1587326313,
+          "decode_and_motion_wall_ns": 1468387474,
+          "detection_cpu_ns": 11123893000,
+          "detection_process_wall_ns": 6442202746,
           "event_counts": {
             "camera_motion": 4,
             "cut_adjacent": 4,
@@ -21766,16 +21958,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3617
+              "overall": 2995
             },
             "samples_per_source_minute": {
-              "overall": 452
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 112596480
+              "overall": 114462720
             }
           },
           "policy": {
@@ -21786,13 +21978,13 @@
             "motion_threshold_millionths": 90000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "00e7caff3b34d4172d553133da414206bd69ea9092f1011955130296b63c7cd1",
+          "predictions_sha256": "76675948b0d9d9fbbe83f224c683a63c8f2f5514c630882a0037cf09243002c5",
           "processed_item_count": 16,
-          "sample_count": 181,
-          "samples_sha256": "91248769cc4e52545bb1959adfe1480571ab6e57d1da22eb98c33178a68baa93",
+          "sample_count": 184,
+          "samples_sha256": "0f90a19566ef8edc327b0b160f139512c3995a3eb446f3440d3354e7326fe3e1",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 6633810902,
+          "wall_ns": 8011419417,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -21801,7 +21993,7 @@
           }
         }
       ],
-      "sample_count": 181,
+      "sample_count": 184,
       "threshold_millionths": 90000
     }
   ],
@@ -21827,19 +22019,19 @@
               "clip_id": "test-bmw-i3",
               "maximum_motion_score_millionths": 457652,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-pink-cadillac",
               "maximum_motion_score_millionths": 451416,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-red-opel",
               "maximum_motion_score_millionths": 357325,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-li-l9-side",
@@ -21860,10 +22052,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2528310483,
-          "decode_and_motion_wall_ns": 2346664612,
-          "detection_cpu_ns": 11613909000,
-          "detection_process_wall_ns": 7277823220,
+          "cpu_ns": 2246699743,
+          "decode_and_motion_wall_ns": 2076237662,
+          "detection_cpu_ns": 16565694000,
+          "detection_process_wall_ns": 8706215381,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -21894,16 +22086,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3677
+              "overall": 3293
             },
             "samples_per_source_minute": {
-              "overall": 455
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 113218560
+              "overall": 114462720
             }
           },
           "policy": {
@@ -21914,10 +22106,11 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "fea5bad601a81b1798713197241f9ebb90fefecd50e72849c4a9fd332bc81515",
+          "predictions_sha256": "77d559c012d523a6888e8cb5f586963683617a0db986b53c4f4c73cf2c82c22c",
           "processed_item_count": 24,
           "representative_predictions": {
             "test-bmw-i3-frame-000": [],
+            "test-bmw-i3-frame-004": [],
             "test-bmw-i3-frame-006": [
               {
                 "box_milli_pixels": [
@@ -22323,7 +22516,7 @@
             "test-bmw-i3-frame-082": [],
             "test-bmw-i3-frame-084": [],
             "test-li-l7-white-frame-000": [],
-            "test-li-l7-white-frame-005": [],
+            "test-li-l7-white-frame-004": [],
             "test-li-l7-white-frame-006": [
               {
                 "box_milli_pixels": [
@@ -22739,7 +22932,7 @@
             ],
             "test-li-l7-white-frame-084": [],
             "test-li-l9-rear-frame-000": [],
-            "test-li-l9-rear-frame-005": [],
+            "test-li-l9-rear-frame-004": [],
             "test-li-l9-rear-frame-006": [
               {
                 "box_milli_pixels": [
@@ -23145,7 +23338,7 @@
             ],
             "test-li-l9-rear-frame-084": [],
             "test-li-l9-side-frame-000": [],
-            "test-li-l9-side-frame-005": [],
+            "test-li-l9-side-frame-004": [],
             "test-li-l9-side-frame-006": [
               {
                 "box_milli_pixels": [
@@ -23561,6 +23754,7 @@
             ],
             "test-li-l9-side-frame-084": [],
             "test-pink-cadillac-frame-000": [],
+            "test-pink-cadillac-frame-004": [],
             "test-pink-cadillac-frame-006": [],
             "test-pink-cadillac-frame-007": [
               {
@@ -23916,6 +24110,7 @@
             "test-pink-cadillac-frame-082": [],
             "test-pink-cadillac-frame-084": [],
             "test-red-opel-frame-000": [],
+            "test-red-opel-frame-004": [],
             "test-red-opel-frame-006": [
               {
                 "box_milli_pixels": [
@@ -24332,6 +24527,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "test-bmw-i3-frame-000.ppm",
+              "source_id": "bmw-i3",
+              "split": "test",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "c567c3e6aab84daa07fc8d73013f1099270f13ce7cf09d96c4e863fae81a8508",
+              "height": 216,
+              "item_id": "test-bmw-i3-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "test-bmw-i3-frame-004.ppm",
               "source_id": "bmw-i3",
               "split": "test",
               "stratum": "no_event",
@@ -25194,6 +25404,21 @@
             },
             {
               "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "f5535de94a0ac5a00ec665b6f3ff996ebe9035a1e75e31544bc4ee12f5eae3c4",
+              "height": 216,
+              "item_id": "test-pink-cadillac-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "test-pink-cadillac-frame-004.ppm",
+              "source_id": "pink-cadillac",
+              "split": "test",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
               "event_id": "test-pink-cadillac-small-fast",
               "frame_index": 6,
               "frame_sha256": "f0da7ce640ae638a4a1a558a25e1f49ad259f074d56f8c6f8d55854e1277e1db",
@@ -26042,6 +26267,21 @@
               "object_box": null,
               "pts_ms": 0,
               "relative_path": "test-red-opel-frame-000.ppm",
+              "source_id": "red-opel",
+              "split": "test",
+              "stratum": "no_event",
+              "width": 384
+            },
+            {
+              "duration_ms": 67,
+              "event_id": null,
+              "frame_index": 4,
+              "frame_sha256": "4fbde838950ab2b1d3e7464d0585f3bb86e9c73577496880d289c9b14227e160",
+              "height": 216,
+              "item_id": "test-red-opel-frame-004",
+              "object_box": null,
+              "pts_ms": 267,
+              "relative_path": "test-red-opel-frame-004.ppm",
               "source_id": "red-opel",
               "split": "test",
               "stratum": "no_event",
@@ -26903,15 +27143,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "d9edc4742001bfc036b1b32deaa0536cc8fe101e249dcb7edd4a3ffcf4623153",
               "height": 216,
-              "item_id": "test-li-l9-side-frame-005",
+              "item_id": "test-li-l9-side-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "test-li-l9-side-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "test-li-l9-side-frame-004.ppm",
               "source_id": "li-l9-side",
               "split": "test",
               "stratum": "no_event",
@@ -27778,15 +28018,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "3a5633f63f009ac1a4d77dc3027244a50835cfd7e022a7bd48fe05e28494ebc9",
               "height": 216,
-              "item_id": "test-li-l9-rear-frame-005",
+              "item_id": "test-li-l9-rear-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "test-li-l9-rear-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "test-li-l9-rear-frame-004.ppm",
               "source_id": "li-l9-rear",
               "split": "test",
               "stratum": "no_event",
@@ -28653,15 +28893,15 @@
               "width": 384
             },
             {
-              "duration_ms": 66,
+              "duration_ms": 67,
               "event_id": null,
-              "frame_index": 5,
+              "frame_index": 4,
               "frame_sha256": "964986bf2da974efcc68f1bbcb124337e80bf7653adc6ff6923c21e63a61e7d1",
               "height": 216,
-              "item_id": "test-li-l7-white-frame-005",
+              "item_id": "test-li-l7-white-frame-004",
               "object_box": null,
-              "pts_ms": 334,
-              "relative_path": "test-li-l7-white-frame-005.ppm",
+              "pts_ms": 267,
+              "relative_path": "test-li-l7-white-frame-004.ppm",
               "source_id": "li-l7-white",
               "split": "test",
               "stratum": "no_event",
@@ -29513,11 +29753,11 @@
               "width": 384
             }
           ],
-          "sample_count": 273,
-          "samples_sha256": "15889842a40b37c5d7e537445dc95e96ce111151894a6fe27a3977339e417bea",
+          "sample_count": 276,
+          "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 9788430347,
+          "wall_ns": 10930449822,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -29531,19 +29771,19 @@
               "clip_id": "test-bmw-i3",
               "maximum_motion_score_millionths": 457652,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-pink-cadillac",
               "maximum_motion_score_millionths": 451416,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-red-opel",
               "maximum_motion_score_millionths": 357325,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-li-l9-side",
@@ -29564,10 +29804,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2277680650,
-          "decode_and_motion_wall_ns": 2113431280,
-          "detection_cpu_ns": 12283115000,
-          "detection_process_wall_ns": 7662807336,
+          "cpu_ns": 2628098680,
+          "decode_and_motion_wall_ns": 2438234114,
+          "detection_cpu_ns": 14880235000,
+          "detection_process_wall_ns": 8153631583,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -29598,16 +29838,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3628
+              "overall": 3345
             },
             "samples_per_source_minute": {
-              "overall": 455
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 113218560
+              "overall": 114462720
             }
           },
           "policy": {
@@ -29618,13 +29858,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "fea5bad601a81b1798713197241f9ebb90fefecd50e72849c4a9fd332bc81515",
+          "predictions_sha256": "77d559c012d523a6888e8cb5f586963683617a0db986b53c4f4c73cf2c82c22c",
           "processed_item_count": 24,
-          "sample_count": 273,
-          "samples_sha256": "15889842a40b37c5d7e537445dc95e96ce111151894a6fe27a3977339e417bea",
+          "sample_count": 276,
+          "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 9922474095,
+          "wall_ns": 10761191502,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -29638,19 +29878,19 @@
               "clip_id": "test-bmw-i3",
               "maximum_motion_score_millionths": 457652,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-pink-cadillac",
               "maximum_motion_score_millionths": 451416,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-red-opel",
               "maximum_motion_score_millionths": 357325,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-li-l9-side",
@@ -29671,10 +29911,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2423512680,
-          "decode_and_motion_wall_ns": 2248571542,
-          "detection_cpu_ns": 14861939999,
-          "detection_process_wall_ns": 9040921598,
+          "cpu_ns": 2475853822,
+          "decode_and_motion_wall_ns": 2300058443,
+          "detection_cpu_ns": 15661378000,
+          "detection_process_wall_ns": 8865866328,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -29705,16 +29945,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3146
+              "overall": 3180
             },
             "samples_per_source_minute": {
-              "overall": 455
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 113218560
+              "overall": 114462720
             }
           },
           "policy": {
@@ -29725,13 +29965,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "fea5bad601a81b1798713197241f9ebb90fefecd50e72849c4a9fd332bc81515",
+          "predictions_sha256": "77d559c012d523a6888e8cb5f586963683617a0db986b53c4f4c73cf2c82c22c",
           "processed_item_count": 24,
-          "sample_count": 273,
-          "samples_sha256": "15889842a40b37c5d7e537445dc95e96ce111151894a6fe27a3977339e417bea",
+          "sample_count": 276,
+          "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 11440712700,
+          "wall_ns": 11318274509,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -29745,19 +29985,19 @@
               "clip_id": "test-bmw-i3",
               "maximum_motion_score_millionths": 457652,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-pink-cadillac",
               "maximum_motion_score_millionths": 451416,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-red-opel",
               "maximum_motion_score_millionths": 357325,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-li-l9-side",
@@ -29778,10 +30018,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2437986529,
-          "decode_and_motion_wall_ns": 2268643203,
-          "detection_cpu_ns": 13330102000,
-          "detection_process_wall_ns": 7832232502,
+          "cpu_ns": 2577868291,
+          "decode_and_motion_wall_ns": 2389545967,
+          "detection_cpu_ns": 16038309000,
+          "detection_process_wall_ns": 9314756284,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -29812,16 +30052,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3511
+              "overall": 3033
             },
             "samples_per_source_minute": {
-              "overall": 455
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 113218560
+              "overall": 114462720
             }
           },
           "policy": {
@@ -29832,13 +30072,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "fea5bad601a81b1798713197241f9ebb90fefecd50e72849c4a9fd332bc81515",
+          "predictions_sha256": "77d559c012d523a6888e8cb5f586963683617a0db986b53c4f4c73cf2c82c22c",
           "processed_item_count": 24,
-          "sample_count": 273,
-          "samples_sha256": "15889842a40b37c5d7e537445dc95e96ce111151894a6fe27a3977339e417bea",
+          "sample_count": 276,
+          "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 10251658945,
+          "wall_ns": 11868264003,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -29852,19 +30092,19 @@
               "clip_id": "test-bmw-i3",
               "maximum_motion_score_millionths": 457652,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-pink-cadillac",
               "maximum_motion_score_millionths": 451416,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-red-opel",
               "maximum_motion_score_millionths": 357325,
               "motion_trigger_count": 69,
-              "sample_count": 45
+              "sample_count": 46
             },
             {
               "clip_id": "test-li-l9-side",
@@ -29885,10 +30125,10 @@
               "sample_count": 46
             }
           ],
-          "cpu_ns": 2740895103,
-          "decode_and_motion_wall_ns": 2539946486,
-          "detection_cpu_ns": 13888289000,
-          "detection_process_wall_ns": 8257597129,
+          "cpu_ns": 2786056797,
+          "decode_and_motion_wall_ns": 2586828933,
+          "detection_cpu_ns": 15726302000,
+          "detection_process_wall_ns": 8809140424,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -29919,16 +30159,16 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3279
+              "overall": 3110
             },
             "samples_per_source_minute": {
-              "overall": 455
+              "overall": 460
             },
             "store_bytes_per_source_minute": {
-              "overall": 113218560
+              "overall": 114462720
             }
           },
           "policy": {
@@ -29939,13 +30179,13 @@
             "motion_threshold_millionths": 30000,
             "name": "adaptive-3-to-8-fps"
           },
-          "predictions_sha256": "fea5bad601a81b1798713197241f9ebb90fefecd50e72849c4a9fd332bc81515",
+          "predictions_sha256": "77d559c012d523a6888e8cb5f586963683617a0db986b53c4f4c73cf2c82c22c",
           "processed_item_count": 24,
-          "sample_count": 273,
-          "samples_sha256": "15889842a40b37c5d7e537445dc95e96ce111151894a6fe27a3977339e417bea",
+          "sample_count": 276,
+          "samples_sha256": "8220a6d9f7fd0294ef49de0c9479c3137f8c81ebca9020781e28cb242cd184bb",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 10977847353,
+          "wall_ns": 11572442316,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -30005,10 +30245,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 578875713,
-          "decode_and_motion_wall_ns": 550559697,
-          "detection_cpu_ns": 2040625000,
-          "detection_process_wall_ns": 2045501927,
+          "cpu_ns": 595410020,
+          "decode_and_motion_wall_ns": 564402417,
+          "detection_cpu_ns": 1604839000,
+          "detection_process_wall_ns": 1882773894,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -30039,10 +30279,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 13755
+              "overall": 14566
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -30902,7 +31142,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 2617125113,
+          "wall_ns": 2471435405,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -30949,10 +31189,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 555320839,
-          "decode_and_motion_wall_ns": 528253831,
-          "detection_cpu_ns": 1447858999,
-          "detection_process_wall_ns": 1696514584,
+          "cpu_ns": 596606270,
+          "decode_and_motion_wall_ns": 567653259,
+          "detection_cpu_ns": 1953215999,
+          "detection_process_wall_ns": 1853390246,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -30983,10 +31223,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 16026
+              "overall": 14732
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31006,7 +31246,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 2246229140,
+          "wall_ns": 2443517977,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31053,10 +31293,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 562864228,
-          "decode_and_motion_wall_ns": 537258026,
-          "detection_cpu_ns": 1323626000,
-          "detection_process_wall_ns": 1580812125,
+          "cpu_ns": 707379793,
+          "decode_and_motion_wall_ns": 671447485,
+          "detection_cpu_ns": 2200096999,
+          "detection_process_wall_ns": 2411682847,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31087,10 +31327,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 16833
+              "overall": 11578
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31110,7 +31350,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 2138600151,
+          "wall_ns": 3109318778,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31157,10 +31397,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 547670137,
-          "decode_and_motion_wall_ns": 521551080,
-          "detection_cpu_ns": 1560705000,
-          "detection_process_wall_ns": 1702753022,
+          "cpu_ns": 611223987,
+          "decode_and_motion_wall_ns": 582594399,
+          "detection_cpu_ns": 1872668999,
+          "detection_process_wall_ns": 1928507103,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31191,10 +31431,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 16036
+              "overall": 14209
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31214,7 +31454,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 2244937755,
+          "wall_ns": 2533503135,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31261,10 +31501,10 @@
               "sample_count": 6
             }
           ],
-          "cpu_ns": 554954282,
-          "decode_and_motion_wall_ns": 526668308,
-          "detection_cpu_ns": 1913993999,
-          "detection_process_wall_ns": 2172144474,
+          "cpu_ns": 779645310,
+          "decode_and_motion_wall_ns": 713608861,
+          "detection_cpu_ns": 2019695000,
+          "detection_process_wall_ns": 2643420460,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31295,10 +31535,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 13237
+              "overall": 10608
             },
             "samples_per_source_minute": {
               "overall": 60
@@ -31318,7 +31558,7 @@
           "samples_sha256": "562c8351a0fd0558eac40a88ce0af93dbb3fdff92c1e1ca93b86bd2d9395cfc9",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 2719594859,
+          "wall_ns": 3393371157,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -31378,10 +31618,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 617124760,
-          "decode_and_motion_wall_ns": 567988774,
-          "detection_cpu_ns": 3195436000,
-          "detection_process_wall_ns": 2749962164,
+          "cpu_ns": 598614709,
+          "decode_and_motion_wall_ns": 548542164,
+          "detection_cpu_ns": 3951327000,
+          "detection_process_wall_ns": 2864117424,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -31412,10 +31652,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 10717
+              "overall": 10422
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33316,7 +33556,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 3359125570,
+          "wall_ns": 3454142888,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33363,10 +33603,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 580528711,
-          "decode_and_motion_wall_ns": 530716413,
-          "detection_cpu_ns": 3382875999,
-          "detection_process_wall_ns": 2532127480,
+          "cpu_ns": 645456425,
+          "decode_and_motion_wall_ns": 590857256,
+          "detection_cpu_ns": 3711403999,
+          "detection_process_wall_ns": 3424537571,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33397,10 +33637,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 11591
+              "overall": 8870
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33420,7 +33660,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 3105605889,
+          "wall_ns": 4058208530,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33467,10 +33707,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 564844766,
-          "decode_and_motion_wall_ns": 516937163,
-          "detection_cpu_ns": 3554478000,
-          "detection_process_wall_ns": 2766680873,
+          "cpu_ns": 657461588,
+          "decode_and_motion_wall_ns": 602156197,
+          "detection_cpu_ns": 4090845000,
+          "detection_process_wall_ns": 3008137633,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33501,10 +33741,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 10833
+              "overall": 9846
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33524,7 +33764,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 3323106844,
+          "wall_ns": 3656010530,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33571,10 +33811,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 596292987,
-          "decode_and_motion_wall_ns": 547903068,
-          "detection_cpu_ns": 3451575999,
-          "detection_process_wall_ns": 2639670664,
+          "cpu_ns": 701518579,
+          "decode_and_motion_wall_ns": 638797544,
+          "detection_cpu_ns": 3254948000,
+          "detection_process_wall_ns": 2906099422,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33605,10 +33845,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 11151
+              "overall": 10006
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33628,7 +33868,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 3228245854,
+          "wall_ns": 3597759018,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33675,10 +33915,10 @@
               "sample_count": 12
             }
           ],
-          "cpu_ns": 672470489,
-          "decode_and_motion_wall_ns": 618223239,
-          "detection_cpu_ns": 3936717000,
-          "detection_process_wall_ns": 2715797614,
+          "cpu_ns": 656923692,
+          "decode_and_motion_wall_ns": 602002587,
+          "detection_cpu_ns": 4200349999,
+          "detection_process_wall_ns": 3266158690,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33709,10 +33949,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 10649
+              "overall": 9200
             },
             "samples_per_source_minute": {
               "overall": 120
@@ -33732,7 +33972,7 @@
           "samples_sha256": "8dea20d4e9515838155070e76ebdb12e01b674bdd528162bca4fecc05839b738",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 3380310707,
+          "wall_ns": 3912769838,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -33792,10 +34032,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 708640449,
-          "decode_and_motion_wall_ns": 620049474,
-          "detection_cpu_ns": 3990434000,
-          "detection_process_wall_ns": 3554166432,
+          "cpu_ns": 650371700,
+          "decode_and_motion_wall_ns": 570743047,
+          "detection_cpu_ns": 5962900000,
+          "detection_process_wall_ns": 3966802008,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -33826,10 +34066,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 8465
+              "overall": 7816
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -36776,7 +37016,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 4252365098,
+          "wall_ns": 4605517530,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -36823,10 +37063,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 613704082,
-          "decode_and_motion_wall_ns": 543549513,
-          "detection_cpu_ns": 4604007000,
-          "detection_process_wall_ns": 3157950603,
+          "cpu_ns": 594873665,
+          "decode_and_motion_wall_ns": 527244833,
+          "detection_cpu_ns": 5097255000,
+          "detection_process_wall_ns": 3368230007,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -36857,10 +37097,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 9565
+              "overall": 9104
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -36880,7 +37120,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 3763682626,
+          "wall_ns": 3954205850,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -36927,10 +37167,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 582647783,
-          "decode_and_motion_wall_ns": 516400352,
-          "detection_cpu_ns": 4978222999,
-          "detection_process_wall_ns": 3315685794,
+          "cpu_ns": 587225349,
+          "decode_and_motion_wall_ns": 521114260,
+          "detection_cpu_ns": 4386107999,
+          "detection_process_wall_ns": 2969066066,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -36961,10 +37201,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 9254
+              "overall": 10144
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -36984,7 +37224,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 3889825985,
+          "wall_ns": 3548892498,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37031,10 +37271,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 616374687,
-          "decode_and_motion_wall_ns": 540787037,
-          "detection_cpu_ns": 5335258000,
-          "detection_process_wall_ns": 3699581416,
+          "cpu_ns": 653286489,
+          "decode_and_motion_wall_ns": 580818653,
+          "detection_cpu_ns": 4780562000,
+          "detection_process_wall_ns": 3454963243,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37065,10 +37305,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 8360
+              "overall": 8783
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37088,7 +37328,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 4306134939,
+          "wall_ns": 4098654673,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37135,10 +37375,10 @@
               "sample_count": 18
             }
           ],
-          "cpu_ns": 706417568,
-          "decode_and_motion_wall_ns": 627769951,
-          "detection_cpu_ns": 4103672999,
-          "detection_process_wall_ns": 3194411411,
+          "cpu_ns": 612377539,
+          "decode_and_motion_wall_ns": 543526302,
+          "detection_cpu_ns": 4917598000,
+          "detection_process_wall_ns": 3665560773,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37169,10 +37409,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 9248
+              "overall": 8435
             },
             "samples_per_source_minute": {
               "overall": 180
@@ -37192,7 +37432,7 @@
           "samples_sha256": "a95f312ab9a8f7ab75f216e91952267f865b3090a37c7886172e31aadf2a552b",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 3892587969,
+          "wall_ns": 4267755482,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -37252,10 +37492,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 652066664,
-          "decode_and_motion_wall_ns": 539109301,
-          "detection_cpu_ns": 8875982000,
-          "detection_process_wall_ns": 5339754514,
+          "cpu_ns": 679501497,
+          "decode_and_motion_wall_ns": 561550513,
+          "detection_cpu_ns": 9471983000,
+          "detection_process_wall_ns": 5371409596,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -37286,10 +37526,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 6021
+              "overall": 5962
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42223,7 +42463,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 5978908570,
+          "wall_ns": 6037660652,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42270,10 +42510,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 668738565,
-          "decode_and_motion_wall_ns": 558720709,
-          "detection_cpu_ns": 7619138000,
-          "detection_process_wall_ns": 4802102568,
+          "cpu_ns": 656173808,
+          "decode_and_motion_wall_ns": 545385828,
+          "detection_cpu_ns": 8460556000,
+          "detection_process_wall_ns": 5216279924,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42304,10 +42544,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 6594
+              "overall": 6143
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42327,7 +42567,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 5459493890,
+          "wall_ns": 5859611837,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42374,10 +42614,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 687366209,
-          "decode_and_motion_wall_ns": 569412111,
-          "detection_cpu_ns": 7009899000,
-          "detection_process_wall_ns": 4603916930,
+          "cpu_ns": 721970555,
+          "decode_and_motion_wall_ns": 590464613,
+          "detection_cpu_ns": 8146297000,
+          "detection_process_wall_ns": 4808911502,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42408,10 +42648,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 6817
+              "overall": 6523
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42431,7 +42671,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 5280335911,
+          "wall_ns": 5518928317,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42478,10 +42718,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 642834320,
-          "decode_and_motion_wall_ns": 533890700,
-          "detection_cpu_ns": 7324260999,
-          "detection_process_wall_ns": 4445522998,
+          "cpu_ns": 651542900,
+          "decode_and_motion_wall_ns": 536966356,
+          "detection_cpu_ns": 11557506000,
+          "detection_process_wall_ns": 6189067550,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42512,10 +42752,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 7088
+              "overall": 5275
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42535,7 +42775,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 5078292848,
+          "wall_ns": 6823480582,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42582,10 +42822,10 @@
               "sample_count": 30
             }
           ],
-          "cpu_ns": 663808371,
-          "decode_and_motion_wall_ns": 550753174,
-          "detection_cpu_ns": 8359031000,
-          "detection_process_wall_ns": 5237728599,
+          "cpu_ns": 794044262,
+          "decode_and_motion_wall_ns": 675793927,
+          "detection_cpu_ns": 8232700000,
+          "detection_process_wall_ns": 5019558468,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42616,10 +42856,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 6113
+              "overall": 6205
             },
             "samples_per_source_minute": {
               "overall": 300
@@ -42639,7 +42879,7 @@
           "samples_sha256": "fd6dd5b7fed927b01d0bbf32d24db8fb71b7dbda9cda5ae88e3eefef324d4869",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 5888297566,
+          "wall_ns": 5801174109,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -42699,10 +42939,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 731446314,
-          "decode_and_motion_wall_ns": 556409572,
-          "detection_cpu_ns": 12726199000,
-          "detection_process_wall_ns": 7041237862,
+          "cpu_ns": 705472708,
+          "decode_and_motion_wall_ns": 536431471,
+          "detection_cpu_ns": 12026267000,
+          "detection_process_wall_ns": 7360166109,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -42733,10 +42973,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 4641
+              "overall": 4472
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50497,7 +50737,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 1729,
           "status": "pass",
-          "wall_ns": 7756665054,
+          "wall_ns": 8048628760,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50544,10 +50784,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 764360841,
-          "decode_and_motion_wall_ns": 568964377,
-          "detection_cpu_ns": 11165354999,
-          "detection_process_wall_ns": 7632949256,
+          "cpu_ns": 833152053,
+          "decode_and_motion_wall_ns": 635319639,
+          "detection_cpu_ns": 12540559000,
+          "detection_process_wall_ns": 7223989680,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -50578,10 +50818,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 4296
+              "overall": 4477
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50601,7 +50841,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 3253,
           "status": "pass",
-          "wall_ns": 8379311984,
+          "wall_ns": 8040095826,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50648,10 +50888,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 693088230,
-          "decode_and_motion_wall_ns": 527603090,
-          "detection_cpu_ns": 12140419999,
-          "detection_process_wall_ns": 6889894490,
+          "cpu_ns": 702972587,
+          "decode_and_motion_wall_ns": 530535430,
+          "detection_cpu_ns": 14447025000,
+          "detection_process_wall_ns": 8125218752,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -50682,10 +50922,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 4757
+              "overall": 4087
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50705,7 +50945,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 5081,
           "status": "pass",
-          "wall_ns": 7567421828,
+          "wall_ns": 8808345903,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50752,10 +50992,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 739009208,
-          "decode_and_motion_wall_ns": 560297901,
-          "detection_cpu_ns": 13212462000,
-          "detection_process_wall_ns": 8040850377,
+          "cpu_ns": 732530350,
+          "decode_and_motion_wall_ns": 551436237,
+          "detection_cpu_ns": 10894967999,
+          "detection_process_wall_ns": 7165396731,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -50786,10 +51026,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 4109
+              "overall": 4567
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50809,7 +51049,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 7919,
           "status": "pass",
-          "wall_ns": 8760146639,
+          "wall_ns": 7881799568,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50856,10 +51096,10 @@
               "sample_count": 47
             }
           ],
-          "cpu_ns": 806808291,
-          "decode_and_motion_wall_ns": 622982749,
-          "detection_cpu_ns": 12962972999,
-          "detection_process_wall_ns": 8324224697,
+          "cpu_ns": 697903051,
+          "decode_and_motion_wall_ns": 529013688,
+          "detection_cpu_ns": 11663980000,
+          "detection_process_wall_ns": 7123142904,
           "event_counts": {
             "camera_motion": 6,
             "cut_adjacent": 6,
@@ -50890,10 +51130,10 @@
               "vfr_gap": 10000
             },
             "peak_rss_bytes": {
-              "overall": 572407808
+              "overall": 662073344
             },
             "real_time_factor_milli": {
-              "overall": 3951
+              "overall": 4612
             },
             "samples_per_source_minute": {
               "overall": 470
@@ -50913,7 +51153,7 @@
           "samples_sha256": "4fb409f93d005d777a7ba56ee0805a43b093c44fd568eb1875a0cff523b0aa39",
           "seed": 104729,
           "status": "pass",
-          "wall_ns": 9110658439,
+          "wall_ns": 7805376580,
           "worker_environment": {
             "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
@@ -50948,57 +51188,57 @@
   "outputs": {
     "adaptive-3-to-8-fps": {
       "gate": "adaptive-3-to-8-fps-gate.json",
-      "gate_sha256": "cdc6ec2571f6fa63b1f0d9703ea1a7f3284cefd69402deacbdb10bc35449a2f4",
+      "gate_sha256": "2e7809c545ed371adff96c54ceabb957ab92151004f05d2db8d8c62a783c4ae3",
       "gate_status": "pass",
       "receipt": "adaptive-3-to-8-fps-receipt.json",
-      "receipt_sha256": "81dd4c333d5ac01d51cd63056fe08cda358f282bda47b612f065782c8f333bc0"
+      "receipt_sha256": "8350a8dba41a764aa1e7462f36b20b085f0deb2619a56732d57067c0155c75c3"
     },
     "fixed-1-fps": {
       "gate": "fixed-1-fps-gate.json",
-      "gate_sha256": "4169e2dd07009687f6db3d5939f067a541e9e29bfb5e81d6577378a659b7385d",
+      "gate_sha256": "9b123889ba782308f360d37ed441c655232c0218884f3e8d3a48d473d8a2f172",
       "gate_status": "fail",
       "receipt": "fixed-1-fps-receipt.json",
-      "receipt_sha256": "bde79bc0f5526d434694e890557d6b98aada3def02c0ac17308b77e58f8e5756"
+      "receipt_sha256": "c9ce9aa324a0b8f965f5c7c884c535b09c7e94fa9b842c89ea20ec79f1816381"
     },
     "fixed-2-fps": {
       "gate": "fixed-2-fps-gate.json",
-      "gate_sha256": "75f69f19502da67b3a76cc2b51ea31d5500003708d5722bdcdd1202d690ea25b",
+      "gate_sha256": "47fd47896a8f2ef799bfb4b1eaac2cc0747e890b4b5b413e1f282f1edbb10222",
       "gate_status": "fail",
       "receipt": "fixed-2-fps-receipt.json",
-      "receipt_sha256": "63b1e21b86cfc80c1025375d57b0a91961aa45b3639227a90e80e66f86702237"
+      "receipt_sha256": "8cd68e7f52700d326cb8998e746fdd681085cc651defe99d85157252e3735601"
     },
     "fixed-3-fps": {
       "gate": "fixed-3-fps-gate.json",
-      "gate_sha256": "d37bdfb963b5451852917af53e5f13a07e661a1019b8fa5842ac20c930f5a4c2",
+      "gate_sha256": "e88be40c544f766bd6b26c27d81ff18a280f133f90e23b0f258024c444830b2e",
       "gate_status": "fail",
       "receipt": "fixed-3-fps-receipt.json",
-      "receipt_sha256": "bd516dfa6170c5f4b43f36daac521ffbe7feebaa8fee390c4d002ebbeb680d43"
+      "receipt_sha256": "86bf094bfe830e9dd04e2adbb3f721f32e56cae64befa2a15299b8386c1bbede"
     },
     "fixed-5-fps": {
       "gate": "fixed-5-fps-gate.json",
-      "gate_sha256": "a6e6d39ba506e99b4f08cccb88d1073abeed3303cb5320bec8d330dbdad45b43",
+      "gate_sha256": "b2c9faf62aad6a559631be30fe403c5d8fec829b62d0838643e9d5c7b87540cb",
       "gate_status": "pass",
       "receipt": "fixed-5-fps-receipt.json",
-      "receipt_sha256": "74b1392cbe417efd126763db016e5cc07b272102c368a126f2e5b13dda60509c"
+      "receipt_sha256": "a5831657e27f6af6d8e1c7933cded6fd29550ca17685f24470b9de88c8fbcad6"
     },
     "fixed-8-fps": {
       "gate": "fixed-8-fps-gate.json",
-      "gate_sha256": "2d21bf7ca7b2501ab79c1e96f4b3c819c1b7ee279c3fbc86e4a22b017604a5ab",
+      "gate_sha256": "5d8e9609c0c64125bf08520dcbf0e75aaeab0e126752e94e9e7560c411ee7c78",
       "gate_status": "pass",
       "receipt": "fixed-8-fps-receipt.json",
-      "receipt_sha256": "b3d51ee7373764b50712d0d55cb93a99adcd3898f2722fdffa2460b884726bbb"
+      "receipt_sha256": "84b31e180ccab6bffe06a8b482e49c5eaa788cb7e3fc47e11b8ecf7948d032cf"
     }
   },
   "provenance": {
     "annotation_lock_sha256": "46e2d5f6511d972b769d93df3d03854f54b64c9f6bce39854cf2461c6fe21089",
-    "candidate_manifest_sha256": "c5eec5723757fc819c0455a64bc534d9ffa068c9ee29c9393672c83aa6ca838a",
+    "candidate_manifest_sha256": "cd1ea1d6a7a2d2b63d32f8ea1c416c533551c3e6423d92e54ecc7365c4aac40a",
     "dataset_manifest_sha256": "e51ebe8ae7c1732e4c2344e2b409cd22e60a51e41ac3f22d341353403d6ae4ef",
     "detection_candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
     "detection_worker_sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
-    "evaluation_harness_sha256": "42554d74b95a0bc788f9d8b41a42cfa69fdae818ace943d0abb1f317a3ee5c14",
+    "evaluation_harness_sha256": "fe7afdb2ea98daf2d919367b7789e93f83f3609159698e734111022b24dbb9aa",
     "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
     "source_manifest_sha256": "4a53262d93f2473a747bfc3c36b38209d42cafff38c9d8251cc3e503eba81139",
-    "source_revision": "87ca4562fba5dfac5818ff9c81b75bb0f1be4959"
+    "source_revision": "2da8307d042588fbf7906aa2877b5a973dfa7da2"
   },
   "schema": "visualworld.v02-sampling-raw-results",
   "schema_version": 1

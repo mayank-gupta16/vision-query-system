@@ -54,7 +54,7 @@
   remain unresolved.
 - Fixed nearest-PTS 5 FPS is the selected v0.2 sampling evaluation default. The
   measured 3-to-8 FPS tile-motion strategy is not selected because it consumed
-  51.7% more samples without improving a gate metric. Fixed 8 FPS is reserved
+  53.3% more samples without improving a gate metric. Fixed 8 FPS is reserved
   for explicit out-of-boundary requirements or a later measured tracking
   escalation; no production adapter has yet changed.
 - ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
