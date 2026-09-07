@@ -131,6 +131,19 @@ def test_sampling_candidate_numbers_require_exact_integer_types(
         benchmark._validate_configuration(manifest)
 
 
+@pytest.mark.parametrize("mutation", ["metric", "selection", "threshold_grid"])
+def test_sampling_candidate_semantics_are_fully_locked(mutation: str) -> None:
+    manifest = _json(FIXTURE_ROOT / "candidates.json")
+    if mutation == "metric":
+        cast(dict[str, object], manifest["metric"])["event_match"] = "unlocked"
+    elif mutation == "selection":
+        manifest["selection"] = "unlocked"
+    else:
+        cast(dict[str, list[int]], manifest["adaptive"])["threshold_grid_millionths"][0] = 1
+    with pytest.raises(benchmark.SamplingBenchmarkError, match="invalid_candidate_manifest"):
+        benchmark._validate_configuration(manifest)
+
+
 def test_sampling_json_loaders_reject_duplicate_and_nonfinite_values(tmp_path: Path) -> None:
     for name, raw in {
         "duplicate.json": b'{"schema":1,"schema":2}',
@@ -219,6 +232,46 @@ def test_sampling_detection_source_annotations_are_strict(field: str, value: obj
     cast(list[dict[str, object]], detection_annotations["items"])[0][field] = value
     with pytest.raises(preparation.SamplingPreparationError, match="invalid_manifest"):
         preparation._validate_source_manifest(source, detection_annotations)
+
+
+def test_sampling_benchmark_rejects_coherently_rehashed_privacy_substitution() -> None:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    annotations = _json(FIXTURE_ROOT / "annotations.json")
+    dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+    detection_annotations_path = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
+    detection_source_path = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
+    detection_annotations = _json(detection_annotations_path)
+    cast(dict[str, object], source["privacy"])["contains_personal_data"] = True
+    changed_source_sha256 = hashlib.sha256(benchmark._canonical(source)).hexdigest()
+    annotations["source_manifest_sha256"] = changed_source_sha256
+    cast(dict[str, object], dataset["acquisition"])["sha256"] = changed_source_sha256
+    assert (
+        annotations["source_manifest_sha256"]
+        == cast(dict[str, object], dataset["acquisition"])["sha256"]
+    )
+    with pytest.raises(benchmark.SamplingBenchmarkError, match="source_manifest_mismatch"):
+        benchmark._validate_source_provenance(
+            source,
+            changed_source_sha256,
+            detection_annotations,
+            hashlib.sha256(detection_annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(detection_source_path.read_bytes()).hexdigest(),
+            cast(dict[str, object], dataset["acquisition"])["sha256"],
+            annotations["source_manifest_sha256"],
+        )
+
+
+def test_sampling_source_provenance_binds_detection_annotation_to_source() -> None:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    detection_annotations = _json(ROOT / "fixtures" / "v02-detection-research" / "annotations.json")
+    detection_annotations["source_manifest_sha256"] = "0" * 64
+    with pytest.raises(preparation.SamplingPreparationError, match="invalid_manifest"):
+        preparation._validate_source_provenance(
+            source,
+            detection_annotations,
+            cast(str, source["source_detection_annotation_sha256"]),
+            cast(str, source["source_detection_manifest_sha256"]),
+        )
 
 
 def _relock_sampling_split(
@@ -477,6 +530,22 @@ def test_sampling_benchmark_cli_redacts_paths_and_has_stable_errors(tmp_path: Pa
                 assert broken.returncode == 1
                 assert b"Traceback" not in broken.stderr
                 assert b"Exception ignored" not in broken.stderr
+            help_result = subprocess.run(
+                [
+                    "/bin/bash",
+                    "-c",
+                    'exec 1>&-; exec "$@" --help',
+                    "bash",
+                    *failing_command[:2],
+                ],
+                check=False,
+                capture_output=True,
+                env=environment,
+                timeout=10,
+            )
+            assert help_result.returncode == 0
+            assert b"Traceback" not in help_result.stderr
+            assert b"Exception ignored" not in help_result.stderr
 
 
 def test_published_sampling_results_reproduce_frozen_gate_outputs() -> None:

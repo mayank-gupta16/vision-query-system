@@ -40,6 +40,10 @@ class _StableArgumentParser(argparse.ArgumentParser):
         del message
         raise SamplingPreparationError("invalid_arguments")
 
+    def _print_message(self, message: str, file: object | None = None) -> None:
+        if message:
+            _write_text(message, sys.stderr if file is None else cast(TextIO, file))
+
 
 def _fail(code: str) -> NoReturn:
     raise SamplingPreparationError(code)
@@ -65,14 +69,23 @@ def _silence_stream(stream: TextIO) -> None:
             os.close(null_descriptor)
 
 
-def _emit(value: object, stream: TextIO) -> bool:
+def _write_text(value: str, stream: TextIO) -> bool:
     try:
-        stream.write(json.dumps(value, allow_nan=False, sort_keys=True) + "\n")
+        stream.write(value)
         stream.flush()
     except (AttributeError, OSError, UnicodeError, ValueError):
         _silence_stream(stream)
         return False
     return True
+
+
+def _emit(value: object, stream: TextIO) -> bool:
+    try:
+        serialized = json.dumps(value, allow_nan=False, sort_keys=True) + "\n"
+    except (TypeError, UnicodeError, ValueError):
+        _silence_stream(stream)
+        return False
+    return _write_text(serialized, stream)
 
 
 def _canonical(value: object) -> bytes:
@@ -434,12 +447,17 @@ def _validate_source_manifest(
         },
     ):
         _fail("invalid_manifest")
-    for field in (
-        "source_detection_annotation_sha256",
-        "source_detection_manifest_sha256",
-    ):
+    expected_source_digests = {
+        "source_detection_annotation_sha256": (
+            "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8"
+        ),
+        "source_detection_manifest_sha256": (
+            "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66"
+        ),
+    }
+    for field, expected_digest in expected_source_digests.items():
         digest = _text(manifest[field], "invalid_manifest", 64)
-        if re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+        if re.fullmatch(r"[0-9a-f]{64}", digest) is None or digest != expected_digest:
             _fail("invalid_manifest")
     items_value = detection_annotations.get("items")
     if (
@@ -564,18 +582,34 @@ def _validate_source_manifest(
     return cast(list[dict[str, object]], clips), events
 
 
+def _validate_source_provenance(
+    manifest: dict[str, object],
+    detection_annotations: dict[str, object],
+    detection_annotation_sha256: str,
+    detection_source_sha256: str,
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    clips, events = _validate_source_manifest(manifest, detection_annotations)
+    if (
+        manifest["source_detection_annotation_sha256"] != detection_annotation_sha256
+        or manifest["source_detection_manifest_sha256"] != detection_source_sha256
+        or detection_annotations["source_manifest_sha256"] != detection_source_sha256
+    ):
+        _fail("invalid_manifest")
+    return clips, events
+
+
 def prepare(input_root: Path, output_root: Path) -> dict[str, object]:
     manifest, manifest_sha256 = _load_json(SOURCE_MANIFEST, "invalid_manifest")
     detection_annotations, detection_annotation_sha256 = _load_json(
         DETECTION_ANNOTATIONS, "invalid_manifest"
     )
     _, detection_source_sha256 = _load_json(DETECTION_SOURCE_MANIFEST, "invalid_manifest")
-    if (
-        manifest.get("source_detection_annotation_sha256") != detection_annotation_sha256
-        or manifest.get("source_detection_manifest_sha256") != detection_source_sha256
-    ):
-        _fail("invalid_manifest")
-    clips, events = _validate_source_manifest(manifest, detection_annotations)
+    clips, events = _validate_source_provenance(
+        manifest,
+        detection_annotations,
+        detection_annotation_sha256,
+        detection_source_sha256,
+    )
     durations = _durations()
     output_descriptor = detection_prep._create_private_directory(output_root)
     annotation_clips: list[dict[str, object]] = []

@@ -21,6 +21,7 @@ from pathlib import Path, PurePosixPath
 from typing import NoReturn, TextIO, cast
 
 import evaluate_v02_gates as gate_evaluator
+import prepare_v02_sampling_dataset as sampling_prep
 import run_v02_detection_benchmark as detection
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +31,10 @@ CANDIDATES_PATH = FIXTURE_ROOT / "candidates.json"
 DATASET_MANIFEST_PATH = FIXTURE_ROOT / "dataset-manifest.json"
 SOURCE_MANIFEST_PATH = FIXTURE_ROOT / "source-manifest.json"
 DETECTION_CANDIDATES_PATH = ROOT / "fixtures" / "v02-detection-research" / "candidates.json"
+DETECTION_ANNOTATIONS_PATH = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
+DETECTION_SOURCE_MANIFEST_PATH = (
+    ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
+)
 DETECTION_WORKER_PATH = ROOT / "scripts" / "run_v02_detection_benchmark.py"
 POLICY_PATH = ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
 WIDTH = 384
@@ -50,6 +55,10 @@ class _StableArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
         del message
         raise SamplingBenchmarkError("invalid_arguments")
+
+    def _print_message(self, message: str, file: object | None = None) -> None:
+        if message:
+            _write_text(message, sys.stderr if file is None else cast(TextIO, file))
 
 
 def _fail(code: str) -> NoReturn:
@@ -76,14 +85,23 @@ def _silence_stream(stream: TextIO) -> None:
             os.close(null_descriptor)
 
 
-def _emit(value: object, stream: TextIO) -> bool:
+def _write_text(value: str, stream: TextIO) -> bool:
     try:
-        stream.write(json.dumps(value, allow_nan=False, sort_keys=True) + "\n")
+        stream.write(value)
         stream.flush()
     except (AttributeError, OSError, UnicodeError, ValueError):
         _silence_stream(stream)
         return False
     return True
+
+
+def _emit(value: object, stream: TextIO) -> bool:
+    try:
+        serialized = json.dumps(value, allow_nan=False, sort_keys=True) + "\n"
+    except (TypeError, UnicodeError, ValueError):
+        _silence_stream(stream)
+        return False
+    return _write_text(serialized, stream)
 
 
 def _canonical(value: object) -> bytes:
@@ -155,7 +173,25 @@ def _validate_configuration(value: object) -> tuple[list[dict[str, object]], lis
         or type(manifest["schema_version"]) is not int
         or manifest["schema_version"] != 1
         or fixed_rates != [1, 2, 3, 5, 8]
+        or manifest["selection"]
+        != (
+            "among test candidates passing every gate, lowest median samples per source minute; "
+            "then lower detector CPU; then fixed before adaptive; adaptive threshold selected on "
+            "calibration only by the same gate and cost ordering"
+        )
     ):
+        _fail("invalid_candidate_manifest")
+    metric = _mapping(manifest["metric"], "invalid_candidate_manifest")
+    if metric != {
+        "event_match": (
+            "at least one selected class-matched IoU-0.50 true positive in the annotated event "
+            "interval"
+        ),
+        "missed_track_opportunity": (
+            "fewer than two selected class-matched IoU-0.50 true positives in the annotated event "
+            "interval"
+        ),
+    }:
         _fail("invalid_candidate_manifest")
     detector_manifest = _mapping(manifest["detector"], "invalid_candidate_manifest")
     if (
@@ -199,7 +235,7 @@ def _validate_configuration(value: object) -> tuple[list[dict[str, object]], lis
     if not isinstance(grid_value, list):
         _fail("invalid_candidate_manifest")
     grid = [_integer(item, "invalid_candidate_manifest", 1, 1_000_000) for item in grid_value]
-    if grid != sorted(set(grid)) or len(grid) != 4:
+    if grid != [30_000, 50_000, 70_000, 90_000]:
         _fail("invalid_candidate_manifest")
     fixed = [{"fps": fps, "kind": "fixed", "name": f"fixed-{fps}-fps"} for fps in fixed_rates]
     return fixed, grid
@@ -983,6 +1019,31 @@ def _raw_repetitions(repetitions: list[dict[str, object]]) -> list[dict[str, obj
     return compact
 
 
+def _validate_source_provenance(
+    source_manifest: dict[str, object],
+    source_manifest_sha256: str,
+    detection_annotations: dict[str, object],
+    detection_annotation_sha256: str,
+    detection_source_sha256: str,
+    acquisition_sha256: object,
+    annotation_source_sha256: object,
+) -> None:
+    try:
+        sampling_prep._validate_source_provenance(
+            source_manifest,
+            detection_annotations,
+            detection_annotation_sha256,
+            detection_source_sha256,
+        )
+    except sampling_prep.SamplingPreparationError as error:
+        raise SamplingBenchmarkError("source_manifest_mismatch") from error
+    if (
+        source_manifest_sha256 != acquisition_sha256
+        or source_manifest_sha256 != annotation_source_sha256
+    ):
+        _fail("source_manifest_mismatch")
+
+
 def run_benchmark(
     *,
     dataset_root: Path,
@@ -1004,6 +1065,12 @@ def run_benchmark(
     )
     detection_candidates_manifest, detection_candidates_sha256 = _load_json(
         DETECTION_CANDIDATES_PATH, "invalid_detector_manifest"
+    )
+    detection_annotations, detection_annotation_sha256 = _load_json(
+        DETECTION_ANNOTATIONS_PATH, "invalid_source_manifest"
+    )
+    _, detection_source_sha256 = _load_json(
+        DETECTION_SOURCE_MANIFEST_PATH, "invalid_source_manifest"
     )
     fixed_policies, adaptive_grid = _validate_configuration(candidates_manifest)
     try:
@@ -1032,16 +1099,15 @@ def run_benchmark(
         raise SamplingBenchmarkError("invalid_gate_input") from error
     _validate_annotations(annotations, dataset_manifest)
     acquisition = _mapping(dataset_manifest["acquisition"], "invalid_dataset")
-    source_clips = source_manifest.get("clips")
-    if (
-        source_manifest.get("schema") != "visualworld.v02-sampling-source-manifest"
-        or source_manifest.get("schema_version") != 1
-        or not isinstance(source_clips, list)
-        or len(source_clips) != 10
-        or source_manifest_sha256 != acquisition["sha256"]
-        or annotations["source_manifest_sha256"] != source_manifest_sha256
-    ):
-        _fail("source_manifest_mismatch")
+    _validate_source_provenance(
+        source_manifest,
+        source_manifest_sha256,
+        detection_annotations,
+        detection_annotation_sha256,
+        detection_source_sha256,
+        acquisition["sha256"],
+        annotations["source_manifest_sha256"],
+    )
     calibration_clips, calibration_events, _, _ = _split_payload(annotations, "calibration")
     test_clips, test_events, _, _ = _split_payload(annotations, "test")
     try:
