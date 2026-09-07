@@ -1,0 +1,80 @@
+{
+  "checks": {
+    "combined_output_redacted": true,
+    "corrupt_artifact_is_inert_and_redacted": true,
+    "deleted_records_and_evidence_absent": true,
+    "deletion_golden": true,
+    "fixture_manifest_valid": true,
+    "fixture_rights_and_privacy_proven": true,
+    "hostile_values_and_paths_redacted": true,
+    "idempotent_retry_golden": true,
+    "ingest_golden": true,
+    "inspect_list_export_golden": true,
+    "interrupted_delete_recovered": true,
+    "interrupted_ingest_was_hidden_and_cleaned": true,
+    "malicious_metadata_is_inert_and_redacted": true,
+    "no_network_or_process_capability_used": true,
+    "oversize_failure_remains_retryable": true,
+    "oversized_frame_rejected_before_effects": true,
+    "probe_golden_bound": true,
+    "recovered_ingest_matches_golden": true,
+    "relative_paths_rejected": true,
+    "reopened_evidence_checksum": true,
+    "reopened_world_golden": true,
+    "sql_and_terminal_injection_rejected": true,
+    "symlink_output_rejected_without_overwrite": true,
+    "symlink_store_rejected_without_target_mutation": true,
+    "temporary_outputs_removed": true
+  },
+  "implementation": {
+    "cli_module_sha256": "84531ad3ebe25c9aa22cdb9a95d67b9788d4fc82ce2014217bd7afff5dd60b6a",
+    "coordinator_module_sha256": "827e66ab243c960cb960598d2a5c2e616d6a60208d72962d1bdbd077e4781fde",
+    "executable_implementation": "cpython",
+    "fixture_manifest_sha256": "61b53fd9c37820a9e7fc7578726fa6cae1851aaa3b6b27b4b1f960566def71e0",
+    "harness_sha256": "fcba1cd47c859823c4ab4d52bc816986185d61fd5c33a00595887cadef6f67be",
+    "python_version": "3.13.15",
+    "storage_module_sha256": "2c4a37c5218bac08092ab359d69f134312a0055f488727e02e625e530b0f705c",
+    "world_store_module_sha256": "0e521297a1c1e6733ebb70d1dc20482e26b4c90020fe621b6bff910bcaaa0af7"
+  },
+  "measurements": {
+    "hostile_regressions_wall_ns": 89759680,
+    "interrupted_recovery_wall_ns": 49006226,
+    "success_reopen_retry_delete_wall_ns": 68892275
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "resources": {
+    "disk_bounded": true,
+    "peak_rss_limit_bytes": 536870912,
+    "process_peak_rss_bytes": 35315712,
+    "rss_bounded": true,
+    "sampled_peak_store_logical_bytes": 962758,
+    "store_logical_limit_bytes": 33554432,
+    "suite_wall_bounded": true,
+    "suite_wall_limit_ns": 10000000000,
+    "timing_measured": true,
+    "total_wall_ns": 209615761
+  },
+  "schema": "visualworld.v01-regression-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "workload": {
+    "candidate_frame_count": 2,
+    "crop_rgb24_bytes": 6,
+    "hostile_case_count": 8,
+    "perception_dataset_used": false,
+    "sample_count": 1,
+    "scenario_count": 3,
+    "synthetic_fixture_generated_at_test_time": true,
+    "temporary_outputs_retained": false
+  }
+}

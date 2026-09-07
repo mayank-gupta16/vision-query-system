@@ -214,6 +214,24 @@ record identifiers, and pixel bytes from its receipt. The reviewed CPU-LITE
 result is retained in the
 [machine-readable receipt](../research/cli-vertical-slice-cpu-lite-receipt.json).
 
+The v0.1 release-gate regression suite composes the public CLI with reopened
+stores and test-generated synthetic bytes. It checks exact ingest/inspect/list/
+show/crop goldens, idempotent retry, crash recovery, deletion recovery, corrupt
+and oversized inputs, path and symlink confinement, inert hostile metadata,
+redaction, and no application network or process egress:
+
+```sh
+PYTHONPATH=src artifacts/toolchain/3.13.15/dev/bin/python \
+  scripts/run_v01_regressions.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/v01-regressions.json
+```
+
+Its receipt contains only aggregate results, hashes, platform facts, and
+resource measurements. It omits temporary paths, record/deletion identifiers,
+hostile strings, and pixel bytes. The reviewed CPU-LITE result is retained in
+the [machine-readable receipt](../research/v01-regressions-cpu-lite-receipt.json).
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct
