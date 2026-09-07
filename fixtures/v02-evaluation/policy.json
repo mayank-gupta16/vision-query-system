@@ -1,0 +1,723 @@
+{
+  "allowed_candidate_license_expressions": [
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "MIT"
+  ],
+  "allowed_dataset_license_expressions": [
+    "Apache-2.0",
+    "CC-BY-4.0",
+    "CC0-1.0"
+  ],
+  "experiments": {
+    "crop_value": {
+      "issue": 23,
+      "metrics": {
+        "crop_wall_ms": {
+          "aggregation": "median",
+          "calculation": "visualworld.wall-clock-milliseconds.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 1000
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milliseconds",
+          "unknown": "fail"
+        },
+        "evidence_bytes_per_crop": {
+          "aggregation": "median",
+          "calculation": "visualworld.logical-bytes-per-crop.v1",
+          "direction": "lower_is_better",
+          "kind": "diagnostic",
+          "maximum": null,
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "report"
+        },
+        "exact_crop_byte_match_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.exact-crop-byte-match.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "regression_budget_basis_points": 0,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "tiny",
+            "small",
+            "medium"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "failure_rate_basis_points": {
+          "aggregation": "adverse_mean",
+          "calculation": "visualworld.repetition-failure-rate.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 0
+          },
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "run_status",
+          "strata": [
+            "overall"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "mapping_error_milli_pixels": {
+          "aggregation": "median",
+          "calculation": "visualworld.source-box-l-infinity-error.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "medium": 1000,
+            "overall": 1000,
+            "small": 1000,
+            "tiny": 1000
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 0,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "tiny",
+            "small",
+            "medium"
+          ],
+          "unit": "milli_pixels",
+          "unknown": "fail"
+        },
+        "peak_rss_bytes": {
+          "aggregation": "maximum",
+          "calculation": "visualworld.process-peak-rss-bytes.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 2147483648
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "fail"
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.paired-readable-detail-gain.v1",
+          "direction": "higher_is_better",
+          "kind": "diagnostic",
+          "maximum": null,
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "reported",
+          "strata": [
+            "medium",
+            "overall",
+            "small",
+            "tiny"
+          ],
+          "unit": "signed_basis_points",
+          "unknown": "report"
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.paired-specialist-accuracy-gain.v1",
+          "direction": "higher_is_better",
+          "kind": "diagnostic",
+          "maximum": null,
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "reported",
+          "strata": [
+            "medium",
+            "overall",
+            "small",
+            "tiny"
+          ],
+          "unit": "signed_basis_points",
+          "unknown": "report"
+        }
+      },
+      "required_strata": [
+        "overall",
+        "tiny",
+        "small",
+        "medium"
+      ]
+    },
+    "detection": {
+      "issue": 21,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "aggregation": "median",
+          "calculation": "visualworld.cold-start-wall-milliseconds.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 30000
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milliseconds",
+          "unknown": "fail"
+        },
+        "failure_rate_basis_points": {
+          "aggregation": "adverse_mean",
+          "calculation": "visualworld.repetition-failure-rate.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 0
+          },
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "run_status",
+          "strata": [
+            "overall"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "frames_per_second_milli": {
+          "aggregation": "median",
+          "calculation": "visualworld.frames-per-second-milli.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "overall": 5000
+          },
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milli_frames_per_second",
+          "unknown": "fail"
+        },
+        "install_and_model_bytes": {
+          "aggregation": "median",
+          "calculation": "visualworld.installed-logical-bytes.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 1073741824
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "fail"
+        },
+        "map50_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.detection-ap50-macro.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "easy": 6500,
+            "overall": 5000,
+            "small_distant": 3000
+          },
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "easy",
+            "small_distant"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "peak_rss_bytes": {
+          "aggregation": "maximum",
+          "calculation": "visualworld.process-peak-rss-bytes.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 2147483648
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "fail"
+        },
+        "precision_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.detection-precision-iou50.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "easy": 8000,
+            "overall": 7000,
+            "small_distant": 5000
+          },
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "easy",
+            "small_distant"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "real_time_factor_milli": {
+          "aggregation": "median",
+          "calculation": "visualworld.source-seconds-per-wall-second-milli.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "overall": 1000
+          },
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milli_ratio",
+          "unknown": "fail"
+        },
+        "recall_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.detection-recall-iou50.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "easy": 8500,
+            "overall": 7000,
+            "small_distant": 5000
+          },
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "easy",
+            "small_distant"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "warm_start_wall_ms": {
+          "aggregation": "median",
+          "calculation": "visualworld.warm-start-wall-milliseconds.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 5000
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milliseconds",
+          "unknown": "fail"
+        }
+      },
+      "required_strata": [
+        "overall",
+        "easy",
+        "small_distant"
+      ]
+    },
+    "sampling": {
+      "issue": 22,
+      "metrics": {
+        "failure_rate_basis_points": {
+          "aggregation": "adverse_mean",
+          "calculation": "visualworld.repetition-failure-rate.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 0
+          },
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "run_status",
+          "strata": [
+            "overall"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "missed_track_opportunity_rate_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.missed-track-opportunity-rate.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "camera_motion": 1000,
+            "cut_adjacent": 500,
+            "overall": 500,
+            "small_fast": 1000,
+            "vfr_gap": 500
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "small_fast",
+            "camera_motion",
+            "cut_adjacent",
+            "vfr_gap"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "object_event_recall_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.object-event-recall.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "camera_motion": 9000,
+            "cut_adjacent": 9500,
+            "overall": 9500,
+            "small_fast": 9000,
+            "vfr_gap": 9500
+          },
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "small_fast",
+            "camera_motion",
+            "cut_adjacent",
+            "vfr_gap"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "peak_rss_bytes": {
+          "aggregation": "maximum",
+          "calculation": "visualworld.process-peak-rss-bytes.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 2147483648
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "fail"
+        },
+        "real_time_factor_milli": {
+          "aggregation": "median",
+          "calculation": "visualworld.source-seconds-per-wall-second-milli.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "overall": 1000
+          },
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milli_ratio",
+          "unknown": "fail"
+        },
+        "samples_per_source_minute": {
+          "aggregation": "median",
+          "calculation": "visualworld.samples-per-source-minute.v1",
+          "direction": "lower_is_better",
+          "kind": "diagnostic",
+          "maximum": null,
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "count",
+          "unknown": "report"
+        },
+        "store_bytes_per_source_minute": {
+          "aggregation": "median",
+          "calculation": "visualworld.logical-store-bytes-per-source-minute.v1",
+          "direction": "lower_is_better",
+          "kind": "diagnostic",
+          "maximum": null,
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "report"
+        }
+      },
+      "required_strata": [
+        "overall",
+        "small_fast",
+        "camera_motion",
+        "cut_adjacent",
+        "vfr_gap"
+      ]
+    },
+    "tracking": {
+      "issue": 24,
+      "metrics": {
+        "failure_rate_basis_points": {
+          "aggregation": "adverse_mean",
+          "calculation": "visualworld.repetition-failure-rate.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 0
+          },
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "run_status",
+          "strata": [
+            "overall"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "false_continuations_across_cuts": {
+          "aggregation": "adverse_mean",
+          "calculation": "visualworld.false-cut-continuations.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "cuts": 0
+          },
+          "minimum": null,
+          "regression_budget_basis_points": null,
+          "source": "reported",
+          "strata": [
+            "cuts"
+          ],
+          "unit": "count",
+          "unknown": "fail"
+        },
+        "fragmentations_per_1000_track_frames": {
+          "aggregation": "median",
+          "calculation": "visualworld.track-fragmentations-per-1000-frames.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "camera_motion": 125,
+            "cuts": 100,
+            "dense_crossing": 125,
+            "occlusion": 125,
+            "overall": 100
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "camera_motion",
+            "cuts",
+            "occlusion",
+            "dense_crossing"
+          ],
+          "unit": "count",
+          "unknown": "fail"
+        },
+        "hota_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.trackeval-hota-default.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "camera_motion": 4000,
+            "cuts": 4500,
+            "dense_crossing": 4000,
+            "occlusion": 4000,
+            "overall": 4500
+          },
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "camera_motion",
+            "cuts",
+            "occlusion",
+            "dense_crossing"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "idf1_basis_points": {
+          "aggregation": "median",
+          "calculation": "visualworld.trackeval-idf1-default.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "camera_motion": 5000,
+            "cuts": 6000,
+            "dense_crossing": 5000,
+            "occlusion": 5000,
+            "overall": 6000
+          },
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "camera_motion",
+            "cuts",
+            "occlusion",
+            "dense_crossing"
+          ],
+          "unit": "basis_points",
+          "unknown": "fail"
+        },
+        "id_switches_per_1000_track_frames": {
+          "aggregation": "median",
+          "calculation": "visualworld.id-switches-per-1000-frames.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "camera_motion": 75,
+            "cuts": 50,
+            "dense_crossing": 75,
+            "occlusion": 75,
+            "overall": 50
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 500,
+          "source": "reported",
+          "strata": [
+            "overall",
+            "camera_motion",
+            "cuts",
+            "occlusion",
+            "dense_crossing"
+          ],
+          "unit": "count",
+          "unknown": "fail"
+        },
+        "peak_rss_bytes": {
+          "aggregation": "maximum",
+          "calculation": "visualworld.process-peak-rss-bytes.v1",
+          "direction": "lower_is_better",
+          "kind": "gate",
+          "maximum": {
+            "overall": 2147483648
+          },
+          "minimum": null,
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "bytes",
+          "unknown": "fail"
+        },
+        "real_time_factor_milli": {
+          "aggregation": "median",
+          "calculation": "visualworld.source-seconds-per-wall-second-milli.v1",
+          "direction": "higher_is_better",
+          "kind": "gate",
+          "maximum": null,
+          "minimum": {
+            "overall": 1000
+          },
+          "regression_budget_basis_points": 1000,
+          "source": "reported",
+          "strata": [
+            "overall"
+          ],
+          "unit": "milli_ratio",
+          "unknown": "fail"
+        }
+      },
+      "required_strata": [
+        "overall",
+        "camera_motion",
+        "cuts",
+        "occlusion",
+        "dense_crossing"
+      ]
+    }
+  },
+  "frozen_on": "2026-09-07",
+  "policy_version": "v0.2-gates-1",
+  "profile": {
+    "architecture": "x86_64",
+    "gpu_required": false,
+    "maximum_peak_rss_bytes": 2147483648,
+    "minimum_memory_bytes": 16000000000,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "protocol": {
+    "aggregate": "metric_defined",
+    "dispersion": "median_absolute_deviation",
+    "gate_split": "test",
+    "measured_repetitions": 5,
+    "report_each_repetition": true,
+    "seed_set": [
+      1729,
+      3253,
+      5081,
+      7919,
+      104729
+    ],
+    "selection_split": "calibration",
+    "warmup_runs": 1
+  },
+  "schema": "visualworld.v02-evaluation-policy",
+  "schema_version": 1,
+  "waiver_policy": {
+    "maximum_duration_days": 30,
+    "owner": "mayank-gupta16",
+    "required_compensating_controls": 1
+  }
+}

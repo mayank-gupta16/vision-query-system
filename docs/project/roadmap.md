@@ -9,8 +9,10 @@ long-lived.
 Before activating v0.2 or any later milestone, a gate-calibration issue must
 freeze dataset/metric versions, repetitions/statistics, absolute minimums,
 per-metric regression budgets, expected UNKNOWN/uncertainty behavior, and the
-maintainer responsible for waivers. Metrics described below as "reported" are
-diagnostics, not passing gates, until those thresholds are ratified.
+maintainer responsible for waivers. For v0.2 this is issue #64 and
+[ADR-0006](../decisions/ADR-0006-v02-evaluation-gates.md). Metrics described
+below as "reported" are diagnostics, not passing gates, until those thresholds
+are ratified.
 
 ```text
 v0.1 -> v0.2 -> v0.3 -> v0.4 -> v0.5 -> v0.6

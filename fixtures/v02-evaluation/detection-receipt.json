@@ -1,0 +1,370 @@
+{
+  "aggregate": {
+    "dispersion": {
+      "cold_start_wall_ms": {
+        "overall": 0
+      },
+      "failure_rate_basis_points": {
+        "overall": 0
+      },
+      "frames_per_second_milli": {
+        "overall": 0
+      },
+      "install_and_model_bytes": {
+        "overall": 0
+      },
+      "map50_basis_points": {
+        "easy": 0,
+        "overall": 0,
+        "small_distant": 0
+      },
+      "peak_rss_bytes": {
+        "overall": 0
+      },
+      "precision_basis_points": {
+        "easy": 0,
+        "overall": 0,
+        "small_distant": 0
+      },
+      "real_time_factor_milli": {
+        "overall": 0
+      },
+      "recall_basis_points": {
+        "easy": 0,
+        "overall": 0,
+        "small_distant": 0
+      },
+      "warm_start_wall_ms": {
+        "overall": 0
+      }
+    },
+    "metrics": {
+      "cold_start_wall_ms": {
+        "overall": 1000
+      },
+      "failure_rate_basis_points": {
+        "overall": 0
+      },
+      "frames_per_second_milli": {
+        "overall": 6000
+      },
+      "install_and_model_bytes": {
+        "overall": 200000000
+      },
+      "map50_basis_points": {
+        "easy": 7000,
+        "overall": 5500,
+        "small_distant": 3500
+      },
+      "peak_rss_bytes": {
+        "overall": 500000000
+      },
+      "precision_basis_points": {
+        "easy": 8500,
+        "overall": 7500,
+        "small_distant": 6000
+      },
+      "real_time_factor_milli": {
+        "overall": 1200
+      },
+      "recall_basis_points": {
+        "easy": 9000,
+        "overall": 7500,
+        "small_distant": 5500
+      },
+      "warm_start_wall_ms": {
+        "overall": 100
+      }
+    }
+  },
+  "candidate": {
+    "artifacts": [
+      {
+        "commercial_use_allowed": true,
+        "executable_serialization": false,
+        "format": "configuration-json",
+        "isolation": "none-generated-fixture",
+        "kind": "configuration",
+        "license_expression": "Apache-2.0",
+        "name": "deterministic-contract-fixture",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "v02-evaluation-contract-fixture-1",
+        "sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "source_url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-evaluation",
+        "terms_url": "https://github.com/mayank-gupta16/vision-query-system/blob/main/LICENSE",
+        "trust_remote_code": false,
+        "use": "schema and gate evaluator contract fixture"
+      }
+    ],
+    "configuration_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+    "name": "deterministic detection contract fixture"
+  },
+  "dataset_manifest_sha256": "0eb04c84521fba7439189683a433f68525d22c7cc7bcf7cccc43265fbdf89b60",
+  "evaluated_on": "2026-09-07",
+  "evaluation_phase": "selection",
+  "experiment": "detection",
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "v02-contract-fixture-harness",
+      "revision": "v02-evaluation-contract-fixture-1",
+      "sha256": "8888888888888888888888888888888888888888888888888888888888888888",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-evaluation"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "Apache-2.0",
+      "name": "v02-contract-fixture-metrics",
+      "revision": "v02-evaluation-contract-fixture-1",
+      "sha256": "9999999999999999999999999999999999999999999999999999999999999999",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-evaluation"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "0000000000000000000000000000000000000000"
+  },
+  "policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
+  "policy_version": "v0.2-gates-1",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "deterministic contract fixture",
+    "gpu_present": false,
+    "kernel_release": "deterministic-contract-fixture",
+    "memory_bytes": 16000000000,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "repetitions": [
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 1000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 6000
+        },
+        "install_and_model_bytes": {
+          "overall": 200000000
+        },
+        "map50_basis_points": {
+          "easy": 7000,
+          "overall": 5500,
+          "small_distant": 3500
+        },
+        "peak_rss_bytes": {
+          "overall": 500000000
+        },
+        "precision_basis_points": {
+          "easy": 8500,
+          "overall": 7500,
+          "small_distant": 6000
+        },
+        "real_time_factor_milli": {
+          "overall": 1200
+        },
+        "recall_basis_points": {
+          "easy": 9000,
+          "overall": 7500,
+          "small_distant": 5500
+        },
+        "warm_start_wall_ms": {
+          "overall": 100
+        }
+      },
+      "processed_item_count": 5,
+      "seed": 1729,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 1000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 6000
+        },
+        "install_and_model_bytes": {
+          "overall": 200000000
+        },
+        "map50_basis_points": {
+          "easy": 7000,
+          "overall": 5500,
+          "small_distant": 3500
+        },
+        "peak_rss_bytes": {
+          "overall": 500000000
+        },
+        "precision_basis_points": {
+          "easy": 8500,
+          "overall": 7500,
+          "small_distant": 6000
+        },
+        "real_time_factor_milli": {
+          "overall": 1200
+        },
+        "recall_basis_points": {
+          "easy": 9000,
+          "overall": 7500,
+          "small_distant": 5500
+        },
+        "warm_start_wall_ms": {
+          "overall": 100
+        }
+      },
+      "processed_item_count": 5,
+      "seed": 3253,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 1000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 6000
+        },
+        "install_and_model_bytes": {
+          "overall": 200000000
+        },
+        "map50_basis_points": {
+          "easy": 7000,
+          "overall": 5500,
+          "small_distant": 3500
+        },
+        "peak_rss_bytes": {
+          "overall": 500000000
+        },
+        "precision_basis_points": {
+          "easy": 8500,
+          "overall": 7500,
+          "small_distant": 6000
+        },
+        "real_time_factor_milli": {
+          "overall": 1200
+        },
+        "recall_basis_points": {
+          "easy": 9000,
+          "overall": 7500,
+          "small_distant": 5500
+        },
+        "warm_start_wall_ms": {
+          "overall": 100
+        }
+      },
+      "processed_item_count": 5,
+      "seed": 5081,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 1000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 6000
+        },
+        "install_and_model_bytes": {
+          "overall": 200000000
+        },
+        "map50_basis_points": {
+          "easy": 7000,
+          "overall": 5500,
+          "small_distant": 3500
+        },
+        "peak_rss_bytes": {
+          "overall": 500000000
+        },
+        "precision_basis_points": {
+          "easy": 8500,
+          "overall": 7500,
+          "small_distant": 6000
+        },
+        "real_time_factor_milli": {
+          "overall": 1200
+        },
+        "recall_basis_points": {
+          "easy": 9000,
+          "overall": 7500,
+          "small_distant": 5500
+        },
+        "warm_start_wall_ms": {
+          "overall": 100
+        }
+      },
+      "processed_item_count": 5,
+      "seed": 7919,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "cold_start_wall_ms": {
+          "overall": 1000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "frames_per_second_milli": {
+          "overall": 6000
+        },
+        "install_and_model_bytes": {
+          "overall": 200000000
+        },
+        "map50_basis_points": {
+          "easy": 7000,
+          "overall": 5500,
+          "small_distant": 3500
+        },
+        "peak_rss_bytes": {
+          "overall": 500000000
+        },
+        "precision_basis_points": {
+          "easy": 8500,
+          "overall": 7500,
+          "small_distant": 6000
+        },
+        "real_time_factor_milli": {
+          "overall": 1200
+        },
+        "recall_basis_points": {
+          "easy": 9000,
+          "overall": 7500,
+          "small_distant": 5500
+        },
+        "warm_start_wall_ms": {
+          "overall": 100
+        }
+      },
+      "processed_item_count": 5,
+      "seed": 104729,
+      "status": "pass"
+    }
+  ],
+  "schema": "visualworld.v02-evaluation-receipt",
+  "schema_version": 1,
+  "split": "test",
+  "waiver": null
+}

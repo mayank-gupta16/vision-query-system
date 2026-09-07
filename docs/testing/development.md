@@ -264,6 +264,26 @@ single-run regression budget. The reviewed result, boundary, stage table, and
 exact receipt are in the
 [v0.1 CPU-LITE baseline report](../benchmarks/v0.1-cpu-lite-baseline.md).
 
+Before v0.2 model research, validate the frozen evaluation policy and its
+generated contract fixture with a new private output path:
+
+```sh
+validation_root=$(mktemp -d /tmp/visualworld-v02-gates.XXXXXX)
+python3 scripts/evaluate_v02_gates.py \
+  --manifest fixtures/v02-evaluation/detection-manifest.json \
+  --receipt fixtures/v02-evaluation/detection-receipt.json \
+  --as-of 2026-09-07 \
+  --output "$validation_root/result.json"
+```
+
+The evaluator uses only the standard library and inert JSON. It rejects
+duplicate/unknown fields, non-finite or boolean numbers, links/non-regular or
+mutated inputs, incompatible hashes/profiles, fabricated aggregates, missing
+gate values, stale/overbroad waivers, and output overwrite. See the
+[v0.2 gate operator record](../benchmarks/v0.2-evaluation-gates.md) and
+[ADR-0006](../decisions/ADR-0006-v02-evaluation-gates.md) before producing a
+research receipt.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

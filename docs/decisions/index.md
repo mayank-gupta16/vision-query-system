@@ -4,9 +4,10 @@ Architecture Decision Records capture choices with long-lived consequences.
 Use [the template](template.md) and add entries as `ADR-NNNN-short-title.md`.
 
 The project license, application toolchain, Linux media-worker direction,
-ingestion record contracts, and local storage/deletion protocol are accepted.
-No model or dataset has been approved yet. Proposed choices must not be treated
-as decisions until the ADR status is `Accepted`.
+ingestion record contracts, local storage/deletion protocol, and v0.2 evaluation
+gates are accepted. No model or production dataset has been approved yet.
+Proposed choices must not be treated as decisions until the ADR status is
+`Accepted`.
 
 ## Accepted
 
@@ -15,3 +16,4 @@ as decisions until the ADR status is `Accepted`.
 - [ADR-0003: Media runtime and hostile-input isolation](ADR-0003-media-runtime-and-isolation.md)
 - [ADR-0004: Ingestion records, identifiers, and rational time](ADR-0004-ingestion-records-identifiers-and-time.md)
 - [ADR-0005: Local metadata, artifacts, recovery, and deletion](ADR-0005-local-storage-and-deletion.md)
+- [ADR-0006: Frozen v0.2 evaluation gates and waivers](ADR-0006-v02-evaluation-gates.md)
