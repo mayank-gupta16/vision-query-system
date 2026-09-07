@@ -299,6 +299,16 @@ def test_comparator_rejects_malformed_receipt_families(
     changed_measurements["measurements"] = {}
     malformed.append(changed_measurements)
 
+    impossible_measurements = copy.deepcopy(baseline)
+    impossible_metrics = cast(dict[str, object], impossible_measurements["metrics"])
+    impossible_sampling = cast(
+        dict[str, object],
+        cast(dict[str, object], impossible_measurements["measurements"])["sampling"],
+    )
+    impossible_sampling["wall_ns"] = cast(int, impossible_metrics["total_wall_ns"]) + 1
+    impossible_sampling["cpu_ns"] = cast(int, impossible_metrics["process_cpu_ns"]) + 1
+    malformed.append(impossible_measurements)
+
     changed_warmup = copy.deepcopy(baseline)
     changed_warmup["warmup"] = {}
     malformed.append(changed_warmup)
@@ -353,3 +363,8 @@ def test_comparator_loader_rejects_symlinked_receipt(
 
     with pytest.raises(comparator.ComparisonError, match="invalid_receipt"):
         comparator._load(link)
+
+    duplicate = tmp_path / "duplicate.json"
+    duplicate.write_text('{"schema": 1, "schema": 2}', encoding="utf-8")
+    with pytest.raises(comparator.ComparisonError, match="invalid_receipt"):
+        comparator._load(duplicate)

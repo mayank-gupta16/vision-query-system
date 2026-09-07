@@ -168,6 +168,15 @@ def _canonical(value: object) -> bytes:
         _fail("invalid_receipt")
 
 
+def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    selected: dict[str, object] = {}
+    for name, value in pairs:
+        if name in selected:
+            _fail("invalid_receipt")
+        selected[name] = value
+    return selected
+
+
 def _load(path: Path) -> dict[str, object]:
     descriptor = -1
     try:
@@ -199,7 +208,7 @@ def _load(path: Path) -> dict[str, object]:
             or final_metadata.st_ctime_ns != metadata.st_ctime_ns
         ):
             _fail("invalid_receipt")
-        loaded = json.loads(raw)
+        loaded = json.loads(raw, object_pairs_hook=_unique_object)
     except ComparisonError:
         raise
     except (OSError, TypeError, ValueError):
@@ -334,8 +343,10 @@ def _receipt(value: object) -> dict[str, object]:
         if name == "sampling":
             extra = {"page_count"}
         measurement = _exact_mapping(measurements[name], {"cpu_ns", "wall_ns", *extra})
-        _integer(measurement, "cpu_ns")
-        _integer(measurement, "wall_ns")
+        stage_cpu_ns = _integer(measurement, "cpu_ns")
+        stage_wall_ns = _integer(measurement, "wall_ns")
+        if stage_cpu_ns > stage_wall_ns * cpu_count:
+            _fail("invalid_receipt")
     metadata_measurement = _mapping(measurements["metadata_transactions"])
     sampling_measurement = _mapping(measurements["sampling"])
     candidate_count = cast(int, workload["candidate_frame_count"])
@@ -356,10 +367,16 @@ def _receipt(value: object) -> dict[str, object]:
     total_wall_ns = _integer(metrics, "total_wall_ns")
     process_cpu_ns = _integer(metrics, "process_cpu_ns")
     source_seconds = cast(int, workload["source_seconds"])
+    timed_measurements = _MEASUREMENT_NAMES - {"input_generation"}
     if (
         metrics["cpu_utilization_milli_percent"] != process_cpu_ns * 100_000 // total_wall_ns
         or metrics["frames_per_second_milli"] != sample_count * 1_000_000_000_000 // total_wall_ns
         or metrics["real_time_factor_milli"] != source_seconds * 1_000_000_000_000 // total_wall_ns
+        or process_cpu_ns > total_wall_ns * cpu_count
+        or sum(_integer(_mapping(measurements[name]), "wall_ns") for name in timed_measurements)
+        > total_wall_ns
+        or sum(_integer(_mapping(measurements[name]), "cpu_ns") for name in timed_measurements)
+        > process_cpu_ns
     ):
         _fail("invalid_receipt")
 
@@ -372,8 +389,7 @@ def _receipt(value: object) -> dict[str, object]:
         "timing_measured",
     )
     resource_values = {
-        name: _integer(resources, name, positive=False)
-        for name in _RESOURCE_NAMES - set(resource_checks)
+        name: _integer(resources, name) for name in _RESOURCE_NAMES - set(resource_checks)
     }
     if resources.get("peak_rss_limit_bytes") != benchmark._PEAK_RSS_LIMIT_BYTES or any(
         type(resources.get(name)) is not bool for name in resource_checks
@@ -409,8 +425,9 @@ def _receipt(value: object) -> dict[str, object]:
         != resource_values["artifact_store_allocated_bytes"]
         + resource_values["metadata_index_allocated_bytes"]
         or resource_values["combined_store_file_count"]
-        < resource_values["artifact_store_file_count"]
+        != resource_values["artifact_store_file_count"]
         + resource_values["metadata_index_file_count"]
+        + 1
     ):
         _fail("invalid_receipt")
 
