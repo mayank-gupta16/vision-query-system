@@ -8,6 +8,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 from typing import cast
 
@@ -18,6 +19,7 @@ import run_v02_sampling_benchmark as benchmark
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_ROOT = ROOT / "fixtures" / "v02-sampling-research"
+RESULT_ROOT = FIXTURE_ROOT / "results"
 
 
 def _json(path: Path) -> dict[str, object]:
@@ -235,6 +237,42 @@ def test_object_event_metrics_count_recall_and_track_opportunities() -> None:
     }
 
 
+def test_raw_repetitions_keep_one_payload_and_hash_every_repetition() -> None:
+    repetitions = [
+        {
+            "metrics": {"value": index},
+            "predictions": {"item": [{"confidence_millionths": 1}]},
+            "samples": [{"item_id": "item"}],
+            "seed": index,
+        }
+        for index in range(2)
+    ]
+    repetitions.append(
+        {
+            "metrics": {"value": 2},
+            "predictions": {"item": [{"confidence_millionths": 2}]},
+            "samples": [{"item_id": "changed"}],
+            "seed": 2,
+        }
+    )
+    compact = benchmark._raw_repetitions(repetitions)
+    assert compact[0]["representative_predictions"] == repetitions[0]["predictions"]
+    assert compact[0]["representative_samples"] == repetitions[0]["samples"]
+    assert "representative_predictions" not in compact[1]
+    assert "representative_samples" not in compact[1]
+    assert compact[2]["representative_predictions"] == repetitions[2]["predictions"]
+    assert compact[2]["representative_samples"] == repetitions[2]["samples"]
+    for index, repetition in enumerate(repetitions):
+        assert (
+            compact[index]["predictions_sha256"]
+            == hashlib.sha256(benchmark._canonical(repetition["predictions"])).hexdigest()
+        )
+        assert (
+            compact[index]["samples_sha256"]
+            == hashlib.sha256(benchmark._canonical(repetition["samples"])).hexdigest()
+        )
+
+
 def test_sampling_benchmark_cli_redacts_paths_and_has_stable_errors(tmp_path: Path) -> None:
     marker = "private-token-never-print"
     command = [
@@ -264,6 +302,75 @@ def test_sampling_benchmark_cli_redacts_paths_and_has_stable_errors(tmp_path: Pa
     }
     assert marker.encode() not in completed.stdout
     assert b"Traceback" not in completed.stdout
+
+
+def test_published_sampling_results_reproduce_frozen_gate_outputs() -> None:
+    raw_path = RESULT_ROOT / "raw-results.json"
+    raw_bytes = raw_path.read_bytes()
+    raw = cast(dict[str, object], json.loads(raw_bytes))
+    assert hashlib.sha256(raw_bytes).hexdigest() == (
+        "eee7dcc181123db5e6316bed317182e2c73e71041743ba8c42efc3694a7a8453"
+    )
+    assert b"/root" not in raw_bytes
+    assert b"P6\n" not in raw_bytes
+    provenance = cast(dict[str, object], raw["provenance"])
+    assert provenance["source_revision"] == "87ca4562fba5dfac5818ff9c81b75bb0f1be4959"
+    assert (
+        provenance["evaluation_harness_sha256"]
+        == hashlib.sha256(
+            (ROOT / "scripts" / "run_v02_sampling_benchmark.py").read_bytes()
+        ).hexdigest()
+    )
+    assert raw["adaptive_threshold_millionths"] == 30_000
+
+    policy, policy_sha256 = evaluator.load_policy(
+        ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
+    )
+    dataset, dataset_sha256 = evaluator.load_manifest(
+        FIXTURE_ROOT / "dataset-manifest.json", policy
+    )
+    outputs = cast(dict[str, dict[str, object]], raw["outputs"])
+    expected_status = {
+        "adaptive-3-to-8-fps": "pass",
+        "fixed-1-fps": "fail",
+        "fixed-2-fps": "fail",
+        "fixed-3-fps": "fail",
+        "fixed-5-fps": "pass",
+        "fixed-8-fps": "pass",
+    }
+    passing_costs: list[tuple[int, str]] = []
+    for candidate, status in expected_status.items():
+        output = outputs[candidate]
+        receipt_path = RESULT_ROOT / cast(str, output["receipt"])
+        receipt_bytes = receipt_path.read_bytes()
+        receipt = cast(dict[str, object], json.loads(receipt_bytes))
+        receipt_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
+        assert receipt_sha256 == output["receipt_sha256"]
+        validated = evaluator.validate_receipt(
+            receipt,
+            policy,
+            policy_sha256,
+            dataset,
+            dataset_sha256,
+        )
+        generated_gate = evaluator.evaluate(
+            policy,
+            validated,
+            baseline=None,
+            baseline_receipt_sha256=None,
+            receipt_sha256=receipt_sha256,
+            as_of=date(2026, 9, 7),
+        )
+        gate_path = RESULT_ROOT / cast(str, output["gate"])
+        gate_bytes = gate_path.read_bytes()
+        assert hashlib.sha256(gate_bytes).hexdigest() == output["gate_sha256"]
+        assert cast(dict[str, object], json.loads(gate_bytes)) == generated_gate
+        assert generated_gate["status"] == status
+        if status == "pass":
+            aggregate = cast(dict[str, object], receipt["aggregate"])
+            metrics = cast(dict[str, dict[str, int]], aggregate["metrics"])
+            passing_costs.append((metrics["samples_per_source_minute"]["overall"], candidate))
+    assert min(passing_costs) == (300, "fixed-5-fps")
 
 
 def test_local_generated_clip_matches_every_locked_frame_when_available() -> None:
