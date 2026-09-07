@@ -74,6 +74,26 @@ def test_generated_fixture_is_bound_to_public_probe_golden() -> None:
     )
 
 
+def test_disk_measurement_fails_closed_on_scan_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    def deny_scan(path: object) -> object:
+        del path
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(os, "scandir", deny_scan)
+    with pytest.raises(PermissionError, match="denied"):
+        regressions._disk_bytes(tmp_path)
+
+
+def test_disk_bound_rejects_missing_or_oversized_measurements() -> None:
+    assert not regressions._disk_within_limit(0)
+    assert regressions._disk_within_limit(1)
+    assert regressions._disk_within_limit(regressions._STORE_LOGICAL_LIMIT_BYTES)
+    assert not regressions._disk_within_limit(regressions._STORE_LOGICAL_LIMIT_BYTES + 1)
+
+
 def test_v01_regression_harness_passes_and_emits_only_redacted_aggregates(
     tmp_path: Path,
 ) -> None:

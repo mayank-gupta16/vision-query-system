@@ -53,6 +53,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "fixtures" / "v01-regression" / "manifest.json"
 PROBE_GOLDEN_PATH = ROOT / "tests" / "goldens" / "cli-probe.json"
 _EXPECTED_CROP = bytes((3, 4, 5, 9, 10, 11))
+_STORE_LOGICAL_LIMIT_BYTES = 32 * 1024 * 1024
 _HOSTILE_CASES = [
     "artifact-content-injection",
     "corrupt-artifact",
@@ -180,16 +181,26 @@ def _peak_rss_bytes() -> int:
 
 
 def _disk_bytes(root: Path) -> int:
+    def handle_walk_error(error: OSError) -> None:
+        if not isinstance(error, FileNotFoundError):
+            raise error
+
     total = 0
-    for directory, _, names in os.walk(root):
+    for directory, _, names in os.walk(root, onerror=handle_walk_error):
         for name in names:
             try:
                 metadata = (Path(directory) / name).stat(follow_symlinks=False)
-            except FileNotFoundError:
-                continue
+            except OSError as error:
+                if isinstance(error, FileNotFoundError):
+                    continue
+                raise
             if metadata.st_mode & 0o170000 == 0o100000:
                 total += metadata.st_size
     return total
+
+
+def _disk_within_limit(value: int) -> bool:
+    return 0 < value <= _STORE_LOGICAL_LIMIT_BYTES
 
 
 @contextmanager
@@ -862,7 +873,7 @@ def _run(work_root: Path) -> dict[str, object]:
         "timing_measured": all(value > 0 for value in measurements.values()),
         "suite_wall_bounded": total_wall_ns <= 10_000_000_000,
         "rss_bounded": 0 < peak_rss <= 512 * 1024 * 1024,
-        "disk_bounded": sampled_peak_store_logical_bytes <= 32 * 1024 * 1024,
+        "disk_bounded": _disk_within_limit(sampled_peak_store_logical_bytes),
     }
     passed = profile_ok and all(checks.values()) and all(resource_checks.values())
     return {
@@ -906,7 +917,7 @@ def _run(work_root: Path) -> dict[str, object]:
             "peak_rss_limit_bytes": 512 * 1024 * 1024,
             "process_peak_rss_bytes": peak_rss,
             "sampled_peak_store_logical_bytes": sampled_peak_store_logical_bytes,
-            "store_logical_limit_bytes": 32 * 1024 * 1024,
+            "store_logical_limit_bytes": _STORE_LOGICAL_LIMIT_BYTES,
             "suite_wall_limit_ns": 10_000_000_000,
             "total_wall_ns": total_wall_ns,
         },
