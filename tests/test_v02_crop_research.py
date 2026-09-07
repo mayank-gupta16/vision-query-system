@@ -229,7 +229,7 @@ def test_crop_tools_redact_invalid_arguments(script: str) -> None:
 
 
 def test_local_generated_crop_clips_match_locks_when_available() -> None:
-    dataset_root = ROOT / "artifacts" / "issue23" / "dataset-v2"
+    dataset_root = ROOT / "artifacts" / "issue23" / "dataset-v4"
     if not dataset_root.is_dir():
         pytest.skip("generated crop clips are optional research prerequisites")
     annotations = _json(FIXTURE_ROOT / "annotations.json")

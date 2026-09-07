@@ -111,18 +111,18 @@
     "strata": {
       "medium": {
         "detector_box": [96, 144, 288, 240],
-        "left_panel_box": [104, 160, 184, 208],
-        "right_panel_box": [200, 160, 280, 208]
+        "left_panel_box": [104, 160, 144, 184],
+        "right_panel_box": [240, 160, 280, 184]
       },
       "small": {
         "detector_box": [144, 168, 240, 216],
-        "left_panel_box": [148, 176, 188, 200],
-        "right_panel_box": [196, 176, 236, 200]
+        "left_panel_box": [148, 176, 168, 192],
+        "right_panel_box": [216, 176, 236, 192]
       },
       "tiny": {
         "detector_box": [168, 176, 216, 208],
-        "left_panel_box": [170, 184, 190, 200],
-        "right_panel_box": [194, 184, 214, 200]
+        "left_panel_box": [170, 184, 178, 192],
+        "right_panel_box": [206, 184, 214, 192]
       }
     }
   },
