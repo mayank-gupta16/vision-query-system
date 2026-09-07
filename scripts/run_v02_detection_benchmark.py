@@ -16,6 +16,7 @@ import stat
 import subprocess
 import time
 from datetime import date
+from fractions import Fraction
 from pathlib import Path
 from typing import Any, NoReturn, cast
 from urllib.parse import unquote, urlsplit
@@ -31,6 +32,7 @@ _REVISION = re.compile(r"[0-9a-f]{40}\Z")
 _SEEDS = (1729, 3253, 5081, 7919, 104729)
 _MAX_JSON_BYTES = 4 * 1024 * 1024
 _MAX_PPM_BYTES = 4 * 1024 * 1024
+_MAX_DETECTIONS_PER_ITEM = 100
 _IOU_SCALE = 1000
 
 
@@ -469,7 +471,51 @@ def _detections_at(
         detection
         for detection in selected
         if cast(int, detection["confidence_millionths"]) >= threshold
-    ]
+    ][:_MAX_DETECTIONS_PER_ITEM]
+
+
+def _ap50_basis_points(
+    repetition: dict[str, object],
+    items: list[dict[str, object]],
+    threshold: int,
+) -> int:
+    ranked: list[tuple[int, str, tuple[int, int, int, int]]] = []
+    ground_truth = {cast(str, item["item_id"]): _milli_box(item["object_box"]) for item in items}
+    for item in items:
+        item_id = cast(str, item["item_id"])
+        for detection in _detections_at(repetition, item, threshold):
+            ranked.append(
+                (
+                    cast(int, detection["confidence_millionths"]),
+                    item_id,
+                    cast(
+                        tuple[int, int, int, int],
+                        tuple(cast(list[int], detection["box_milli_pixels"])),
+                    ),
+                )
+            )
+    ranked.sort(key=lambda entry: (-entry[0], entry[1], entry[2]))
+    matched: set[str] = set()
+    true_positives = 0
+    recall_numerators: list[int] = []
+    precision: list[Fraction] = []
+    for rank, (_, item_id, box) in enumerate(ranked, start=1):
+        if item_id not in matched and iou_basis_points(ground_truth[item_id], box) >= 5000:
+            matched.add(item_id)
+            true_positives += 1
+        recall_numerators.append(true_positives)
+        precision.append(Fraction(true_positives, rank))
+    for index in range(len(precision) - 2, -1, -1):
+        precision[index] = max(precision[index], precision[index + 1])
+    samples: list[Fraction] = []
+    for recall_percent in range(101):
+        sample = Fraction(0)
+        for index, numerator in enumerate(recall_numerators):
+            if numerator * 100 >= recall_percent * len(items):
+                sample = precision[index]
+                break
+        samples.append(sample)
+    return int(sum(samples, start=Fraction(0)) * 10_000 / 101)
 
 
 def accuracy_metrics(
@@ -490,13 +536,11 @@ def accuracy_metrics(
         )
         true_positives = 0
         false_positives = 0
-        ap_numerator = 0
         for item in stratum_items:
             ground_truth = _milli_box(item["object_box"])
             detections = _detections_at(repetition, item, threshold)
             matched = False
-            first_match_rank: int | None = None
-            for rank, detection in enumerate(detections, start=1):
+            for detection in detections:
                 box = tuple(cast(list[int], detection["box_milli_pixels"]))
                 is_match = (
                     not matched
@@ -505,17 +549,16 @@ def accuracy_metrics(
                 if is_match:
                     matched = True
                     true_positives += 1
-                    first_match_rank = rank
                 else:
                     false_positives += 1
-            if first_match_rank is not None:
-                ap_numerator += 10_000 // first_match_rank
         denominator = true_positives + false_positives
         metrics["precision_basis_points"][stratum] = (
             0 if denominator == 0 else true_positives * 10_000 // denominator
         )
         metrics["recall_basis_points"][stratum] = true_positives * 10_000 // len(stratum_items)
-        metrics["map50_basis_points"][stratum] = ap_numerator // len(stratum_items)
+        metrics["map50_basis_points"][stratum] = _ap50_basis_points(
+            repetition, stratum_items, threshold
+        )
     return metrics
 
 

@@ -346,7 +346,7 @@ def test_detection_metrics_count_false_positives_and_ranked_ap() -> None:
     items, repetition = _metric_fixture()
     metrics = benchmark.accuracy_metrics(repetition, items, 500_000)
     assert metrics == {
-        "map50_basis_points": {"easy": 5000, "overall": 7500, "small_distant": 10000},
+        "map50_basis_points": {"easy": 5000, "overall": 6666, "small_distant": 10000},
         "precision_basis_points": {"easy": 5000, "overall": 6666, "small_distant": 10000},
         "recall_basis_points": {"easy": 10000, "overall": 10000, "small_distant": 10000},
     }
