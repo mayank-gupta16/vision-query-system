@@ -402,13 +402,55 @@ def test_wheel_smoke_uses_fresh_offline_runtime_and_records_only_shipped_package
             output = "visualworld 0.1.0a0\n"
         elif args[-1] == "--help":
             output = "usage: visualworld\n"
+        elif args[-1] == "probe":
+            output = json.dumps(
+                {
+                    "command": "probe",
+                    "result": {},
+                    "schema": "visualworld.cli-result",
+                    "schema_version": 1,
+                    "status": "ok",
+                }
+            )
+        elif "ingest" in args:
+            output = json.dumps(
+                {
+                    "command": "ingest",
+                    "result": {"run_id": "run-id", "evidence_ids": ["evidence-id"]},
+                    "schema": "visualworld.cli-result",
+                    "schema_version": 1,
+                    "status": "ok",
+                }
+            )
+        elif "show-evidence" in args:
+            Path(args[args.index("--output") + 1]).write_bytes(bytes((3, 4, 5, 9, 10, 11)))
+            output = json.dumps(
+                {
+                    "command": "show-evidence",
+                    "result": {},
+                    "schema": "visualworld.cli-result",
+                    "schema_version": 1,
+                    "status": "ok",
+                }
+            )
+        elif "inspect-run" in args or "list-samples" in args:
+            command = "inspect-run" if "inspect-run" in args else "list-samples"
+            output = json.dumps(
+                {
+                    "command": command,
+                    "result": {},
+                    "schema": "visualworld.cli-result",
+                    "schema_version": 1,
+                    "status": "ok",
+                }
+            )
         else:
             output = ""
         return subprocess.CompletedProcess(args, 0, output, "")
 
     monkeypatch.setattr(subprocess, "run", execute)
     check_wheel.check(wheel, tmp_path / "uv")
-    assert len(calls) == 7
+    assert len(calls) == 13
     assert calls[0][1] == "venv"
     assert {"--no-deps", "--offline"} <= set(calls[1])
     assert calls[1][-1] == str(wheel)

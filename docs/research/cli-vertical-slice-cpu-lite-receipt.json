@@ -1,0 +1,79 @@
+{
+  "checks": {
+    "canonical_success_contract": true,
+    "exact_original_pixel_crop": true,
+    "machine_readable_error_contract": true,
+    "paths_and_terminal_control_redacted": true,
+    "vertical_commands_completed": true
+  },
+  "implementation": {
+    "cli_module_sha256": "3e05211ebc9e436ff7a4d341859da874bc63b5c94defff6a6d1f044718b89a98",
+    "executable_implementation": "cpython",
+    "harness_sha256": "ca9ca8330d8ee243e2b95687c5d9b46cbac0e2861647645c51cce40ffc7cb4c3",
+    "python_version": "3.13.15",
+    "world_store_module_sha256": "0c9baa4e094d4a7f029557ebf207b4536c5b92425a1e5103737647e5a719a553"
+  },
+  "measurements": {
+    "ingest": {
+      "stderr_bytes": 0,
+      "stdout_bytes": 393,
+      "wall_ns": 110555367
+    },
+    "inspect_run": {
+      "stderr_bytes": 0,
+      "stdout_bytes": 1115,
+      "wall_ns": 83044199
+    },
+    "list_samples": {
+      "stderr_bytes": 0,
+      "stdout_bytes": 1197,
+      "wall_ns": 87268004
+    },
+    "probe": {
+      "stderr_bytes": 0,
+      "stdout_bytes": 1566,
+      "wall_ns": 77089880
+    },
+    "show_evidence": {
+      "stderr_bytes": 0,
+      "stdout_bytes": 893,
+      "wall_ns": 94133796
+    },
+    "usage_error": {
+      "stderr_bytes": 173,
+      "stdout_bytes": 0,
+      "wall_ns": 83709159
+    }
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "resources": {
+    "child_process_peak_rss_bytes": 25817088,
+    "disk_bounded": true,
+    "peak_rss_limit_bytes": 536870912,
+    "per_command_wall_bounded": true,
+    "rss_bounded": true,
+    "store_logical_bytes": 200710,
+    "store_logical_limit_bytes": 16777216,
+    "timing_measured": true,
+    "total_command_wall_ns": 535800405
+  },
+  "schema": "visualworld.cli-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "workload": {
+    "command_count": 6,
+    "crop_rgb24_bytes": 6,
+    "deterministic_synthetic_input": true,
+    "sample_count": 1
+  }
+}

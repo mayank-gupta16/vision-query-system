@@ -42,3 +42,6 @@ architecture.
   #16 deterministic fake/manual ingestion, recovery, repair, source deletion,
   and CPU-LITE validation with a
   [machine-readable receipt](evidence-safe-coordinator-cpu-lite-receipt.json).
+- [Deterministic CLI vertical slice](cli-vertical-slice.md) — issue #17 command,
+  error, redaction, exact-crop, fresh-wheel, and CPU-LITE validation with a
+  [machine-readable receipt](cli-vertical-slice-cpu-lite-receipt.json).

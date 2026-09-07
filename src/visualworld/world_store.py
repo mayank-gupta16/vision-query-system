@@ -2448,6 +2448,206 @@ class LocalWorldStore:
             _fail(PortErrorCode.CORRUPT, operation)
         return value == 1
 
+    def _committed_run(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        operation: str,
+    ) -> RunManifest:
+        row = connection.execute(
+            """SELECT run.record_json FROM runs AS run
+            WHERE run.run_id = ? AND run.state = 'committed'
+              AND NOT EXISTS (
+                SELECT 1 FROM deletion_closure AS hidden
+                WHERE hidden.record_id = run.run_id
+                  AND hidden.record_type = 'run'
+              )""",
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            _fail(PortErrorCode.NOT_FOUND, operation)
+        record = self._decode_record(row[0], operation)
+        if not isinstance(record, RunManifest) or record.state != "committed":
+            _fail(PortErrorCode.CORRUPT, operation)
+        self._verify_projection(connection, record, operation)
+        return record
+
+    def list_run_frames(
+        self,
+        run_id: str,
+        *,
+        after_decode_index: str | None = None,
+        limit: int,
+    ) -> tuple[FrameRef, ...]:
+        """Return only frames owned by one visible committed run."""
+
+        operation = "list_run_frames"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        selected_limit = _bounded_limit(limit, operation)
+        after = ""
+        if after_decode_index is not None:
+            if type(after_decode_index) is not str or not _UNSIGNED_DECIMAL.fullmatch(
+                after_decode_index
+            ):
+                _fail(PortErrorCode.INVALID_REQUEST, operation)
+            if len(after_decode_index) > 20 or int(after_decode_index) > 2**64 - 1:
+                _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+            after = after_decode_index
+        with self._read_connection(operation) as connection:
+            try:
+                manifest = self._committed_run(connection, selected_run, operation)
+                counts = connection.execute(
+                    """SELECT
+                    (
+                        SELECT count(*) FROM run_records
+                        WHERE run_id = ? AND record_type = 'frame'
+                    ),
+                    (
+                        SELECT count(*) FROM run_records AS owned
+                        JOIN frames AS frame ON frame.frame_id = owned.record_id
+                        WHERE owned.run_id = ? AND owned.record_type = 'frame'
+                          AND frame.source_id = ?
+                          AND NOT EXISTS (
+                            SELECT 1 FROM deletion_closure AS hidden
+                            WHERE hidden.record_id = frame.frame_id
+                              AND hidden.record_type = 'frame'
+                          )
+                    )""",
+                    (selected_run, selected_run, manifest.source_id),
+                ).fetchone()
+                if (
+                    counts is None
+                    or len(counts) != 2
+                    or any(type(value) is not int for value in counts)
+                    or counts[0] != counts[1]
+                    or manifest.outputs is None
+                    or counts[0] != int(manifest.outputs.sample_count)
+                ):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                rows = connection.execute(
+                    """SELECT frame.record_json FROM run_records AS owned
+                    JOIN frames AS frame ON frame.frame_id = owned.record_id
+                    WHERE owned.run_id = ? AND owned.record_type = 'frame'
+                      AND frame.source_id = ?
+                      AND (
+                        length(frame.decode_index) > length(?)
+                        OR (
+                            length(frame.decode_index) = length(?)
+                            AND frame.decode_index > ?
+                        )
+                      )
+                      AND NOT EXISTS (
+                        SELECT 1 FROM deletion_closure AS hidden
+                        WHERE hidden.record_id = frame.frame_id
+                          AND hidden.record_type = 'frame'
+                      )
+                    ORDER BY length(frame.decode_index), frame.decode_index
+                    LIMIT ?""",
+                    (
+                        selected_run,
+                        manifest.source_id,
+                        after,
+                        after,
+                        after,
+                        selected_limit,
+                    ),
+                ).fetchall()
+                records = tuple(self._decode_record(row[0], operation) for row in rows)
+                if not all(
+                    isinstance(record, FrameRef) and record.source_id == manifest.source_id
+                    for record in records
+                ):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                for record in records:
+                    self._verify_projection(connection, record, operation)
+                return cast(tuple[FrameRef, ...], records)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def list_run_evidence(
+        self,
+        run_id: str,
+        *,
+        after_evidence_id: str | None = None,
+        limit: int,
+    ) -> tuple[EvidenceRef, ...]:
+        """Return only evidence owned by one visible committed run."""
+
+        operation = "list_run_evidence"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        selected_limit = _bounded_limit(limit, operation)
+        after = ""
+        if after_evidence_id is not None:
+            after = _identifier(after_evidence_id, _EVIDENCE_ID, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                manifest = self._committed_run(connection, selected_run, operation)
+                counts = connection.execute(
+                    """SELECT
+                    (
+                        SELECT count(*) FROM run_records
+                        WHERE run_id = ? AND record_type = 'evidence'
+                    ),
+                    (
+                        SELECT count(*) FROM run_records AS owned
+                        JOIN evidence AS item ON item.evidence_id = owned.record_id
+                        JOIN frames AS frame ON frame.frame_id = item.frame_id
+                        WHERE owned.run_id = ? AND owned.record_type = 'evidence'
+                          AND frame.source_id = ?
+                          AND EXISTS (
+                            SELECT 1 FROM run_records AS frame_owned
+                            WHERE frame_owned.run_id = owned.run_id
+                              AND frame_owned.record_id = item.frame_id
+                              AND frame_owned.record_type = 'frame'
+                          )
+                          AND NOT EXISTS (
+                            SELECT 1 FROM deletion_closure AS hidden
+                            WHERE hidden.record_id IN (item.evidence_id, item.frame_id)
+                          )
+                    )""",
+                    (selected_run, selected_run, manifest.source_id),
+                ).fetchone()
+                if (
+                    counts is None
+                    or len(counts) != 2
+                    or any(type(value) is not int for value in counts)
+                    or counts[0] != counts[1]
+                ):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                rows = connection.execute(
+                    """SELECT item.record_json FROM run_records AS owned
+                    JOIN evidence AS item ON item.evidence_id = owned.record_id
+                    JOIN frames AS frame ON frame.frame_id = item.frame_id
+                    WHERE owned.run_id = ? AND owned.record_type = 'evidence'
+                      AND owned.record_id > ? AND frame.source_id = ?
+                      AND EXISTS (
+                        SELECT 1 FROM run_records AS frame_owned
+                        WHERE frame_owned.run_id = owned.run_id
+                          AND frame_owned.record_id = item.frame_id
+                          AND frame_owned.record_type = 'frame'
+                      )
+                      AND NOT EXISTS (
+                        SELECT 1 FROM deletion_closure AS hidden
+                        WHERE hidden.record_id IN (item.evidence_id, item.frame_id)
+                      )
+                    ORDER BY owned.record_id LIMIT ?""",
+                    (selected_run, after, manifest.source_id, selected_limit),
+                ).fetchall()
+                records = tuple(self._decode_record(row[0], operation) for row in rows)
+                if not all(isinstance(record, EvidenceRef) for record in records):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                for record in records:
+                    self._verify_projection(connection, record, operation)
+                return cast(tuple[EvidenceRef, ...], records)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
     def list_frames(
         self,
         source_id: str,

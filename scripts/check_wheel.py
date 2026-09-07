@@ -15,6 +15,7 @@ import tempfile
 import zipfile
 from email.parser import BytesParser
 from pathlib import Path
+from typing import cast
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -139,6 +140,95 @@ def check(wheel: Path, uv: Path) -> None:
                 )
                 if expected not in result.stdout or result.stderr:
                     raise ValueError("Installed CLI smoke check failed")
+            result = subprocess.run(
+                [*prefix, "probe"],
+                cwd=directory,
+                env=env,
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=30,
+            )
+            try:
+                loaded = json.loads(result.stdout)
+            except (TypeError, ValueError) as error:
+                raise ValueError("Installed CLI probe was not JSON") from error
+            if not isinstance(loaded, dict):
+                raise ValueError("Installed CLI probe was not an object")
+            document = cast(dict[str, object], loaded)
+            if (
+                result.stderr
+                or document.get("schema") != "visualworld.cli-result"
+                or document.get("schema_version") != 1
+                or document.get("command") != "probe"
+                or document.get("status") != "ok"
+            ):
+                raise ValueError("Installed CLI probe smoke check failed")
+
+        console = runtime / "bin/visualworld"
+        store = directory / "quickstart-store"
+        output = directory / "quickstart-crop.rgb24"
+
+        def run_json(arguments: list[str]) -> dict[str, object]:
+            result = subprocess.run(
+                [str(console), *arguments],
+                cwd=directory,
+                env=env,
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=30,
+            )
+            if result.stderr or str(directory) in result.stdout:
+                raise ValueError("Installed CLI output was not redacted")
+            try:
+                loaded = json.loads(result.stdout)
+            except (TypeError, ValueError) as error:
+                raise ValueError("Installed CLI output was not JSON") from error
+            if not isinstance(loaded, dict):
+                raise ValueError("Installed CLI output was not an object")
+            document = cast(dict[str, object], loaded)
+            if (
+                document.get("schema") != "visualworld.cli-result"
+                or document.get("schema_version") != 1
+                or document.get("status") != "ok"
+            ):
+                raise ValueError("Installed CLI vertical smoke check failed")
+            return document
+
+        ingested = run_json(["ingest", "--store", str(store)])
+        ingestion_result = ingested.get("result")
+        if not isinstance(ingestion_result, dict):
+            raise ValueError("Installed CLI ingest result was invalid")
+        run_id = ingestion_result.get("run_id")
+        evidence_ids = ingestion_result.get("evidence_ids")
+        if (
+            not isinstance(run_id, str)
+            or not isinstance(evidence_ids, list)
+            or len(evidence_ids) != 1
+            or not isinstance(evidence_ids[0], str)
+        ):
+            raise ValueError("Installed CLI ingest identifiers were invalid")
+        inspected = run_json(["inspect-run", "--store", str(store), "--run-id", run_id])
+        listed = run_json(["list-samples", "--store", str(store), "--run-id", run_id])
+        shown = run_json(
+            [
+                "show-evidence",
+                "--store",
+                str(store),
+                "--evidence-id",
+                evidence_ids[0],
+                "--output",
+                str(output),
+            ]
+        )
+        if (
+            inspected.get("command") != "inspect-run"
+            or listed.get("command") != "list-samples"
+            or shown.get("command") != "show-evidence"
+            or output.read_bytes() != bytes((3, 4, 5, 9, 10, 11))
+        ):
+            raise ValueError("Installed CLI exact-crop quickstart failed")
     ref = f"pkg:pypi/{name}@{version}"
     sbom = {
         "bomFormat": "CycloneDX",
@@ -164,7 +254,8 @@ def check(wheel: Path, uv: Path) -> None:
         json.dumps(sbom, indent=2) + "\n", encoding="utf-8"
     )
     print(
-        "Fresh installed wheel: import, module, console, license, zero runtime dependencies passed."
+        "Fresh installed wheel: import, module, console, exact-crop CLI, license, "
+        "zero runtime dependencies passed."
     )
 
 

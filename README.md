@@ -20,13 +20,14 @@ a bounded Linux-only local-video source/probe adapter plus deterministic exact-P
 frame sampling, original-pixel crop utilities, and a crash-recoverable local
 evidence CAS plus transactional local SQLite metadata. The library now provides
 a deterministic end-to-end ingestion path for fake/manual regions, including
-recovery and source deletion; the user-facing ingestion CLI, real perception,
-and queries are not implemented yet.
+recovery and source deletion. Its user-facing CLI now exposes that deterministic
+fake/manual slice; real video CLI input, perception, and queries are not
+implemented yet.
 See [current project state](docs/project/current.md) and the
 [roadmap](docs/project/roadmap.md) for the proposed sequencing and explicit
 non-goals.
 
-## Try the scaffold
+## Try the deterministic CLI slice
 
 On Linux x86_64 (glibc) or macOS arm64, from a trusted checkout with host Python
 3.9+ available:
@@ -34,10 +35,36 @@ On Linux x86_64 (glibc) or macOS arm64, from a trusted checkout with host Python
 ```sh
 python3 scripts/bootstrap.py
 python3 scripts/dev.py sync
-artifacts/toolchain/3.13.15/dev/bin/visualworld --help
-artifacts/toolchain/3.13.15/dev/bin/visualworld --version
+python=artifacts/toolchain/3.13.15/dev/bin/python
+cli=artifacts/toolchain/3.13.15/dev/bin/visualworld
+work_root="$(mktemp -d)"
+store="$work_root/store"
+
+"$cli" probe
+ingest_result="$("$cli" ingest --store "$store")"
+run_id="$(printf '%s\n' "$ingest_result" | "$python" -c \
+  'import json,sys; print(json.load(sys.stdin)["result"]["run_id"])')"
+evidence_id="$(printf '%s\n' "$ingest_result" | "$python" -c \
+  'import json,sys; print(json.load(sys.stdin)["result"]["evidence_ids"][0])')"
+
+"$cli" inspect-run --store "$store" --run-id "$run_id"
+"$cli" list-samples --store "$store" --run-id "$run_id"
+"$cli" show-evidence --store "$store" --evidence-id "$evidence_id" \
+  --output "$work_root/crop.rgb24"
+"$python" -c \
+  'import hashlib,sys; data=open(sys.argv[1], "rb").read(); print(len(data), hashlib.sha256(data).hexdigest())' \
+  "$work_root/crop.rgb24"
+
 python3 scripts/dev.py check
 ```
+
+The final verification line prints `6` and
+`ee0c0ca710ef28a12edd6f7d1454fc6516e434d4e33c733f886bee5f3e62233c`.
+The fixture is a built-in 2×2 packed-RGB24 test frame, not a real video or model
+result. The five data commands emit one canonical JSON document; rejected
+values and local paths are not echoed. `show-evidence` creates a read-only file,
+refuses overwrite, and must target an existing private directory outside the
+store.
 
 Setup downloads checksum-pinned developer tools into ignored local directories;
 it does not change system Python or download models/media. The application has
