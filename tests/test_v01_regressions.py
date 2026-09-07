@@ -10,6 +10,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from typing import cast
 
@@ -92,6 +93,56 @@ def test_disk_bound_rejects_missing_or_oversized_measurements() -> None:
     assert regressions._disk_within_limit(1)
     assert regressions._disk_within_limit(regressions._STORE_LOGICAL_LIMIT_BYTES)
     assert not regressions._disk_within_limit(regressions._STORE_LOGICAL_LIMIT_BYTES + 1)
+
+
+def test_receipt_fails_when_concurrent_disk_sample_exceeds_limit(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    high_sample_observed = threading.Event()
+    high_sample = regressions._STORE_LOGICAL_LIMIT_BYTES + 1
+
+    def measured_bytes(root: Path) -> int:
+        assert root.parent == tmp_path
+        if threading.current_thread().name == "visualworld-v01-regression-disk-sampler":
+            high_sample_observed.set()
+            return high_sample
+        assert high_sample_observed.is_set()
+        return 1
+
+    def successful_scenario(
+        private_root: Path,
+        golden: dict[str, object],
+    ) -> tuple[dict[str, bool], list[str]]:
+        del private_root, golden
+        assert high_sample_observed.wait(timeout=1)
+        return {}, []
+
+    def recovery_scenario(
+        private_root: Path,
+        golden: dict[str, object],
+    ) -> dict[str, bool]:
+        del private_root, golden
+        return {}
+
+    def hostile_scenario(
+        private_root: Path,
+        golden: dict[str, object],
+    ) -> tuple[dict[str, bool], list[str], tuple[str, ...]]:
+        del private_root, golden
+        return {}, [], ()
+
+    monkeypatch.setattr(regressions, "_disk_bytes", measured_bytes)
+    monkeypatch.setattr(regressions, "_success_reopen_retry_delete", successful_scenario)
+    monkeypatch.setattr(regressions, "_interrupted_ingest_recovery", recovery_scenario)
+    monkeypatch.setattr(regressions, "_hostile_regressions", hostile_scenario)
+    receipt = regressions._run(tmp_path)
+    resources = cast(dict[str, object], receipt["resources"])
+
+    assert high_sample_observed.is_set()
+    assert resources["sampled_peak_store_logical_bytes"] == high_sample
+    assert resources["disk_bounded"] is False
+    assert receipt["status"] == "fail"
 
 
 def test_v01_regression_harness_passes_and_emits_only_redacted_aggregates(

@@ -22,6 +22,7 @@ import urllib.request
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from pathlib import Path
+from types import TracebackType
 from typing import NoReturn, cast
 from unittest.mock import patch
 
@@ -201,6 +202,52 @@ def _disk_bytes(root: Path) -> int:
 
 def _disk_within_limit(value: int) -> bool:
     return 0 < value <= _STORE_LOGICAL_LIMIT_BYTES
+
+
+class _DiskPeakSampler:
+    def __init__(self, root: Path, *, interval_seconds: float = 0.001) -> None:
+        self._root = root
+        self._interval_seconds = interval_seconds
+        self._stop = threading.Event()
+        self._errors: list[BaseException] = []
+        self._sampled_bytes = 0
+        self._thread = threading.Thread(
+            target=self._sample,
+            name="visualworld-v01-regression-disk-sampler",
+            daemon=True,
+        )
+
+    def _sample(self) -> None:
+        try:
+            while not self._stop.wait(self._interval_seconds):
+                self._sampled_bytes = max(self._sampled_bytes, _disk_bytes(self._root))
+        except BaseException as error:
+            self._errors.append(error)
+
+    def __enter__(self) -> _DiskPeakSampler:
+        self._thread.start()
+        return self
+
+    def __exit__(
+        self,
+        exception_type: type[BaseException] | None,
+        exception: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        del exception, traceback
+        self._stop.set()
+        self._thread.join()
+        if exception_type is not None:
+            return
+        if self._errors:
+            raise RuntimeError("disk sampler failed") from self._errors[0]
+        self._sampled_bytes = max(self._sampled_bytes, _disk_bytes(self._root))
+
+    @property
+    def sampled_bytes(self) -> int:
+        if self._thread.is_alive():
+            raise RuntimeError("disk sampler is still running")
+        return self._sampled_bytes
 
 
 @contextmanager
@@ -790,64 +837,31 @@ def _run(work_root: Path) -> dict[str, object]:
     rendered: list[str] = []
     started_total = time.perf_counter_ns()
     temporary_path: Path | None = None
-    sampled_peak_store_logical_bytes = 0
 
     with tempfile.TemporaryDirectory(prefix="visualworld-v01-regression-", dir=work_root) as temp:
         temporary_path = Path(temp)
-        stop_sampling = threading.Event()
-        disk_sampling_errors: list[BaseException] = []
-
-        def sample_disk() -> None:
-            nonlocal sampled_peak_store_logical_bytes
-            try:
-                while not stop_sampling.wait(0.001):
-                    sampled_peak_store_logical_bytes = max(
-                        sampled_peak_store_logical_bytes,
-                        _disk_bytes(temporary_path),
-                    )
-            except BaseException as error:
-                disk_sampling_errors.append(error)
-
-        sampler = threading.Thread(
-            target=sample_disk,
-            name="visualworld-v01-regression-disk-sampler",
-            daemon=True,
-        )
-        sampler.start()
-        try:
-            with _deny_ambient_capabilities(attempts):
-                started = time.perf_counter_ns()
-                success_checks, success_output = _success_reopen_retry_delete(
-                    temporary_path, golden
-                )
-                measurements["success_reopen_retry_delete_wall_ns"] = max(
-                    1, time.perf_counter_ns() - started
-                )
-                rendered.extend(success_output)
-
-                started = time.perf_counter_ns()
-                recovery_checks = _interrupted_ingest_recovery(temporary_path, golden)
-                measurements["interrupted_recovery_wall_ns"] = max(
-                    1, time.perf_counter_ns() - started
-                )
-
-                started = time.perf_counter_ns()
-                hostile_checks, hostile_output, hostile_values = _hostile_regressions(
-                    temporary_path, golden
-                )
-                measurements["hostile_regressions_wall_ns"] = max(
-                    1, time.perf_counter_ns() - started
-                )
-                rendered.extend(hostile_output)
-        finally:
-            sampled_peak_store_logical_bytes = max(
-                sampled_peak_store_logical_bytes,
-                _disk_bytes(temporary_path),
+        with (
+            _DiskPeakSampler(temporary_path) as disk_sampler,
+            _deny_ambient_capabilities(attempts),
+        ):
+            started = time.perf_counter_ns()
+            success_checks, success_output = _success_reopen_retry_delete(temporary_path, golden)
+            measurements["success_reopen_retry_delete_wall_ns"] = max(
+                1, time.perf_counter_ns() - started
             )
-            stop_sampling.set()
-            sampler.join()
-        if disk_sampling_errors:
-            raise RuntimeError("disk sampler failed") from disk_sampling_errors[0]
+            rendered.extend(success_output)
+
+            started = time.perf_counter_ns()
+            recovery_checks = _interrupted_ingest_recovery(temporary_path, golden)
+            measurements["interrupted_recovery_wall_ns"] = max(1, time.perf_counter_ns() - started)
+
+            started = time.perf_counter_ns()
+            hostile_checks, hostile_output, hostile_values = _hostile_regressions(
+                temporary_path, golden
+            )
+            measurements["hostile_regressions_wall_ns"] = max(1, time.perf_counter_ns() - started)
+            rendered.extend(hostile_output)
+        sampled_peak_store_logical_bytes = disk_sampler.sampled_bytes
 
     if temporary_path is None:
         raise AssertionError("temporary path was not created")
