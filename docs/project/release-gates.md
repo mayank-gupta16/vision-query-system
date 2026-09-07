@@ -18,3 +18,10 @@ A milestone may be released only when:
 Before v1.0, public APIs must be labeled experimental. A benchmark run is not a
 gate unless hardware, input manifest, revision, configuration, model/runtime
 versions, wall time, resource metrics, and accuracy impact are recorded.
+
+For v0.1, the reviewed [CPU-LITE application baseline and comparator](../benchmarks/v0.1-cpu-lite-baseline.md)
+bind the generated 60-second workload, exact configuration, runtime, revision,
+stage/resource measurements, and explicit no-accuracy-claim boundary. The
+[machine-readable receipt](../benchmarks/v0.1-cpu-lite-baseline.json) passed the
+2 GiB peak-RSS ceiling; compatible candidates must also pass its configured
+resource-regression budget or receive an explicit release disposition.

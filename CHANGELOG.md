@@ -4,6 +4,10 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add the pinned combined v0.1 CPU-LITE benchmark over a generated 60-second
+  1080p/5-FPS workload with exact application-path goldens, per-stage wall/CPU
+  measurements, FPS/real-time factor, RSS/disk/index evidence, a fail-closed
+  compatibility/regression comparator, and a reviewed JSON/Markdown baseline.
 - Add the v0.1 release-gate regression suite with a rights/privacy-declared
   test-time fixture, locked ingest/reopen/retry/delete goldens, interrupted
   recovery, corrupt/oversize/path/link/injection/redaction/no-egress checks, and

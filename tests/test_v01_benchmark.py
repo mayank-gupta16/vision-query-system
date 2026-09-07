@@ -17,6 +17,9 @@ import pytest
 import run_v01_benchmark as benchmark
 
 _REVISION = "0" * 40
+_BASELINE_PATH = (
+    Path(__file__).resolve().parents[1] / "docs" / "benchmarks" / "v0.1-cpu-lite-baseline.json"
+)
 
 
 @pytest.fixture(scope="module")
@@ -176,6 +179,14 @@ def test_comparator_accepts_identical_compatible_receipts(
     assert all(item["within_budget"] is True for item in comparisons.values())
 
 
+def test_checked_in_baseline_is_valid_and_self_comparable() -> None:
+    baseline = comparator._load(_BASELINE_PATH)
+    result = comparator.compare(baseline, copy.deepcopy(baseline))
+
+    assert baseline["status"] == "pass"
+    assert result["status"] == "pass"
+
+
 def test_comparator_rejects_regression_incompatibility_and_invalid_metrics(
     benchmark_receipt: dict[str, object],
 ) -> None:
@@ -201,10 +212,23 @@ def test_comparator_rejects_regression_incompatibility_and_invalid_metrics(
     assert cast(dict[str, object], incompatible_result["checks"])["compatible"] is False
     assert incompatible_result["comparisons"] == {}
 
+    changed_harness = copy.deepcopy(baseline)
+    cast(dict[str, object], changed_harness["implementation"])["benchmark_harness_sha256"] = (
+        "f" * 64
+    )
+    changed_harness_result = comparator.compare(baseline, changed_harness)
+    assert changed_harness_result["status"] == "fail"
+    assert cast(dict[str, object], changed_harness_result["checks"])["compatible"] is False
+
     invalid = copy.deepcopy(baseline)
     cast(dict[str, object], invalid["metrics"])["total_wall_ns"] = 0
     with pytest.raises(comparator.ComparisonError, match="invalid_receipt"):
         comparator.compare(baseline, invalid)
+
+    inconsistent = copy.deepcopy(baseline)
+    cast(dict[str, object], inconsistent["checks"])["golden_matches"] = False
+    with pytest.raises(comparator.ComparisonError, match="invalid_receipt"):
+        comparator.compare(baseline, inconsistent)
 
 
 def test_comparator_loader_rejects_symlinked_receipt(

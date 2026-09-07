@@ -17,6 +17,7 @@ import run_v01_benchmark as benchmark
 
 _MAX_RECEIPT_BYTES = 1024 * 1024
 _REVISION = re.compile(r"[0-9a-f]{40}\Z")
+_DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 _METRIC_PATHS = {
     "combined_store_logical_bytes": ("resources", "combined_store_logical_bytes"),
     "frames_per_second_milli": ("metrics", "frames_per_second_milli"),
@@ -106,10 +107,24 @@ def _receipt(value: object) -> dict[str, object]:
         _fail("invalid_receipt")
     provenance = _mapping(receipt["provenance"])
     revision = provenance.get("source_revision")
-    if type(revision) is not str or not _REVISION.fullmatch(revision):
+    fixture_digest = provenance.get("fixture_manifest_sha256")
+    if (
+        type(revision) is not str
+        or not _REVISION.fullmatch(revision)
+        or type(fixture_digest) is not str
+        or not _DIGEST.fullmatch(fixture_digest)
+        or provenance.get("generated_input") is not True
+        or provenance.get("license_expression") != "Apache-2.0"
+        or provenance.get("perception_accuracy_claimed") is not False
+        or provenance.get("privacy_classification") != "public-synthetic-no-personal-data"
+    ):
         _fail("invalid_receipt")
     for path in _METRIC_PATHS.values():
         _positive_metric(receipt, path)
+    implementation = _mapping(receipt["implementation"])
+    harness_digest = implementation.get("benchmark_harness_sha256")
+    if type(harness_digest) is not str or not _DIGEST.fullmatch(harness_digest):
+        _fail("invalid_receipt")
     profile = _mapping(receipt["profile"])
     if (
         type(profile.get("meets_requirements")) is not bool
@@ -118,10 +133,31 @@ def _receipt(value: object) -> dict[str, object]:
     ):
         _fail("invalid_receipt")
     resources = _mapping(receipt["resources"])
-    if (
-        resources.get("peak_rss_limit_bytes") != benchmark._PEAK_RSS_LIMIT_BYTES
-        or type(resources.get("rss_bounded")) is not bool
+    resource_checks = (
+        "disk_measured",
+        "index_measured",
+        "rss_bounded",
+        "rss_measured",
+        "timing_measured",
+    )
+    if resources.get("peak_rss_limit_bytes") != benchmark._PEAK_RSS_LIMIT_BYTES or any(
+        type(resources.get(name)) is not bool for name in resource_checks
     ):
+        _fail("invalid_receipt")
+    peak_rss = _positive_metric(receipt, _METRIC_PATHS["process_peak_rss_bytes"])
+    if resources["rss_bounded"] is not (peak_rss <= benchmark._PEAK_RSS_LIMIT_BYTES):
+        _fail("invalid_receipt")
+    checks = _mapping(receipt["checks"])
+    if not checks or any(type(result) is not bool for result in checks.values()):
+        _fail("invalid_receipt")
+    expected_status = (
+        "pass"
+        if profile["meets_requirements"] is True
+        and all(checks.values())
+        and all(resources[name] is True for name in resource_checks)
+        else "fail"
+    )
+    if receipt["status"] != expected_status:
         _fail("invalid_receipt")
     return receipt
 
@@ -146,6 +182,7 @@ def _compatibility(receipt: dict[str, object]) -> dict[str, object]:
         "runtime": {
             name: implementation.get(name)
             for name in (
+                "benchmark_harness_sha256",
                 "executable_implementation",
                 "python_version",
                 "sqlite_version",
