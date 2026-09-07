@@ -1,0 +1,23 @@
+{
+  "adaptive": {
+    "base_fps": 3,
+    "burst_duration_ms": 750,
+    "maximum_fps": 8,
+    "motion_score": "maximum 32x24 tile mean absolute RGB delta in millionths of 255",
+    "schedule": "3 FPS targets quantized to the nearest 8 FPS lattice frame outside bursts; 8 FPS lattice inside bursts",
+    "threshold_grid_millionths": [30000, 50000, 70000, 90000]
+  },
+  "detector": {
+    "candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
+    "confidence_millionths": 950000,
+    "name": "vehicle-detection-0201-fp32-openvino-2026.3.1"
+  },
+  "fixed_rates_fps": [1, 2, 3, 5, 8],
+  "metric": {
+    "event_match": "at least one selected class-matched IoU-0.50 true positive in the annotated event interval",
+    "missed_track_opportunity": "fewer than two selected class-matched IoU-0.50 true positives in the annotated event interval"
+  },
+  "schema": "visualworld.v02-sampling-candidates",
+  "schema_version": 1,
+  "selection": "among test candidates passing every gate, lowest median samples per source minute; then lower detector CPU; then fixed before adaptive; adaptive threshold selected on calibration only by the same gate and cost ordering"
+}

@@ -1,0 +1,182 @@
+{
+  "absolute": {
+    "failure_rate_basis_points": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 0,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "missed_track_opportunity_rate_basis_points": {
+      "camera_motion": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "cut_adjacent": {
+        "kind": "gate",
+        "maximum": 500,
+        "minimum": null,
+        "status": "fail",
+        "value": 10000
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": 500,
+        "minimum": null,
+        "status": "fail",
+        "value": 2916
+      },
+      "small_fast": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "fail",
+        "value": 1666
+      },
+      "vfr_gap": {
+        "kind": "gate",
+        "maximum": 500,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "object_event_recall_basis_points": {
+      "camera_motion": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 9000,
+        "status": "pass",
+        "value": 10000
+      },
+      "cut_adjacent": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 9500,
+        "status": "pass",
+        "value": 10000
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 9500,
+        "status": "pass",
+        "value": 10000
+      },
+      "small_fast": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 9000,
+        "status": "pass",
+        "value": 10000
+      },
+      "vfr_gap": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 9500,
+        "status": "pass",
+        "value": 10000
+      }
+    },
+    "peak_rss_bytes": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 2147483648,
+        "minimum": null,
+        "status": "pass",
+        "value": 714379264
+      }
+    },
+    "real_time_factor_milli": {
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 1000,
+        "status": "pass",
+        "value": 12024
+      }
+    },
+    "samples_per_source_minute": {
+      "overall": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 120
+      }
+    },
+    "store_bytes_per_source_minute": {
+      "overall": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 29859840
+      }
+    }
+  },
+  "baseline_candidate": null,
+  "baseline_receipt_sha256": null,
+  "candidate": {
+    "configuration_sha256": "0d66ea6105ad4013b5230ff3fe5c32398745a542279749ea7b984f06ab51273c",
+    "name": "fixed-2-fps"
+  },
+  "checks": {
+    "absolute_gates_pass": false,
+    "baseline_compatible": null,
+    "regression_gates_pass": true,
+    "waiver_valid": false
+  },
+  "dataset_manifest_sha256": "e51ebe8ae7c1732e4c2344e2b409cd22e60a51e41ac3f22d341353403d6ae4ef",
+  "evaluated_on": "2026-09-07",
+  "evaluation_phase": "selection",
+  "experiment": "sampling",
+  "failures": [
+    "absolute:missed_track_opportunity_rate_basis_points:cut_adjacent",
+    "absolute:missed_track_opportunity_rate_basis_points:overall",
+    "absolute:missed_track_opportunity_rate_basis_points:small_fast"
+  ],
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-sampling-harness",
+      "revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a",
+      "sha256": "927fec031464f61cd21c5260f7c9e71b829de1ba379f3ae7dbe823395c12af33",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/a9ff343ac733ce66ddf1b3ffef2270526334b89a/scripts/run_v02_sampling_benchmark.py"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-sampling-metrics",
+      "revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a",
+      "sha256": "927fec031464f61cd21c5260f7c9e71b829de1ba379f3ae7dbe823395c12af33",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/a9ff343ac733ce66ddf1b3ffef2270526334b89a/scripts/run_v02_sampling_benchmark.py"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "a9ff343ac733ce66ddf1b3ffef2270526334b89a"
+  },
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
+  "policy_version": "v0.2-gates-2",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "gpu_present": false,
+    "kernel_release": "7.0.0-31-generic",
+    "memory_bytes": 16221585408,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "receipt_sha256": "416f43082e301becb62bb3002fd6400ecd7f9a344725a2ab4ac22cff168092a5",
+  "regression": {},
+  "schema": "visualworld.v02-evaluation-result",
+  "schema_version": 1,
+  "split": "test",
+  "status": "fail",
+  "waiver": null
+}

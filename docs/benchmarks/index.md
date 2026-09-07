@@ -15,6 +15,12 @@
 - [v0.2 detector/runtime results](v0.2-detection-results.md) publishes the raw
   CPU-LITE evidence and selects vehicle-detection-0201 at confidence 0.95 as the
   evaluation baseline.
+- [v0.2 frame-sampling methodology](v0.2-sampling-methodology.md) locks issue
+  #22's source-separated moving-event clips, fixed/adaptive policies, PTS rules,
+  accuracy/resource metrics, privacy boundary, and decision rule.
+- [v0.2 frame-sampling results](v0.2-sampling-results.md) selects fixed 5 FPS as
+  the lowest-sample passing default, rejects the measured adaptive trigger, and
+  records explicit 8-FPS override boundaries.
 
 Version-specific measured implementation baselines are recorded with their
 validation reports: [local video](../research/local-video-source.md),
