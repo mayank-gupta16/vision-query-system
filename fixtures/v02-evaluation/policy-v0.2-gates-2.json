@@ -1,0 +1,30 @@
+{
+  "allowed_candidate_license_expressions": [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+    "BSD-3-Clause-Open-MPI",
+    "CC0-1.0",
+    "GPL-3.0-or-later WITH GCC-exception-3.1",
+    "LGPL-2.1-or-later",
+    "LicenseRef-python-build-standalone-composite-20260825",
+    "MIT",
+    "Zlib"
+  ],
+  "amended_on": "2026-09-07",
+  "amendment_scope": "license evidence schema only; all datasets, metrics, numeric gates, repetitions, statistics, profiles, and waivers are inherited unchanged",
+  "base_policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
+  "policy_version": "v0.2-gates-2",
+  "required_runtime_license_evidence_sha256": {
+    "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321": "3762d2a196f0a5f5eff76346fac97c6d022a4b0f897bc6b4366c41b63c516b70",
+    "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4": "fba5c221815dd3313bc6f8238b9dd85b984cfc73573898f72582a36947d7b875",
+    "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599": "a252fa8a03b66b8c70bfca9e41625c1fdb16a0fb1e2468be8c10b6ecdb29e30d"
+  },
+  "runtime_license_evidence_exempt_sha256": [
+    "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f"
+  ],
+  "schema": "visualworld.v02-evaluation-policy-amendment",
+  "schema_version": 1
+}

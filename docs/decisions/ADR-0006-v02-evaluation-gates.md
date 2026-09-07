@@ -152,6 +152,29 @@ amendment before epic #30 is decomposed, but must receive the same code,
 security, privacy, licensing, and benchmark review. They do not rewrite
 `v0.2-gates-1` or retroactively convert diagnostics into passing evidence.
 
+#### Accepted non-numeric amendment: `v0.2-gates-2`
+
+Issue #21's security/licensing review found that a wheel-level artifact cannot
+truthfully use only its project's primary license when the exact wheel metadata
+and bundled notices describe a wider closure. The accepted
+[`v0.2-gates-2` amendment](../../fixtures/v02-evaluation/policy-v0.2-gates-2.json)
+binds the original policy SHA-256 and inherits all of its datasets, metrics,
+numeric gates, repetitions, statistics, profile, and waiver rules unchanged.
+
+For amended receipts, every artifact distinguishes upstream redistribution
+permission from project distribution approval. Project distribution remains
+`not-approved`. Runtime wheels carry a gate-enforced license-evidence object:
+the package metadata expression, the complete embedded license/notice path and
+digest inventory, and explicitly named bundled native components. The receipt
+also binds a verified runtime-closure digest. The pinned CPython build is exempt
+from wheel evidence because its composite license and no-redistribution boundary
+are maintained in the interpreter ledger; its archive, executable, and
+location-independent runtime-tree digests remain part of the benchmark closure.
+
+The original policy and receipts remain intact historical evidence. Issue #21's
+superseding measurements use `v0.2-gates-2`; they do not claim compatibility
+with the earlier receipt hashes.
+
 ## Consequences
 
 - #21 can begin against stable protocol and eligibility boundaries.

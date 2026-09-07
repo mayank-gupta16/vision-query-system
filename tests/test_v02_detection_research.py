@@ -5,6 +5,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import subprocess
+import sys
+import time
 from datetime import date
 from pathlib import Path
 from typing import cast
@@ -128,7 +132,8 @@ def test_candidate_list_is_a_pinned_same_family_tradeoff() -> None:
         if isinstance(component, dict)
     } <= {
         "Apache-2.0",
-        "BSD-3-Clause",
+        "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+        "LicenseRef-python-build-standalone-composite-20260825",
     }
     validated, validated_runtime, confidence_floor, grid = benchmark._validate_candidate_manifest(
         manifest
@@ -179,6 +184,7 @@ def test_candidate_manifest_and_worker_result_fail_closed() -> None:
         "cpu_ns": 0,
         "item_wall_ns": timings,
         "measurement_wall_ns": 1,
+        "numpy_version": "2.5.3",
         "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
         "peak_rss_bytes": 1,
         "predictions": predictions,
@@ -187,8 +193,20 @@ def test_candidate_manifest_and_worker_result_fail_closed() -> None:
         "python_version": "3.13.15",
         "seed": 1729,
         "split": "test",
+        "telemetry_version": "2025.2.0",
         "warm_start_ns": 1,
     }
+    for field, value in (("seed", True), ("seed", 1729.0), ("processed_item_count", True)):
+        changed = cast(dict[str, object], json.loads(json.dumps(result)))
+        changed[field] = value
+        with pytest.raises(benchmark.BenchmarkError, match="invalid_worker_result"):
+            benchmark._validate_worker_result(
+                changed,
+                items,
+                split="test",
+                seed=1729,
+                annotation_sha256=hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
+            )
     first_id = cast(str, items[0]["item_id"])
     first_prediction = predictions[first_id][0]
     first_prediction["box_milli_pixels"] = [0, 0, 640_001, 1000]
@@ -200,6 +218,292 @@ def test_candidate_manifest_and_worker_result_fail_closed() -> None:
             seed=1729,
             annotation_sha256=hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
         )
+
+
+@pytest.mark.parametrize("bad_version", [True, 1.0])
+def test_research_schema_versions_require_exact_integers(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    bad_version: object,
+) -> None:
+    candidate = _json(FIXTURE_ROOT / "candidates.json")
+    candidate["schema_version"] = bad_version
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_candidate_manifest"):
+        benchmark._validate_candidate_manifest(candidate)
+
+    annotations = _json(FIXTURE_ROOT / "annotations.json")
+    dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+    annotations["schema_version"] = bad_version
+    with pytest.raises(benchmark.BenchmarkError, match="dataset_lock_mismatch"):
+        benchmark._validate_dataset_locks(annotations, dataset)
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_annotations"):
+        benchmark._items(annotations, "test")
+
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    source["schema_version"] = bad_version
+    source_path = tmp_path / "source.json"
+    source_path.write_text(json.dumps(source), encoding="ascii")
+    monkeypatch.setattr(preparation, "SOURCE_MANIFEST", source_path)
+    with pytest.raises(preparation.PreparationError, match="invalid_manifest"):
+        preparation.prepare(tmp_path, tmp_path / "output")
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_value"),
+    [
+        ("inference_num_threads", 4.0),
+        ("num_streams", True),
+        ("num_streams", 1.0),
+    ],
+)
+def test_candidate_inference_numbers_require_exact_integers(
+    field: str,
+    bad_value: object,
+) -> None:
+    manifest = _json(FIXTURE_ROOT / "candidates.json")
+    cast(dict[str, object], manifest["inference"])[field] = bad_value
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_candidate_manifest"):
+        benchmark._validate_candidate_manifest(manifest)
+
+
+@pytest.mark.parametrize(
+    "bad_name",
+    [
+        "../../escaped-fp32-openvino-2026.3.1",
+        "/tmp/escaped-fp32-openvino-2026.3.1",
+        "safe/name-fp32-openvino-2026.3.1",
+        "safe\\name-fp32-openvino-2026.3.1",
+    ],
+)
+def test_candidate_names_cannot_escape_roots(bad_name: str) -> None:
+    manifest = _json(FIXTURE_ROOT / "candidates.json")
+    cast(list[dict[str, object]], manifest["candidates"])[0]["name"] = bad_name
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_candidate_manifest"):
+        benchmark._validate_candidate_manifest(manifest)
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://files.pythonhosted.org/packages/%2Ftmp%2Foutside.whl",
+        "https://files.pythonhosted.org/packages/safe%5Coutside.whl",
+        "https://files.pythonhosted.org/packages/..%2Foutside.whl",
+    ],
+)
+def test_runtime_wheel_names_cannot_escape_root(url: str) -> None:
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_runtime_manifest"):
+        benchmark._wheel_filename(url, "invalid_runtime_manifest")
+
+
+def test_nonblocking_regular_file_readers_reject_fifos_and_links(tmp_path: Path) -> None:
+    regular = tmp_path / "regular"
+    regular.write_bytes(b"{}")
+    fifo = tmp_path / "fifo"
+    os.mkfifo(fifo)
+    link = tmp_path / "link"
+    link.symlink_to(regular)
+    started = time.monotonic()
+    for path in (fifo, link):
+        with pytest.raises(preparation.PreparationError):
+            preparation._regular_file(path, maximum=16)
+        with pytest.raises(benchmark.BenchmarkError):
+            benchmark._read_regular(path, 16, "invalid_input")
+    assert time.monotonic() - started < 1
+
+
+@pytest.mark.parametrize("stream", ["stdout", "stderr"])
+@pytest.mark.parametrize("module", [preparation, benchmark])
+def test_research_subprocess_drains_are_hard_bounded(
+    module: object,
+    stream: str,
+) -> None:
+    descriptor = 1 if stream == "stdout" else 2
+    command = [
+        sys.executable,
+        "-c",
+        f"import os; data=b'x'*65536\nwhile True: os.write({descriptor}, data)",
+    ]
+    error = preparation.PreparationError if module is preparation else benchmark.BenchmarkError
+    started = time.monotonic()
+    with pytest.raises(error):
+        module._run_bounded(  # type: ignore[attr-defined]
+            command,
+            timeout_seconds=5,
+            maximum_output_bytes=1024,
+            code="bounded_failure",
+        )
+    assert time.monotonic() - started < 2
+
+
+def test_decoder_sandbox_clears_caller_secrets(tmp_path: Path) -> None:
+    source = tmp_path / "source.jpg"
+    source.write_bytes(b"x")
+    output = tmp_path / "output"
+    output.mkdir()
+    command = preparation._decoder_command(source, output)
+    executable = command.index("/usr/bin/ffmpeg")
+    environment = dict(os.environ)
+    environment["VISUALWORLD_CALLER_SENTINEL"] = "must-not-cross"
+    returncode, stdout, stderr = preparation._run_bounded(
+        [*command[:executable], "/usr/bin/env"],
+        timeout_seconds=5,
+        maximum_output_bytes=64 * 1024,
+        code="decoder_failed",
+        environment=environment,
+    )
+    assert returncode == 0
+    assert stderr == b""
+    assert b"VISUALWORLD_CALLER_SENTINEL" not in stdout
+    assert b"must-not-cross" not in stdout
+    assert b"PATH=/usr/bin:/bin" in stdout
+    assert b"HOME=/home/worker" in stdout
+
+
+@pytest.mark.parametrize("module", [preparation, benchmark])
+def test_output_directory_creation_rejects_final_and_ancestor_links(
+    module: object,
+    tmp_path: Path,
+) -> None:
+    redirected = tmp_path / "redirected"
+    final_link = tmp_path / "final-link"
+    final_link.symlink_to(redirected)
+    error = preparation.PreparationError if module is preparation else benchmark.BenchmarkError
+    with pytest.raises(error):
+        module._create_private_directory(final_link)  # type: ignore[attr-defined]
+    assert not redirected.exists()
+
+    ancestor_target = tmp_path / "ancestor-target"
+    ancestor_target.mkdir()
+    ancestor_link = tmp_path / "ancestor-link"
+    ancestor_link.symlink_to(ancestor_target, target_is_directory=True)
+    with pytest.raises(error):
+        module._create_private_directory(ancestor_link / "child")  # type: ignore[attr-defined]
+    assert not (ancestor_target / "child").exists()
+
+
+def test_benchmark_cli_redacts_paths_and_survives_broken_stdout(tmp_path: Path) -> None:
+    script = ROOT / "scripts" / "run_v02_detection_benchmark.py"
+    marker = "private-token-never-print"
+    blocking_file = tmp_path / marker
+    blocking_file.write_bytes(b"x")
+    command = [
+        sys.executable,
+        os.fspath(script),
+        "--dataset-root",
+        os.fspath(tmp_path),
+        "--models-root",
+        os.fspath(tmp_path),
+        "--base-python",
+        os.fspath(tmp_path / "python"),
+        "--wheels-root",
+        os.fspath(tmp_path),
+        "--output",
+        os.fspath(blocking_file / "output"),
+        "--source-revision",
+        "0" * 40,
+        "--evaluated-on",
+        "2026-09-07",
+    ]
+    completed = subprocess.run(command, check=False, capture_output=True, timeout=10)
+    assert completed.returncode == 1
+    assert completed.stderr == b""
+    assert json.loads(completed.stdout) == {"error": "output_failed", "status": "error"}
+    assert marker.encode() not in completed.stdout + completed.stderr
+    assert b"Traceback" not in completed.stdout + completed.stderr
+
+    preparation_script = ROOT / "scripts" / "prepare_v02_detection_dataset.py"
+    preparation_command = [
+        sys.executable,
+        os.fspath(preparation_script),
+        "--source-root",
+        os.fspath(tmp_path / marker),
+        "--output",
+        os.fspath(tmp_path / "unused"),
+    ]
+    preparation_failure = subprocess.run(
+        preparation_command,
+        check=False,
+        capture_output=True,
+        timeout=10,
+    )
+    assert preparation_failure.returncode == 1
+    assert preparation_failure.stderr == b""
+    assert marker.encode() not in preparation_failure.stdout + preparation_failure.stderr
+    assert b"Traceback" not in preparation_failure.stdout + preparation_failure.stderr
+
+    failing_commands = ([sys.executable, os.fspath(script), "--worker"], preparation_command)
+    for failing_command in failing_commands:
+        for redirection in ("exec 1>/dev/full", "exec 1>&-; exec 2>&-"):
+            broken = subprocess.run(
+                [
+                    "/bin/bash",
+                    "-c",
+                    f'{redirection}; exec "$@"',
+                    "bash",
+                    *failing_command,
+                ],
+                check=False,
+                capture_output=True,
+                env={**os.environ, "PYTHONUNBUFFERED": "1"},
+                timeout=10,
+            )
+            assert broken.returncode == 1
+            assert b"Traceback" not in broken.stderr
+
+
+def test_verified_runtime_rejects_extra_tampered_and_swapped_inputs(tmp_path: Path) -> None:
+    manifest = _json(FIXTURE_ROOT / "candidates.json")
+    runtime = cast(dict[str, object], manifest["runtime"])
+    wheels = benchmark._verify_runtime_wheels(runtime, ROOT / "artifacts" / "issue21" / "wheels")
+    destination = tmp_path / "site-packages"
+    benchmark._extract_runtime(wheels, destination)
+    extra = destination / "sitecustomize.py"
+    extra.write_text("raise SystemExit\n", encoding="ascii")
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_runtime_tree"):
+        benchmark._verify_extracted_runtime(wheels, destination)
+    extra.unlink()
+    target = destination / "openvino_telemetry" / "__init__.py"
+    target.write_bytes(target.read_bytes() + b"\n")
+    with pytest.raises(benchmark.BenchmarkError, match="invalid_runtime_tree"):
+        benchmark._verify_extracted_runtime(wheels, destination)
+
+    swapped = tmp_path / "python"
+    swapped.write_bytes(b"not the pinned interpreter")
+    with pytest.raises(benchmark.BenchmarkError, match="runtime_python_mismatch"):
+        benchmark._verify_base_python(swapped, runtime)
+
+
+def test_v2_policy_enforces_bound_runtime_license_evidence() -> None:
+    policy, _ = evaluator.load_policy(
+        ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
+    )
+    original, _ = evaluator.load_policy()
+    inherited = cast(dict[str, object], json.loads(json.dumps(policy)))
+    inherited["policy_version"] = original["policy_version"]
+    inherited.pop("required_runtime_license_evidence_sha256")
+    inherited.pop("runtime_license_evidence_exempt_sha256")
+    inherited["allowed_candidate_license_expressions"] = original[
+        "allowed_candidate_license_expressions"
+    ]
+    assert inherited == original
+    manifest = _json(FIXTURE_ROOT / "candidates.json")
+    candidates = cast(list[dict[str, object]], manifest["candidates"])
+    runtime = cast(dict[str, object], manifest["runtime"])
+    candidate = {
+        "artifacts": benchmark._candidate_artifacts(candidates[0], runtime, "2026-09-07"),
+        "configuration_sha256": "1" * 64,
+        "name": candidates[0]["name"],
+        "runtime_closure_sha256": "2" * 64,
+    }
+    evaluator._validate_candidate(candidate, policy, date(2026, 9, 7), "invalid_receipt")
+    changed = cast(dict[str, object], json.loads(json.dumps(candidate)))
+    artifacts = cast(list[dict[str, object]], changed["artifacts"])
+    numpy_artifact = next(artifact for artifact in artifacts if artifact["name"] == "numpy")
+    evidence = cast(dict[str, object], numpy_artifact["license_evidence"])
+    notices = cast(list[dict[str, object]], evidence["notice_files"])
+    notices[0]["sha256"] = "0" * 64
+    with pytest.raises(evaluator.EvaluationError, match="invalid_receipt"):
+        evaluator._validate_candidate(changed, policy, date(2026, 9, 7), "invalid_receipt")
 
 
 def test_published_machine_results_reproduce_frozen_gate_outputs() -> None:
@@ -220,7 +524,7 @@ def test_published_machine_results_reproduce_frozen_gate_outputs() -> None:
     )
 
     policy, policy_sha256 = evaluator.load_policy(
-        ROOT / "fixtures" / "v02-evaluation" / "policy.json"
+        ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
     )
     dataset, dataset_sha256 = evaluator.load_manifest(
         FIXTURE_ROOT / "dataset-manifest.json", policy

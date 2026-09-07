@@ -21,7 +21,7 @@ storage, model, codec, and service dependencies remain unapproved.
 | PyAV | 18.1.0 sdist SHA-256 `47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28` | Adapter-local libav binding | BSD-3-Clause; linked FFmpeg remains separately licensed | Build from reviewed source against the minimal FFmpeg build; official wheels are not approved; no binary redistribution approved | Approved design/experiment input for isolated Linux worker | 2026-09-06 |
 | bubblewrap | 0.11.1 Ubuntu package in measured host | Linux worker namespaces | LGPL-2.0-or-later | OS capability, not bundled; exact platform package and policy must be probed; fail closed if unavailable | Approved Linux isolation direction | 2026-09-06 |
 | OpenVINO | 2026.3.1 wheel; source `759c5a6ab8c066af5f4bc5ebd04643706012a37d`; wheel SHA-256 `bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4` | Issue #21 CPU inference candidate runtime | Apache-2.0; bundled runtime/oneTBB/oneDNN notices retained in wheel | Official CPython 3.13 Linux wheel, local hash-verified install, no network, CPU-only isolated worker; no redistribution reviewed | Approved for issue #21 evaluation only | 2026-09-07 |
-| NumPy | 2.5.3; source `dd88c0c19b54ad9ed3533224221285bf0873249a`; wheel SHA-256 `a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321` | OpenVINO Python tensor boundary in issue #21 | Primary BSD-3-Clause; wheel metadata expression `BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0`; binary notices also include OpenBLAS, GCC runtime-exception, and LGPL libquadmath terms | Evaluation environment only; retain complete wheel notices; no application or environment redistribution approved | Approved for issue #21 evaluation only | 2026-09-07 |
+| NumPy | 2.5.3; source `dd88c0c19b54ad9ed3533224221285bf0873249a`; wheel SHA-256 `a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321` | OpenVINO Python tensor boundary in issue #21 | Wheel metadata expression `BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0`; bundled binaries include OpenBLAS (BSD-3-Clause), LAPACK (BSD-3-Clause-Open-MPI), libgfortran (`GPL-3.0-or-later WITH GCC-exception-3.1`), and libquadmath (LGPL-2.1-or-later) | Evaluation environment only; retain complete wheel notices; no application or environment redistribution approved | Approved for issue #21 evaluation only | 2026-09-07 |
 | openvino-telemetry | 2025.2.0 wheel SHA-256 `bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599` | Required OpenVINO Python dependency | Apache-2.0 | Consent forced off and worker network namespace unshared; the harness requests no telemetry events | Approved for issue #21 evaluation only | 2026-09-07 |
 
 For every future Python/native/container dependency record source URL, exact
@@ -43,8 +43,9 @@ redistributed media runtime needs a new complete notice, corresponding-source,
 relinking, component, vulnerability, and codec-patent review.
 
 Likewise, the issue #21 entries do not alter `pyproject.toml`, `uv.lock`, or the
-application SBOM. Their three exact wheels are installed with `--offline
---no-deps` into an ignored research environment. OpenVINO's wheel carries its
+application SBOM. Their three exact wheels are RECORD-verified and extracted
+without dependency resolution into a fresh ignored research environment.
+OpenVINO's wheel carries its
 runtime, oneTBB, and oneDNN third-party-program files; NumPy's wheel carries its
 complete license set. Any selected adapter still requires a separate decision
 on source-built versus wheel distribution, notices, vulnerability state,

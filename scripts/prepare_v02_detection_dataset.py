@@ -8,21 +8,52 @@ import argparse
 import hashlib
 import json
 import os
+import selectors
+import signal
 import stat
 import subprocess
+import sys
 import tempfile
+import time
+from contextlib import suppress
 from pathlib import Path
-from typing import NoReturn, cast
+from typing import NoReturn, TextIO, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_MANIFEST = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
 ANNOTATION_LOCK = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
 _MAX_MANIFEST_BYTES = 512 * 1024
 _MAX_SOURCE_BYTES = 16 * 1024 * 1024
+_MAX_DECODER_DIAGNOSTIC_BYTES = 64 * 1024
 
 
 class PreparationError(RuntimeError):
     """A stable dataset preparation failure."""
+
+
+def _silence_stream(stream: TextIO) -> None:
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        null_descriptor = os.open(os.devnull, os.O_WRONLY | os.O_CLOEXEC)
+        try:
+            os.dup2(null_descriptor, descriptor)
+        finally:
+            os.close(null_descriptor)
+    except OSError:
+        pass
+
+
+def _emit(value: object, stream: TextIO) -> bool:
+    try:
+        stream.write(json.dumps(value, allow_nan=False, sort_keys=True) + "\n")
+        stream.flush()
+    except (AttributeError, OSError, UnicodeError, ValueError):
+        _silence_stream(stream)
+        return False
+    return True
 
 
 def _canonical(value: object) -> bytes:
@@ -103,7 +134,10 @@ def _load_json(path: Path) -> tuple[dict[str, object], str]:
 def _regular_file(path: Path, *, maximum: int) -> bytes:
     descriptor = -1
     try:
-        descriptor = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+        descriptor = os.open(
+            path,
+            os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+        )
         metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode) or not 0 < metadata.st_size <= maximum:
             raise PreparationError("invalid_source")
@@ -121,6 +155,129 @@ def _regular_file(path: Path, *, maximum: int) -> bytes:
     finally:
         if descriptor >= 0:
             os.close(descriptor)
+
+
+def _create_private_directory(path: Path) -> None:
+    """Create an absolute directory without following any path-component links."""
+
+    if not path.is_absolute() or path == Path("/"):
+        raise PreparationError("output_failed")
+    descriptor = os.open("/", os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY)
+    try:
+        parts = path.parts[1:]
+        for index, part in enumerate(parts):
+            final = index == len(parts) - 1
+            try:
+                child = os.open(
+                    part,
+                    os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=descriptor,
+                )
+            except FileNotFoundError:
+                try:
+                    os.mkdir(part, 0o700, dir_fd=descriptor)
+                except FileExistsError as error:
+                    raise PreparationError("output_failed") from error
+                if final:
+                    return
+                child = os.open(
+                    part,
+                    os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=descriptor,
+                )
+            except OSError as error:
+                raise PreparationError("output_exists" if final else "output_failed") from error
+            else:
+                if final:
+                    os.close(child)
+                    raise PreparationError("output_exists")
+            os.close(descriptor)
+            descriptor = child
+        raise PreparationError("output_failed")
+    except FileNotFoundError as error:
+        raise PreparationError("output_failed") from error
+    finally:
+        os.close(descriptor)
+
+
+def _terminate(process: subprocess.Popen[bytes]) -> None:
+    with suppress(ProcessLookupError):
+        os.killpg(process.pid, signal.SIGKILL)
+    try:
+        process.wait(timeout=2)
+    except subprocess.TimeoutExpired as error:
+        raise PreparationError("decoder_failed") from error
+
+
+def _run_bounded(
+    command: list[str],
+    *,
+    timeout_seconds: int,
+    maximum_output_bytes: int,
+    code: str,
+    environment: dict[str, str] | None = None,
+) -> tuple[int, bytes, bytes]:
+    try:
+        process = subprocess.Popen(
+            command,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
+    except OSError as error:
+        raise PreparationError(code) from error
+    if process.stdout is None or process.stderr is None:
+        _terminate(process)
+        raise PreparationError(code)
+    selector = selectors.DefaultSelector()
+    streams = {
+        process.stdout.fileno(): bytearray(),
+        process.stderr.fileno(): bytearray(),
+    }
+    for descriptor in streams:
+        os.set_blocking(descriptor, False)
+        selector.register(descriptor, selectors.EVENT_READ)
+    deadline = time.monotonic() + timeout_seconds
+    failed = False
+    try:
+        while selector.get_map() or process.poll() is None:
+            if time.monotonic() >= deadline:
+                failed = True
+                break
+            for key, _ in selector.select(0.02):
+                descriptor = cast(int, key.fileobj)
+                try:
+                    chunk = os.read(descriptor, 65_536)
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    selector.unregister(descriptor)
+                    continue
+                streams[descriptor].extend(chunk)
+                if sum(len(buffer) for buffer in streams.values()) > maximum_output_bytes:
+                    failed = True
+                    break
+            if failed:
+                break
+        if failed:
+            _terminate(process)
+            raise PreparationError(code)
+        try:
+            returncode = process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            _terminate(process)
+            raise PreparationError(code) from None
+        return (
+            returncode,
+            bytes(streams[process.stdout.fileno()]),
+            bytes(streams[process.stderr.fileno()]),
+        )
+    finally:
+        selector.close()
+        process.stdout.close()
+        process.stderr.close()
 
 
 def parse_ppm(raw: bytes) -> tuple[int, int, bytes]:
@@ -310,58 +467,75 @@ def compose_item(
     return header + canvas, [left, top, left + target_width, top + target_height]
 
 
+def _decoder_command(source: Path, root: Path) -> list[str]:
+    return [
+        "/usr/bin/bwrap",
+        "--unshare-all",
+        "--die-with-parent",
+        "--new-session",
+        "--clearenv",
+        "--dir",
+        "/home",
+        "--dir",
+        "/home/worker",
+        "--setenv",
+        "PATH",
+        "/usr/bin:/bin",
+        "--setenv",
+        "HOME",
+        "/home/worker",
+        "--ro-bind",
+        "/usr",
+        "/usr",
+        "--ro-bind",
+        "/lib",
+        "/lib",
+        "--ro-bind",
+        "/lib64",
+        "/lib64",
+        "--ro-bind",
+        "/etc/ld.so.cache",
+        "/etc/ld.so.cache",
+        "--ro-bind",
+        os.fspath(source),
+        "/input.jpg",
+        "--bind",
+        os.fspath(root),
+        "/output",
+        "--proc",
+        "/proc",
+        "--dev",
+        "/dev",
+        "--tmpfs",
+        "/tmp",
+        "/usr/bin/ffmpeg",
+        "-nostdin",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-i",
+        "/input.jpg",
+        "-frames:v",
+        "1",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "image2",
+        "/output/decoded.ppm",
+    ]
+
+
 def _decode(source: Path, expected_width: int, expected_height: int) -> tuple[int, int, bytes]:
     with tempfile.TemporaryDirectory(prefix="visualworld-v02-detection-") as temporary:
         root = Path(temporary)
-        command = [
-            "/usr/bin/bwrap",
-            "--unshare-all",
-            "--die-with-parent",
-            "--new-session",
-            "--ro-bind",
-            "/usr",
-            "/usr",
-            "--ro-bind",
-            "/lib",
-            "/lib",
-            "--ro-bind",
-            "/lib64",
-            "/lib64",
-            "--ro-bind",
-            "/etc/ld.so.cache",
-            "/etc/ld.so.cache",
-            "--ro-bind",
-            os.fspath(source),
-            "/input.jpg",
-            "--bind",
-            os.fspath(root),
-            "/output",
-            "--proc",
-            "/proc",
-            "--dev",
-            "/dev",
-            "--tmpfs",
-            "/tmp",
-            "/usr/bin/ffmpeg",
-            "-nostdin",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-i",
-            "/input.jpg",
-            "-frames:v",
-            "1",
-            "-pix_fmt",
-            "rgb24",
-            "-f",
-            "image2",
-            "/output/decoded.ppm",
-        ]
-        try:
-            completed = subprocess.run(command, check=False, capture_output=True, timeout=30)
-        except (OSError, subprocess.TimeoutExpired) as error:
-            raise PreparationError("decoder_failed") from error
-        if completed.returncode or completed.stdout or completed.stderr:
+        command = _decoder_command(source, root)
+        returncode, stdout, stderr = _run_bounded(
+            command,
+            timeout_seconds=30,
+            maximum_output_bytes=_MAX_DECODER_DIAGNOSTIC_BYTES,
+            code="decoder_failed",
+        )
+        if returncode or stdout or stderr:
             raise PreparationError("decoder_failed")
         width, height, pixels = parse_ppm(
             _regular_file(root / "decoded.ppm", maximum=64 * 1024 * 1024)
@@ -407,6 +581,7 @@ def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
             "terms_url",
         }
         or manifest.get("schema") != "visualworld.v02-detection-source-manifest"
+        or type(manifest.get("schema_version")) is not int
         or manifest.get("schema_version") != 1
         or manifest.get("license_expression") != "CC0-1.0"
         or manifest.get("terms_url")
@@ -474,12 +649,7 @@ def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
     sources_value = manifest.get("sources")
     if not isinstance(sources_value, list) or len(sources_value) != 10:
         raise PreparationError("invalid_manifest")
-    if output_root.exists() or output_root.is_symlink():
-        raise PreparationError("output_exists")
-    try:
-        output_root.mkdir(mode=0o700, parents=True)
-    except OSError as error:
-        raise PreparationError("output_failed") from error
+    _create_private_directory(output_root)
 
     annotations: list[dict[str, object]] = []
     seen: set[str] = set()
@@ -615,7 +785,7 @@ def prepare(source_root: Path, output_root: Path) -> dict[str, object]:
     _write_new(output_root / "annotations.generated.json", serialized)
     if ANNOTATION_LOCK.exists():
         expected, _ = _load_json(ANNOTATION_LOCK)
-        if expected != lock:
+        if _canonical(expected) != _canonical(lock):
             raise PreparationError("annotation_lock_mismatch")
     return lock
 
@@ -626,22 +796,24 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     arguments = parser.parse_args()
     try:
-        lock = prepare(arguments.source_root.resolve(), arguments.output.resolve())
-    except PreparationError as error:
-        print(json.dumps({"error": str(error), "status": "error"}, sort_keys=True))
+        lock = prepare(arguments.source_root.resolve(), Path(os.path.abspath(arguments.output)))
+    except (OSError, PreparationError) as error:
+        code = str(error) if isinstance(error, PreparationError) else "filesystem_failed"
+        _emit({"error": code, "status": "error"}, sys.stdout)
         return 1
     items = cast(list[dict[str, object]], lock["items"])
-    print(
-        json.dumps(
+    return (
+        0
+        if _emit(
             {
                 "calibration_items": sum(item["split"] == "calibration" for item in items),
                 "status": "pass",
                 "test_items": sum(item["split"] == "test" for item in items),
             },
-            sort_keys=True,
+            sys.stdout,
         )
+        else 1
     )
-    return 0
 
 
 if __name__ == "__main__":

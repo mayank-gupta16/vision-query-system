@@ -5,31 +5,47 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import csv
 import hashlib
+import io
 import json
 import math
 import os
 import platform
 import re
 import resource
+import selectors
+import signal
 import stat
 import subprocess
+import sys
+import tempfile
 import time
+import zipfile
+from contextlib import suppress
 from datetime import date
+from email.parser import BytesParser
 from fractions import Fraction
-from pathlib import Path
-from typing import Any, NoReturn, cast
+from pathlib import Path, PurePosixPath
+from typing import Any, NoReturn, TextIO, cast
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-POLICY_PATH = ROOT / "fixtures" / "v02-evaluation" / "policy.json"
+POLICY_PATH = ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
 DATASET_MANIFEST_PATH = ROOT / "fixtures" / "v02-detection-research" / "dataset-manifest.json"
 ANNOTATIONS_PATH = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
 CANDIDATES_PATH = ROOT / "fixtures" / "v02-detection-research" / "candidates.json"
 SOURCE_MANIFEST_PATH = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 _REVISION = re.compile(r"[0-9a-f]{40}\Z")
+_WHEEL_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,254}\.whl\Z")
 _SEEDS = (1729, 3253, 5081, 7919, 104729)
+_CANDIDATE_NAMES = (
+    "vehicle-detection-0200-fp32-openvino-2026.3.1",
+    "vehicle-detection-0201-fp32-openvino-2026.3.1",
+    "vehicle-detection-0202-fp32-openvino-2026.3.1",
+)
 _MAX_JSON_BYTES = 4 * 1024 * 1024
 _MAX_PPM_BYTES = 4 * 1024 * 1024
 _MAX_DETECTIONS_PER_ITEM = 100
@@ -38,6 +54,31 @@ _IOU_SCALE = 1000
 
 class BenchmarkError(RuntimeError):
     """A stable detector benchmark failure."""
+
+
+def _silence_stream(stream: TextIO) -> None:
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        null_descriptor = os.open(os.devnull, os.O_WRONLY | os.O_CLOEXEC)
+        try:
+            os.dup2(null_descriptor, descriptor)
+        finally:
+            os.close(null_descriptor)
+    except OSError:
+        pass
+
+
+def _emit(value: object, stream: TextIO) -> bool:
+    try:
+        stream.write(json.dumps(value, allow_nan=False, sort_keys=True) + "\n")
+        stream.flush()
+    except (AttributeError, OSError, UnicodeError, ValueError):
+        _silence_stream(stream)
+        return False
+    return True
 
 
 def _canonical(value: object) -> bytes:
@@ -115,12 +156,25 @@ def _sha256_text(value: object, code: str) -> str:
     return selected
 
 
-def _read_regular(path: Path, maximum: int, code: str) -> bytes:
+def _read_regular(
+    path: Path,
+    maximum: int,
+    code: str,
+    *,
+    allow_empty: bool = False,
+) -> bytes:
     descriptor = -1
     try:
-        descriptor = os.open(path, os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW)
+        descriptor = os.open(
+            path,
+            os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK,
+        )
         metadata = os.fstat(descriptor)
-        if not stat.S_ISREG(metadata.st_mode) or not 0 < metadata.st_size <= maximum:
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or not 0 <= metadata.st_size <= maximum
+            or (metadata.st_size == 0 and not allow_empty)
+        ):
             raise BenchmarkError(code)
         chunks: list[bytes] = []
         remaining = metadata.st_size
@@ -136,6 +190,147 @@ def _read_regular(path: Path, maximum: int, code: str) -> bytes:
     finally:
         if descriptor >= 0:
             os.close(descriptor)
+
+
+def _create_private_directory(path: Path) -> None:
+    if not path.is_absolute() or path == Path("/"):
+        raise BenchmarkError("output_failed")
+    descriptor = os.open("/", os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY)
+    try:
+        parts = path.parts[1:]
+        for index, part in enumerate(parts):
+            final = index == len(parts) - 1
+            try:
+                child = os.open(
+                    part,
+                    os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=descriptor,
+                )
+            except FileNotFoundError:
+                try:
+                    os.mkdir(part, 0o700, dir_fd=descriptor)
+                except FileExistsError as error:
+                    raise BenchmarkError("output_failed") from error
+                if final:
+                    return
+                child = os.open(
+                    part,
+                    os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=descriptor,
+                )
+            except OSError as error:
+                raise BenchmarkError("output_exists" if final else "output_failed") from error
+            else:
+                if final:
+                    os.close(child)
+                    raise BenchmarkError("output_exists")
+            os.close(descriptor)
+            descriptor = child
+        raise BenchmarkError("output_failed")
+    except FileNotFoundError as error:
+        raise BenchmarkError("output_failed") from error
+    finally:
+        os.close(descriptor)
+
+
+def _terminate(process: subprocess.Popen[bytes], code: str) -> None:
+    with suppress(ProcessLookupError):
+        os.killpg(process.pid, signal.SIGKILL)
+    try:
+        process.wait(timeout=2)
+    except subprocess.TimeoutExpired as error:
+        raise BenchmarkError(code) from error
+
+
+def _run_bounded(
+    command: list[str],
+    *,
+    timeout_seconds: int,
+    maximum_output_bytes: int,
+    code: str,
+    environment: dict[str, str] | None = None,
+) -> tuple[int, bytes, bytes]:
+    try:
+        process = subprocess.Popen(
+            command,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            start_new_session=True,
+        )
+    except OSError as error:
+        raise BenchmarkError(code) from error
+    if process.stdout is None or process.stderr is None:
+        _terminate(process, code)
+        raise BenchmarkError(code)
+    selector = selectors.DefaultSelector()
+    streams = {
+        process.stdout.fileno(): bytearray(),
+        process.stderr.fileno(): bytearray(),
+    }
+    for descriptor in streams:
+        os.set_blocking(descriptor, False)
+        selector.register(descriptor, selectors.EVENT_READ)
+    deadline = time.monotonic() + timeout_seconds
+    failed = False
+    try:
+        while selector.get_map() or process.poll() is None:
+            if time.monotonic() >= deadline:
+                failed = True
+                break
+            for key, _ in selector.select(0.02):
+                descriptor = cast(int, key.fileobj)
+                try:
+                    chunk = os.read(descriptor, 65_536)
+                except BlockingIOError:
+                    continue
+                if not chunk:
+                    selector.unregister(descriptor)
+                    continue
+                streams[descriptor].extend(chunk)
+                if sum(len(buffer) for buffer in streams.values()) > maximum_output_bytes:
+                    failed = True
+                    break
+            if failed:
+                break
+        if failed:
+            _terminate(process, code)
+            raise BenchmarkError(code)
+        try:
+            returncode = process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            _terminate(process, code)
+            raise BenchmarkError(code) from None
+        return (
+            returncode,
+            bytes(streams[process.stdout.fileno()]),
+            bytes(streams[process.stderr.fileno()]),
+        )
+    finally:
+        selector.close()
+        process.stdout.close()
+        process.stderr.close()
+
+
+def _wheel_filename(url: object, code: str) -> str:
+    selected = _text(url, code)
+    try:
+        parsed = urlsplit(selected)
+        decoded = unquote(parsed.path.rsplit("/", maxsplit=1)[-1])
+    except (UnicodeError, ValueError) as error:
+        raise BenchmarkError(code) from error
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != "files.pythonhosted.org"
+        or parsed.query
+        or parsed.fragment
+        or _WHEEL_NAME.fullmatch(decoded) is None
+        or PurePosixPath(decoded).name != decoded
+        or "\\" in decoded
+    ):
+        raise BenchmarkError(code)
+    return decoded
 
 
 def _load_json(path: Path) -> tuple[dict[str, object], str]:
@@ -154,6 +349,7 @@ def _validate_dataset_locks(annotations: dict[str, object], dataset: dict[str, o
     acquisition = _mapping(dataset.get("acquisition"), "dataset_lock_mismatch")
     if (
         annotations.get("schema") != "visualworld.v02-detection-annotation-lock"
+        or type(annotations.get("schema_version")) is not int
         or annotations.get("schema_version") != 1
         or annotations.get("source_manifest_sha256") != source_sha256
         or acquisition.get("sha256") != source_sha256
@@ -211,7 +407,13 @@ def _validate_dataset_locks(annotations: dict[str, object], dataset: dict[str, o
         if (
             not selected
             or any(type(item_id) is not str or item_id in seen_ids for item_id in item_ids)
-            or contract.get("item_count") != len(selected)
+            or _integer(
+                contract.get("item_count"),
+                "dataset_lock_mismatch",
+                minimum=len(selected),
+                maximum=len(selected),
+            )
+            != len(selected)
             or contract.get("annotation_sha256") != _sha256_bytes(_canonical(selected))
             or contract.get("item_ids_sha256")
             != _sha256_bytes(("\n".join(cast(list[str], item_ids)) + "\n").encode("ascii"))
@@ -219,23 +421,105 @@ def _validate_dataset_locks(annotations: dict[str, object], dataset: dict[str, o
             raise BenchmarkError("dataset_lock_mismatch")
         seen_ids.update(item_ids)
         counts = _mapping(contract.get("stratum_item_counts"), "dataset_lock_mismatch")
-        if counts != {
+        expected_counts = {
             "easy": sum(item.get("stratum") == "easy" for item in selected),
             "overall": len(selected),
             "small_distant": sum(item.get("stratum") == "small_distant" for item in selected),
-        }:
+        }
+        if set(counts) != set(expected_counts) or any(
+            _integer(
+                counts.get(name),
+                "dataset_lock_mismatch",
+                minimum=value,
+                maximum=value,
+            )
+            != value
+            for name, value in expected_counts.items()
+        ):
             raise BenchmarkError("dataset_lock_mismatch")
     if not split_sources["calibration"].isdisjoint(split_sources["test"]):
         raise BenchmarkError("dataset_lock_mismatch")
 
 
-def _verify_runtime_wheels(runtime: dict[str, object], wheels_root: Path) -> None:
+def _validate_license_evidence(value: object, code: str) -> dict[str, object]:
+    evidence = _mapping(value, code)
+    if set(evidence) != {
+        "bundled_components",
+        "metadata_license_expression",
+        "notice_files",
+    }:
+        raise BenchmarkError(code)
+    metadata_expression = evidence["metadata_license_expression"]
+    if metadata_expression is not None:
+        _text(metadata_expression, code, maximum=256)
+    bundled_value = evidence["bundled_components"]
+    notices_value = evidence["notice_files"]
+    if (
+        not isinstance(bundled_value, list)
+        or len(bundled_value) > 32
+        or not isinstance(notices_value, list)
+        or not 1 <= len(notices_value) <= 64
+    ):
+        raise BenchmarkError(code)
+    component_names: set[str] = set()
+    for bundled_raw in bundled_value:
+        bundled = _mapping(bundled_raw, code)
+        if set(bundled) != {"license_expression", "name"}:
+            raise BenchmarkError(code)
+        name = _text(bundled["name"], code, maximum=128)
+        _text(bundled["license_expression"], code, maximum=256)
+        if name in component_names:
+            raise BenchmarkError(code)
+        component_names.add(name)
+    notice_paths: set[str] = set()
+    for notice_raw in notices_value:
+        notice = _mapping(notice_raw, code)
+        if set(notice) != {"path", "sha256"}:
+            raise BenchmarkError(code)
+        path = _text(notice["path"], code, maximum=512)
+        parsed = PurePosixPath(path)
+        if parsed.is_absolute() or ".." in parsed.parts or "\\" in path or path in notice_paths:
+            raise BenchmarkError(code)
+        notice_paths.add(path)
+        _sha256_text(notice["sha256"], code)
+    return evidence
+
+
+def _zip_member(
+    archive: zipfile.ZipFile,
+    path: str,
+    maximum: int,
+    *,
+    allow_empty: bool = False,
+) -> bytes:
+    try:
+        info = archive.getinfo(path)
+    except KeyError as error:
+        raise BenchmarkError("runtime_wheel_mismatch") from error
+    mode = info.external_attr >> 16
+    if (
+        info.is_dir()
+        or (mode and stat.S_ISLNK(mode))
+        or not 0 <= info.file_size <= maximum
+        or (info.file_size == 0 and not allow_empty)
+    ):
+        raise BenchmarkError("runtime_wheel_mismatch")
+    try:
+        raw = archive.read(info)
+    except (OSError, RuntimeError, zipfile.BadZipFile) as error:
+        raise BenchmarkError("runtime_wheel_mismatch") from error
+    if len(raw) != info.file_size:
+        raise BenchmarkError("runtime_wheel_mismatch")
+    return raw
+
+
+def _verify_runtime_wheels(runtime: dict[str, object], wheels_root: Path) -> dict[str, bytes]:
     expected_names: set[str] = set()
+    verified: dict[str, bytes] = {}
     for name in ("openvino", "numpy", "openvino_telemetry"):
         component = _mapping(runtime.get(name), "invalid_runtime_manifest")
-        url = _text(component.get("url"), "invalid_runtime_manifest")
-        filename = unquote(Path(urlsplit(url).path).name)
-        if not filename.endswith(".whl") or filename in expected_names:
+        filename = _wheel_filename(component.get("url"), "invalid_runtime_manifest")
+        if filename in expected_names:
             raise BenchmarkError("invalid_runtime_manifest")
         expected_names.add(filename)
         raw = _read_regular(wheels_root / filename, 128 * 1024 * 1024, "runtime_wheel_missing")
@@ -243,9 +527,45 @@ def _verify_runtime_wheels(runtime: dict[str, object], wheels_root: Path) -> Non
             component.get("size"), "invalid_runtime_manifest", minimum=1
         ) or _sha256_bytes(raw) != component.get("sha256"):
             raise BenchmarkError("runtime_wheel_mismatch")
+        try:
+            archive = zipfile.ZipFile(io.BytesIO(raw))
+        except zipfile.BadZipFile as error:
+            raise BenchmarkError("runtime_wheel_mismatch") from error
+        with archive:
+            names = archive.namelist()
+            if len(names) != len(set(names)):
+                raise BenchmarkError("runtime_wheel_mismatch")
+            evidence = _mapping(component.get("license_evidence"), "invalid_runtime_manifest")
+            notice_values = cast(list[dict[str, object]], evidence["notice_files"])
+            notice_paths = [cast(str, notice["path"]) for notice in notice_values]
+            actual_notices = sorted(
+                path
+                for path in names
+                if ".dist-info/license" in path.lower() and not path.endswith("/")
+            )
+            if notice_paths != sorted(notice_paths) or notice_paths != actual_notices:
+                raise BenchmarkError("runtime_wheel_mismatch")
+            for notice in notice_values:
+                notice_raw = _zip_member(archive, cast(str, notice["path"]), 512 * 1024)
+                if _sha256_bytes(notice_raw) != notice["sha256"]:
+                    raise BenchmarkError("runtime_wheel_mismatch")
+            metadata_names = [path for path in names if path.endswith(".dist-info/METADATA")]
+            if len(metadata_names) != 1:
+                raise BenchmarkError("runtime_wheel_mismatch")
+            metadata_raw = _zip_member(archive, metadata_names[0], 512 * 1024)
+            message = BytesParser().parsebytes(metadata_raw)
+            expected_package_name = name.replace("_", "-")
+            if (
+                message.get("Name", "").lower() != expected_package_name
+                or message.get("Version") != component["version"]
+                or message.get("License-Expression") != evidence["metadata_license_expression"]
+            ):
+                raise BenchmarkError("runtime_wheel_mismatch")
+        verified[name] = raw
     actual_names = {path.name for path in wheels_root.glob("*.whl") if path.is_file()}
     if actual_names != expected_names:
         raise BenchmarkError("runtime_wheel_set_mismatch")
+    return verified
 
 
 def _validate_candidate_manifest(
@@ -256,6 +576,7 @@ def _validate_candidate_manifest(
         set(manifest)
         != {"calibration", "candidates", "inference", "runtime", "schema", "schema_version"}
         or manifest.get("schema") != "visualworld.v02-detection-candidate-list"
+        or type(manifest.get("schema_version")) is not int
         or manifest.get("schema_version") != 1
     ):
         raise BenchmarkError(code)
@@ -284,7 +605,7 @@ def _validate_candidate_manifest(
     if grid != list(range(50_000, 1_000_000, 50_000)):
         raise BenchmarkError(code)
     inference = _mapping(manifest.get("inference"), code)
-    if inference != {
+    expected_inference: dict[str, object] = {
         "color_conversion": "RGB-to-BGR",
         "device": "CPU",
         "input_layout": "NHWC-u8",
@@ -293,46 +614,66 @@ def _validate_candidate_manifest(
         "num_streams": 1,
         "performance_hint": "LATENCY",
         "resize": "OpenVINO RESIZE_LINEAR",
-    }:
-        raise BenchmarkError(code)
-    runtime = _mapping(manifest.get("runtime"), code)
+    }
     if (
-        set(runtime) != {"numpy", "openvino", "openvino_telemetry", "python"}
-        or runtime.get("python") != "3.13.15"
+        inference != expected_inference
+        or _integer(inference.get("inference_num_threads"), code, minimum=4, maximum=4) != 4
+        or _integer(inference.get("num_streams"), code, minimum=1, maximum=1) != 1
     ):
         raise BenchmarkError(code)
+    runtime = _mapping(manifest.get("runtime"), code)
+    if set(runtime) != {"numpy", "openvino", "openvino_telemetry", "python"}:
+        raise BenchmarkError(code)
+    python = _mapping(runtime.get("python"), code)
+    if python != {
+        "archive_sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6",
+        "executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+        "license_expression": "LicenseRef-python-build-standalone-composite-20260825",
+        "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
+        "runtime_tree_sha256": "7bf650c9ac94c945b0ff154bdc96830bc1ad876d24b0cbe8deb5860fd3270a0c",
+        "url": (
+            "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/"
+            "cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+        ),
+        "version": "3.13.15",
+    }:
+        raise BenchmarkError(code)
+    for digest_name in ("archive_sha256", "executable_sha256", "runtime_tree_sha256"):
+        _sha256_text(python.get(digest_name), code)
     for name in ("numpy", "openvino", "openvino_telemetry"):
         component = _mapping(runtime.get(name), code)
         if set(component) != {
             "license_expression",
+            "license_evidence",
             "revision",
             "sha256",
             "size",
             "url",
             "version",
-        } or component.get("license_expression") not in {"Apache-2.0", "BSD-3-Clause"}:
+        } or component.get("license_expression") not in {
+            "Apache-2.0",
+            "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+        }:
+            raise BenchmarkError(code)
+        evidence = _validate_license_evidence(component.get("license_evidence"), code)
+        if evidence["metadata_license_expression"] != component["license_expression"] and not (
+            name == "openvino_telemetry"
+            and evidence["metadata_license_expression"] is None
+            and component["license_expression"] == "Apache-2.0"
+        ):
             raise BenchmarkError(code)
         _text(component.get("revision"), code, maximum=256)
         _text(component.get("version"), code, maximum=64)
         _sha256_text(component.get("sha256"), code)
         _integer(component.get("size"), code, minimum=1, maximum=128 * 1024 * 1024)
-        url = _text(component.get("url"), code)
-        parsed = urlsplit(url)
-        if (
-            parsed.scheme != "https"
-            or parsed.hostname != "files.pythonhosted.org"
-            or parsed.query
-            or parsed.fragment
-            or not unquote(Path(parsed.path).name).endswith(".whl")
-        ):
-            raise BenchmarkError(code)
+        _wheel_filename(component.get("url"), code)
     candidates_value = manifest.get("candidates")
     if not isinstance(candidates_value, list) or len(candidates_value) != 3:
         raise BenchmarkError(code)
     candidates: list[dict[str, object]] = []
     names: set[str] = set()
     widths: list[int] = []
-    for candidate_value in candidates_value:
+    for candidate_index, candidate_value in enumerate(candidates_value):
         candidate = _mapping(candidate_value, code)
         if set(candidate) != {
             "input_height",
@@ -349,7 +690,8 @@ def _validate_candidate_manifest(
         width = _integer(candidate.get("input_width"), code, minimum=1, maximum=4096)
         height = _integer(candidate.get("input_height"), code, minimum=1, maximum=4096)
         if (
-            name in names
+            name != _CANDIDATE_NAMES[candidate_index]
+            or name in names
             or width != height
             or _REVISION.fullmatch(_text(candidate.get("omz_revision"), code, maximum=40)) is None
         ):
@@ -384,7 +726,7 @@ def _validate_candidate_manifest(
             ):
                 raise BenchmarkError(code)
         candidates.append(candidate)
-    if widths != [256, 384, 512]:
+    if widths != [256, 384, 512] or names != set(_CANDIDATE_NAMES):
         raise BenchmarkError(code)
     return candidates, runtime, confidence_floor, grid
 
@@ -414,6 +756,7 @@ def _parse_ppm(raw: bytes) -> tuple[int, int, bytes]:
 def _items(annotations: dict[str, object], split: str) -> list[dict[str, object]]:
     if (
         annotations.get("schema") != "visualworld.v02-detection-annotation-lock"
+        or type(annotations.get("schema_version")) is not int
         or annotations.get("schema_version") != 1
         or not isinstance(annotations.get("items"), list)
     ):
@@ -625,6 +968,7 @@ def _worker(
     try:
         import numpy as np  # type: ignore[import-not-found]
         import openvino as ov  # type: ignore[import-not-found]
+        import openvino_telemetry  # type: ignore[import-not-found]
         from openvino.preprocess import (  # type: ignore[import-not-found]
             ColorFormat,
             PrePostProcessor,
@@ -740,6 +1084,7 @@ def _worker(
         "cpu_ns": max(0, cpu_ns),
         "item_wall_ns": item_timings,
         "measurement_wall_ns": measurement_wall_ns,
+        "numpy_version": np.__version__,
         "openvino_version": ov.__version__,
         "peak_rss_bytes": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024,
         "predictions": predictions,
@@ -747,6 +1092,7 @@ def _worker(
         "python_version": platform.python_version(),
         "seed": seed,
         "split": split,
+        "telemetry_version": openvino_telemetry.__version__,
         "warm_start_ns": warm_start_ns,
     }
 
@@ -761,23 +1107,37 @@ def _logical_size(root: Path) -> int:
     return total
 
 
-def _tree_sha256(root: Path) -> str:
+def _tree_sha256(root: Path, *, ignore_bytecode: bool = False) -> str:
     digest = hashlib.sha256()
     for path in sorted(root.rglob("*")):
         relative = path.relative_to(root).as_posix().encode("utf-8")
+        if ignore_bytecode and ("__pycache__" in path.parts or path.suffix == ".pyc"):
+            continue
         metadata = path.lstat()
         if stat.S_ISLNK(metadata.st_mode):
             kind = b"link"
-            content_digest = _sha256_bytes(os.readlink(path).encode("utf-8"))
-            size = len(os.readlink(path).encode("utf-8"))
+            try:
+                resolved = path.resolve(strict=True)
+            except (OSError, RuntimeError) as error:
+                raise BenchmarkError("invalid_runtime_tree") from error
+            if not resolved.is_relative_to(root) or not resolved.is_file():
+                raise BenchmarkError("invalid_runtime_tree")
+            target = resolved.relative_to(root).as_posix().encode("utf-8")
+            content_digest = _sha256_bytes(target)
+            size = len(target)
         elif stat.S_ISREG(metadata.st_mode):
             kind = b"file"
             file_digest = hashlib.sha256()
-            with path.open("rb") as stream:
-                while chunk := stream.read(1024 * 1024):
-                    file_digest.update(chunk)
+            if ignore_bytecode and path.name.startswith("_sysconfigdata_"):
+                normalized = path.read_bytes().replace(os.fsencode(root), b"/__PYTHON_ROOT__")
+                file_digest.update(normalized)
+                size = len(normalized)
+            else:
+                with path.open("rb") as stream:
+                    while chunk := stream.read(1024 * 1024):
+                        file_digest.update(chunk)
+                size = metadata.st_size
             content_digest = file_digest.hexdigest()
-            size = metadata.st_size
         elif stat.S_ISDIR(metadata.st_mode):
             continue
         else:
@@ -787,9 +1147,158 @@ def _tree_sha256(root: Path) -> str:
     return digest.hexdigest()
 
 
+def _record_rows(archive: zipfile.ZipFile) -> list[tuple[str, str, str]]:
+    record_names = [name for name in archive.namelist() if name.endswith(".dist-info/RECORD")]
+    if len(record_names) != 1:
+        raise BenchmarkError("runtime_wheel_mismatch")
+    raw = _zip_member(archive, record_names[0], _MAX_JSON_BYTES)
+    try:
+        rows = list(csv.reader(io.StringIO(raw.decode("utf-8"), newline="")))
+    except (UnicodeError, csv.Error) as error:
+        raise BenchmarkError("runtime_wheel_mismatch") from error
+    if not rows or any(len(row) != 3 for row in rows):
+        raise BenchmarkError("runtime_wheel_mismatch")
+    selected = cast(list[tuple[str, str, str]], [tuple(row) for row in rows])
+    paths = [row[0] for row in selected]
+    file_names = sorted(name for name in archive.namelist() if not name.endswith("/"))
+    if sorted(paths) != file_names or len(paths) != len(set(paths)):
+        raise BenchmarkError("runtime_wheel_mismatch")
+    for path, encoded_digest, size_text in selected:
+        member = _zip_member(archive, path, 128 * 1024 * 1024, allow_empty=True)
+        if path == record_names[0]:
+            if encoded_digest or size_text:
+                raise BenchmarkError("runtime_wheel_mismatch")
+            continue
+        try:
+            algorithm, digest_text = encoded_digest.split("=", maxsplit=1)
+            expected_digest = base64.urlsafe_b64decode(digest_text + "===")
+            expected_size = int(size_text)
+        except (TypeError, ValueError) as error:
+            raise BenchmarkError("runtime_wheel_mismatch") from error
+        if (
+            algorithm != "sha256"
+            or type(expected_size) is not int
+            or expected_size != len(member)
+            or hashlib.sha256(member).digest() != expected_digest
+        ):
+            raise BenchmarkError("runtime_wheel_mismatch")
+    return selected
+
+
+def _safe_wheel_path(value: str) -> PurePosixPath:
+    path = PurePosixPath(value)
+    if path.is_absolute() or not path.parts or ".." in path.parts or "\\" in value:
+        raise BenchmarkError("runtime_wheel_mismatch")
+    if path.name in {"sitecustomize.py", "usercustomize.py"}:
+        raise BenchmarkError("runtime_wheel_mismatch")
+    return path
+
+
+def _verify_extracted_runtime(wheels: dict[str, bytes], destination: Path) -> str:
+    expected: dict[str, tuple[int, str]] = {}
+    for name in ("numpy", "openvino", "openvino_telemetry"):
+        with zipfile.ZipFile(io.BytesIO(wheels[name])) as archive:
+            for info in archive.infolist():
+                archive_path = _safe_wheel_path(info.filename)
+                if info.is_dir():
+                    continue
+                raw = _zip_member(
+                    archive,
+                    info.filename,
+                    128 * 1024 * 1024,
+                    allow_empty=True,
+                )
+                relative = archive_path.as_posix()
+                if relative in expected:
+                    raise BenchmarkError("runtime_wheel_mismatch")
+                expected[relative] = (len(raw), _sha256_bytes(raw))
+    actual: dict[str, tuple[int, str]] = {}
+    for local_path in destination.rglob("*"):
+        metadata = local_path.lstat()
+        if stat.S_ISDIR(metadata.st_mode):
+            continue
+        if not stat.S_ISREG(metadata.st_mode):
+            raise BenchmarkError("invalid_runtime_tree")
+        relative = local_path.relative_to(destination).as_posix()
+        raw = _read_regular(
+            local_path,
+            128 * 1024 * 1024,
+            "invalid_runtime_tree",
+            allow_empty=True,
+        )
+        actual[relative] = (len(raw), _sha256_bytes(raw))
+    if actual != expected:
+        raise BenchmarkError("invalid_runtime_tree")
+    return _tree_sha256(destination)
+
+
+def _extract_runtime(wheels: dict[str, bytes], destination: Path) -> str:
+    destination.mkdir(mode=0o700)
+    extracted: set[str] = set()
+    total = 0
+    for name in ("numpy", "openvino", "openvino_telemetry"):
+        with zipfile.ZipFile(io.BytesIO(wheels[name])) as archive:
+            _record_rows(archive)
+            for info in sorted(archive.infolist(), key=lambda item: item.filename):
+                path = _safe_wheel_path(info.filename)
+                if info.filename in extracted:
+                    raise BenchmarkError("runtime_wheel_mismatch")
+                extracted.add(info.filename)
+                target = destination.joinpath(*path.parts)
+                if info.is_dir():
+                    target.mkdir(mode=0o700, parents=True, exist_ok=True)
+                    continue
+                mode = info.external_attr >> 16
+                if mode and not stat.S_ISREG(mode):
+                    raise BenchmarkError("runtime_wheel_mismatch")
+                total += info.file_size
+                if info.file_size > 128 * 1024 * 1024 or total > 512 * 1024 * 1024:
+                    raise BenchmarkError("runtime_wheel_mismatch")
+                raw = _zip_member(
+                    archive,
+                    info.filename,
+                    128 * 1024 * 1024,
+                    allow_empty=True,
+                )
+                target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+                descriptor = -1
+                try:
+                    descriptor = os.open(
+                        target,
+                        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW,
+                        0o700 if mode & 0o111 else 0o600,
+                    )
+                    written = 0
+                    while written < len(raw):
+                        written += os.write(descriptor, raw[written:])
+                except OSError as error:
+                    raise BenchmarkError("runtime_install_failed") from error
+                finally:
+                    if descriptor >= 0:
+                        os.close(descriptor)
+    return _verify_extracted_runtime(wheels, destination)
+
+
+def _verify_base_python(base_python: Path, runtime: dict[str, object]) -> dict[str, object]:
+    python = _mapping(runtime.get("python"), "invalid_runtime_manifest")
+    raw = _read_regular(base_python, 64 * 1024 * 1024, "invalid_runtime_python")
+    if _sha256_bytes(raw) != python["executable_sha256"]:
+        raise BenchmarkError("runtime_python_mismatch")
+    runtime_root = base_python.parent.parent
+    tree_sha256 = _tree_sha256(runtime_root, ignore_bytecode=True)
+    if tree_sha256 != python["runtime_tree_sha256"]:
+        raise BenchmarkError("runtime_python_mismatch")
+    return {
+        "archive_sha256": python["archive_sha256"],
+        "executable_sha256": python["executable_sha256"],
+        "runtime_tree_sha256": tree_sha256,
+        "version": python["version"],
+    }
+
+
 def _run_sandboxed(
     runtime_python: Path,
-    venv_root: Path,
+    runtime_root: Path,
     model_root: Path,
     dataset_root: Path,
     split: str,
@@ -852,8 +1361,17 @@ def _run_sandboxed(
         os.fspath(interpreter_root),
         os.fspath(interpreter_root),
         "--ro-bind",
-        os.fspath(venv_root),
-        os.fspath(venv_root),
+        os.fspath(runtime_root),
+        "/runtime",
+        "--setenv",
+        "PYTHONPATH",
+        "/runtime",
+        "--setenv",
+        "PYTHONNOUSERSITE",
+        "1",
+        "--setenv",
+        "PYTHONPYCACHEPREFIX",
+        "/tmp/pycache",
         "--ro-bind",
         os.fspath(Path(__file__).resolve()),
         "/work/run.py",
@@ -889,15 +1407,17 @@ def _run_sandboxed(
         str(confidence_floor),
     ]
     started = time.perf_counter_ns()
-    try:
-        completed = subprocess.run(command, check=False, capture_output=True, timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as error:
-        raise BenchmarkError("worker_failed") from error
+    returncode, stdout, stderr = _run_bounded(
+        command,
+        timeout_seconds=120,
+        maximum_output_bytes=_MAX_JSON_BYTES,
+        code="worker_failed",
+    )
     process_wall_ns = time.perf_counter_ns() - started
-    if completed.returncode or completed.stderr or len(completed.stdout) > _MAX_JSON_BYTES:
+    if returncode or stderr or len(stdout) > _MAX_JSON_BYTES:
         raise BenchmarkError("worker_failed")
     try:
-        value = _decode_json(completed.stdout)
+        value = _decode_json(stdout)
     except (UnicodeError, ValueError) as error:
         raise BenchmarkError("worker_failed") from error
     if not isinstance(value, dict):
@@ -921,6 +1441,7 @@ def _validate_worker_result(
         "cpu_ns",
         "item_wall_ns",
         "measurement_wall_ns",
+        "numpy_version",
         "openvino_version",
         "peak_rss_bytes",
         "predictions",
@@ -929,6 +1450,7 @@ def _validate_worker_result(
         "python_version",
         "seed",
         "split",
+        "telemetry_version",
         "warm_start_ns",
     }
     positive_fields = (
@@ -942,9 +1464,13 @@ def _validate_worker_result(
         set(result) != expected_fields
         or result.get("annotation_lock_sha256") != annotation_sha256
         or result.get("openvino_version") != "2026.3.1-22476-759c5a6ab8c-releases/2026/3"
+        or result.get("numpy_version") != "2.5.3"
+        or result.get("telemetry_version") != "2025.2.0"
         or result.get("python_version") != "3.13.15"
+        or type(result.get("seed")) is not int
         or result.get("seed") != seed
         or result.get("split") != split
+        or type(result.get("processed_item_count")) is not int
         or result.get("processed_item_count") != len(items)
         or any(
             type(result.get(field)) is not int or cast(int, result[field]) <= 0
@@ -1055,9 +1581,11 @@ def _artifact(
     terms_url: str,
     use: str,
     reviewed_on: str,
+    license_evidence: dict[str, object] | None = None,
 ) -> dict[str, object]:
-    return {
+    artifact: dict[str, object] = {
         "commercial_use_allowed": True,
+        "distribution_review_status": "not-approved",
         "executable_serialization": False,
         "format": artifact_format,
         "isolation": "isolated-worker",
@@ -1074,6 +1602,9 @@ def _artifact(
         "trust_remote_code": False,
         "use": use,
     }
+    if license_evidence is not None:
+        artifact["license_evidence"] = license_evidence
+    return artifact
 
 
 def _candidate_artifacts(
@@ -1129,8 +1660,27 @@ def _candidate_artifacts(
                 terms_url=runtime_terms[name],
                 use="offline CPU inference runtime closure",
                 reviewed_on=evaluated_on,
+                license_evidence=cast(dict[str, object], component["license_evidence"]),
             )
         )
+    python = cast(dict[str, object], runtime["python"])
+    artifacts.append(
+        _artifact(
+            name="cpython-3.13.15-python-build-standalone-20260825",
+            kind="runtime",
+            artifact_format="native-library",
+            license_expression=cast(str, python["license_expression"]),
+            revision=cast(str, python["revision"]),
+            sha256=cast(str, python["executable_sha256"]),
+            source_url=cast(str, python["url"]),
+            terms_url=(
+                "https://github.com/astral-sh/python-build-standalone/blob/"
+                "c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779/docs/running.rst"
+            ),
+            use="pinned interpreter for isolated CPU inference",
+            reviewed_on=evaluated_on,
+        )
+    )
     return artifacts
 
 
@@ -1191,8 +1741,7 @@ def _write_new(path: Path, value: object) -> str:
 def run_benchmark(
     dataset_root: Path,
     models_root: Path,
-    runtime_python: Path,
-    venv_root: Path,
+    base_python: Path,
     wheels_root: Path,
     output_root: Path,
     source_revision: str,
@@ -1200,9 +1749,7 @@ def run_benchmark(
 ) -> dict[str, object]:
     if _REVISION.fullmatch(source_revision) is None:
         raise BenchmarkError("invalid_source_revision")
-    if output_root.exists() or output_root.is_symlink():
-        raise BenchmarkError("output_exists")
-    output_root.mkdir(mode=0o700, parents=True)
+    _create_private_directory(output_root)
     try:
         import evaluate_v02_gates as gate_evaluator
     except ImportError as error:
@@ -1227,11 +1774,23 @@ def run_benchmark(
         raise BenchmarkError("protocol_mismatch")
     calibration_items = _items(annotations, "calibration")
     test_items = _items(annotations, "test")
-    _verify_runtime_wheels(runtime, wheels_root)
+    wheels = _verify_runtime_wheels(runtime, wheels_root)
+    python_attestation = _verify_base_python(base_python, runtime)
+    temporary = tempfile.TemporaryDirectory(prefix=".runtime-", dir=output_root)
+    runtime_root = Path(temporary.name) / "site-packages"
+    environment_sha256 = _extract_runtime(wheels, runtime_root)
+    runtime_closure_sha256 = _sha256_bytes(
+        _canonical(
+            {
+                "python": python_attestation,
+                "runtime_tree_sha256": environment_sha256,
+                "wheels": {name: _sha256_bytes(raw) for name, raw in sorted(wheels.items())},
+            }
+        )
+    )
     profile = _profile()
     harness_sha256 = _sha256_bytes(Path(__file__).read_bytes())
-    environment_size = _logical_size(venv_root)
-    environment_sha256 = _tree_sha256(venv_root)
+    environment_size = _logical_size(runtime_root)
     raw_candidates: dict[str, object] = {}
     output_index: dict[str, object] = {}
 
@@ -1249,8 +1808,8 @@ def run_benchmark(
                 raise BenchmarkError("model_digest_mismatch")
         calibration_repetitions = [
             _run_sandboxed(
-                runtime_python,
-                venv_root,
+                base_python,
+                runtime_root,
                 model_root,
                 dataset_root,
                 "calibration",
@@ -1272,8 +1831,8 @@ def run_benchmark(
         )
         test_repetitions = [
             _run_sandboxed(
-                runtime_python,
-                venv_root,
+                base_python,
+                runtime_root,
                 model_root,
                 dataset_root,
                 "test",
@@ -1332,6 +1891,7 @@ def run_benchmark(
                 key: cast(dict[str, object], runtime[key])["sha256"]
                 for key in ("numpy", "openvino", "openvino_telemetry")
             },
+            "runtime_closure_sha256": runtime_closure_sha256,
         }
         receipt = {
             "aggregate": _aggregate(receipt_repetitions),
@@ -1339,6 +1899,7 @@ def run_benchmark(
                 "artifacts": _candidate_artifacts(candidate, runtime, evaluated_on),
                 "configuration_sha256": _sha256_bytes(_canonical(configuration)),
                 "name": name,
+                "runtime_closure_sha256": runtime_closure_sha256,
             },
             "dataset_manifest_sha256": dataset_manifest_sha256,
             "evaluated_on": evaluated_on,
@@ -1425,7 +1986,9 @@ def run_benchmark(
             "installed_runtime_tree_sha256": environment_sha256,
             "network_isolation": "bubblewrap-unshare-all",
             "profile": profile,
+            "python": python_attestation,
             "runtime": runtime,
+            "runtime_closure_sha256": runtime_closure_sha256,
         },
         "evaluated_on": evaluated_on,
         "outputs": output_index,
@@ -1441,6 +2004,7 @@ def run_benchmark(
         "schema_version": 1,
     }
     raw_sha256 = _write_new(output_root / "raw-results.json", raw_result)
+    temporary.cleanup()
     return {"outputs": output_index, "raw_results_sha256": raw_sha256, "status": "pass"}
 
 
@@ -1454,8 +2018,7 @@ def main() -> int:
     parser.add_argument("--seed", type=int)
     parser.add_argument("--confidence-floor", type=int)
     parser.add_argument("--models-root", type=Path)
-    parser.add_argument("--runtime-python", type=Path)
-    parser.add_argument("--venv-root", type=Path)
+    parser.add_argument("--base-python", type=Path)
     parser.add_argument("--wheels-root", type=Path)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--source-revision")
@@ -1484,8 +2047,7 @@ def main() -> int:
             if None in (
                 arguments.dataset_root,
                 arguments.models_root,
-                arguments.runtime_python,
-                arguments.venv_root,
+                arguments.base_python,
                 arguments.wheels_root,
                 arguments.output,
                 arguments.source_revision,
@@ -1495,18 +2057,17 @@ def main() -> int:
             result = run_benchmark(
                 arguments.dataset_root.resolve(),
                 arguments.models_root.resolve(),
-                Path(os.path.abspath(arguments.runtime_python)),
-                arguments.venv_root.resolve(),
+                Path(os.path.abspath(arguments.base_python)),
                 arguments.wheels_root.resolve(),
-                arguments.output.resolve(),
+                Path(os.path.abspath(arguments.output)),
                 arguments.source_revision,
                 arguments.evaluated_on,
             )
-    except BenchmarkError as error:
-        print(json.dumps({"error": str(error), "status": "error"}, sort_keys=True))
+    except (BenchmarkError, OSError) as error:
+        code = str(error) if isinstance(error, BenchmarkError) else "filesystem_failed"
+        _emit({"error": code, "status": "error"}, sys.stdout)
         return 1
-    print(json.dumps(result, allow_nan=False, sort_keys=True))
-    return 0
+    return 0 if _emit(result, sys.stdout) else 1
 
 
 if __name__ == "__main__":
