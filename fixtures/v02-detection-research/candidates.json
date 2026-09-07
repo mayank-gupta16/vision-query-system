@@ -1,0 +1,260 @@
+{
+  "calibration": {
+    "confidence_floor_millionths": 10000,
+    "confidence_grid_millionths": [
+      50000,
+      100000,
+      150000,
+      200000,
+      250000,
+      300000,
+      350000,
+      400000,
+      450000,
+      500000,
+      550000,
+      600000,
+      650000,
+      700000,
+      750000,
+      800000,
+      850000,
+      900000,
+      950000
+    ],
+    "selection": "highest overall F1 among configurations passing every calibration precision and recall floor; then higher small/distant recall, then higher threshold",
+    "split": "calibration"
+  },
+  "candidates": [
+    {
+      "input_height": 256,
+      "input_width": 256,
+      "model_bin": {
+        "download_sha384": "f03356341ee3142f7f2b9b7b73f2167e10a981d9081b3da5c116332ebefee0f36558eab02d26a422197505d969be489b",
+        "sha256": "5955a5b4769d335d779b9a5052417a4a12b6e08c0146b1dba45a1df039147cc8",
+        "size": 7269196,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0200/FP32/vehicle-detection-0200.bin"
+      },
+      "model_xml": {
+        "download_sha384": "acc8b78af711c51aed491261b73b133e1f389621830b233981b472a2cd876149403e02166851dc90f3a4a8eedf88f11e",
+        "sha256": "6a238f0d781922b66ebfb0556a8386762f7a151635897cbc07abb57692d565cc",
+        "size": 185195,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0200/FP32/vehicle-detection-0200.xml"
+      },
+      "name": "vehicle-detection-0200-fp32-openvino-2026.3.1",
+      "omz_reported_ap_50_95_millionths": 254000,
+      "omz_reported_gflops_millionths": 786000,
+      "omz_revision": "86ba23e80b27eb9149da911e5c023b108cb06e80"
+    },
+    {
+      "input_height": 384,
+      "input_width": 384,
+      "model_bin": {
+        "download_sha384": "90b5d2714ef879368366ef9e60e1c53138bfb42ba4d44a8d2b04e0bfb78372c3d735b1000546373d0b3f51df19d2ea74",
+        "sha256": "612df843314c179460e754316d67e6eedd0e778f96ad1129fc0c34c8e935cb0b",
+        "size": 7269196,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0201/FP32/vehicle-detection-0201.bin"
+      },
+      "model_xml": {
+        "download_sha384": "3557ec26adf7a8b83e088ee87feef0c2343e32015b08602b8a8198b3b631731a94e79d2fa89d2355f38b87b175779ea0",
+        "sha256": "ae39ec7c4cc5c1ab5ef3db71c8fa307500f07a87f17d95bdb0d1c84762751d1a",
+        "size": 185386,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0201/FP32/vehicle-detection-0201.xml"
+      },
+      "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
+      "omz_reported_ap_50_95_millionths": 322000,
+      "omz_reported_gflops_millionths": 1768000,
+      "omz_revision": "86ba23e80b27eb9149da911e5c023b108cb06e80"
+    },
+    {
+      "input_height": 512,
+      "input_width": 512,
+      "model_bin": {
+        "download_sha384": "ea8b29be1483ed86df4c33a0d33a0fd8f4fa838d253b62537b20e874eee8437e2e6ea13282746fb61417c27a7ac09745",
+        "sha256": "6ed234fa498f8aea32c179198ce70975d3d9fedf8a1227e682fd8ad892fe4b17",
+        "size": 7269196,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0202/FP32/vehicle-detection-0202.bin"
+      },
+      "model_xml": {
+        "download_sha384": "3f87441fb380b2dad4463f3a9f4a9bee8840c992b9e6ddaffb7fb71f1a180fdeabb2d5d29318c56529af437bf5b642db",
+        "sha256": "099b9bdbd7033221c058f997194e3e8eb178c089a1eb0928261533bcbc9d70b2",
+        "size": 185466,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0202/FP32/vehicle-detection-0202.xml"
+      },
+      "name": "vehicle-detection-0202-fp32-openvino-2026.3.1",
+      "omz_reported_ap_50_95_millionths": 363000,
+      "omz_reported_gflops_millionths": 3143000,
+      "omz_revision": "86ba23e80b27eb9149da911e5c023b108cb06e80"
+    }
+  ],
+  "inference": {
+    "color_conversion": "RGB-to-BGR",
+    "device": "CPU",
+    "input_layout": "NHWC-u8",
+    "inference_num_threads": 4,
+    "model_layout": "NCHW",
+    "num_streams": 1,
+    "performance_hint": "LATENCY",
+    "resize": "OpenVINO RESIZE_LINEAR"
+  },
+  "runtime": {
+    "numpy": {
+      "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "license_evidence": {
+        "bundled_components": [
+          {
+            "license_expression": "BSD-3-Clause",
+            "name": "OpenBLAS"
+          },
+          {
+            "license_expression": "BSD-3-Clause-Open-MPI",
+            "name": "LAPACK"
+          },
+          {
+            "license_expression": "GPL-3.0-or-later WITH GCC-exception-3.1",
+            "name": "libgfortran"
+          },
+          {
+            "license_expression": "LGPL-2.1-or-later",
+            "name": "libquadmath"
+          }
+        ],
+        "metadata_license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+        "notice_files": [
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/LICENSE.txt",
+            "sha256": "4860083caa0de2ac3292ca98bd074bd8f45d8b32624e37b1e70a240bff61e488"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+            "sha256": "fbc539f47d0cf83bc61378080fb873d5c14630126cacbfe754035c3926daa5ec"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+            "sha256": "3f2c1ffa76383a55ae0aac01c9737cd70050dff63e1f026694fbe9d662573c98"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+            "sha256": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+            "sha256": "f7b14309e5f54e5022b26448eefd419988ada2aec01d3c1162d84a0ea8f21f2c"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+            "sha256": "211e7d737d6179a08f791ebb0a99897ce7cd2457410c542876d125576edfe910"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+            "sha256": "c17011467b4fe6e20fbfbeda4df09e58c2bca5480a063e55735a4000a379aad9"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+            "sha256": "a85ca13fdf90160b64a0698215868c13b74d835ad0a4e2ba44713b8c5058a056"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+            "sha256": "a14cc25e10d40a3aa705b7de2fb764a6535d8ee9b2db4e1724900585457dfd55"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/ma/LICENSE",
+            "sha256": "05f3b88351988ecfad10abe92c0c50e5875c6452d5009a0084cc291551ffcca6"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/LICENSE.md",
+            "sha256": "103166b62b80443afb9eb3488e052ea06be0cff566b908f199e561fde49af19f"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+            "sha256": "469778be8f33d54e1bcaab28c281cc472916d2d273f835e55bc487d30503face"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+            "sha256": "0e111337b25494a773106695f0e799f642b8567aaacca4f116a74a8177179156"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+            "sha256": "e7d4f4fb20358f314210a892ae17351e04993813646f697ec387385ca2a36918"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+            "sha256": "6f5828a57223d4cc7f8ea505a2623e7b978b242752c1515e355f46ba2cec1800"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+            "sha256": "9d4098846018319cd68e228ee6220361787f73bccbf00237a85e4fc9621b998f"
+          },
+          {
+            "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+            "sha256": "268b0ca06759d31ea3ca68dd35f20e877916e927b1c2a835e4592a3c4354b1f9"
+          }
+        ]
+      },
+      "revision": "dd88c0c19b54ad9ed3533224221285bf0873249a",
+      "sha256": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
+      "size": 16708577,
+      "url": "https://files.pythonhosted.org/packages/3a/1b/3b16a9bc514a440a7a0883684111dcb1ef1aee960af2ca95da8fc775f124/numpy-2.5.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "version": "2.5.3"
+    },
+    "openvino": {
+      "license_expression": "Apache-2.0",
+      "license_evidence": {
+        "bundled_components": [],
+        "metadata_license_expression": "Apache-2.0",
+        "notice_files": [
+          {
+            "path": "openvino-2026.3.1.dist-info/licenses/LICENSE",
+            "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+          },
+          {
+            "path": "openvino-2026.3.1.dist-info/licenses/licensing/onednn_third-party-programs.txt",
+            "sha256": "f1b16991dfe8488f3f5f07cccba575c31c91175a9f2c8d9e1569665f86e0b2f6"
+          },
+          {
+            "path": "openvino-2026.3.1.dist-info/licenses/licensing/onetbb_third-party-programs.txt",
+            "sha256": "b10997cc50652ba6ab365e3bc43e13057681cd4a56533b46171529bd249749f3"
+          },
+          {
+            "path": "openvino-2026.3.1.dist-info/licenses/licensing/runtime-third-party-programs.txt",
+            "sha256": "85481d0f8a01308fb8c837e0007897ab5f35c90b6ee6333e6e6dfeff4ca3f46c"
+          }
+        ]
+      },
+      "revision": "759c5a6ab8c066af5f4bc5ebd04643706012a37d",
+      "sha256": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
+      "size": 57510484,
+      "url": "https://files.pythonhosted.org/packages/73/f9/b40f5c5921cac3906f74911ca038d28e6a2905b632e37a51289137ae1817/openvino-2026.3.1-22476-cp313-cp313-manylinux_2_28_x86_64.whl",
+      "version": "2026.3.1"
+    },
+    "openvino_telemetry": {
+      "license_expression": "Apache-2.0",
+      "license_evidence": {
+        "bundled_components": [],
+        "metadata_license_expression": null,
+        "notice_files": [
+          {
+            "path": "openvino_telemetry-2025.2.0.dist-info/LICENSE",
+            "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+          }
+        ]
+      },
+      "revision": "2025.2.0+sha256.bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+      "sha256": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+      "size": 25227,
+      "url": "https://files.pythonhosted.org/packages/3b/ac/5ab0ca0aa269ad3c73f7bfc3801b10e5f56f75a31bf68c1ae8bd51cf70a4/openvino_telemetry-2025.2.0-py3-none-any.whl",
+      "version": "2025.2.0"
+    },
+    "python": {
+      "archive_sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6",
+      "executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+      "license_expression": "LicenseRef-python-build-standalone-composite-20260825",
+      "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
+      "runtime_tree_sha256": "7bf650c9ac94c945b0ff154bdc96830bc1ad876d24b0cbe8deb5860fd3270a0c",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "version": "3.13.15"
+    }
+  },
+  "schema": "visualworld.v02-detection-candidate-list",
+  "schema_version": 1
+}

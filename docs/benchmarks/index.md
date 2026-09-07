@@ -9,6 +9,12 @@
 - [v0.2 frozen evaluation gates](v0.2-evaluation-gates.md) routes the detector,
   sampling, crop-value, and tracking experiments through the versioned policy,
   dataset/receipt contracts, fail-closed evaluator, and waiver rules.
+- [v0.2 detector/runtime methodology](v0.2-detection-methodology.md) locks the
+  issue #21 candidates, CC0 derived dataset, privacy boundary, calibration,
+  metrics, CPU-only isolation, and reproduction command.
+- [v0.2 detector/runtime results](v0.2-detection-results.md) publishes the raw
+  CPU-LITE evidence and selects vehicle-detection-0201 at confidence 0.95 as the
+  evaluation baseline.
 
 Version-specific measured implementation baselines are recorded with their
 validation reports: [local video](../research/local-video-source.md),

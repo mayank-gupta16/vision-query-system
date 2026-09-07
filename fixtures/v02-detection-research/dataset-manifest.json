@@ -1,0 +1,61 @@
+{
+  "acquisition": {
+    "method": "deterministic sanitized derivatives from ten reviewed CC0 Wikimedia Commons thumbnails; source details and exact transforms are locked in source-manifest.json",
+    "owner": "Wikimedia Commons source artists and VisualWorld derivative generator",
+    "revision": "v02-detection-cc0-derived-1",
+    "sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66",
+    "url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-detection-research"
+  },
+  "experiment": "detection",
+  "manifest_id": "v02-detection-cc0-derived-1",
+  "privacy": {
+    "classification": "licensed-no-personal-data",
+    "consent_status": "not-applicable-no-personal-data",
+    "contains_faces": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false,
+    "sensitive_derived_outputs_retained": false
+  },
+  "rights": {
+    "allowed_uses": [
+      "benchmarking",
+      "evaluation",
+      "modification",
+      "redistribution"
+    ],
+    "commercial_use_allowed": true,
+    "derivatives_allowed": true,
+    "license_expression": "CC0-1.0",
+    "redistribution_allowed": true
+  },
+  "schema": "visualworld.v02-evaluation-dataset-manifest",
+  "schema_version": 1,
+  "splits": {
+    "calibration": {
+      "annotation_sha256": "d44effb8cb7532c8a642b854e526f7a6e08e0e2c69a263c80ff945260d2bdd22",
+      "item_count": 8,
+      "item_ids_sha256": "094c7d9352ce92eab397288f370370b415db0c8366e81d808609779ab7c51eb1",
+      "stratum_item_counts": {
+        "easy": 4,
+        "overall": 8,
+        "small_distant": 4
+      }
+    },
+    "test": {
+      "annotation_sha256": "d61a1de315a536bef9377efeac76ae39b638a347a7a142eaa911b659ea5b3e13",
+      "item_count": 12,
+      "item_ids_sha256": "9fa24fc152410e5bac2f2b7d5521ce948d979803c351e2fbd7fd820512dde71f",
+      "stratum_item_counts": {
+        "easy": 6,
+        "overall": 12,
+        "small_distant": 6
+      }
+    }
+  },
+  "strata": [
+    "overall",
+    "easy",
+    "small_distant"
+  ]
+}

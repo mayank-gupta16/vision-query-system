@@ -1,0 +1,327 @@
+{
+  "items": [
+    {
+      "frame_sha256": "a5dffa70e2e70b1e5744fa0ca59b77e0741d874ff07790ae4020263f88d5aa39",
+      "height": 360,
+      "item_id": "calibration-kit-buggy-easy",
+      "object_box": [
+        174,
+        108,
+        447,
+        348
+      ],
+      "relative_path": "calibration/calibration-kit-buggy-easy.ppm",
+      "source_id": "kit-buggy",
+      "split": "calibration",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "bf1c53456b94b68d55919685f649d3cca78ddfe189b046c2c6d0256dc970293d",
+      "height": 360,
+      "item_id": "calibration-kit-buggy-small_distant",
+      "object_box": [
+        408,
+        205,
+        481,
+        269
+      ],
+      "relative_path": "calibration/calibration-kit-buggy-small_distant.ppm",
+      "source_id": "kit-buggy",
+      "split": "calibration",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "d8c52a65547f6e5c827884d2b97fd15f7a586fdb2e689727d3796c5908279469",
+      "height": 360,
+      "item_id": "calibration-vintage-green-easy",
+      "object_box": [
+        100,
+        124,
+        560,
+        348
+      ],
+      "relative_path": "calibration/calibration-vintage-green-easy.ppm",
+      "source_id": "vintage-green",
+      "split": "calibration",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "832c3f02a924eac53d8199e4e233c74a9904e4834d182fc49c5b70ef6ccac2f9",
+      "height": 360,
+      "item_id": "calibration-vintage-green-small_distant",
+      "object_box": [
+        287,
+        190,
+        383,
+        236
+      ],
+      "relative_path": "calibration/calibration-vintage-green-small_distant.ppm",
+      "source_id": "vintage-green",
+      "split": "calibration",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "ddeefd1421e4230ef7374bc5353e6fe14d3fce6cf9d43370580442f0f3a7ea81",
+      "height": 360,
+      "item_id": "calibration-lime-van-easy",
+      "object_box": [
+        184,
+        108,
+        472,
+        348
+      ],
+      "relative_path": "calibration/calibration-lime-van-easy.ppm",
+      "source_id": "lime-van",
+      "split": "calibration",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "ab3397d6b3872dcb0e76fc256353f15caec35c061ed0cb2d47aeadc69cd6adf5",
+      "height": 360,
+      "item_id": "calibration-lime-van-small_distant",
+      "object_box": [
+        88,
+        192,
+        164,
+        256
+      ],
+      "relative_path": "calibration/calibration-lime-van-small_distant.ppm",
+      "source_id": "lime-van",
+      "split": "calibration",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "204f638c73ac7611b0ac10c375bd73a7fe776c90d182c22ba4490384983e8ea5",
+      "height": 360,
+      "item_id": "calibration-li-l7-side-easy",
+      "object_box": [
+        96,
+        168,
+        556,
+        348
+      ],
+      "relative_path": "calibration/calibration-li-l7-side-easy.ppm",
+      "source_id": "li-l7-side",
+      "split": "calibration",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "06e38821a6c360a788d91ad78d4cd571bbb8f555f6b895505173fb48ddc7a9d8",
+      "height": 360,
+      "item_id": "calibration-li-l7-side-small_distant",
+      "object_box": [
+        250,
+        210,
+        346,
+        247
+      ],
+      "relative_path": "calibration/calibration-li-l7-side-small_distant.ppm",
+      "source_id": "li-l7-side",
+      "split": "calibration",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "97728c98ccf28347e8780fc8ee5b7717f9f86327b560cafc63b2751df1c09a33",
+      "height": 360,
+      "item_id": "test-bmw-i3-easy",
+      "object_box": [
+        135,
+        108,
+        498,
+        348
+      ],
+      "relative_path": "test/test-bmw-i3-easy.ppm",
+      "source_id": "bmw-i3",
+      "split": "test",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "cd9df9244c19cea90204aad7f251b2991a6c59209bdfcb3eba9bad67d7aabaae",
+      "height": 360,
+      "item_id": "test-bmw-i3-small_distant",
+      "object_box": [
+        366,
+        204,
+        462,
+        267
+      ],
+      "relative_path": "test/test-bmw-i3-small_distant.ppm",
+      "source_id": "bmw-i3",
+      "split": "test",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "530077fa3bb668b0779d1929dab9fe4a68ae4dbd401dc40d58b89646ee8b9cc9",
+      "height": 360,
+      "item_id": "test-pink-cadillac-easy",
+      "object_box": [
+        105,
+        108,
+        519,
+        348
+      ],
+      "relative_path": "test/test-pink-cadillac-easy.ppm",
+      "source_id": "pink-cadillac",
+      "split": "test",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "233bbe35d2ca68a2dda8e45f7bd67f5adfdffebe2bf80b32510b31ce739da18b",
+      "height": 360,
+      "item_id": "test-pink-cadillac-small_distant",
+      "object_box": [
+        375,
+        209,
+        471,
+        264
+      ],
+      "relative_path": "test/test-pink-cadillac-small_distant.ppm",
+      "source_id": "pink-cadillac",
+      "split": "test",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "8e0a7b3654d656b7893018f1dda488fba110332e41496ee4f09f1e4a61fde8e0",
+      "height": 360,
+      "item_id": "test-red-opel-easy",
+      "object_box": [
+        158,
+        108,
+        492,
+        348
+      ],
+      "relative_path": "test/test-red-opel-easy.ppm",
+      "source_id": "red-opel",
+      "split": "test",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "341e01fe1478865fcdb5d98bab52762af8f649048cb10b9d5726bda8a4923ad5",
+      "height": 360,
+      "item_id": "test-red-opel-small_distant",
+      "object_box": [
+        331,
+        199,
+        420,
+        263
+      ],
+      "relative_path": "test/test-red-opel-small_distant.ppm",
+      "source_id": "red-opel",
+      "split": "test",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "bbed37badc3d98191009580483f93c7a7769293b4f92883929b554bbeb0e6203",
+      "height": 360,
+      "item_id": "test-li-l9-side-easy",
+      "object_box": [
+        86,
+        176,
+        546,
+        348
+      ],
+      "relative_path": "test/test-li-l9-side-easy.ppm",
+      "source_id": "li-l9-side",
+      "split": "test",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "709c019f9da9583704d451e5667c0ac26a363cb73db83484f43c33d624752c14",
+      "height": 360,
+      "item_id": "test-li-l9-side-small_distant",
+      "object_box": [
+        407,
+        201,
+        503,
+        237
+      ],
+      "relative_path": "test/test-li-l9-side-small_distant.ppm",
+      "source_id": "li-l9-side",
+      "split": "test",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "c9805607c4a58b9f1841c78b155f4c764ce5e039f4a07962183a60f7a748f32d",
+      "height": 360,
+      "item_id": "test-li-l9-rear-easy",
+      "object_box": [
+        86,
+        150,
+        546,
+        348
+      ],
+      "relative_path": "test/test-li-l9-rear-easy.ppm",
+      "source_id": "li-l9-rear",
+      "split": "test",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "1cd3337275de250d5c1a96bb6681820f43a8b0193ea9b2006700c04522639879",
+      "height": 360,
+      "item_id": "test-li-l9-rear-small_distant",
+      "object_box": [
+        119,
+        191,
+        215,
+        232
+      ],
+      "relative_path": "test/test-li-l9-rear-small_distant.ppm",
+      "source_id": "li-l9-rear",
+      "split": "test",
+      "stratum": "small_distant",
+      "width": 640
+    },
+    {
+      "frame_sha256": "6a886fc862ac96a929f659ea7bff8b4ee43aa660b654df586ed6e82bc7faf99b",
+      "height": 360,
+      "item_id": "test-li-l7-white-easy",
+      "object_box": [
+        94,
+        139,
+        554,
+        348
+      ],
+      "relative_path": "test/test-li-l7-white-easy.ppm",
+      "source_id": "li-l7-white",
+      "split": "test",
+      "stratum": "easy",
+      "width": 640
+    },
+    {
+      "frame_sha256": "30647ba81b1278fadf66fa681aacaa7b1912204b28c3e53e6aedcfb0a65e3fab",
+      "height": 360,
+      "item_id": "test-li-l7-white-small_distant",
+      "object_box": [
+        347,
+        191,
+        443,
+        234
+      ],
+      "relative_path": "test/test-li-l7-white-small_distant.ppm",
+      "source_id": "li-l7-white",
+      "split": "test",
+      "stratum": "small_distant",
+      "width": 640
+    }
+  ],
+  "schema": "visualworld.v02-detection-annotation-lock",
+  "schema_version": 1,
+  "source_manifest_sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66"
+}

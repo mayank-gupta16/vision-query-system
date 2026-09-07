@@ -1,0 +1,193 @@
+{
+  "absolute": {
+    "cold_start_wall_ms": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 30000,
+        "minimum": null,
+        "status": "pass",
+        "value": 669
+      }
+    },
+    "failure_rate_basis_points": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 0,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "frames_per_second_milli": {
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 188733
+      }
+    },
+    "install_and_model_bytes": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 1073741824,
+        "minimum": null,
+        "status": "pass",
+        "value": 243344250
+      }
+    },
+    "map50_basis_points": {
+      "easy": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 6500,
+        "status": "pass",
+        "value": 10000
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 9579
+      },
+      "small_distant": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 3000,
+        "status": "pass",
+        "value": 10000
+      }
+    },
+    "peak_rss_bytes": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 2147483648,
+        "minimum": null,
+        "status": "pass",
+        "value": 177397760
+      }
+    },
+    "precision_basis_points": {
+      "easy": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 8000,
+        "status": "fail",
+        "value": 6000
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 7000,
+        "status": "pass",
+        "value": 7142
+      },
+      "small_distant": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 10000
+      }
+    },
+    "real_time_factor_milli": {
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 1000,
+        "status": "pass",
+        "value": 37746
+      }
+    },
+    "recall_basis_points": {
+      "easy": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 8500,
+        "status": "pass",
+        "value": 10000
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 7000,
+        "status": "pass",
+        "value": 8333
+      },
+      "small_distant": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 6666
+      }
+    },
+    "warm_start_wall_ms": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 5000,
+        "minimum": null,
+        "status": "pass",
+        "value": 6
+      }
+    }
+  },
+  "baseline_candidate": null,
+  "baseline_receipt_sha256": null,
+  "candidate": {
+    "configuration_sha256": "505bd653942152a2fd5dc03910046bc2475edb15ec48cf65139caba423adaab3",
+    "name": "vehicle-detection-0200-fp32-openvino-2026.3.1"
+  },
+  "checks": {
+    "absolute_gates_pass": false,
+    "baseline_compatible": null,
+    "regression_gates_pass": true,
+    "waiver_valid": false
+  },
+  "dataset_manifest_sha256": "7c41fda4b14553922727e31801478b569a17dda176dd85a7c2fe8789ae9c1599",
+  "evaluated_on": "2026-09-07",
+  "evaluation_phase": "selection",
+  "experiment": "detection",
+  "failures": [
+    "absolute:precision_basis_points:easy"
+  ],
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-detection-harness",
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-detection-metrics",
+      "revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338",
+      "sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/7c77e6ec0b84549f9b79c34078fe8f6a3c641338/scripts/run_v02_detection_benchmark.py"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "7c77e6ec0b84549f9b79c34078fe8f6a3c641338"
+  },
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
+  "policy_version": "v0.2-gates-2",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "gpu_present": false,
+    "kernel_release": "7.0.0-31-generic",
+    "memory_bytes": 16221585408,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "receipt_sha256": "ad5120b8ac92943a80033ef1d08fbecd37e79d7af37597953dcbbd4c7d9de978",
+  "regression": {},
+  "schema": "visualworld.v02-evaluation-result",
+  "schema_version": 1,
+  "split": "test",
+  "status": "fail",
+  "waiver": null
+}
