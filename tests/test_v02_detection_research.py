@@ -336,6 +336,8 @@ def test_research_subprocess_drains_are_hard_bounded(
 
 
 def test_decoder_sandbox_clears_caller_secrets(tmp_path: Path) -> None:
+    if not Path("/usr/bin/bwrap").is_file() or not Path("/usr/bin/ffmpeg").is_file():
+        pytest.skip("host decoder and bubblewrap are optional benchmark prerequisites")
     source = tmp_path / "source.jpg"
     source.write_bytes(b"x")
     output = tmp_path / "output"
@@ -479,7 +481,10 @@ def test_benchmark_cli_redacts_paths_and_survives_broken_stdout(tmp_path: Path) 
 def test_verified_runtime_rejects_extra_tampered_and_swapped_inputs(tmp_path: Path) -> None:
     manifest = _json(FIXTURE_ROOT / "candidates.json")
     runtime = cast(dict[str, object], manifest["runtime"])
-    wheels = benchmark._verify_runtime_wheels(runtime, ROOT / "artifacts" / "issue21" / "wheels")
+    wheels_root = ROOT / "artifacts" / "issue21" / "wheels"
+    if not wheels_root.is_dir():
+        pytest.skip("exact runtime wheels are optional benchmark prerequisites")
+    wheels = benchmark._verify_runtime_wheels(runtime, wheels_root)
     destination = tmp_path / "site-packages"
     benchmark._extract_runtime(wheels, destination)
     extra = destination / "sitecustomize.py"
