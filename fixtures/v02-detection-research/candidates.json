@@ -1,0 +1,129 @@
+{
+  "calibration": {
+    "confidence_floor_millionths": 10000,
+    "confidence_grid_millionths": [
+      50000,
+      100000,
+      150000,
+      200000,
+      250000,
+      300000,
+      350000,
+      400000,
+      450000,
+      500000,
+      550000,
+      600000,
+      650000,
+      700000,
+      750000,
+      800000,
+      850000,
+      900000,
+      950000
+    ],
+    "selection": "highest overall F1 among configurations passing every calibration precision and recall floor; then higher small/distant recall, then higher threshold",
+    "split": "calibration"
+  },
+  "candidates": [
+    {
+      "input_height": 256,
+      "input_width": 256,
+      "model_bin": {
+        "download_sha384": "f03356341ee3142f7f2b9b7b73f2167e10a981d9081b3da5c116332ebefee0f36558eab02d26a422197505d969be489b",
+        "sha256": "5955a5b4769d335d779b9a5052417a4a12b6e08c0146b1dba45a1df039147cc8",
+        "size": 7269196,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0200/FP32/vehicle-detection-0200.bin"
+      },
+      "model_xml": {
+        "download_sha384": "acc8b78af711c51aed491261b73b133e1f389621830b233981b472a2cd876149403e02166851dc90f3a4a8eedf88f11e",
+        "sha256": "6a238f0d781922b66ebfb0556a8386762f7a151635897cbc07abb57692d565cc",
+        "size": 185195,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0200/FP32/vehicle-detection-0200.xml"
+      },
+      "name": "vehicle-detection-0200-fp32-openvino-2026.3.1",
+      "omz_reported_ap_50_95_millionths": 254000,
+      "omz_reported_gflops_millionths": 786000,
+      "omz_revision": "86ba23e80b27eb9149da911e5c023b108cb06e80"
+    },
+    {
+      "input_height": 384,
+      "input_width": 384,
+      "model_bin": {
+        "download_sha384": "90b5d2714ef879368366ef9e60e1c53138bfb42ba4d44a8d2b04e0bfb78372c3d735b1000546373d0b3f51df19d2ea74",
+        "sha256": "612df843314c179460e754316d67e6eedd0e778f96ad1129fc0c34c8e935cb0b",
+        "size": 7269196,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0201/FP32/vehicle-detection-0201.bin"
+      },
+      "model_xml": {
+        "download_sha384": "3557ec26adf7a8b83e088ee87feef0c2343e32015b08602b8a8198b3b631731a94e79d2fa89d2355f38b87b175779ea0",
+        "sha256": "ae39ec7c4cc5c1ab5ef3db71c8fa307500f07a87f17d95bdb0d1c84762751d1a",
+        "size": 185386,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0201/FP32/vehicle-detection-0201.xml"
+      },
+      "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
+      "omz_reported_ap_50_95_millionths": 322000,
+      "omz_reported_gflops_millionths": 1768000,
+      "omz_revision": "86ba23e80b27eb9149da911e5c023b108cb06e80"
+    },
+    {
+      "input_height": 512,
+      "input_width": 512,
+      "model_bin": {
+        "download_sha384": "ea8b29be1483ed86df4c33a0d33a0fd8f4fa838d253b62537b20e874eee8437e2e6ea13282746fb61417c27a7ac09745",
+        "sha256": "6ed234fa498f8aea32c179198ce70975d3d9fedf8a1227e682fd8ad892fe4b17",
+        "size": 7269196,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0202/FP32/vehicle-detection-0202.bin"
+      },
+      "model_xml": {
+        "download_sha384": "3f87441fb380b2dad4463f3a9f4a9bee8840c992b9e6ddaffb7fb71f1a180fdeabb2d5d29318c56529af437bf5b642db",
+        "sha256": "099b9bdbd7033221c058f997194e3e8eb178c089a1eb0928261533bcbc9d70b2",
+        "size": 185466,
+        "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0202/FP32/vehicle-detection-0202.xml"
+      },
+      "name": "vehicle-detection-0202-fp32-openvino-2026.3.1",
+      "omz_reported_ap_50_95_millionths": 363000,
+      "omz_reported_gflops_millionths": 3143000,
+      "omz_revision": "86ba23e80b27eb9149da911e5c023b108cb06e80"
+    }
+  ],
+  "inference": {
+    "color_conversion": "RGB-to-BGR",
+    "device": "CPU",
+    "input_layout": "NHWC-u8",
+    "inference_num_threads": 4,
+    "model_layout": "NCHW",
+    "num_streams": 1,
+    "performance_hint": "LATENCY",
+    "resize": "OpenVINO RESIZE_LINEAR"
+  },
+  "runtime": {
+    "numpy": {
+      "license_expression": "BSD-3-Clause",
+      "revision": "dd88c0c19b54ad9ed3533224221285bf0873249a",
+      "sha256": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
+      "size": 16708577,
+      "url": "https://files.pythonhosted.org/packages/3a/1b/3b16a9bc514a440a7a0883684111dcb1ef1aee960af2ca95da8fc775f124/numpy-2.5.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "version": "2.5.3"
+    },
+    "openvino": {
+      "license_expression": "Apache-2.0",
+      "revision": "759c5a6ab8c066af5f4bc5ebd04643706012a37d",
+      "sha256": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
+      "size": 57510484,
+      "url": "https://files.pythonhosted.org/packages/73/f9/b40f5c5921cac3906f74911ca038d28e6a2905b632e37a51289137ae1817/openvino-2026.3.1-22476-cp313-cp313-manylinux_2_28_x86_64.whl",
+      "version": "2026.3.1"
+    },
+    "openvino_telemetry": {
+      "license_expression": "Apache-2.0",
+      "revision": "2025.2.0+sha256.bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+      "sha256": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+      "size": 25227,
+      "url": "https://files.pythonhosted.org/packages/3b/ac/5ab0ca0aa269ad3c73f7bfc3801b10e5f56f75a31bf68c1ae8bd51cf70a4/openvino_telemetry-2025.2.0-py3-none-any.whl",
+      "version": "2025.2.0"
+    },
+    "python": "3.13.15"
+  },
+  "schema": "visualworld.v02-detection-candidate-list",
+  "schema_version": 1
+}

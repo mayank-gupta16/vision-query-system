@@ -1,0 +1,384 @@
+{
+  "canvas": {
+    "height": 360,
+    "pixel_format": "rgb24",
+    "width": 640
+  },
+  "derivation": {
+    "background": "visualworld-generated-road-v1",
+    "easy_max_height": 240,
+    "easy_max_width": 460,
+    "interpolation": "visualworld-fixed-point-bilinear-v1",
+    "plate_fill_rgb": [
+      96,
+      96,
+      96
+    ],
+    "small_distant_max_height": 64,
+    "small_distant_max_width": 96
+  },
+  "decoder": {
+    "binary_sha256": "bdf6aabffdba7411edff8d36c389d695257fcdf823d196020176e117612862f6",
+    "bubblewrap_binary_sha256": "0abea81db798ebf6b4742ac0664802d97521547a353c2a0dbdc21d76cbbfd2c0",
+    "bubblewrap_package_version": "0.11.1-1ubuntu0.1",
+    "command_surface": "single JPEG frame to PPM RGB24",
+    "ffmpeg_package_version": "7:8.0.1-3ubuntu2",
+    "isolation": "bubblewrap unshare-all with read-only input and no network",
+    "redistributed": false
+  },
+  "license_expression": "CC0-1.0",
+  "reviewed_on": "2026-09-07",
+  "schema": "visualworld.v02-detection-source-manifest",
+  "schema_version": 1,
+  "sources": [
+    {
+      "artist": "Alfvanbeem",
+      "download_height": 960,
+      "download_name": "kit-buggy.jpg",
+      "download_sha256": "3e4f85f967e151b756f4b60ffb1873325dc49af41e22ee95de800be5ecd15c55",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/36/VW_kit_car_Adventure_at_Lefkada%2C_pic4.JPG/1280px-VW_kit_car_Adventure_at_Lefkada%2C_pic4.JPG",
+      "download_width": 1280,
+      "file_revision_timestamp": "2014-06-09T12:45:08Z",
+      "file_sha1": "b7883adf29e540c9d7658b7341dcb75f52641688",
+      "object_box": [
+        120,
+        75,
+        1050,
+        890
+      ],
+      "page_id": 33285971,
+      "page_revision": 904616083,
+      "page_url": "https://commons.wikimedia.org/wiki/File:VW_kit_car_Adventure_at_Lefkada,_pic4.JPG",
+      "privacy_review": "No face, person, or plate occurs inside the selected object crop.",
+      "redactions": [],
+      "source_id": "kit-buggy",
+      "split": "calibration",
+      "title": "VW kit car Adventure at Lefkada, pic4"
+    },
+    {
+      "artist": "Missvain",
+      "download_height": 981,
+      "download_name": "vintage-green.jpg",
+      "download_sha256": "2ef272f85433ae7066f0d713ce4930cc87ccbcffffc86b9dc37d1d8abbd1f8d9",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/35th_Annual_Devils_Darlins_Car_Show_-_Sarah_Stierch.jpg/1280px-35th_Annual_Devils_Darlins_Car_Show_-_Sarah_Stierch.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2024-09-20T03:26:04Z",
+      "file_sha1": "e729bc3d3b5e8cc3f2e2f36d14f7b39aa8eecda5",
+      "object_box": [
+        5,
+        185,
+        1265,
+        800
+      ],
+      "page_id": 152898365,
+      "page_revision": 1127844233,
+      "page_url": "https://commons.wikimedia.org/wiki/File:35th_Annual_Devils_Darlins_Car_Show_-_Sarah_Stierch.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the novelty plate is removed as if it were identifying.",
+      "redactions": [
+        {
+          "box": [
+            550,
+            655,
+            735,
+            780
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "vintage-green",
+      "split": "calibration",
+      "title": "35th Annual Devils Darlins Car Show"
+    },
+    {
+      "artist": "Retired electrician",
+      "download_height": 853,
+      "download_name": "lime-van.jpg",
+      "download_sha256": "83b440bfafc392200eac6511eb019f2b57b82276ec39390baa266b400aad5036",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Moscow%2C_lime-green_boxy_car%2C_Sept_2025_01.jpg/1280px-Moscow%2C_lime-green_boxy_car%2C_Sept_2025_01.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2025-10-05T03:19:33Z",
+      "file_sha1": "7e0061ede27d83486dd24e868e82054089cbc8a3",
+      "object_box": [
+        125,
+        85,
+        985,
+        800
+      ],
+      "page_id": 176111224,
+      "page_revision": 1245773393,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Moscow,_lime-green_boxy_car,_Sept_2025_01.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the main plate and background plate-risk regions are removed.",
+      "redactions": [
+        {
+          "box": [
+            125,
+            85,
+            985,
+            145
+          ],
+          "kind": "background-plate-risk"
+        },
+        {
+          "box": [
+            125,
+            145,
+            190,
+            400
+          ],
+          "kind": "background-plate-risk"
+        },
+        {
+          "box": [
+            330,
+            405,
+            560,
+            485
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "lime-van",
+      "split": "calibration",
+      "title": "Moscow, lime-green boxy car, Sept 2025 01"
+    },
+    {
+      "artist": "Retired electrician",
+      "download_height": 853,
+      "download_name": "li-l7-side.jpg",
+      "download_sha256": "19b6c1527ff7ea468ea221fb67b06234b6489f063f852221398301676ec18160",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Moscow%2C_Li_Auto_L7%2C_Mar_2026_05.jpg/1280px-Moscow%2C_Li_Auto_L7%2C_Mar_2026_05.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2026-03-30T17:05:42Z",
+      "file_sha1": "17b3e2bc63abd39a65f26b334b3ec6cc6344d07c",
+      "object_box": [
+        25,
+        250,
+        1220,
+        720
+      ],
+      "page_id": 187501053,
+      "page_revision": 1189614193,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Moscow,_Li_Auto_L7,_Mar_2026_05.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the partial front plate is removed.",
+      "redactions": [
+        {
+          "box": [
+            20,
+            525,
+            100,
+            600
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "li-l7-side",
+      "split": "calibration",
+      "title": "Moscow, Li Auto L7, Mar 2026 05"
+    },
+    {
+      "artist": "Benoit Prieur",
+      "download_height": 960,
+      "download_name": "bmw-i3.jpg",
+      "download_sha256": "c25ff4ea1aeda2cdb217aa78d38d9afe6a2d1628711d2859a20cf44f0f253b24",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/91/Avenue_Roosevelt_%C3%A0_Bruxelles%2C_Zen_Car_en_recharge.jpg/1280px-Avenue_Roosevelt_%C3%A0_Bruxelles%2C_Zen_Car_en_recharge.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2019-09-08T17:57:28Z",
+      "file_sha1": "f888a3e5c127c8f50cb92718d05682f17cd3d184",
+      "object_box": [
+        135,
+        190,
+        1210,
+        900
+      ],
+      "page_id": 81981042,
+      "page_revision": 1189680596,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Avenue_Roosevelt_%C3%A0_Bruxelles,_Zen_Car_en_recharge.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the plate is removed.",
+      "redactions": [
+        {
+          "box": [
+            890,
+            650,
+            1095,
+            730
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "bmw-i3",
+      "split": "test",
+      "title": "Avenue Roosevelt a Bruxelles, Zen Car en recharge"
+    },
+    {
+      "artist": "Muldoonsamuel55",
+      "download_height": 960,
+      "download_name": "pink-cadillac.jpg",
+      "download_sha256": "5a5beac6860ae64b4c0c082f9139fbd315f30b9dc74b516f0d1d3d0dc05d88c1",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/PINK_AUTOMOBILE_MANUFACTURED_BY_CADILLAC.jpg/1280px-PINK_AUTOMOBILE_MANUFACTURED_BY_CADILLAC.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2025-02-06T16:51:14Z",
+      "file_sha1": "d2eefb7c1efc2bf5836af80041df6590d0113467",
+      "object_box": [
+        60,
+        205,
+        1200,
+        865
+      ],
+      "page_id": 159244723,
+      "page_revision": 1015736558,
+      "page_url": "https://commons.wikimedia.org/wiki/File:PINK_AUTOMOBILE_MANUFACTURED_BY_CADILLAC.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the plate is removed.",
+      "redactions": [
+        {
+          "box": [
+            180,
+            600,
+            315,
+            735
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "pink-cadillac",
+      "split": "test",
+      "title": "Pink automobile manufactured by Cadillac"
+    },
+    {
+      "artist": "Marcxosm",
+      "download_height": 958,
+      "download_name": "red-opel.jpg",
+      "download_sha256": "4553e617829d9b55bd2b5128998a63fe33b2ae9724482a13b208f3c3f8260d18",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Auto_in_car_sharing_a_Livorno.jpg/1280px-Auto_in_car_sharing_a_Livorno.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2022-05-15T10:13:46Z",
+      "file_sha1": "c88480996c19f73748e79e825415884ec41113f7",
+      "object_box": [
+        105,
+        275,
+        975,
+        900
+      ],
+      "page_id": 118014948,
+      "page_revision": 1069721559,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Auto_in_car_sharing_a_Livorno.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the already obscured plate is replaced.",
+      "redactions": [
+        {
+          "box": [
+            145,
+            650,
+            315,
+            785
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "red-opel",
+      "split": "test",
+      "title": "Auto in car sharing a Livorno"
+    },
+    {
+      "artist": "Retired electrician",
+      "download_height": 853,
+      "download_name": "li-l9-side.jpg",
+      "download_sha256": "89ce70159d250c45dd117382793fbb9cfffe1cebd794a4129fb7c3c415c2b502",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/95/Moscow%2C_Li_Auto_L9_grey%2C_Apr_2026_01.jpg/1280px-Moscow%2C_Li_Auto_L9_grey%2C_Apr_2026_01.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2026-04-08T02:47:54Z",
+      "file_sha1": "da3363af20149e59c74ad99e13cebdd37037a12b",
+      "object_box": [
+        20,
+        245,
+        1270,
+        715
+      ],
+      "page_id": 188395728,
+      "page_revision": 1202322928,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Moscow,_Li_Auto_L9_grey,_Apr_2026_01.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the partial front plate is removed.",
+      "redactions": [
+        {
+          "box": [
+            15,
+            525,
+            80,
+            610
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "li-l9-side",
+      "split": "test",
+      "title": "Moscow, Li Auto L9 grey, Apr 2026 01"
+    },
+    {
+      "artist": "Retired electrician",
+      "download_height": 853,
+      "download_name": "li-l9-rear.jpg",
+      "download_sha256": "137fffe120d9b1fe405a27b32a78e5cbf7ddbd7b3e74157684b929b56d5dc113",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a8/Moscow%2C_Li_Auto_L9_grey%2C_Apr_2026_04.jpg/1280px-Moscow%2C_Li_Auto_L9_grey%2C_Apr_2026_04.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2026-04-08T02:47:58Z",
+      "file_sha1": "00ce1cf2ff3a23aeb5f67c0a7a65d4560069bfa7",
+      "object_box": [
+        25,
+        235,
+        1220,
+        750
+      ],
+      "page_id": 188395733,
+      "page_revision": 1202322963,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Moscow,_Li_Auto_L9_grey,_Apr_2026_04.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the plate is removed.",
+      "redactions": [
+        {
+          "box": [
+            1020,
+            440,
+            1145,
+            525
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "li-l9-rear",
+      "split": "test",
+      "title": "Moscow, Li Auto L9 grey, Apr 2026 04"
+    },
+    {
+      "artist": "Retired electrician",
+      "download_height": 853,
+      "download_name": "li-l7-white.jpg",
+      "download_sha256": "a780df9d2372726bc0860bc74dd38b37ca9ffd8c7bae53491be104e555e2f2d2",
+      "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Moscow%2C_Li_Auto_L7_white%2C_Apr_2026_01.jpg/1280px-Moscow%2C_Li_Auto_L7_white%2C_Apr_2026_01.jpg",
+      "download_width": 1280,
+      "file_revision_timestamp": "2026-04-15T09:20:30Z",
+      "file_sha1": "7f0d031dac79106ce8ec6b4851313b89fe288462",
+      "object_box": [
+        45,
+        280,
+        1165,
+        790
+      ],
+      "page_id": 189301926,
+      "page_revision": 1224433204,
+      "page_url": "https://commons.wikimedia.org/wiki/File:Moscow,_Li_Auto_L7_white,_Apr_2026_01.jpg",
+      "privacy_review": "No face or person occurs inside the selected crop; the plate is removed.",
+      "redactions": [
+        {
+          "box": [
+            75,
+            495,
+            190,
+            575
+          ],
+          "kind": "plate"
+        }
+      ],
+      "source_id": "li-l7-white",
+      "split": "test",
+      "title": "Moscow, Li Auto L7 white, Apr 2026 01"
+    }
+  ],
+  "terms_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+}
