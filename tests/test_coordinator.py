@@ -577,8 +577,14 @@ def test_coordinator_maps_adapter_failures_and_rejects_invalid_adapters(tmp_path
         base.deterministic,
         base.offline,
     )
+
+    class SubclassDescriptorAdapter:
+        @property
+        def descriptor(self) -> CapabilityDescriptor:
+            return subclass
+
     with pytest.raises(CoordinatorError) as subclassed:
-        coordinator._validate_adapter(subclass, PortKind.VIDEO_SOURCE)
+        coordinator._validate_adapter(SubclassDescriptorAdapter(), PortKind.VIDEO_SOURCE)
     assert subclassed.value.code is CoordinatorErrorCode.INVALID_REQUEST
 
 
