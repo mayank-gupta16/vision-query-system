@@ -19,6 +19,15 @@ The output contains one vehicle per frame and no person, face, plate, or retaine
 personal data. Source JPEGs and derived PPMs remain ignored; neither set is a
 product asset or release payload.
 
+Issue #22 additionally approves the
+[`v02-sampling-cc0-derived-1`](../../fixtures/v02-sampling-research/dataset-manifest.json)
+set for frame-sampling evaluation only. Ten deterministic rawvideo clips reuse
+the issue #21 plate-sanitized CC0 derivatives across source-disjoint calibration
+and test splits. Source identity, transforms, event intervals, every frame PTS,
+duration, RGB hash, and object box are locked. The clips and inspection images
+remain ignored, contain no person, face, plate, or retained personal data, and
+are not product or release assets.
+
 For every artifact record source/owner, acquisition method, exact revision/hash,
 license or permission, redistribution and derivative rights, consent/privacy
 status, allowed uses, annotation provenance, retention requirements, and review

@@ -45,3 +45,14 @@ python3 scripts/generate_synthetic_fixtures.py \
 The command reports wall time, process peak RSS, and total bytes for the PR-CI
 boundedness check. Those machine-dependent observations are not part of the
 canonical fixture manifest. Generated `.mov` files remain untracked.
+
+## Approved v0.2 evaluation sets
+
+The detector and sampling research sets are approved for evaluation only. The
+[detector methodology](v0.2-detection-methodology.md) records ten CC0 vehicle
+sources and their 20 deterministic, plate-sanitized still derivatives. The
+[sampling methodology](v0.2-sampling-methodology.md) records ten source-separated
+six-second clips generated from those sanitized derivatives, with 40 locked
+moving-object events covering small/fast motion, camera motion plus occlusion,
+hard cuts, and a VFR gap. Their binary sources and derivatives remain ignored;
+neither dataset is a product asset or release payload.
