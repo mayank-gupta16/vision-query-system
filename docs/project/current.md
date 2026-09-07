@@ -9,10 +9,13 @@
   with byte-preserving original-pixel RGB24 crops, plus a private staged local
   evidence CAS with integrity, dedupe, bounded audit, and deletion primitives,
   and a private transactional SQLite WorldStore with migration and run/intents
-  coordination primitives
+  coordination primitives, plus a deterministic coordinator for bounded
+  fake/manual original-pixel ingestion, crash recovery, orphan repair, and
+  reference-aware source deletion
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
-  transaction/index/disk passes on CPU-LITE generated fixtures
+  transaction/index/disk passes, and end-to-end coordinator stage costs on
+  CPU-LITE generated fixtures
 
 ## Established facts
 
@@ -67,8 +70,13 @@
   checksummed schema version 1, canonical JSON plus verified typed projections,
   fixed parameterized reads/writes, bounded verification, hidden preparing-run
   batches, durable artifact intents, and atomic run publication. It composes
-  metadata mutations with an active EvidenceStore writer session; recovery and
-  cascade-deletion orchestration remain coordinator-owned.
+  metadata mutations with an active EvidenceStore writer session.
+- IngestionCoordinator composes deterministic offline source/sampler adapters
+  with manual source-pixel regions and the two local stores. It publishes only
+  complete runs, retries every durable crash boundary, repairs proven orphans,
+  and performs reference-aware source deletion through a reduced checkpointed
+  receipt. Structured stage events contain only identifiers, status, counts,
+  and timings.
 
 ## Known blockers and limitations
 
@@ -86,17 +94,18 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- No end-to-end ingestion orchestration, query engine, model adapter, or
-  application benchmark exists. The local-video adapter is Linux x86_64 only
-  and tests generate only the approved tiny synthetic-v1 media plus temporary
-  metadata/archive fixtures.
+- The first end-to-end library path requires caller-supplied RGB24 pixels and
+  manual/fake regions; its user-facing CLI is not implemented. No query engine,
+  real perception model adapter, or combined 60-second application benchmark
+  exists. The local-video adapter is Linux x86_64 only and tests generate only
+  the approved tiny synthetic-v1 media plus temporary metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,
   runtimes, codecs, services, or other third-party material.
 
 ## Next priorities
 
-1. Implement the smallest v0.1 end-to-end ingestion slice in issue dependency
-   order; preserve the root package's zero runtime dependencies by keeping media
-   dependencies adapter-local.
+1. Expose the v0.1 fake/manual ingestion slice through the inspectable CLI in
+   issue dependency order; preserve the root package's zero runtime dependencies
+   by keeping media dependencies adapter-local.
 2. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

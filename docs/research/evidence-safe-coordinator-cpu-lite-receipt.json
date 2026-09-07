@@ -1,0 +1,132 @@
+{
+  "checks": {
+    "all_adapters_deterministic": true,
+    "all_adapters_offline": true,
+    "deleted_artifact_absent": true,
+    "deletion_complete": true,
+    "deterministic_manifest": true,
+    "evidence_record_visible": true,
+    "idempotent_retry": true,
+    "original_pixel_crop_retrievable": true
+  },
+  "implementation": {
+    "coordinator_module_sha256": "827e66ab243c960cb960598d2a5c2e616d6a60208d72962d1bdbd077e4781fde",
+    "executable_implementation": "cpython",
+    "harness_sha256": "538e8ec2f08f89ef65732cca1a8bbb28eb76c2a0949ecacdcdf0b1c550f16efd",
+    "python_version": "3.13.15",
+    "storage_module_sha256": "2c4a37c5218bac08092ab359d69f134312a0055f488727e02e625e530b0f705c",
+    "world_store_module_sha256": "99c47bcfc706b573d7ba54e76e33a8afc30b5dba19e40b2e1d660473d14045bd"
+  },
+  "measurements": {
+    "clean_staging": {
+      "calls": 2,
+      "items": 0,
+      "wall_ns": 1586
+    },
+    "crop": {
+      "calls": 2,
+      "items": 2,
+      "wall_ns": 332442
+    },
+    "delete_artifacts": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 145025
+    },
+    "delete_checkpoint": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 836781
+    },
+    "delete_metadata": {
+      "calls": 1,
+      "items": 4,
+      "wall_ns": 1645506
+    },
+    "delete_pending": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 1569235
+    },
+    "finalize": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 1357240
+    },
+    "prepare": {
+      "calls": 1,
+      "items": 2,
+      "wall_ns": 1280768
+    },
+    "probe": {
+      "calls": 4,
+      "items": 130,
+      "wall_ns": 33912
+    },
+    "promote": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 192489
+    },
+    "record_intents": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 849269
+    },
+    "record_metadata": {
+      "calls": 1,
+      "items": 2,
+      "wall_ns": 2178656
+    },
+    "sample": {
+      "calls": 2,
+      "items": 6,
+      "wall_ns": 19058
+    },
+    "stage": {
+      "calls": 1,
+      "items": 1,
+      "wall_ns": 157213
+    },
+    "verify": {
+      "calls": 2,
+      "items": 6,
+      "wall_ns": 5423909
+    }
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "resources": {
+    "disk_bounded": true,
+    "peak_rss_limit_bytes": 2147483648,
+    "process_peak_rss_bytes": 26710016,
+    "rss_bounded": true,
+    "rss_measured": true,
+    "store_logical_bytes_after_delete": 167936,
+    "store_logical_limit_bytes": 16777216,
+    "timing_measured": true
+  },
+  "schema": "visualworld.coordinator-acceptance-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "workload": {
+    "candidate_count": 3,
+    "crop_rgb24_bytes": 4032,
+    "deterministic_synthetic_input": true,
+    "sample_count": 1,
+    "source_dimensions": [
+      64,
+      36
+    ],
+    "source_rgb24_bytes": 6912
+  }
+}

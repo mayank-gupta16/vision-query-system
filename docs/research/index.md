@@ -38,3 +38,7 @@ architecture.
   migration, canonical projection integrity, run/intents coordination, and
   CPU-LITE validation with a
   [machine-readable receipt](local-world-store-cpu-lite-receipt.json).
+- [Evidence-safe ingestion coordinator](evidence-safe-coordinator.md) — issue
+  #16 deterministic fake/manual ingestion, recovery, repair, source deletion,
+  and CPU-LITE validation with a
+  [machine-readable receipt](evidence-safe-coordinator-cpu-lite-receipt.json).

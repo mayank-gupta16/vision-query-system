@@ -483,6 +483,12 @@ def test_inspect_and_paginated_inventory_enable_external_orphan_reconciliation(
     assert artifacts - referenced == {orphan.sha256}
     assert [entry.stage for entry in entries if entry.kind is InventoryKind.STAGED] == [staged]
     assert len({entry.token for entry in entries}) == len(entries)
+    assert store.max_inventory_entries > 0
+    assert store.max_inventory_bytes > 0
+    staging = store.staging_inventory()
+    assert tuple(entry.stage for entry in staging.entries) == (staged,)
+    with store.writer_session() as session:
+        assert session.staging_inventory() == staging
 
 
 def test_audit_is_bounded_and_invalid_cursors_fail_closed(tmp_path: Path) -> None:
@@ -512,6 +518,29 @@ def test_audit_is_bounded_and_invalid_cursors_fail_closed(tmp_path: Path) -> Non
     with pytest.raises(PortError) as raised:
         store.inventory(after="inv_" + "f" * 64)
     assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    with pytest.raises(PortError) as raised:
+        store.staging_inventory(after="inv_" + "f" * 64)
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+
+    staged = store.stage(RUN_ID, _artifact(b"staged"), b"staged")
+    staging_entry_bounded = LocalEvidenceStore(
+        store.root,
+        max_inventory_entries=1,
+        max_inventory_bytes=1024,
+    )
+    staging_byte_bounded = LocalEvidenceStore(
+        store.root,
+        max_inventory_entries=100,
+        max_inventory_bytes=5,
+    )
+    for operation in (
+        staging_entry_bounded.staging_inventory,
+        staging_byte_bounded.staging_inventory,
+    ):
+        with pytest.raises(PortError) as raised:
+            operation()
+        assert raised.value.code is PortErrorCode.LIMIT_EXCEEDED
+    assert _staged_path(store.root, staged).read_bytes() == b"staged"
 
 
 def test_staging_inventory_streams_with_maximum_supported_payload_limit(tmp_path: Path) -> None:

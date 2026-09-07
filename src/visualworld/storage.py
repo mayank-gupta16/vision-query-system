@@ -955,6 +955,14 @@ class LocalEvidenceStore:
     def descriptor(self) -> CapabilityDescriptor:
         return self._descriptor
 
+    @property
+    def max_inventory_entries(self) -> int:
+        return self._inventory_maximum_entries
+
+    @property
+    def max_inventory_bytes(self) -> int:
+        return self._inventory_maximum_bytes
+
     def _initialize(self) -> None:
         operation = "init"
         root_descriptor = _open_root(self._root, operation, create=True)
@@ -1530,8 +1538,8 @@ class LocalEvidenceStore:
         self,
         root_descriptor: int,
         budget: _InventoryBudget,
+        operation: str = "inventory",
     ) -> list[InventoryEntry]:
-        operation = "inventory"
         entries: list[InventoryEntry] = []
         with _directory_chain(root_descriptor, ("staging", "v1"), operation) as root:
             for run_entry in _scan_directory(root, budget, operation):
@@ -1681,6 +1689,58 @@ class LocalEvidenceStore:
                 *self._inventory_cas(root_descriptor, budget),
                 *self._inventory_staging(root_descriptor, budget),
             ],
+            key=lambda entry: entry.token,
+        )
+        start = 0
+        if after is not None:
+            tokens = [entry.token for entry in entries]
+            try:
+                start = tokens.index(after) + 1
+            except ValueError:
+                _fail(PortErrorCode.INVALID_REQUEST, operation)
+        selected = tuple(entries[start : start + limit])
+        next_after = selected[-1].token if start + len(selected) < len(entries) else None
+        return InventoryPage(selected, next_after)
+
+    def staging_inventory(
+        self,
+        *,
+        after: str | None = None,
+        limit: int = MAX_PORT_BATCH_ITEMS,
+    ) -> InventoryPage:
+        """Inspect only bounded staging state, without hashing the artifact CAS."""
+
+        operation = "staging_inventory"
+        with self._operation(operation, exclusive=False) as root_descriptor:
+            return self._staging_inventory_locked(
+                root_descriptor,
+                after,
+                limit,
+                operation,
+            )
+
+    def _staging_inventory_locked(
+        self,
+        root_descriptor: int,
+        after: object,
+        limit: object,
+        operation: str,
+    ) -> InventoryPage:
+        if (
+            (
+                after is not None
+                and (type(after) is not str or not _INVENTORY_TOKEN.fullmatch(after))
+            )
+            or type(limit) is not int
+            or not 1 <= limit <= MAX_PORT_BATCH_ITEMS
+        ):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        budget = _InventoryBudget(
+            self._inventory_maximum_entries,
+            self._inventory_maximum_bytes,
+        )
+        entries = sorted(
+            self._inventory_staging(root_descriptor, budget, operation),
             key=lambda entry: entry.token,
         )
         start = 0
@@ -1971,6 +2031,19 @@ class EvidenceWriterSession:
             after,
             limit,
             "inventory",
+        )
+
+    def staging_inventory(
+        self,
+        *,
+        after: str | None = None,
+        limit: int = MAX_PORT_BATCH_ITEMS,
+    ) -> InventoryPage:
+        return self._store._staging_inventory_locked(
+            self._descriptor(),
+            after,
+            limit,
+            "staging_inventory",
         )
 
 
