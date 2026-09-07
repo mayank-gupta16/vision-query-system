@@ -963,11 +963,62 @@ class LocalWorldStore:
         records: tuple[tuple[Record, bytes], ...],
         operation: str,
     ) -> None:
+        source_ids = {
+            record.source_id
+            for record, _ in records
+            if isinstance(record, (Source, FrameRef, RunManifest))
+        }
+        for record, _ in records:
+            if not isinstance(record, EvidenceRef):
+                continue
+            row = connection.execute(
+                "SELECT source_id FROM frames WHERE frame_id = ?",
+                (record.frame_id,),
+            ).fetchone()
+            if row is not None:
+                if type(row[0]) is not str or not _SOURCE_ID.fullmatch(row[0]):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                source_ids.add(row[0])
+        self._guard_sources_writable(connection, source_ids, operation)
         order = (Source, RunManifest, FrameRef, EvidenceRef)
         for record_type in order:
             for record, encoded in records:
                 if isinstance(record, record_type):
                     self._write_record(connection, record, encoded, operation)
+
+    @staticmethod
+    def _guard_sources_writable(
+        connection: sqlite3.Connection,
+        source_ids: set[str],
+        operation: str,
+    ) -> None:
+        for source_id in source_ids:
+            pending = connection.execute(
+                """SELECT 1 FROM deletion_jobs
+                WHERE root_kind = 'source' AND root_id = ? AND state = 'pending'
+                LIMIT 1""",
+                (source_id,),
+            ).fetchone()
+            if pending is not None:
+                _fail(PortErrorCode.CONFLICT, operation)
+
+    def _guard_run_writable(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        operation: str,
+        *,
+        missing_code: PortErrorCode = PortErrorCode.CONFLICT,
+    ) -> None:
+        row = connection.execute(
+            "SELECT source_id FROM runs WHERE run_id = ?",
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            _fail(missing_code, operation)
+        if type(row[0]) is not str or not _SOURCE_ID.fullmatch(row[0]):
+            _fail(PortErrorCode.CORRUPT, operation)
+        self._guard_sources_writable(connection, {row[0]}, operation)
 
     def _write_record(
         self,
@@ -1257,6 +1308,7 @@ class LocalWorldStore:
         with self._coordinated_write_connection(operation, evidence_session) as connection:
             try:
                 with self._transaction(connection, operation):
+                    self._guard_run_writable(connection, selected_run, operation)
                     state = connection.execute(
                         "SELECT state FROM runs WHERE run_id = ?",
                         (selected_run,),
@@ -1292,6 +1344,7 @@ class LocalWorldStore:
         with self._coordinated_write_connection(operation, evidence_session) as connection:
             try:
                 with self._transaction(connection, operation):
+                    self._guard_run_writable(connection, selected_run, operation)
                     state = connection.execute(
                         "SELECT state FROM runs WHERE run_id = ?",
                         (selected_run,),
@@ -1344,6 +1397,12 @@ class LocalWorldStore:
             after = _identifier(after_staging_name, _STAGING_NAME, operation)
         with self._read_connection(operation) as connection:
             try:
+                hidden = connection.execute(
+                    "SELECT 1 FROM deletion_closure WHERE record_id = ? LIMIT 1",
+                    (selected_run,),
+                ).fetchone()
+                if hidden is not None:
+                    _fail(PortErrorCode.NOT_FOUND, operation)
                 rows = connection.execute(
                     """SELECT staging_name, artifact_digest, byte_count,
                     media_type, protocol_version FROM artifact_intents
@@ -1388,6 +1447,11 @@ class LocalWorldStore:
         with self._coordinated_write_connection(operation, evidence_session) as connection:
             try:
                 with self._transaction(connection, operation):
+                    self._guard_run_writable(
+                        connection,
+                        selected_manifest.run_id,
+                        operation,
+                    )
                     existing = connection.execute(
                         "SELECT state, record_json FROM runs WHERE run_id = ?",
                         (selected_manifest.run_id,),
@@ -1462,21 +1526,57 @@ class LocalWorldStore:
         *,
         after_run_id: str | None = None,
         limit: int = MAX_PORT_BATCH_ITEMS,
+        actionable_only: bool = False,
     ) -> tuple[RunManifest, ...]:
         operation = "pending_runs"
         selected_limit = _bounded_limit(limit, operation)
+        if type(actionable_only) is not bool:
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
         after = ""
         if after_run_id is not None:
             after = _identifier(after_run_id, _RUN_ID, operation)
         with self._read_connection(operation) as connection:
             try:
-                rows = connection.execute(
-                    """SELECT record_json FROM runs
-                    WHERE state IN ('preparing', 'failed', 'cancelled')
-                      AND run_id > ?
-                    ORDER BY run_id LIMIT ?""",
-                    (after, selected_limit),
-                ).fetchall()
+                if actionable_only:
+                    rows = connection.execute(
+                        """SELECT record_json FROM runs
+                        WHERE (
+                            state = 'preparing'
+                            OR (
+                                state IN ('failed', 'cancelled')
+                                AND (
+                                    EXISTS (
+                                        SELECT 1 FROM artifact_intents AS intent
+                                        WHERE intent.run_id = runs.run_id
+                                    )
+                                    OR EXISTS (
+                                        SELECT 1 FROM run_records AS owned
+                                        WHERE owned.run_id = runs.run_id
+                                    )
+                                )
+                            )
+                        ) AND run_id > ?
+                          AND NOT EXISTS (
+                              SELECT 1 FROM deletion_closure AS hidden
+                              WHERE hidden.record_id = runs.run_id
+                                AND hidden.record_type = 'run'
+                          )
+                        ORDER BY run_id LIMIT ?""",
+                        (after, selected_limit),
+                    ).fetchall()
+                else:
+                    rows = connection.execute(
+                        """SELECT record_json FROM runs
+                        WHERE state IN ('preparing', 'failed', 'cancelled')
+                          AND run_id > ?
+                          AND NOT EXISTS (
+                              SELECT 1 FROM deletion_closure AS hidden
+                              WHERE hidden.record_id = runs.run_id
+                                AND hidden.record_type = 'run'
+                          )
+                        ORDER BY run_id LIMIT ?""",
+                        (after, selected_limit),
+                    ).fetchall()
                 result = tuple(self._decode_record(row[0], operation) for row in rows)
                 if not all(isinstance(record, RunManifest) for record in result):
                     _fail(PortErrorCode.CORRUPT, operation)
@@ -1550,6 +1650,12 @@ class LocalWorldStore:
         selected_run = _identifier(run_id, _RUN_ID, operation)
         with self._coordinated_write_connection(operation, evidence_session) as connection:
             try:
+                hidden = connection.execute(
+                    "SELECT 1 FROM deletion_closure WHERE record_id = ? LIMIT 1",
+                    (selected_run,),
+                ).fetchone()
+                if hidden is not None:
+                    _fail(PortErrorCode.NOT_FOUND, operation)
                 state = connection.execute(
                     "SELECT state FROM runs WHERE run_id = ?", (selected_run,)
                 ).fetchone()
@@ -1618,6 +1724,12 @@ class LocalWorldStore:
         with self._coordinated_write_connection(operation, evidence_session) as connection:
             try:
                 with self._transaction(connection, operation):
+                    self._guard_run_writable(
+                        connection,
+                        selected_run,
+                        operation,
+                        missing_code=PortErrorCode.NOT_FOUND,
+                    )
                     row = connection.execute(
                         "SELECT state, record_json FROM runs WHERE run_id = ?",
                         (selected_run,),
@@ -2145,7 +2257,9 @@ class LocalWorldStore:
                     required = tuple(
                         item.artifact for item in plan.artifacts if item.delete_required
                     )
-                    checks = evidence_session.inspect(required)
+                    checks = tuple(
+                        evidence_session.inspect((artifact,))[0] for artifact in required
+                    )
                     if any(check.state is ArtifactState.CORRUPT for check in checks):
                         _fail(PortErrorCode.CORRUPT, operation)
                     if any(check.state is not ArtifactState.MISSING for check in checks):

@@ -191,7 +191,9 @@ RGB24 evidence, offline adapter capabilities, checkpointed source deletion, and
 per-stage wall costs. The receipt contains aggregate dimensions, counts,
 resource measurements, and implementation hashes; it omits store paths,
 record/deletion identifiers, and pixel bytes. The combined 60-second application
-baseline remains assigned to the v0.1 benchmark issue.
+baseline remains assigned to the v0.1 benchmark issue. The reviewed CPU-LITE
+result is retained in the
+[machine-readable receipt](../research/evidence-safe-coordinator-cpu-lite-receipt.json).
 
 ## Updates
 

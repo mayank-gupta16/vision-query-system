@@ -11,9 +11,10 @@ Defaults:
 - disclose the destination and exact data categories before remote transmission;
 - face crops, plate OCR, and cross-recording human ReID disabled until their
   capability has approved safeguards; real-world face identity remains out of scope;
-- logs contain only stable operation names, aggregate counts/metrics, and
-  status—not paths, run/stage IDs, hashes, pixels, OCR/plates, raw prompts,
-  tokens, credentials, or backend exception text;
+- logs contain only stable operation names, aggregate counts/metrics, status,
+  and opaque record/deletion IDs or content hashes explicitly needed for
+  correlation—not paths, pixels, OCR/plates, raw prompts, tokens, credentials,
+  or backend exception text;
 - configurable retention and cascade deletion across artifacts, caches, indexes,
   prompts, world state, and exports.
 

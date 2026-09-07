@@ -12,7 +12,7 @@ from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import NoReturn, TypeVar
+from typing import TypeVar
 
 from visualworld import __version__
 from visualworld.geometry import Box, CropError, extract_rgb24_crop, source_geometry
@@ -55,6 +55,8 @@ from visualworld.world_store import (
 COORDINATION_PROTOCOL_VERSION = 1
 MAX_COORDINATOR_ITEMS = MAX_PORT_BATCH_ITEMS
 MAX_FRAME_BYTES = 512 * 1024 * 1024
+MAX_COORDINATOR_BYTES = 512 * 1024 * 1024
+MAX_RECOVERY_RUNS = 4_096
 
 _FRAME_ID = re.compile(r"frm_[0-9a-f]{64}\Z")
 _SOURCE_ID = re.compile(r"src_[0-9a-f]{64}\Z")
@@ -141,6 +143,7 @@ class IngestionConfig:
     stream_index: int = 0
     max_candidates: int = MAX_COORDINATOR_ITEMS
     max_frame_bytes: int = MAX_FRAME_BYTES
+    max_total_frame_bytes: int = MAX_COORDINATOR_BYTES
     protocol_version: int = COORDINATION_PROTOCOL_VERSION
 
     def __post_init__(self) -> None:
@@ -152,6 +155,9 @@ class IngestionConfig:
             or not 1 <= self.max_candidates <= MAX_COORDINATOR_ITEMS
             or type(self.max_frame_bytes) is not int
             or not 3 <= self.max_frame_bytes <= MAX_FRAME_BYTES
+            or type(self.max_total_frame_bytes) is not int
+            or not 3 <= self.max_total_frame_bytes <= MAX_COORDINATOR_BYTES
+            or self.max_frame_bytes > self.max_total_frame_bytes
             or type(self.protocol_version) is not int
             or self.protocol_version != COORDINATION_PROTOCOL_VERSION
         ):
@@ -339,9 +345,10 @@ class IngestionCoordinator:
             with suppress(Exception):
                 self._event_sink(event)
 
-    def _mapped_error(self, error: Exception, stage: CoordinatorStage) -> NoReturn:
+    @staticmethod
+    def _map_error(error: Exception, stage: CoordinatorStage) -> CoordinatorError:
         if isinstance(error, CoordinatorError):
-            raise error
+            return CoordinatorError(error.code, error.stage, retryable=error.retryable)
         if isinstance(error, PortError):
             if error.code in {PortErrorCode.INVALID_REQUEST, PortErrorCode.LIMIT_EXCEEDED}:
                 code = CoordinatorErrorCode.INVALID_REQUEST
@@ -351,10 +358,26 @@ class IngestionCoordinator:
                 code = CoordinatorErrorCode.CORRUPT
             else:
                 code = CoordinatorErrorCode.OPERATION_FAILED
-            raise CoordinatorError(code, stage, retryable=error.retryable) from None
+            return CoordinatorError(code, stage, retryable=error.retryable)
         if isinstance(error, (CropError, RecordValidationError, TypeError, ValueError)):
-            raise CoordinatorError(CoordinatorErrorCode.INVALID_REQUEST, stage) from None
-        raise CoordinatorError(CoordinatorErrorCode.OPERATION_FAILED, stage) from None
+            return CoordinatorError(CoordinatorErrorCode.INVALID_REQUEST, stage)
+        return CoordinatorError(CoordinatorErrorCode.OPERATION_FAILED, stage)
+
+    def _optional_world_call(
+        self,
+        operation: Callable[[], _T],
+        stage: CoordinatorStage,
+    ) -> _T | None:
+        mapped: CoordinatorError | None = None
+        try:
+            return operation()
+        except PortError as error:
+            if error.code is PortErrorCode.NOT_FOUND:
+                return None
+            mapped = self._map_error(error, stage)
+        if mapped is not None:
+            raise mapped from None
+        raise AssertionError("unreachable")
 
     def _step(
         self,
@@ -367,6 +390,7 @@ class IngestionCoordinator:
         deletion_id: str | None = None,
     ) -> _T:
         started = self._clock_ns()
+        mapped: CoordinatorError | None = None
         try:
             result = operation()
         except Exception as error:
@@ -382,7 +406,9 @@ class IngestionCoordinator:
                     deletion_id,
                 ),
             )
-            self._mapped_error(error, stage)
+            mapped = self._map_error(error, stage)
+        if mapped is not None:
+            raise mapped from None
         elapsed = max(1, self._clock_ns() - started)
         self._emit(
             events,
@@ -404,9 +430,13 @@ class IngestionCoordinator:
 
     @staticmethod
     def _validate_adapter(adapter: object, port: PortKind) -> None:
+        descriptor_error = False
         try:
             descriptor = getattr(adapter, "descriptor", None)
         except Exception:
+            descriptor_error = True
+            descriptor = None
+        if descriptor_error:
             raise CoordinatorError(
                 CoordinatorErrorCode.INVALID_REQUEST,
                 CoordinatorStage.PROBE
@@ -458,6 +488,11 @@ class IngestionCoordinator:
         by_id = {item.frame_id: item for item in manual}
         if len(by_id) != len(manual) or set(by_id) != {frame.frame_id for frame in selected}:
             raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.CROP)
+        if sum(len(item.frame_rgb24) for item in manual) > config.max_total_frame_bytes:
+            raise CoordinatorError(
+                CoordinatorErrorCode.INVALID_REQUEST,
+                CoordinatorStage.CROP,
+            )
         streams = {stream.stream_index: stream for stream in source.streams}
 
         def crop_all() -> tuple[tuple[EvidenceRef, ...], tuple[bytes, ...]]:
@@ -590,11 +625,15 @@ class IngestionCoordinator:
             ),
             item_count=config.max_candidates,
         )
-        if not isinstance(candidates, tuple) or not all(
-            isinstance(frame, FrameRef)
-            and frame.source_id == source.source_id
-            and frame.stream_index == config.stream_index
-            for frame in candidates
+        if (
+            not isinstance(candidates, tuple)
+            or len(candidates) > config.max_candidates
+            or not all(
+                isinstance(frame, FrameRef)
+                and frame.source_id == source.source_id
+                and frame.stream_index == config.stream_index
+                for frame in candidates
+            )
         ):
             raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.PROBE)
         if len(candidates) == config.max_candidates and candidates:
@@ -608,6 +647,21 @@ class IngestionCoordinator:
                 ),
                 item_count=1,
             )
+            if (
+                not isinstance(more, tuple)
+                or len(more) > 1
+                or not all(
+                    isinstance(frame, FrameRef)
+                    and frame.source_id == source.source_id
+                    and frame.stream_index == config.stream_index
+                    and int(frame.decode_index) > int(candidates[-1].decode_index)
+                    for frame in more
+                )
+            ):
+                raise CoordinatorError(
+                    CoordinatorErrorCode.CONFLICT,
+                    CoordinatorStage.PROBE,
+                )
             if more:
                 raise CoordinatorError(
                     CoordinatorErrorCode.INVALID_REQUEST,
@@ -638,13 +692,24 @@ class IngestionCoordinator:
             events,
         )
         run_id = preparing.run_id
+        unique_artifacts: dict[str, tuple[Artifact, bytes]] = {}
+        for item, content in zip(evidence, contents, strict=True):
+            existing_artifact = unique_artifacts.get(item.artifact.sha256)
+            if existing_artifact is None:
+                unique_artifacts[item.artifact.sha256] = (item.artifact, content)
+            elif existing_artifact != (item.artifact, content):
+                raise CoordinatorError(
+                    CoordinatorErrorCode.CORRUPT,
+                    CoordinatorStage.STAGE,
+                )
+        staged_entry_count = len(unique_artifacts) + bool(unique_artifacts)
+        staged_bytes = sum(int(artifact.bytes) for artifact, _ in unique_artifacts.values())
         with self._evidence.writer_session() as session:
-            try:
-                existing = self._world.get(run_id)
-            except PortError as error:
-                if error.code is not PortErrorCode.NOT_FOUND:
-                    self._mapped_error(error, CoordinatorStage.VERIFY)
-            else:
+            existing = self._optional_world_call(
+                lambda: self._world.get(run_id),
+                CoordinatorStage.VERIFY,
+            )
+            if existing is not None:
                 if existing == committed:
                     self._verify_existing(session, committed, selected, evidence, events)
                     return IngestionResult(
@@ -662,6 +727,14 @@ class IngestionCoordinator:
                         CoordinatorErrorCode.CONFLICT,
                         CoordinatorStage.PREPARE,
                     )
+            if (
+                staged_entry_count > self._evidence.max_inventory_entries
+                or staged_bytes > self._evidence.max_inventory_bytes
+            ):
+                raise CoordinatorError(
+                    CoordinatorErrorCode.INVALID_REQUEST,
+                    CoordinatorStage.STAGE,
+                )
             self._step(
                 events,
                 CoordinatorStage.PREPARE,
@@ -673,16 +746,6 @@ class IngestionCoordinator:
                 run_id=run_id,
             )
             self._boundary(fault_hook, CommitBoundary.PREPARED, run_id)
-            unique_artifacts: dict[str, tuple[Artifact, bytes]] = {}
-            for item, content in zip(evidence, contents, strict=True):
-                existing_artifact = unique_artifacts.get(item.artifact.sha256)
-                if existing_artifact is None:
-                    unique_artifacts[item.artifact.sha256] = (item.artifact, content)
-                elif existing_artifact != (item.artifact, content):
-                    raise CoordinatorError(
-                        CoordinatorErrorCode.CORRUPT,
-                        CoordinatorStage.STAGE,
-                    )
             stages = self._step(
                 events,
                 CoordinatorStage.STAGE,
@@ -784,7 +847,7 @@ class IngestionCoordinator:
                     raise ValueError("frame mismatch")
                 if self._world.get(item.evidence_id) != item:
                     raise ValueError("evidence mismatch")
-            checks = session.inspect(tuple(item.artifact for item in evidence))
+            checks = tuple(session.inspect((item.artifact,))[0] for item in evidence)
             if any(check.state is not ArtifactState.VALID for check in checks):
                 raise PortError(
                     PortErrorCode.CORRUPT,
@@ -804,7 +867,16 @@ class IngestionCoordinator:
         result: list[RunManifest] = []
         after: str | None = None
         while True:
-            page = self._world.pending_runs(after_run_id=after, limit=MAX_PORT_BATCH_ITEMS)
+            page = self._world.pending_runs(
+                after_run_id=after,
+                limit=MAX_PORT_BATCH_ITEMS,
+                actionable_only=True,
+            )
+            if len(result) + len(page) > MAX_RECOVERY_RUNS:
+                raise CoordinatorError(
+                    CoordinatorErrorCode.INVALID_REQUEST,
+                    CoordinatorStage.RECOVER_RUN,
+                )
             result.extend(page)
             if len(page) < MAX_PORT_BATCH_ITEMS:
                 return tuple(result)
@@ -834,13 +906,24 @@ class IngestionCoordinator:
                 return tuple(result)
             after = page.next_after
 
+    @staticmethod
+    def _staging_inventory(session: EvidenceWriterSession) -> tuple[InventoryEntry, ...]:
+        result: list[InventoryEntry] = []
+        after: str | None = None
+        while True:
+            page = session.staging_inventory(after=after, limit=MAX_PORT_BATCH_ITEMS)
+            result.extend(page.entries)
+            if page.next_after is None:
+                return tuple(result)
+            after = page.next_after
+
     def _remove_deletion_files(
         self,
         session: EvidenceWriterSession,
         plan: DeletionPlan,
     ) -> None:
         run_ids = set(plan.run_ids)
-        for entry in self._inventory(session):
+        for entry in self._staging_inventory(session):
             if (
                 entry.kind is InventoryKind.STAGED
                 and entry.stage is not None
@@ -925,7 +1008,7 @@ class IngestionCoordinator:
                     run_id=manifest.run_id,
                 )
                 runs_cleaned += 1
-            inventory = self._inventory(session)
+            inventory = self._staging_inventory(session)
 
             def clean_staging() -> None:
                 nonlocal staging_removed, integrity_issues
@@ -1014,12 +1097,11 @@ class IngestionCoordinator:
             )
         events: list[CoordinatorEvent] = []
         with self._evidence.writer_session() as session:
-            try:
-                status = self._world.deletion_status(selected)
-            except PortError as error:
-                if error.code is not PortErrorCode.NOT_FOUND:
-                    self._mapped_error(error, CoordinatorStage.DELETE_PENDING)
-            else:
+            status = self._optional_world_call(
+                lambda: self._world.deletion_status(selected),
+                CoordinatorStage.DELETE_PENDING,
+            )
+            if status is not None:
                 if status.state is DeletionState.COMPLETE:
                     self._require_source_absent(source_id)
                     return status
@@ -1099,12 +1181,12 @@ class IngestionCoordinator:
             return completed
 
     def _require_source_absent(self, source_id: str) -> None:
-        try:
-            self._world.get(source_id)
-        except PortError as error:
-            if error.code is PortErrorCode.NOT_FOUND:
-                return
-            self._mapped_error(error, CoordinatorStage.DELETE_PENDING)
+        record = self._optional_world_call(
+            lambda: self._world.get(source_id),
+            CoordinatorStage.DELETE_PENDING,
+        )
+        if record is None:
+            return
         raise CoordinatorError(
             CoordinatorErrorCode.CONFLICT,
             CoordinatorStage.DELETE_PENDING,
@@ -1113,8 +1195,10 @@ class IngestionCoordinator:
 
 __all__ = [
     "COORDINATION_PROTOCOL_VERSION",
+    "MAX_COORDINATOR_BYTES",
     "MAX_COORDINATOR_ITEMS",
     "MAX_FRAME_BYTES",
+    "MAX_RECOVERY_RUNS",
     "CommitBoundary",
     "CoordinatorError",
     "CoordinatorErrorCode",

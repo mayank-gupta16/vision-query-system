@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import hashlib
 import sqlite3
+import traceback
+from collections.abc import Callable
 from contextlib import closing
 from dataclasses import asdict
 from pathlib import Path
@@ -12,6 +14,7 @@ from typing import cast
 
 import pytest
 
+import visualworld.coordinator as coordinator_module
 from visualworld.coordinator import (
     CommitBoundary,
     CoordinatorError,
@@ -166,6 +169,49 @@ def test_duplicate_crop_artifact_is_staged_once_and_pixels_bind_manifest(tmp_pat
     assert changed.evidence[0].artifact.sha256 != first.evidence[0].artifact.sha256
 
 
+def test_ingest_preflights_recovery_budget_and_legacy_retry_inspects_incrementally(
+    tmp_path: Path,
+) -> None:
+    source, frames, pixels = _fixture()
+    root = tmp_path / "store"
+    video = FakeVideoSource(source, frames)
+    sampler = FakeFrameSampler(tuple(frame.frame_id for frame in frames))
+    config = IngestionConfig(
+        Sampling(Rational("5", "1")),
+        max_frame_bytes=12,
+        max_total_frame_bytes=24,
+    )
+    manual = (
+        ManualEvidenceInput(frames[0].frame_id, pixels, (0, 0, 2, 2)),
+        ManualEvidenceInput(frames[1].frame_id, bytes(reversed(pixels)), (0, 0, 2, 2)),
+    )
+    constrained_evidence = LocalEvidenceStore(
+        root,
+        max_payload_bytes=1024,
+        max_inventory_bytes=12,
+    )
+    world = LocalWorldStore(root)
+    constrained = IngestionCoordinator(constrained_evidence, world)
+
+    with pytest.raises(CoordinatorError) as rejected:
+        constrained.ingest(video, sampler, config, manual)
+    assert rejected.value.stage is CoordinatorStage.STAGE
+    assert world.verify().record_count == 0
+    assert constrained_evidence.inventory().entries == ()
+
+    admitted_evidence = LocalEvidenceStore(
+        root,
+        max_payload_bytes=1024,
+        max_inventory_bytes=24,
+    )
+    admitted = IngestionCoordinator(admitted_evidence, world)
+    committed = admitted.ingest(video, sampler, config, manual)
+    retried = constrained.ingest(video, sampler, config, manual)
+
+    assert retried.disposition is IngestionDisposition.ALREADY_COMMITTED
+    assert retried.manifest == committed.manifest
+
+
 @pytest.mark.parametrize(
     "boundary",
     [
@@ -278,6 +324,35 @@ def test_source_deletion_retains_cross_source_deduplicated_evidence(tmp_path: Pa
         evidence.get(second.evidence[0].artifact.sha256)
 
 
+def test_source_deletion_verifies_more_than_one_port_batch(tmp_path: Path) -> None:
+    source, frames, pixels = _fixture()
+    coordinator, evidence, world = _coordinator(tmp_path / "store")
+    result = _ingest(coordinator, source, frames, pixels)
+    extras: list[EvidenceRef] = []
+    for index in range(64):
+        content = f"extra-artifact-{index}".encode("ascii")
+        artifact = Artifact(hashlib.sha256(content).hexdigest(), str(len(content)))
+        evidence.put(artifact, content)
+        extras.append(
+            EvidenceRef.create(
+                result.frames[0].frame_id,
+                artifact,
+                result.evidence[0].geometry,
+            )
+        )
+    world.commit(tuple(extras))
+
+    receipt = coordinator.delete_source(
+        source.source_id,
+        deletion_id="del_" + "e" * 64,
+    )
+
+    assert receipt.state is DeletionState.COMPLETE
+    assert receipt.artifact_count == 65
+    with pytest.raises(PortError, match="not_found"):
+        evidence.get(extras[-1].artifact.sha256)
+
+
 @pytest.mark.parametrize(
     "boundary",
     [
@@ -379,6 +454,11 @@ def test_coordinator_value_objects_validate_and_redact(tmp_path: Path) -> None:
     invalid_factories = (
         lambda: IngestionConfig(cast(Sampling, object())),
         lambda: IngestionConfig(result.manifest.sampling, protocol_version=2),
+        lambda: IngestionConfig(
+            result.manifest.sampling,
+            max_frame_bytes=12,
+            max_total_frame_bytes=11,
+        ),
         lambda: ManualEvidenceInput("bad", b"x", (0, 0, 1, 1)),
         lambda: ManualEvidenceInput(frames[0].frame_id, pixels, (0, 0, 1, 1), "bad"),
         lambda: CoordinatorEvent(CoordinatorStage.PROBE, EventStatus.SUCCEEDED, 0, 0),
@@ -460,22 +540,62 @@ def test_coordinator_maps_adapter_failures_and_rejects_invalid_adapters(tmp_path
         (PortErrorCode.STORAGE_FAILED, CoordinatorErrorCode.OPERATION_FAILED),
     )
     for port_code, expected in errors:
-        with pytest.raises(CoordinatorError) as raised:
-            coordinator._mapped_error(
-                PortError(port_code, PortKind.VIDEO_SOURCE, "probe"),
-                CoordinatorStage.PROBE,
-            )
-        assert raised.value.code is expected
-    with pytest.raises(CoordinatorError) as raised:
-        coordinator._mapped_error(RuntimeError("private"), CoordinatorStage.PROBE)
-    assert raised.value.code is CoordinatorErrorCode.OPERATION_FAILED
-    with pytest.raises(CoordinatorError):
-        coordinator._mapped_error(
-            CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.PROBE),
+        mapped = coordinator._map_error(
+            PortError(port_code, PortKind.VIDEO_SOURCE, "probe"),
             CoordinatorStage.PROBE,
         )
+        assert mapped.code is expected
+    assert (
+        coordinator._map_error(RuntimeError("private"), CoordinatorStage.PROBE).code
+        is CoordinatorErrorCode.OPERATION_FAILED
+    )
+    original = CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.PROBE)
+    assert coordinator._map_error(original, CoordinatorStage.SAMPLE) is not original
     with pytest.raises(CoordinatorError):
         coordinator._validate_adapter(object(), PortKind.VIDEO_SOURCE)
+
+    class ExplodingDescriptor:
+        @property
+        def descriptor(self) -> object:
+            raise RuntimeError("private descriptor detail")
+
+    with pytest.raises(CoordinatorError) as exploding:
+        coordinator._validate_adapter(ExplodingDescriptor(), PortKind.VIDEO_SOURCE)
+    assert exploding.value.code is CoordinatorErrorCode.INVALID_REQUEST
+    assert exploding.value.__context__ is None
+
+
+def test_adapter_coordinator_error_chain_is_rebuilt_without_private_context(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source, frames, _ = _fixture()
+    coordinator, _, _ = _coordinator(tmp_path / "store")
+    video = FakeVideoSource(source, frames)
+    private_detail = "private-adapter-detail"
+
+    def leaky_probe() -> Source:
+        try:
+            raise RuntimeError(private_detail)
+        except RuntimeError as cause:
+            raise CoordinatorError(
+                CoordinatorErrorCode.OPERATION_FAILED,
+                CoordinatorStage.PROBE,
+            ) from cause
+
+    monkeypatch.setattr(video, "probe", leaky_probe)
+    with pytest.raises(CoordinatorError) as raised:
+        coordinator.ingest(
+            video,
+            FakeFrameSampler(()),
+            IngestionConfig(Sampling(Rational("5", "1")), max_frame_bytes=12),
+            (),
+        )
+
+    rendered = "".join(traceback.format_exception(raised.value))
+    assert private_detail not in rendered
+    assert raised.value.__cause__ is None
+    assert raised.value.__context__ is None
 
 
 def test_ingest_rejects_overflow_missing_regions_and_bad_stream(tmp_path: Path) -> None:
@@ -491,6 +611,19 @@ def test_ingest_rejects_overflow_missing_regions_and_bad_stream(tmp_path: Path) 
             (ManualEvidenceInput(frames[0].frame_id, pixels, (0, 0, 1, 1)),),
         )
     assert overflow.value.code is CoordinatorErrorCode.INVALID_REQUEST
+
+    with pytest.raises(CoordinatorError) as aggregate:
+        coordinator.ingest(
+            FakeVideoSource(source, frames),
+            FakeFrameSampler(tuple(frame.frame_id for frame in frames)),
+            IngestionConfig(
+                sampling,
+                max_frame_bytes=12,
+                max_total_frame_bytes=12,
+            ),
+            tuple(ManualEvidenceInput(frame.frame_id, pixels, (0, 0, 1, 1)) for frame in frames),
+        )
+    assert aggregate.value.stage is CoordinatorStage.CROP
 
     with pytest.raises(CoordinatorError) as missing:
         coordinator.ingest(
@@ -621,6 +754,83 @@ def test_world_deletion_rejects_invalid_ids_missing_sources_and_collisions(tmp_p
     with pytest.raises(PortError):
         world.pending_deletions(limit=0)
     assert evidence.inventory().entries == ()
+
+
+def test_pending_deletion_hides_recovery_reads_and_rejects_all_source_writes(
+    tmp_path: Path,
+) -> None:
+    source, frames, pixels = _fixture()
+    coordinator, _, world = _coordinator(tmp_path / "store")
+    committed = _ingest(coordinator, source, frames, pixels)
+    sampling = Sampling(Rational("4", "1"))
+    preparing = RunManifest.create(source.source_id, (), sampling, "preparing")
+    world.commit((preparing,))
+    world.commit_for_run(
+        preparing.run_id,
+        (committed.frames[0], committed.evidence[0]),
+    )
+    stage = StageHandle(
+        preparing.run_id,
+        "f" * 32 + ".part",
+        committed.evidence[0].artifact,
+    )
+    world.record_artifact_intents(preparing.run_id, (stage,))
+    deletion_id = "del_" + "f" * 64
+    plan = world.begin_source_deletion(source.source_id, deletion_id)
+    new_frame = FrameRef.create(
+        source.source_id,
+        0,
+        "2",
+        MediaTime("400", source.streams[0].time_base),
+    )
+    content = b"new-private-evidence"
+    artifact = Artifact(hashlib.sha256(content).hexdigest(), str(len(content)))
+    new_evidence = EvidenceRef.create(
+        committed.frames[0].frame_id,
+        artifact,
+        committed.evidence[0].geometry,
+    )
+    new_run = RunManifest.create(
+        source.source_id,
+        (),
+        Sampling(Rational("3", "1")),
+        "preparing",
+    )
+    final = RunManifest.create(
+        source.source_id,
+        (),
+        sampling,
+        "committed",
+        RunOutputs(
+            "1",
+            hashlib.sha256(sample_index_bytes((committed.frames[0],))).hexdigest(),
+        ),
+    )
+
+    operations: tuple[Callable[[], object], ...] = (
+        lambda: world.commit((source,)),
+        lambda: world.commit((new_frame,)),
+        lambda: world.commit((new_evidence,)),
+        lambda: world.commit((new_run,)),
+        lambda: world.commit_for_run(preparing.run_id, (new_frame,)),
+        lambda: world.record_artifact_intents(preparing.run_id, (stage,)),
+        lambda: world.finalize_run(final),
+        lambda: world.finish_run_cleanup(preparing.run_id),
+    )
+    for operation in operations:
+        with pytest.raises(PortError) as blocked:
+            operation()
+        assert blocked.value.code is PortErrorCode.CONFLICT
+
+    assert preparing not in world.pending_runs()
+    with pytest.raises(PortError) as hidden_intents:
+        world.list_artifact_intents(preparing.run_id)
+    assert hidden_intents.value.code is PortErrorCode.NOT_FOUND
+    with pytest.raises(PortError) as hidden_cleanup:
+        world.run_cleanup_plan(preparing.run_id)
+    assert hidden_cleanup.value.code is PortErrorCode.NOT_FOUND
+    assert world.get_deletion_plan(deletion_id) == plan
+    world.verify()
 
 
 def test_shared_run_cleanup_preserves_records_and_artifact(tmp_path: Path) -> None:
@@ -840,6 +1050,18 @@ def test_malformed_adapter_results_fail_closed(
         )
     assert bad_samples.value.stage is CoordinatorStage.SAMPLE
 
+    coordinator, _, _ = _coordinator(tmp_path / "too-many-candidates")
+    video = FakeVideoSource(source, frames)
+    monkeypatch.setattr(video, "read_frames", lambda **_arguments: (frames[0],) * 65)
+    with pytest.raises(CoordinatorError) as too_many:
+        coordinator.ingest(
+            video,
+            FakeFrameSampler(()),
+            IngestionConfig(sampling, max_frame_bytes=12),
+            (),
+        )
+    assert too_many.value.stage is CoordinatorStage.PROBE
+
 
 def test_exact_candidate_limit_without_overflow_continues(tmp_path: Path) -> None:
     source, frames, pixels = _fixture()
@@ -855,6 +1077,43 @@ def test_exact_candidate_limit_without_overflow_continues(tmp_path: Path) -> Non
         (ManualEvidenceInput(frames[0].frame_id, pixels, (0, 0, 1, 1)),),
     )
     assert result.manifest.state == "committed"
+
+
+def test_malformed_overflow_probe_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, frames, pixels = _fixture()
+    coordinator, _, _ = _coordinator(tmp_path / "store")
+    video = FakeVideoSource(source, frames)
+    original = video.read_frames
+
+    def malformed_read(
+        *,
+        stream_index: int,
+        after_decode_index: str | None = None,
+        limit: int = 64,
+    ) -> tuple[FrameRef, ...] | list[FrameRef]:
+        if after_decode_index is not None:
+            return []
+        return original(
+            stream_index=stream_index,
+            after_decode_index=after_decode_index,
+            limit=limit,
+        )
+
+    monkeypatch.setattr(video, "read_frames", malformed_read)
+    with pytest.raises(CoordinatorError) as malformed:
+        coordinator.ingest(
+            video,
+            FakeFrameSampler((frames[0].frame_id,)),
+            IngestionConfig(
+                Sampling(Rational("5", "1")),
+                max_candidates=2,
+                max_frame_bytes=12,
+            ),
+            (ManualEvidenceInput(frames[0].frame_id, pixels, (0, 0, 1, 1)),),
+        )
+    assert malformed.value.stage is CoordinatorStage.PROBE
 
 
 def test_completed_deletion_id_cannot_be_reused_for_another_source(tmp_path: Path) -> None:
@@ -934,11 +1193,88 @@ def test_recovery_cleans_incomplete_staging_and_reports_invalid_inventory(tmp_pa
 
     invalid = evidence.root / "artifacts" / "v1" / "sha256" / "invalid"
     invalid.mkdir(mode=0o700)
-    reported = coordinator.recover()
+    reported = coordinator.repair()
     assert reported.integrity_issues == 1
 
 
-def test_pending_run_pagination_skips_already_clean_failures(tmp_path: Path) -> None:
+def test_recovery_pages_through_staging_and_reports_invalid_staging(tmp_path: Path) -> None:
+    coordinator, evidence, _ = _coordinator(tmp_path / "store")
+    run_id = "run_" + "e" * 64
+    run_directory = evidence.root / "staging" / "v1" / run_id
+    run_directory.mkdir(mode=0o700)
+    for index in range(65):
+        incomplete = run_directory / (f"{index:032x}.part")
+        incomplete.write_bytes(b"incomplete")
+        incomplete.chmod(0o600)
+
+    report = coordinator.recover()
+    assert report.staging_entries_removed == 65
+    assert not run_directory.exists()
+
+    invalid = evidence.root / "staging" / "v1" / "invalid"
+    invalid.mkdir(mode=0o700)
+    reported = coordinator.recover()
+    assert reported.integrity_issues == 1
+    assert reported.staging_entries_removed == 0
+
+
+def test_pending_operation_pagination_is_bounded(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source, _, _ = _fixture()
+    coordinator, _, world = _coordinator(tmp_path / "store")
+    manifest = RunManifest.create(
+        source.source_id,
+        (),
+        Sampling(Rational("1", "1")),
+        "preparing",
+    )
+    run_calls: list[tuple[str | None, int, bool]] = []
+
+    def pending_runs(
+        *,
+        after_run_id: str | None = None,
+        limit: int = 64,
+        actionable_only: bool = False,
+    ) -> tuple[RunManifest, ...]:
+        run_calls.append((after_run_id, limit, actionable_only))
+        return (manifest,) * (64 if after_run_id is None else 1)
+
+    monkeypatch.setattr(world, "pending_runs", pending_runs)
+    monkeypatch.setattr(coordinator_module, "MAX_RECOVERY_RUNS", 64)
+    with pytest.raises(CoordinatorError) as bounded:
+        coordinator._all_pending_runs()
+    assert bounded.value.code is CoordinatorErrorCode.INVALID_REQUEST
+    assert run_calls == [(None, 64, True), (manifest.run_id, 64, True)]
+
+    statuses = tuple(
+        DeletionStatus(
+            "del_" + f"{index:064x}",
+            DeletionState.PENDING,
+            0,
+            0,
+            0,
+            None,
+        )
+        for index in range(65)
+    )
+    deletion_calls: list[str | None] = []
+
+    def pending_deletions(
+        *,
+        after_deletion_id: str | None = None,
+        limit: int = 64,
+    ) -> tuple[DeletionStatus, ...]:
+        deletion_calls.append(after_deletion_id)
+        return statuses[:64] if after_deletion_id is None else statuses[64:]
+
+    monkeypatch.setattr(world, "pending_deletions", pending_deletions)
+    assert coordinator._all_pending_deletions() == statuses
+    assert deletion_calls == [None, statuses[63].deletion_id]
+
+
+def test_pending_run_recovery_excludes_already_clean_failures(tmp_path: Path) -> None:
     source, _, _ = _fixture()
     coordinator, _, world = _coordinator(tmp_path / "store")
     world.commit((source,))
@@ -956,6 +1292,7 @@ def test_pending_run_pagination_skips_already_clean_failures(tmp_path: Path) -> 
     report = coordinator.recover()
     assert report.runs_cleaned == 0
     assert len(world.pending_runs()) == 64
+    assert world.pending_runs(actionable_only=True) == ()
 
 
 def test_world_lookup_errors_and_conflicts_are_mapped(

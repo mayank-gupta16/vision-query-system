@@ -15,7 +15,7 @@ Source video and artifact bytes never enter SQLite.
 
 Schema version 1 uses typed `STRICT` tables for sources and streams, frames,
 evidence, runs, the artifact catalog/reference graph, artifact intents,
-run-record visibility edges, and future deletion-job closure state. Canonical
+run-record visibility edges, and deletion-job closure state. Canonical
 ADR-0004 JSON is authoritative. Indexed identifiers, stream/decode position,
 exact PTS components, run state, and artifact descriptors are derived in the
 same transaction and rechecked on writes, reads, reopen, and bounded
@@ -39,8 +39,10 @@ discoverable through bounded stable pages for the future recovery coordinator.
 The mutation extensions accept an active `EvidenceWriterSession` bound to the
 same root. This lets the next coordinator perform stage, intent, CAS promotion,
 reference, and run-publication steps under one lock without receiving a raw
-filesystem descriptor or SQLite connection. Source-deletion orchestration and
-repair remain issue #16 work; version-1 tables reserve their durable state.
+filesystem descriptor or SQLite connection. Issue #16 now uses these boundaries
+for durable run cleanup, reference-aware source-deletion closure, metadata
+purge, and reduced completion receipts; this baseline remains focused on the
+300-record WorldStore transaction/index workload.
 
 ## Acceptance result
 
@@ -67,14 +69,14 @@ the connection authorizer denies `ATTACH`, `DETACH`, virtual tables, and
 
 The generated workload represents 60 seconds at 5 FPS: one 1920x1080 source,
 one run, 300 frames with exact millisecond time-base PTS, 300 evidence records,
-and 300 unique artifact descriptors. Five intent transactions took 10.6 ms; ten
-hidden record transactions took 75.1 ms; finalization took 26.3 ms; and an
-idempotent finalization retry took 2.9 ms. Five frame-index pages took 36.2 ms,
-300 point evidence lookups took 572.7 ms, reopen took 1.8 ms, and complete
-canonical/projection verification took 59.7 ms.
+and 300 unique artifact descriptors. Five intent transactions took 10.0 ms; ten
+hidden record transactions took 78.8 ms; finalization took 34.7 ms; and an
+idempotent finalization retry took 4.0 ms. Five frame-index pages took 49.8 ms,
+300 point evidence lookups took 596.4 ms, reopen took 1.7 ms, and complete
+canonical/projection verification took 55.8 ms.
 
 The live SQLite/WAL set occupied 1,523,712 logical and allocated bytes across
-four regular files. Peak process RSS was 28,618,752 bytes, below the 2 GiB
+four regular files. Peak process RSS was 28,889,088 bytes, below the 2 GiB
 profile bound. These single-run figures establish correctness and resource
 provenance, not a cross-machine optimization claim.
 
@@ -92,6 +94,5 @@ introduced.
 
 Version 1 performs bounded full verification (default 4,096 records) and opens
 a short connection per public call. Persistent read pools, incremental audits,
-arbitrary queries, future world-model tables, deletion execution, and database
-optimization are deliberately deferred until the vertical slice proves their
-need.
+arbitrary queries, future world-model tables, and database optimization are
+deliberately deferred until the vertical slice proves their need.

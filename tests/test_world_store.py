@@ -483,6 +483,8 @@ def test_pending_runs_are_recoverable_through_bounded_pages(tmp_path: Path) -> N
     assert first + second == expected
     with pytest.raises(PortError, match="invalid_request"):
         store.pending_runs(after_run_id="invalid", limit=1)
+    with pytest.raises(PortError, match="invalid_request"):
+        store.pending_runs(actionable_only=cast(bool, 1))
 
 
 def test_intents_reject_forged_mismatched_and_colliding_handles(tmp_path: Path) -> None:
