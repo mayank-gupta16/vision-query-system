@@ -118,9 +118,11 @@
 
 ## Next priorities
 
-1. Start v0.2 by resolving detector/runtime, sampling-recall, crop-value, and
-   tracking research issues #21–#24 before selecting shipped adapters.
-2. Decompose roadmap epic #30 into focused implementation issues only after its
+1. Execute detector/runtime research #21 against the frozen v0.2 thresholds and
+   receipt/waiver protocol from issue #64 and ADR-0006.
+2. Resolve sampling-recall, crop-value, and tracking research #22–#24 against
+   the selected detector baseline before selecting shipped adapters.
+3. Decompose roadmap epic #30 into focused implementation issues only after its
    research thresholds and license boundaries are ratified.
-3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+4. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

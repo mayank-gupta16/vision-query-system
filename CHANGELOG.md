@@ -4,7 +4,10 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
-No changes yet.
+- Freeze the versioned v0.2 detector/sampling/crop/tracking evaluation protocol,
+  numeric CPU-LITE gates, privacy/license-safe dataset and candidate contracts,
+  five-run aggregate/dispersion rules, fail-closed `UNKNOWN` and regression
+  behavior, and owned expiring waivers before model research begins.
 
 ## 0.1.0 - 2026-09-07
 

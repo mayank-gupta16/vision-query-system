@@ -6,6 +6,9 @@
   pinned 60-second vertical-slice workload, result, boundary, and comparator;
   its [JSON receipt](v0.1-cpu-lite-baseline.json) retains exact provenance and
   measurements.
+- [v0.2 frozen evaluation gates](v0.2-evaluation-gates.md) routes the detector,
+  sampling, crop-value, and tracking experiments through the versioned policy,
+  dataset/receipt contracts, fail-closed evaluator, and waiver rules.
 
 Version-specific measured implementation baselines are recorded with their
 validation reports: [local video](../research/local-video-source.md),
