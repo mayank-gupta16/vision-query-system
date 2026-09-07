@@ -6,11 +6,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import stat
 import sys
 from collections.abc import Callable, Sequence
+from contextlib import suppress
 from pathlib import Path
-from typing import NoReturn
+from typing import NoReturn, TextIO, cast
 
 from visualworld import __version__
 from visualworld.coordinator import (
@@ -57,6 +59,10 @@ class _UsageError(ValueError):
     """An argparse rejection whose untrusted message is deliberately discarded."""
 
 
+class _OutputError(RuntimeError):
+    """A terminal write failure whose implementation detail must remain private."""
+
+
 class _CliError(RuntimeError):
     def __init__(self, code: str, operation: str, *, retryable: bool = False) -> None:
         self.code = code
@@ -65,10 +71,43 @@ class _CliError(RuntimeError):
         super().__init__(f"{code} at cli.{operation}")
 
 
+def _silence_stream(stream: TextIO) -> None:
+    """Redirect a failed standard stream so interpreter shutdown cannot retry it."""
+
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        null_descriptor = os.open(os.devnull, os.O_WRONLY)
+        if null_descriptor == descriptor:
+            return
+        try:
+            os.dup2(null_descriptor, descriptor)
+        finally:
+            os.close(null_descriptor)
+    except OSError:
+        pass
+
+
+def _write_text(text: str, stream: TextIO) -> None:
+    try:
+        stream.write(text)
+        stream.flush()
+    except (AttributeError, OSError, ValueError):
+        _silence_stream(stream)
+        raise _OutputError from None
+
+
 class _SafeArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> NoReturn:
         del message
         raise _UsageError from None
+
+    def _print_message(self, message: str, file: object | None = None) -> None:
+        if message:
+            stream = sys.stderr if file is None else cast(TextIO, file)
+            _write_text(message, stream)
 
 
 def canonical_json(value: object) -> str:
@@ -409,17 +448,32 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _write_failure(
+def _write_document(document: dict[str, object], stream: TextIO) -> None:
+    _write_text(canonical_json(document) + "\n", stream)
+
+
+def _finish_failure(
     command: str,
     code: str,
     operation: str,
     *,
     retryable: bool = False,
-) -> None:
-    print(
-        canonical_json(_failure(command, code, operation, retryable=retryable)),
-        file=sys.stderr,
-    )
+    exit_code: int = 1,
+) -> int:
+    with suppress(_OutputError):
+        _write_document(
+            _failure(command, code, operation, retryable=retryable),
+            sys.stderr,
+        )
+    return exit_code
+
+
+def _finish_success(command: str, payload: dict[str, object]) -> int:
+    try:
+        _write_document(_success(command, payload), sys.stdout)
+    except _OutputError:
+        return _finish_failure(command, "operation_failed", "emit_output")
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -428,52 +482,64 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     try:
         arguments = parser.parse_args(argv)
+    except _OutputError:
+        return _finish_failure("arguments", "operation_failed", "emit_output")
     except _UsageError:
-        _write_failure("arguments", "usage_error", "parse_arguments")
-        return 2
+        return _finish_failure(
+            "arguments",
+            "usage_error",
+            "parse_arguments",
+            exit_code=2,
+        )
     command = getattr(arguments, "command", None)
     if command is None:
-        parser.print_help()
+        try:
+            parser.print_help()
+        except _OutputError:
+            return _finish_failure("arguments", "operation_failed", "emit_output")
         return 0
     handler = getattr(arguments, "handler", None)
     if type(command) is not str or not callable(handler):
-        _write_failure("arguments", "usage_error", "parse_arguments")
-        return 2
+        return _finish_failure(
+            "arguments",
+            "usage_error",
+            "parse_arguments",
+            exit_code=2,
+        )
     selected = handler
     try:
         payload = selected(arguments)
     except KeyboardInterrupt:
-        _write_failure(command, "cancelled", command)
-        return 130
+        return _finish_failure(command, "cancelled", command, exit_code=130)
     except _CliError as error:
-        _write_failure(
+        return _finish_failure(
             command,
             error.code,
             error.operation,
             retryable=error.retryable,
         )
-        return 1
     except CoordinatorError as error:
-        _write_failure(
+        return _finish_failure(
             command,
             error.code.value,
             error.stage.value,
             retryable=error.retryable,
         )
-        return 1
     except PortError as error:
         code = error.code.value
         exit_code = 1
         if error.code is PortErrorCode.CANCELLED:
             code = "cancelled"
             exit_code = 130
-        _write_failure(command, code, error.operation, retryable=error.retryable)
-        return exit_code
+        return _finish_failure(
+            command,
+            code,
+            error.operation,
+            retryable=error.retryable,
+            exit_code=exit_code,
+        )
     except (CropError, RecordValidationError, TypeError, ValueError):
-        _write_failure(command, "invalid_request", command.replace("-", "_"))
-        return 1
+        return _finish_failure(command, "invalid_request", command.replace("-", "_"))
     except Exception:
-        _write_failure(command, "operation_failed", command.replace("-", "_"))
-        return 1
-    print(canonical_json(_success(command, payload)))
-    return 0
+        return _finish_failure(command, "operation_failed", command.replace("-", "_"))
+    return _finish_success(command, payload)

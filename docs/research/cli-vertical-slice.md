@@ -18,6 +18,10 @@ network capability.
 - Argument-parser failures discard the parser's input-bearing message. Runtime
   failures expose only bounded error codes, operations, and retryability, never
   rejected input, local paths, exception text, or pixels.
+- Every terminal write is explicitly flushed. An unavailable success stream
+  produces a redacted `operation_failed`/`emit_output` error on standard error
+  and exit `1` when possible; an unavailable error stream preserves the intended
+  exit code without an interpreter-shutdown traceback.
 - `list-samples` uses committed-run ownership joins rather than source-wide
   reads, so records from another run cannot be mixed into the response. Dangling
   or mismatched ownership fails as corrupt.
@@ -41,8 +45,8 @@ path.
 
 The 2026-09-07 run used CPython 3.13.15 on the mandatory Linux x86_64 CPU-LITE
 profile (4 vCPU, 16,221,589,504 bytes RAM, no GPU). Six fresh-process commands
-completed in 569,547,335 ns total. The slowest individual command was below
-117 ms, child peak RSS was 26,001,408 bytes, and the committed store occupied
+completed in 541,646,259 ns total. The slowest individual command was below
+114 ms, child peak RSS was 25,739,264 bytes, and the committed store occupied
 200,710 logical bytes. All functional, redaction, timing, RSS, and disk bounds
 passed. These are boundedness observations for this fixture, not real-video
 throughput claims.

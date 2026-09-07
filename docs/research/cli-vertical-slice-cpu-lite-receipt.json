@@ -7,7 +7,7 @@
     "vertical_commands_completed": true
   },
   "implementation": {
-    "cli_module_sha256": "1cfa1511cc244b7fcbf4d6f226772b700c642caee31e75ab98f72adfd88b344f",
+    "cli_module_sha256": "84531ad3ebe25c9aa22cdb9a95d67b9788d4fc82ce2014217bd7afff5dd60b6a",
     "executable_implementation": "cpython",
     "harness_sha256": "ca9ca8330d8ee243e2b95687c5d9b46cbac0e2861647645c51cce40ffc7cb4c3",
     "python_version": "3.13.15",
@@ -17,32 +17,32 @@
     "ingest": {
       "stderr_bytes": 0,
       "stdout_bytes": 393,
-      "wall_ns": 116801445
+      "wall_ns": 113328910
     },
     "inspect_run": {
       "stderr_bytes": 0,
       "stdout_bytes": 1115,
-      "wall_ns": 83979267
+      "wall_ns": 85430721
     },
     "list_samples": {
       "stderr_bytes": 0,
       "stdout_bytes": 1197,
-      "wall_ns": 105014378
+      "wall_ns": 86061569
     },
     "probe": {
       "stderr_bytes": 0,
       "stdout_bytes": 1566,
-      "wall_ns": 81702233
+      "wall_ns": 88557979
     },
     "show_evidence": {
       "stderr_bytes": 0,
       "stdout_bytes": 893,
-      "wall_ns": 91629459
+      "wall_ns": 88702808
     },
     "usage_error": {
       "stderr_bytes": 173,
       "stdout_bytes": 0,
-      "wall_ns": 90420553
+      "wall_ns": 79564272
     }
   },
   "profile": {
@@ -57,7 +57,7 @@
     "required_vcpu": 4
   },
   "resources": {
-    "child_process_peak_rss_bytes": 26001408,
+    "child_process_peak_rss_bytes": 25739264,
     "disk_bounded": true,
     "peak_rss_limit_bytes": 536870912,
     "per_command_wall_bounded": true,
@@ -65,7 +65,7 @@
     "store_logical_bytes": 200710,
     "store_logical_limit_bytes": 16777216,
     "timing_measured": true,
-    "total_command_wall_ns": 569547335
+    "total_command_wall_ns": 541646259
   },
   "schema": "visualworld.cli-acceptance-receipt",
   "schema_version": 1,

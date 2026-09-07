@@ -296,6 +296,195 @@ def test_operational_errors_redact_paths_and_untrusted_identifiers(
     assert json.loads(captured.err)["error"]["code"] == "not_found"
 
 
+@pytest.mark.parametrize("unbuffered", [False, True])
+@pytest.mark.parametrize(
+    ("arguments", "command"),
+    [
+        (["probe"], "probe"),
+        ([], "arguments"),
+        (["--help"], "arguments"),
+        (["--version"], "arguments"),
+    ],
+)
+def test_closed_stdout_has_stable_redacted_failure(
+    tmp_path: Path,
+    unbuffered: bool,
+    arguments: list[str],
+    command: str,
+) -> None:
+    environment = dict(os.environ)
+    if unbuffered:
+        environment["PYTHONUNBUFFERED"] = "1"
+    else:
+        environment.pop("PYTHONUNBUFFERED", None)
+    read_descriptor, write_descriptor = os.pipe()
+    os.close(read_descriptor)
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-m", "visualworld", *arguments],
+            cwd=tmp_path,
+            env=environment,
+            stdout=write_descriptor,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+    finally:
+        os.close(write_descriptor)
+
+    assert completed.returncode == 1
+    assert json.loads(completed.stderr) == {
+        "command": command,
+        "error": {
+            "code": "operation_failed",
+            "operation": "emit_output",
+            "retryable": False,
+        },
+        "schema": "visualworld.cli-result",
+        "schema_version": 1,
+        "status": "error",
+    }
+    assert str(tmp_path) not in completed.stderr
+    assert "Traceback" not in completed.stderr
+    assert "BrokenPipeError" not in completed.stderr
+
+
+def test_closed_stderr_preserves_error_exit_without_a_traceback(tmp_path: Path) -> None:
+    read_descriptor, write_descriptor = os.pipe()
+    os.close(read_descriptor)
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-m", "visualworld", "--unknown"],
+            cwd=tmp_path,
+            stdout=subprocess.PIPE,
+            stderr=write_descriptor,
+            text=True,
+            check=False,
+            timeout=10,
+        )
+    finally:
+        os.close(write_descriptor)
+
+    assert completed.returncode == 2
+    assert completed.stdout == ""
+
+
+def test_absent_stdout_descriptor_is_replaced_without_shutdown_failure(tmp_path: Path) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import os,runpy,sys; os.close(1); "
+                "sys.argv=['visualworld','probe']; "
+                "runpy.run_module('visualworld',run_name='__main__')"
+            ),
+        ],
+        cwd=tmp_path,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+        timeout=10,
+    )
+
+    assert completed.returncode == 1
+    assert json.loads(completed.stderr)["error"] == {
+        "code": "operation_failed",
+        "operation": "emit_output",
+        "retryable": False,
+    }
+    assert "Traceback" not in completed.stderr
+
+
+def test_failed_stream_is_redirected_without_exposing_the_write_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[object, ...]] = []
+
+    class BrokenStream:
+        def write(self, text: str) -> int:
+            del text
+            raise BrokenPipeError
+
+        def flush(self) -> None:
+            raise AssertionError("write fails first")
+
+        def fileno(self) -> int:
+            return 41
+
+    def open_null(path: str, flags: int) -> int:
+        calls.append(("open", path, flags))
+        return 42
+
+    def redirect(source: int, destination: int) -> None:
+        calls.append(("dup2", source, destination))
+
+    def close(descriptor: int) -> None:
+        calls.append(("close", descriptor))
+
+    monkeypatch.setattr(os, "open", open_null)
+    monkeypatch.setattr(os, "dup2", redirect)
+    monkeypatch.setattr(os, "close", close)
+
+    with pytest.raises(cli._OutputError):
+        cli._write_text("private", cast(Any, BrokenStream()))
+    assert calls == [
+        ("open", os.devnull, os.O_WRONLY),
+        ("dup2", 42, 41),
+        ("close", 42),
+    ]
+
+
+def test_replacement_descriptor_is_kept_open_when_it_reuses_the_target(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class MissingDescriptor:
+        def fileno(self) -> int:
+            return 41
+
+    original_close = os.close
+    original_dup2 = os.dup2
+    monkeypatch.setattr(os, "open", lambda path, flags: 41)
+
+    def checked_dup2(source: int, destination: int) -> None:
+        if 41 in {source, destination}:
+            raise AssertionError((source, destination))
+        original_dup2(source, destination)
+
+    def checked_close(descriptor: int) -> None:
+        if descriptor == 41:
+            raise AssertionError(descriptor)
+        original_close(descriptor)
+
+    monkeypatch.setattr(os, "dup2", checked_dup2)
+    monkeypatch.setattr(os, "close", checked_close)
+    cli._silence_stream(cast(Any, MissingDescriptor()))
+
+
+@pytest.mark.parametrize(
+    ("arguments", "exit_code"),
+    [
+        ([], 1),
+        (["--help"], 1),
+        (["probe"], 1),
+        (["--unknown"], 2),
+    ],
+)
+def test_in_process_emission_failures_preserve_stable_exit_codes(
+    monkeypatch: pytest.MonkeyPatch,
+    arguments: list[str],
+    exit_code: int,
+) -> None:
+    def fail_write(text: str, stream: object) -> None:
+        del text, stream
+        raise cli._OutputError
+
+    monkeypatch.setattr(cli, "_write_text", fail_write)
+    assert cli.main(arguments) == exit_code
+
+
 def test_cli_helpers_reject_invalid_paths_shapes_and_unbounded_pages(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
