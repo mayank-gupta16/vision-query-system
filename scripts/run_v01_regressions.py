@@ -16,6 +16,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.request
 from collections.abc import Callable, Iterator
@@ -182,7 +183,10 @@ def _disk_bytes(root: Path) -> int:
     total = 0
     for directory, _, names in os.walk(root):
         for name in names:
-            metadata = (Path(directory) / name).stat(follow_symlinks=False)
+            try:
+                metadata = (Path(directory) / name).stat(follow_symlinks=False)
+            except FileNotFoundError:
+                continue
             if metadata.st_mode & 0o170000 == 0o100000:
                 total += metadata.st_size
     return total
@@ -452,8 +456,26 @@ def _interrupted_ingest_recovery(
         _domain_ingest(coordinator, fault_hook=crash)
     except _SimulatedCrash:
         crashed = True
+    interrupted_world = LocalWorldStore(root)
+    interrupted_evidence = LocalEvidenceStore(root)
+    preparing_record = interrupted_world.get(cast(str, golden["run_id"]))
+    hidden_run_frames_code = _port_error_code(
+        lambda: interrupted_world.list_run_frames(
+            cast(str, golden["run_id"]),
+            limit=64,
+        )
+    )
+    hidden_evidence_code = _port_error_code(
+        lambda: interrupted_world.get(cast(str, golden["evidence_id"]))
+    )
+    promoted_bytes = interrupted_evidence.get(cast(str, golden["artifact_sha256"]))
     reopened = IngestionCoordinator(LocalEvidenceStore(root), LocalWorldStore(root))
     report = reopened.recover()
+    recovered_marker = LocalWorldStore(root).get(cast(str, golden["run_id"]))
+    cleaned_artifact_code = _port_error_code(
+        lambda: LocalEvidenceStore(root).get(cast(str, golden["artifact_sha256"]))
+    )
+    cleaned_inventory = LocalEvidenceStore(root).inventory()
     result = _domain_ingest(reopened)
     artifact = result.evidence[0].artifact
     recovered_bytes = LocalEvidenceStore(root).get(artifact.sha256)
@@ -465,9 +487,18 @@ def _interrupted_ingest_recovery(
     return {
         "interrupted_ingest_was_hidden_and_cleaned": (
             crashed
+            and isinstance(preparing_record, RunManifest)
+            and preparing_record.state == "preparing"
+            and hidden_run_frames_code == "not_found"
+            and hidden_evidence_code == "not_found"
+            and promoted_bytes == _EXPECTED_CROP
             and report.runs_cleaned == 1
             and report.deletions_completed == 0
             and report.integrity_issues == 0
+            and isinstance(recovered_marker, RunManifest)
+            and recovered_marker.state == "failed"
+            and cleaned_artifact_code == "not_found"
+            and cleaned_inventory.entries == ()
         ),
         "recovered_ingest_matches_golden": (
             result.disposition is IngestionDisposition.COMMITTED
@@ -748,28 +779,64 @@ def _run(work_root: Path) -> dict[str, object]:
     rendered: list[str] = []
     started_total = time.perf_counter_ns()
     temporary_path: Path | None = None
+    sampled_peak_store_logical_bytes = 0
 
     with tempfile.TemporaryDirectory(prefix="visualworld-v01-regression-", dir=work_root) as temp:
         temporary_path = Path(temp)
-        with _deny_ambient_capabilities(attempts):
-            started = time.perf_counter_ns()
-            success_checks, success_output = _success_reopen_retry_delete(temporary_path, golden)
-            measurements["success_reopen_retry_delete_wall_ns"] = max(
-                1, time.perf_counter_ns() - started
-            )
-            rendered.extend(success_output)
+        stop_sampling = threading.Event()
+        disk_sampling_errors: list[BaseException] = []
 
-            started = time.perf_counter_ns()
-            recovery_checks = _interrupted_ingest_recovery(temporary_path, golden)
-            measurements["interrupted_recovery_wall_ns"] = max(1, time.perf_counter_ns() - started)
+        def sample_disk() -> None:
+            nonlocal sampled_peak_store_logical_bytes
+            try:
+                while not stop_sampling.wait(0.001):
+                    sampled_peak_store_logical_bytes = max(
+                        sampled_peak_store_logical_bytes,
+                        _disk_bytes(temporary_path),
+                    )
+            except BaseException as error:
+                disk_sampling_errors.append(error)
 
-            started = time.perf_counter_ns()
-            hostile_checks, hostile_output, hostile_values = _hostile_regressions(
-                temporary_path, golden
+        sampler = threading.Thread(
+            target=sample_disk,
+            name="visualworld-v01-regression-disk-sampler",
+            daemon=True,
+        )
+        sampler.start()
+        try:
+            with _deny_ambient_capabilities(attempts):
+                started = time.perf_counter_ns()
+                success_checks, success_output = _success_reopen_retry_delete(
+                    temporary_path, golden
+                )
+                measurements["success_reopen_retry_delete_wall_ns"] = max(
+                    1, time.perf_counter_ns() - started
+                )
+                rendered.extend(success_output)
+
+                started = time.perf_counter_ns()
+                recovery_checks = _interrupted_ingest_recovery(temporary_path, golden)
+                measurements["interrupted_recovery_wall_ns"] = max(
+                    1, time.perf_counter_ns() - started
+                )
+
+                started = time.perf_counter_ns()
+                hostile_checks, hostile_output, hostile_values = _hostile_regressions(
+                    temporary_path, golden
+                )
+                measurements["hostile_regressions_wall_ns"] = max(
+                    1, time.perf_counter_ns() - started
+                )
+                rendered.extend(hostile_output)
+        finally:
+            sampled_peak_store_logical_bytes = max(
+                sampled_peak_store_logical_bytes,
+                _disk_bytes(temporary_path),
             )
-            measurements["hostile_regressions_wall_ns"] = max(1, time.perf_counter_ns() - started)
-            rendered.extend(hostile_output)
-        store_logical_bytes = _disk_bytes(temporary_path)
+            stop_sampling.set()
+            sampler.join()
+        if disk_sampling_errors:
+            raise RuntimeError("disk sampler failed") from disk_sampling_errors[0]
 
     if temporary_path is None:
         raise AssertionError("temporary path was not created")
@@ -795,7 +862,7 @@ def _run(work_root: Path) -> dict[str, object]:
         "timing_measured": all(value > 0 for value in measurements.values()),
         "suite_wall_bounded": total_wall_ns <= 10_000_000_000,
         "rss_bounded": 0 < peak_rss <= 512 * 1024 * 1024,
-        "disk_bounded": store_logical_bytes <= 32 * 1024 * 1024,
+        "disk_bounded": sampled_peak_store_logical_bytes <= 32 * 1024 * 1024,
     }
     passed = profile_ok and all(checks.values()) and all(resource_checks.values())
     return {
@@ -838,7 +905,7 @@ def _run(work_root: Path) -> dict[str, object]:
             **resource_checks,
             "peak_rss_limit_bytes": 512 * 1024 * 1024,
             "process_peak_rss_bytes": peak_rss,
-            "store_logical_bytes": store_logical_bytes,
+            "sampled_peak_store_logical_bytes": sampled_peak_store_logical_bytes,
             "store_logical_limit_bytes": 32 * 1024 * 1024,
             "suite_wall_limit_ns": 10_000_000_000,
             "total_wall_ns": total_wall_ns,

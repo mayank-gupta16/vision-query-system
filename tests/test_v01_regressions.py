@@ -97,7 +97,6 @@ def test_v01_regression_harness_passes_and_emits_only_redacted_aggregates(
         timeout=30,
     )
 
-    assert completed.returncode in {0, 1}
     assert completed.stderr == ""
     receipt = json.loads(output.read_text(encoding="utf-8"))
     assert receipt["schema"] == "visualworld.v01-regression-receipt"
@@ -119,6 +118,8 @@ def test_v01_regression_harness_passes_and_emits_only_redacted_aggregates(
     )
     assert receipt["measurements"]
     expected_status = "pass" if receipt["profile"]["meets_requirements"] else "fail"
+    expected_returncode = 0 if expected_status == "pass" else 1
+    assert completed.returncode == expected_returncode
     assert receipt["status"] == expected_status
     assert json.loads(completed.stdout) == {"status": expected_status}
 

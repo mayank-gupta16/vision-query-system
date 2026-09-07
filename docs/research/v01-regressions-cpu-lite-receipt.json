@@ -31,15 +31,15 @@
     "coordinator_module_sha256": "827e66ab243c960cb960598d2a5c2e616d6a60208d72962d1bdbd077e4781fde",
     "executable_implementation": "cpython",
     "fixture_manifest_sha256": "61b53fd9c37820a9e7fc7578726fa6cae1851aaa3b6b27b4b1f960566def71e0",
-    "harness_sha256": "20bcafc8f7850efb6dcea61e6c89dff61db185e758be944263cba2c35a9d6d8f",
+    "harness_sha256": "5df6635251aa5761445af724f93a038bfe8f242b6c231bec17e25793491ba6d6",
     "python_version": "3.13.15",
     "storage_module_sha256": "2c4a37c5218bac08092ab359d69f134312a0055f488727e02e625e530b0f705c",
     "world_store_module_sha256": "0e521297a1c1e6733ebb70d1dc20482e26b4c90020fe621b6bff910bcaaa0af7"
   },
   "measurements": {
-    "hostile_regressions_wall_ns": 120616118,
-    "interrupted_recovery_wall_ns": 63758171,
-    "success_reopen_retry_delete_wall_ns": 95142639
+    "hostile_regressions_wall_ns": 91878360,
+    "interrupted_recovery_wall_ns": 48607060,
+    "success_reopen_retry_delete_wall_ns": 68296982
   },
   "profile": {
     "cpu_count": 4,
@@ -55,14 +55,14 @@
   "resources": {
     "disk_bounded": true,
     "peak_rss_limit_bytes": 536870912,
-    "process_peak_rss_bytes": 34168832,
+    "process_peak_rss_bytes": 35213312,
     "rss_bounded": true,
-    "store_logical_bytes": 946397,
+    "sampled_peak_store_logical_bytes": 946381,
     "store_logical_limit_bytes": 33554432,
     "suite_wall_bounded": true,
     "suite_wall_limit_ns": 10000000000,
     "timing_measured": true,
-    "total_wall_ns": 282168679
+    "total_wall_ns": 211721197
   },
   "schema": "visualworld.v01-regression-receipt",
   "schema_version": 1,
