@@ -119,6 +119,74 @@ def test_crop_candidate_rejects_non_integer_numeric_types(
         preparation._validate_candidates(candidates)
 
 
+@pytest.mark.parametrize(
+    ("section", "field", "value"),
+    [
+        ("baseline", "crop", "another crop"),
+        ("candidate", "mapping", "another mapping"),
+        ("decision", "material_readable_gain_basis_points", 501),
+        ("detector", "preprocessing", "another resize"),
+        ("metric", "readable_detail", "another metric"),
+        ("specialist", "tie_break", "largest-label"),
+    ],
+)
+def test_crop_candidate_rejects_semantic_changes(section: str, field: str, value: object) -> None:
+    candidates = _json(FIXTURE_ROOT / "candidates.json")
+    cast(dict[str, object], candidates[section])[field] = value
+    with pytest.raises(preparation.CropPreparationError, match="invalid_candidate_manifest"):
+        preparation._validate_candidates(candidates)
+
+
+def test_crop_json_loaders_reject_duplicate_and_nonfinite_values(tmp_path: Path) -> None:
+    for name, payload in {
+        "duplicate.json": b'{"schema":1,"schema":2}',
+        "nonfinite.json": b'{"value":NaN}',
+    }.items():
+        path = tmp_path / name
+        path.write_bytes(payload)
+        with pytest.raises(preparation.CropPreparationError, match="invalid_test_json"):
+            preparation._load_json(path, "invalid_test_json")
+        with pytest.raises(benchmark.CropBenchmarkError, match="invalid_test_json"):
+            benchmark._load_json(path, "invalid_test_json")
+
+
+def test_crop_source_manifest_rejects_changed_derivation() -> None:
+    source_path = FIXTURE_ROOT / "source-manifest.json"
+    detection_annotations_path = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
+    detection_source_path = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
+    source = _json(source_path)
+    cast(dict[str, object], source["derivation"])["specialist_panels"] = "unlocked"
+    detection_annotations = _json(detection_annotations_path)
+    with pytest.raises(preparation.CropPreparationError, match="invalid_source_manifest"):
+        preparation._validate_source_manifest(
+            source,
+            detection_annotations,
+            hashlib.sha256(detection_annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(detection_source_path.read_bytes()).hexdigest(),
+        )
+
+
+def test_crop_annotation_source_binding_is_exact() -> None:
+    source_path = FIXTURE_ROOT / "source-manifest.json"
+    candidate_path = FIXTURE_ROOT / "candidates.json"
+    annotations_path = FIXTURE_ROOT / "annotations.json"
+    annotations = _json(annotations_path)
+    first = cast(list[dict[str, object]], annotations["items"])[0]
+    first["source_id"] = "buggy"
+    dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+    _, _, payload, _ = benchmark._split_payload(annotations, "calibration")
+    calibration = cast(dict[str, object], cast(dict[str, object], dataset["splits"])["calibration"])
+    calibration["annotation_sha256"] = hashlib.sha256(payload).hexdigest()
+    with pytest.raises(benchmark.CropBenchmarkError, match="invalid_annotations"):
+        benchmark._validate_annotations(
+            annotations,
+            hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(source_path.read_bytes()).hexdigest(),
+            hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
+            dataset,
+        )
+
+
 def test_patterns_are_deterministic_distinct_and_round_trip() -> None:
     for task in preparation.TASKS:
         patterns = [preparation.pattern_bits(task, label) for label in range(8)]

@@ -11,6 +11,7 @@ import os
 import re
 import struct
 import sys
+from contextlib import suppress
 from pathlib import Path, PurePosixPath
 from typing import NoReturn, TextIO, cast
 
@@ -55,11 +56,32 @@ def _fail(code: str) -> NoReturn:
     raise CropPreparationError(code)
 
 
+def _silence_stream(stream: TextIO) -> None:
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        null_descriptor = os.open(os.devnull, os.O_WRONLY | os.O_CLOEXEC)
+    except OSError:
+        return
+    if null_descriptor == descriptor:
+        return
+    try:
+        os.dup2(null_descriptor, descriptor)
+    except OSError:
+        pass
+    finally:
+        with suppress(OSError):
+            os.close(null_descriptor)
+
+
 def _write_text(value: str, stream: TextIO) -> bool:
     try:
         stream.write(value)
         stream.flush()
     except (AttributeError, OSError, UnicodeError, ValueError):
+        _silence_stream(stream)
         return False
     return True
 
@@ -68,6 +90,7 @@ def _emit(value: object, stream: TextIO) -> bool:
     try:
         serialized = json.dumps(value, allow_nan=False, sort_keys=True) + "\n"
     except (TypeError, UnicodeError, ValueError):
+        _silence_stream(stream)
         return False
     return _write_text(serialized, stream)
 
@@ -92,7 +115,11 @@ def _sha256(value: bytes) -> str:
 def _load_json(path: Path, code: str) -> tuple[dict[str, object], str]:
     try:
         raw = detection_prep._regular_file(path, maximum=_MAX_JSON_BYTES)
-        value = json.loads(raw)
+        value = json.loads(
+            raw,
+            object_pairs_hook=detection_prep._unique_object,
+            parse_constant=detection_prep._reject_constant,
+        )
     except (OSError, UnicodeError, ValueError, detection_prep.PreparationError) as error:
         raise CropPreparationError(code) from error
     if not isinstance(value, dict) or not all(type(key) is str for key in value):
@@ -335,64 +362,53 @@ def rawvideo_movie(frames: tuple[bytes, ...], width: int, height: int) -> bytes:
 
 
 def _validate_candidates(value: dict[str, object]) -> None:
-    if set(value) != {
-        "baseline",
-        "candidate",
-        "decision",
-        "detector",
-        "metric",
-        "schema",
-        "schema_version",
-        "specialist",
-    }:
-        _fail("invalid_candidate_manifest")
-    if value["schema"] != "visualworld.v02-crop-candidates" or value["schema_version"] != 1:
-        _fail("invalid_candidate_manifest")
-    detector = _mapping(value["detector"], "invalid_candidate_manifest")
-    specialist = _mapping(value["specialist"], "invalid_candidate_manifest")
-    if (
-        detector.get("candidate_manifest_sha256")
-        != "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee"
-        or detector.get("name") != "vehicle-detection-0201-fp32-openvino-2026.3.1"
-        or _integer(
-            detector.get("confidence_millionths"),
-            "invalid_candidate_manifest",
-            950000,
-            950000,
-        )
-        != 950000
-        or _integer(
-            detector.get("width"),
-            "invalid_candidate_manifest",
-            DETECTOR_WIDTH,
-            DETECTOR_WIDTH,
-        )
-        != DETECTOR_WIDTH
-        or _integer(
-            detector.get("height"),
-            "invalid_candidate_manifest",
-            DETECTOR_HEIGHT,
-            DETECTOR_HEIGHT,
-        )
-        != DETECTOR_HEIGHT
-        or specialist.get("tasks") != list(TASKS)
-        or _integer(
-            specialist.get("cell_grid_width"),
-            "invalid_candidate_manifest",
-            GRID_WIDTH,
-            GRID_WIDTH,
-        )
-        != GRID_WIDTH
-        or _integer(
-            specialist.get("cell_grid_height"),
-            "invalid_candidate_manifest",
-            GRID_HEIGHT,
-            GRID_HEIGHT,
-        )
-        != GRID_HEIGHT
-        or _integer(specialist.get("labels_per_task"), "invalid_candidate_manifest", 8, 8) != 8
-        or _integer(specialist.get("threshold"), "invalid_candidate_manifest", 127, 127) != 127
-    ):
+    expected = {
+        "baseline": {
+            "crop": "locked detector-space box from the 384x384 linear RGB24 input",
+            "name": "detector-input-rgb24",
+        },
+        "candidate": {
+            "crop": "byte-preserving packed RGB24 source crop",
+            "mapping": "visualworld DetectorTransform affine rational outward rounding",
+            "name": "original-source-rgb24",
+        },
+        "decision": {
+            "absent_control_maximum_absolute_gain_basis_points": 500,
+            "eager_retention_maximum_byte_ratio_milli": 4000,
+            "material_readable_gain_basis_points": 500,
+            "material_specialist_gain_basis_points": 1000,
+        },
+        "detector": {
+            "candidate_manifest_sha256": (
+                "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee"
+            ),
+            "confidence_millionths": 950000,
+            "height": DETECTOR_HEIGHT,
+            "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
+            "preprocessing": (
+                "visualworld-fixed-point-bilinear-v1 RGB to 384x384 without letterbox"
+            ),
+            "width": DETECTOR_WIDTH,
+        },
+        "metric": {
+            "readable_detail": ("fraction of 192 frozen chart cells recovered at threshold 127"),
+            "specialist_accuracy": (
+                "fraction of plate_ocr, face_visibility, and vehicle_detail chart labels "
+                "selected by minimum Hamming distance"
+            ),
+        },
+        "schema": "visualworld.v02-crop-candidates",
+        "schema_version": 1,
+        "specialist": {
+            "cell_grid_height": GRID_HEIGHT,
+            "cell_grid_width": GRID_WIDTH,
+            "labels_per_task": 8,
+            "tasks": list(TASKS),
+            "threshold": 127,
+            "tie_break": "lexicographically-smallest-label",
+        },
+    }
+    if not _same_json(value, expected):
         _fail("invalid_candidate_manifest")
 
 
@@ -450,15 +466,35 @@ def _validate_source_manifest(
     }:
         _fail("invalid_source_manifest")
     derivation = _mapping(value["derivation"], "invalid_source_manifest")
-    strata_value = _mapping(derivation.get("strata"), "invalid_source_manifest")
-    if (
-        derivation.get("clip_duration_ms") != 3000
-        or derivation.get("frame_duration_ms") != FRAME_DURATION_MS
-        or derivation.get("interpolation") != "visualworld-fixed-point-bilinear-v1"
-        or derivation.get("detail_controls") != ["source_resolvable", "source_absent"]
-        or set(strata_value) != set(STRATA)
-    ):
+    expected_derivation = {
+        "clip_duration_ms": 3000,
+        "detail_controls": ["source_resolvable", "source_absent"],
+        "frame_duration_ms": FRAME_DURATION_MS,
+        "interpolation": "visualworld-fixed-point-bilinear-v1",
+        "specialist_panels": (
+            "project-generated binary charts; no real identifier or biometric content"
+        ),
+        "strata": {
+            "medium": {
+                "detector_box": [96, 144, 288, 240],
+                "left_panel_box": [104, 160, 144, 184],
+                "right_panel_box": [240, 160, 280, 184],
+            },
+            "small": {
+                "detector_box": [144, 168, 240, 216],
+                "left_panel_box": [148, 176, 168, 192],
+                "right_panel_box": [216, 176, 236, 192],
+            },
+            "tiny": {
+                "detector_box": [168, 176, 216, 208],
+                "left_panel_box": [170, 184, 178, 192],
+                "right_panel_box": [206, 184, 214, 192],
+            },
+        },
+    }
+    if not _same_json(derivation, expected_derivation):
         _fail("invalid_source_manifest")
+    strata_value = _mapping(derivation.get("strata"), "invalid_source_manifest")
     strata: dict[str, dict[str, tuple[int, int, int, int]]] = {}
     for stratum in STRATA:
         raw = _mapping(strata_value[stratum], "invalid_source_manifest")

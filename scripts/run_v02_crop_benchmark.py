@@ -277,6 +277,7 @@ def _validate_annotations(
         ):
             _fail("dataset_lock_mismatch")
         clip_ids: set[str] = set()
+        clip_sources: dict[str, str] = {}
         sources: set[str] = set()
         for clip in clips:
             if set(clip) != clip_fields:
@@ -301,6 +302,7 @@ def _validate_annotations(
             _digest(clip["source_sha256"], "invalid_annotations")
             _digest(clip["detector_sha256"], "invalid_annotations")
             clip_ids.add(clip_id)
+            clip_sources[clip_id] = source_id
             all_clip_ids.add(clip_id)
             sources.add(source_id)
         counts = {stratum: 0 for stratum in crop_prep.STRATA}
@@ -321,7 +323,7 @@ def _validate_annotations(
                 or frame_index != crop_prep.STRATA.index(stratum)
                 or frame_index in per_clip[clip_id]
                 or item["split"] != split
-                or not clip_id.endswith(source_id)
+                or clip_sources.get(clip_id) != source_id
             ):
                 _fail("invalid_annotations")
             detector_box = _box(
