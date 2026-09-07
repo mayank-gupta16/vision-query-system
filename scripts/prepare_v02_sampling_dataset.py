@@ -11,6 +11,7 @@ import os
 import re
 import struct
 import sys
+from contextlib import suppress
 from pathlib import Path, PurePosixPath
 from typing import NoReturn, TextIO, cast
 
@@ -34,8 +35,34 @@ class SamplingPreparationError(RuntimeError):
     """A stable sampling-dataset preparation failure."""
 
 
+class _StableArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        del message
+        raise SamplingPreparationError("invalid_arguments")
+
+
 def _fail(code: str) -> NoReturn:
     raise SamplingPreparationError(code)
+
+
+def _silence_stream(stream: TextIO) -> None:
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        null_descriptor = os.open(os.devnull, os.O_WRONLY | os.O_CLOEXEC)
+    except OSError:
+        return
+    if null_descriptor == descriptor:
+        return
+    try:
+        os.dup2(null_descriptor, descriptor)
+    except OSError:
+        pass
+    finally:
+        with suppress(OSError):
+            os.close(null_descriptor)
 
 
 def _emit(value: object, stream: TextIO) -> bool:
@@ -43,6 +70,7 @@ def _emit(value: object, stream: TextIO) -> bool:
         stream.write(json.dumps(value, allow_nan=False, sort_keys=True) + "\n")
         stream.flush()
     except (AttributeError, OSError, UnicodeError, ValueError):
+        _silence_stream(stream)
         return False
     return True
 
@@ -55,6 +83,13 @@ def _canonical(value: object) -> bytes:
         separators=(",", ":"),
         sort_keys=True,
     ).encode("ascii")
+
+
+def _same_json(value: object, expected: object) -> bool:
+    try:
+        return _canonical(value) == _canonical(expected)
+    except (TypeError, UnicodeError, ValueError):
+        return False
 
 
 def _sha256(value: bytes) -> str:
@@ -324,26 +359,151 @@ def _validate_source_manifest(
         or manifest["terms_url"] != "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
     ):
         _fail("invalid_manifest")
-    canvas = cast(dict[str, object], manifest["canvas"])
-    if canvas != {"height": HEIGHT, "pixel_format": "rgb24", "width": WIDTH}:
+    canvas = manifest["canvas"]
+    if not isinstance(canvas, dict) or not _same_json(
+        canvas, {"height": HEIGHT, "pixel_format": "rgb24", "width": WIDTH}
+    ):
         _fail("invalid_manifest")
     clips = manifest["clips"]
     derivation = manifest["derivation"]
     if not isinstance(clips, list) or len(clips) != 10 or not isinstance(derivation, dict):
         _fail("invalid_manifest")
-    events = derivation.get("events")
-    if not isinstance(events, list) or [event.get("stratum") for event in events] != [
-        "small_fast",
-        "camera_motion",
-        "cut_adjacent",
-        "vfr_gap",
-    ]:
+    expected_events: list[dict[str, object]] = [
+        {
+            "duration_ms": 900,
+            "end_x": 270,
+            "event_offset_ms": 300,
+            "start_x": 10,
+            "stratum": "small_fast",
+            "target_width": 144,
+            "top": 136,
+        },
+        {
+            "duration_ms": 1400,
+            "end_x": 115,
+            "event_offset_ms": 1450,
+            "occlusion_end_offset_ms": 850,
+            "occlusion_start_offset_ms": 550,
+            "start_x": 90,
+            "stratum": "camera_motion",
+            "target_width": 180,
+            "top": 100,
+        },
+        {
+            "duration_ms": 880,
+            "end_x": 105,
+            "event_offset_ms": 3020,
+            "start_x": 92,
+            "stratum": "cut_adjacent",
+            "target_width": 200,
+            "top": 92,
+        },
+        {
+            "duration_ms": 1500,
+            "end_x": 80,
+            "event_offset_ms": 4200,
+            "start_x": 210,
+            "stratum": "vfr_gap",
+            "target_width": 150,
+            "top": 112,
+        },
+    ]
+    if not _same_json(
+        derivation,
+        {
+            "background": "visualworld-generated-moving-road-v1",
+            "clip_duration_ms": 6000,
+            "cut_base_ms": 3000,
+            "events": expected_events,
+            "frame_count": 86,
+            "interpolation": "visualworld-fixed-point-bilinear-v1",
+            "time_base": {"denominator": 1000, "numerator": 1},
+            "timing": "67,67,66 ms cadence with frame 70 extended by 266 ms; total 6000 ms",
+            "vfr_gap_frame_index": 70,
+        },
+    ):
         _fail("invalid_manifest")
+    if not _same_json(
+        manifest["privacy"],
+        {
+            "contains_faces": False,
+            "contains_personal_data": False,
+            "contains_plates": False,
+            "contains_real_people": False,
+            "source_boundary": "only plate-sanitized issue-21 RGB derivatives are accepted",
+        },
+    ):
+        _fail("invalid_manifest")
+    for field in (
+        "source_detection_annotation_sha256",
+        "source_detection_manifest_sha256",
+    ):
+        digest = _text(manifest[field], "invalid_manifest", 64)
+        if re.fullmatch(r"[0-9a-f]{64}", digest) is None:
+            _fail("invalid_manifest")
+    items_value = detection_annotations.get("items")
+    if (
+        set(detection_annotations)
+        != {"items", "schema", "schema_version", "source_manifest_sha256"}
+        or detection_annotations.get("schema") != "visualworld.v02-detection-annotation-lock"
+        or type(detection_annotations.get("schema_version")) is not int
+        or detection_annotations.get("schema_version") != 1
+        or not isinstance(items_value, list)
+    ):
+        _fail("invalid_manifest")
+    detection_source_digest = _text(
+        detection_annotations.get("source_manifest_sha256"), "invalid_manifest", 64
+    )
+    if re.fullmatch(r"[0-9a-f]{64}", detection_source_digest) is None:
+        _fail("invalid_manifest")
+    events = expected_events
+    detection_items: dict[tuple[str, str], dict[str, object]] = {}
+    for raw_item in items_value:
+        if not isinstance(raw_item, dict) or set(raw_item) != {
+            "frame_sha256",
+            "height",
+            "item_id",
+            "object_box",
+            "relative_path",
+            "source_id",
+            "split",
+            "stratum",
+            "width",
+        }:
+            _fail("invalid_manifest")
+        item = cast(dict[str, object], raw_item)
+        source_id = _text(item["source_id"], "invalid_manifest")
+        detection_split = _text(item["split"], "invalid_manifest")
+        stratum = _text(item["stratum"], "invalid_manifest")
+        item_id = _text(item["item_id"], "invalid_manifest")
+        relative_path = _text(item["relative_path"], "invalid_manifest")
+        digest = _text(item["frame_sha256"], "invalid_manifest", 64)
+        if (
+            _IDENTIFIER.fullmatch(source_id) is None
+            or detection_split not in {"calibration", "test"}
+            or stratum not in {"easy", "small_distant"}
+            or item_id != f"{detection_split}-{source_id}-{stratum}"
+            or relative_path != f"{detection_split}/{item_id}.ppm"
+            or re.fullmatch(r"[0-9a-f]{64}", digest) is None
+            or _integer(item["width"], "invalid_manifest", 640, 640) != 640
+            or _integer(item["height"], "invalid_manifest", 360, 360) != 360
+        ):
+            _fail("invalid_manifest")
+        try:
+            detection_prep._box(item["object_box"], 640, 360)
+        except detection_prep.PreparationError as error:
+            raise SamplingPreparationError("invalid_manifest") from error
+        key = (source_id, stratum)
+        if key in detection_items:
+            _fail("invalid_manifest")
+        detection_items[key] = item
     easy_items = {
-        item["source_id"]: item
-        for item in cast(list[dict[str, object]], detection_annotations.get("items"))
-        if item.get("stratum") == "easy"
+        source_id: item
+        for (source_id, stratum), item in detection_items.items()
+        if stratum == "easy"
     }
+    if len(detection_items) != 20 or len(easy_items) != 10:
+        _fail("invalid_manifest")
     seen_clips: set[str] = set()
     seen_sources: set[str] = set()
     for raw_clip in clips:
@@ -362,7 +522,7 @@ def _validate_source_manifest(
         clip_id = _text(clip["clip_id"], "invalid_manifest")
         source_id = _text(clip["source_id"], "invalid_manifest")
         input_relative = PurePosixPath(_text(clip["input_relative_path"], "invalid_manifest"))
-        split = clip["split"]
+        clip_split = _text(clip["split"], "invalid_manifest")
         if (
             _IDENTIFIER.fullmatch(clip_id) is None
             or _IDENTIFIER.fullmatch(source_id) is None
@@ -370,29 +530,38 @@ def _validate_source_manifest(
             or any(part in {"", ".", ".."} for part in input_relative.parts)
             or clip_id in seen_clips
             or source_id in seen_sources
-            or split not in {"calibration", "test"}
-            or not clip_id.startswith(f"{split}-")
-            or easy_items.get(source_id)
-            != {
-                "frame_sha256": clip["input_frame_sha256"],
-                "height": 360,
-                "item_id": f"{split}-{source_id}-easy",
-                "object_box": clip["input_object_box"],
-                "relative_path": clip["input_relative_path"],
-                "source_id": source_id,
-                "split": split,
-                "stratum": "easy",
-                "width": 640,
-            }
+            or clip_split not in {"calibration", "test"}
+            or not clip_id.startswith(f"{clip_split}-")
+            or not _same_json(
+                easy_items.get(source_id),
+                {
+                    "frame_sha256": clip["input_frame_sha256"],
+                    "height": 360,
+                    "item_id": f"{clip_split}-{source_id}-easy",
+                    "object_box": clip["input_object_box"],
+                    "relative_path": clip["input_relative_path"],
+                    "source_id": source_id,
+                    "split": clip_split,
+                    "stratum": "easy",
+                    "width": 640,
+                },
+            )
         ):
             _fail("invalid_manifest")
         _integer(clip["background_seed"], "invalid_manifest", 0, 255)
         _integer(clip["phase_ms"], "invalid_manifest", 0, 100)
+        input_digest = _text(clip["input_frame_sha256"], "invalid_manifest", 64)
+        if re.fullmatch(r"[0-9a-f]{64}", input_digest) is None:
+            _fail("invalid_manifest")
+        try:
+            detection_prep._box(clip["input_object_box"], 640, 360)
+        except detection_prep.PreparationError as error:
+            raise SamplingPreparationError("invalid_manifest") from error
         seen_clips.add(clip_id)
         seen_sources.add(source_id)
     if sum(clip["split"] == "calibration" for clip in clips) != 4:
         _fail("invalid_manifest")
-    return cast(list[dict[str, object]], clips), cast(list[dict[str, object]], events)
+    return cast(list[dict[str, object]], clips), events
 
 
 def prepare(input_root: Path, output_root: Path) -> dict[str, object]:
@@ -527,13 +696,13 @@ def prepare(input_root: Path, output_root: Path) -> dict[str, object]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = _StableArgumentParser(description=__doc__)
     parser.add_argument("--input-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    arguments = parser.parse_args()
     try:
+        arguments = parser.parse_args()
         lock = prepare(arguments.input_root.resolve(), Path(os.path.abspath(arguments.output)))
-    except (OSError, SamplingPreparationError) as error:
+    except (OSError, SamplingPreparationError, detection_prep.PreparationError) as error:
         code = str(error) if isinstance(error, SamplingPreparationError) else "filesystem_failed"
         _emit({"error": code, "status": "error"}, sys.stdout)
         return 1

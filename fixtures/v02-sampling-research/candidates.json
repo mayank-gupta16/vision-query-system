@@ -4,6 +4,7 @@
     "burst_duration_ms": 750,
     "maximum_fps": 8,
     "motion_score": "maximum 32x24 tile mean absolute RGB delta in millionths of 255",
+    "schedule": "3 FPS targets quantized to the nearest 8 FPS lattice frame outside bursts; 8 FPS lattice inside bursts",
     "threshold_grid_millionths": [30000, 50000, 70000, 90000]
   },
   "detector": {

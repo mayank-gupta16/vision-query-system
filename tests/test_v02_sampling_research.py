@@ -100,8 +100,35 @@ def test_sampling_candidate_list_is_exact_and_bounded() -> None:
         "burst_duration_ms": 750,
         "maximum_fps": 8,
         "motion_score": "maximum 32x24 tile mean absolute RGB delta in millionths of 255",
+        "schedule": (
+            "3 FPS targets quantized to the nearest 8 FPS lattice frame outside bursts; "
+            "8 FPS lattice inside bursts"
+        ),
         "threshold_grid_millionths": grid,
     }
+
+
+@pytest.mark.parametrize(
+    ("section", "field", "value"),
+    [
+        ("fixed", "0", True),
+        ("fixed", "0", 1.0),
+        ("adaptive", "base_fps", 3.0),
+        ("adaptive", "maximum_fps", True),
+        ("adaptive", "burst_duration_ms", 750.0),
+        ("detector", "confidence_millionths", 950_000.0),
+    ],
+)
+def test_sampling_candidate_numbers_require_exact_integer_types(
+    section: str, field: str, value: object
+) -> None:
+    manifest = _json(FIXTURE_ROOT / "candidates.json")
+    if section == "fixed":
+        cast(list[object], manifest["fixed_rates_fps"])[int(field)] = value
+    else:
+        cast(dict[str, object], manifest[section])[field] = value
+    with pytest.raises(benchmark.SamplingBenchmarkError, match="invalid_candidate_manifest"):
+        benchmark._validate_configuration(manifest)
 
 
 def test_sampling_json_loaders_reject_duplicate_and_nonfinite_values(tmp_path: Path) -> None:
@@ -147,6 +174,80 @@ def test_sampling_source_paths_and_identifiers_cannot_escape_roots(field: str, v
         preparation._validate_source_manifest(source, detection_annotations)
 
 
+@pytest.mark.parametrize(
+    ("section", "field", "value"),
+    [
+        ("event", "target_width", 10**9),
+        ("event", "target_width", 144.0),
+        ("event", "duration_ms", True),
+        ("canvas", "width", 384.0),
+        ("derivation", "clip_duration_ms", 6000.0),
+        ("derivation", "timing", "unbounded caller timing"),
+        ("derivation", "interpolation", "unknown"),
+        ("privacy", "contains_faces", True),
+        ("privacy", "contains_personal_data", 0),
+    ],
+)
+def test_sampling_source_derivation_and_privacy_are_fully_locked(
+    section: str, field: str, value: object
+) -> None:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    detection_annotations = _json(ROOT / "fixtures" / "v02-detection-research" / "annotations.json")
+    if section == "event":
+        events = cast(
+            list[dict[str, object]],
+            cast(dict[str, object], source["derivation"])["events"],
+        )
+        events[0][field] = value
+    else:
+        cast(dict[str, object], source[section])[field] = value
+    with pytest.raises(preparation.SamplingPreparationError, match="invalid_manifest"):
+        preparation._validate_source_manifest(source, detection_annotations)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("width", 640.0),
+        ("height", True),
+        ("object_box", [174.0, 108, 447, 348]),
+    ],
+)
+def test_sampling_detection_source_annotations_are_strict(field: str, value: object) -> None:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    detection_annotations = _json(ROOT / "fixtures" / "v02-detection-research" / "annotations.json")
+    cast(list[dict[str, object]], detection_annotations["items"])[0][field] = value
+    with pytest.raises(preparation.SamplingPreparationError, match="invalid_manifest"):
+        preparation._validate_source_manifest(source, detection_annotations)
+
+
+def _relock_sampling_split(
+    annotations: dict[str, object], dataset: dict[str, object], split: str
+) -> None:
+    _, _, annotation_payload, ids_payload = benchmark._split_payload(annotations, split)
+    contract = cast(dict[str, object], cast(dict[str, object], dataset["splits"])[split])
+    contract["annotation_sha256"] = hashlib.sha256(annotation_payload).hexdigest()
+    contract["item_ids_sha256"] = hashlib.sha256(ids_payload).hexdigest()
+
+
+@pytest.mark.parametrize("mutation", ["event_interval", "event_type", "frame_box"])
+def test_sampling_annotations_bind_intervals_frames_and_boxes(mutation: str) -> None:
+    annotations = _json(FIXTURE_ROOT / "annotations.json")
+    dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+    clips = cast(list[dict[str, object]], annotations["clips"])
+    events = cast(list[dict[str, object]], annotations["events"])
+    if mutation == "event_interval":
+        events[0]["start_ms"] = 335
+    elif mutation == "event_type":
+        events[0]["start_ms"] = True
+    else:
+        frames = cast(list[dict[str, object]], clips[0]["frames"])
+        frames[5]["object_box"] = [19.0, 90, 163, 216]
+    _relock_sampling_split(annotations, dataset, "calibration")
+    with pytest.raises(benchmark.SamplingBenchmarkError, match="invalid_annotations"):
+        benchmark._validate_annotations(annotations, dataset)
+
+
 def test_fixed_sampling_uses_nearest_pts_and_reports_vfr_error_separately() -> None:
     annotations = _json(FIXTURE_ROOT / "annotations.json")
     clip = cast(list[dict[str, object]], annotations["clips"])[0]
@@ -173,19 +274,44 @@ def test_adaptive_sampling_replaces_base_schedule_during_bounded_bursts() -> Non
     pixels[10] = white
     frames = list(zip(metadata, pixels, strict=True))
 
-    base, base_errors = benchmark._fixed_selection(frames, 3)
     maximum, _ = benchmark._fixed_selection(frames, 8)
     quiet, quiet_errors, quiet_scores = benchmark._adaptive_selection(frames, 1_000_001)
     burst, burst_errors, burst_scores = benchmark._adaptive_selection(frames, 1_000)
 
-    assert quiet == base
-    assert quiet_errors == base_errors
+    assert len(quiet) == 18
+    assert quiet <= maximum
     assert max(quiet_scores) == 1_000_000
-    assert burst != base
-    assert burst <= base | maximum
-    assert len(base) < len(burst) <= len(maximum)
+    assert len(quiet_errors) == 18
+    assert burst != quiet
+    assert burst <= maximum
+    assert len(quiet) < len(burst) <= len(maximum)
     assert max(burst_scores) == 1_000_000
-    assert len(burst_errors) <= 48 + 18
+    assert len(burst_errors) <= 48
+
+
+def test_adaptive_sampling_never_escapes_maximum_lattice(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    annotations = _json(FIXTURE_ROOT / "annotations.json")
+    clip = cast(list[dict[str, object]], annotations["clips"])[0]
+    frames = [(cast(dict[str, object], frame), b"") for frame in cast(list[object], clip["frames"])]
+    maximum, _ = benchmark._fixed_selection(frames, 8)
+    for triggered in (
+        (5, 20, 35, 50, 65, 80),
+        (1, 20, 40, 60, 80),
+        tuple(range(1, 86, 10)),
+    ):
+        scores = [0] * len(frames)
+        for index in triggered:
+            scores[index] = 1_000_000
+        monkeypatch.setattr(
+            benchmark,
+            "_motion_scores",
+            lambda _, selected_scores=scores: selected_scores,
+        )
+        selected, _, _ = benchmark._adaptive_selection(frames, 1_000)
+        assert selected <= maximum
+        assert len(selected) <= len(maximum)
 
 
 def test_object_event_metrics_count_recall_and_track_opportunities() -> None:
@@ -302,6 +428,55 @@ def test_sampling_benchmark_cli_redacts_paths_and_has_stable_errors(tmp_path: Pa
     }
     assert marker.encode() not in completed.stdout
     assert b"Traceback" not in completed.stdout
+
+    preparation_command = [
+        sys.executable,
+        os.fspath(ROOT / "scripts" / "prepare_v02_sampling_dataset.py"),
+        "--input-root",
+        os.fspath(tmp_path / marker),
+        "--output",
+        os.fspath(tmp_path / "unused"),
+    ]
+    for parser_command in (command, preparation_command):
+        for arguments in ([], ["--unknown-private-value", marker]):
+            parsed = subprocess.run(
+                [*parser_command[:2], *arguments],
+                check=False,
+                capture_output=True,
+                timeout=10,
+            )
+            assert parsed.returncode == 1
+            assert parsed.stderr == b""
+            assert json.loads(parsed.stdout) == {
+                "error": "invalid_arguments",
+                "status": "error",
+            }
+            assert marker.encode() not in parsed.stdout
+            assert marker.encode() not in parsed.stderr
+    for failing_command in (command, preparation_command):
+        for unbuffered in (False, True):
+            environment = {
+                key: value for key, value in os.environ.items() if key != "PYTHONUNBUFFERED"
+            }
+            if unbuffered:
+                environment["PYTHONUNBUFFERED"] = "1"
+            for redirection in ("exec 1>/dev/full", "exec 1>&-; exec 2>&-"):
+                broken = subprocess.run(
+                    [
+                        "/bin/bash",
+                        "-c",
+                        f'{redirection}; exec "$@"',
+                        "bash",
+                        *failing_command,
+                    ],
+                    check=False,
+                    capture_output=True,
+                    env=environment,
+                    timeout=10,
+                )
+                assert broken.returncode == 1
+                assert b"Traceback" not in broken.stderr
+                assert b"Exception ignored" not in broken.stderr
 
 
 def test_published_sampling_results_reproduce_frozen_gate_outputs() -> None:

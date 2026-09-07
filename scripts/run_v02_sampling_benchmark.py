@@ -14,6 +14,7 @@ import struct
 import sys
 import tempfile
 import time
+from contextlib import suppress
 from datetime import date
 from fractions import Fraction
 from pathlib import Path, PurePosixPath
@@ -45,8 +46,34 @@ class SamplingBenchmarkError(RuntimeError):
     """A stable sampling benchmark failure."""
 
 
+class _StableArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> NoReturn:
+        del message
+        raise SamplingBenchmarkError("invalid_arguments")
+
+
 def _fail(code: str) -> NoReturn:
     raise SamplingBenchmarkError(code)
+
+
+def _silence_stream(stream: TextIO) -> None:
+    try:
+        descriptor = stream.fileno()
+    except (AttributeError, OSError, ValueError):
+        return
+    try:
+        null_descriptor = os.open(os.devnull, os.O_WRONLY | os.O_CLOEXEC)
+    except OSError:
+        return
+    if null_descriptor == descriptor:
+        return
+    try:
+        os.dup2(null_descriptor, descriptor)
+    except OSError:
+        pass
+    finally:
+        with suppress(OSError):
+            os.close(null_descriptor)
 
 
 def _emit(value: object, stream: TextIO) -> bool:
@@ -54,6 +81,7 @@ def _emit(value: object, stream: TextIO) -> bool:
         stream.write(json.dumps(value, allow_nan=False, sort_keys=True) + "\n")
         stream.flush()
     except (AttributeError, OSError, UnicodeError, ValueError):
+        _silence_stream(stream)
         return False
     return True
 
@@ -118,21 +146,31 @@ def _validate_configuration(value: object) -> tuple[list[dict[str, object]], lis
         "selection",
     }:
         _fail("invalid_candidate_manifest")
+    fixed_value = manifest["fixed_rates_fps"]
+    if not isinstance(fixed_value, list):
+        _fail("invalid_candidate_manifest")
+    fixed_rates = [_integer(item, "invalid_candidate_manifest", 1, 8) for item in fixed_value]
     if (
         manifest["schema"] != "visualworld.v02-sampling-candidates"
         or type(manifest["schema_version"]) is not int
         or manifest["schema_version"] != 1
-        or manifest["fixed_rates_fps"] != [1, 2, 3, 5, 8]
+        or fixed_rates != [1, 2, 3, 5, 8]
     ):
         _fail("invalid_candidate_manifest")
     detector_manifest = _mapping(manifest["detector"], "invalid_candidate_manifest")
-    if detector_manifest != {
-        "candidate_manifest_sha256": (
-            "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee"
-        ),
-        "confidence_millionths": 950000,
-        "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
-    }:
+    if (
+        set(detector_manifest) != {"candidate_manifest_sha256", "confidence_millionths", "name"}
+        or detector_manifest["candidate_manifest_sha256"]
+        != "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee"
+        or _integer(
+            detector_manifest["confidence_millionths"],
+            "invalid_candidate_manifest",
+            950_000,
+            950_000,
+        )
+        != 950_000
+        or detector_manifest["name"] != "vehicle-detection-0201-fp32-openvino-2026.3.1"
+    ):
         _fail("invalid_candidate_manifest")
     adaptive = _mapping(manifest["adaptive"], "invalid_candidate_manifest")
     if set(adaptive) != {
@@ -140,15 +178,21 @@ def _validate_configuration(value: object) -> tuple[list[dict[str, object]], lis
         "burst_duration_ms",
         "maximum_fps",
         "motion_score",
+        "schedule",
         "threshold_grid_millionths",
     }:
         _fail("invalid_candidate_manifest")
     if (
-        adaptive["base_fps"] != 3
-        or adaptive["maximum_fps"] != 8
-        or adaptive["burst_duration_ms"] != 750
+        _integer(adaptive["base_fps"], "invalid_candidate_manifest", 3, 3) != 3
+        or _integer(adaptive["maximum_fps"], "invalid_candidate_manifest", 8, 8) != 8
+        or _integer(adaptive["burst_duration_ms"], "invalid_candidate_manifest", 750, 750) != 750
         or adaptive["motion_score"]
         != "maximum 32x24 tile mean absolute RGB delta in millionths of 255"
+        or adaptive["schedule"]
+        != (
+            "3 FPS targets quantized to the nearest 8 FPS lattice frame outside bursts; "
+            "8 FPS lattice inside bursts"
+        )
     ):
         _fail("invalid_candidate_manifest")
     grid_value = adaptive["threshold_grid_millionths"]
@@ -157,10 +201,7 @@ def _validate_configuration(value: object) -> tuple[list[dict[str, object]], lis
     grid = [_integer(item, "invalid_candidate_manifest", 1, 1_000_000) for item in grid_value]
     if grid != sorted(set(grid)) or len(grid) != 4:
         _fail("invalid_candidate_manifest")
-    fixed = [
-        {"fps": fps, "kind": "fixed", "name": f"fixed-{fps}-fps"}
-        for fps in cast(list[int], manifest["fixed_rates_fps"])
-    ]
+    fixed = [{"fps": fps, "kind": "fixed", "name": f"fixed-{fps}-fps"} for fps in fixed_rates]
     return fixed, grid
 
 
@@ -170,12 +211,27 @@ def _split_payload(
     clips_value = annotations.get("clips")
     events_value = annotations.get("events")
     if (
-        annotations.get("schema") != "visualworld.v02-sampling-annotation-lock"
+        set(annotations)
+        != {"clips", "events", "schema", "schema_version", "source_manifest_sha256"}
+        or annotations.get("schema") != "visualworld.v02-sampling-annotation-lock"
         or type(annotations.get("schema_version")) is not int
         or annotations.get("schema_version") != 1
         or not isinstance(clips_value, list)
         or not isinstance(events_value, list)
+        or any(
+            not isinstance(clip, dict) or clip.get("split") not in {"calibration", "test"}
+            for clip in clips_value
+        )
+        or any(
+            not isinstance(event, dict)
+            or event.get("split") not in {"calibration", "test"}
+            or "event_id" not in event
+            for event in events_value
+        )
     ):
+        _fail("invalid_annotations")
+    source_digest = _text(annotations.get("source_manifest_sha256"), "invalid_annotations", 64)
+    if re.fullmatch(r"[0-9a-f]{64}", source_digest) is None:
         _fail("invalid_annotations")
     clips = [
         cast(dict[str, object], clip)
@@ -213,6 +269,9 @@ def _validate_annotations(
             _fail("dataset_lock_mismatch")
         clip_ids: set[str] = set()
         sources: set[str] = set()
+        clip_cut_ms: dict[str, int] = {}
+        clip_frames: dict[str, list[dict[str, object]]] = {}
+        clip_sources: dict[str, str] = {}
         for clip in clips:
             if set(clip) != {
                 "byte_count",
@@ -234,22 +293,42 @@ def _validate_annotations(
                 or _IDENTIFIER.fullmatch(source_id) is None
                 or clip_id in clip_ids
                 or source_id in sources
+                or clip["split"] != split
             ):
                 _fail("invalid_annotations")
             clip_ids.add(clip_id)
             sources.add(source_id)
+            clip_sources[clip_id] = source_id
             _integer(clip["byte_count"], "invalid_annotations", 1, MAX_CLIP_BYTES)
-            if clip["duration_ms"] != 6000 or clip["frame_count"] != 86:
+            cut_ms = _integer(clip["cut_ms"], "invalid_annotations", 3000, 3100)
+            if (
+                _integer(clip["duration_ms"], "invalid_annotations", 6000, 6000) != 6000
+                or _integer(clip["frame_count"], "invalid_annotations", 86, 86) != 86
+            ):
                 _fail("invalid_annotations")
             relative = PurePosixPath(_text(clip["relative_path"], "invalid_annotations"))
-            if relative.is_absolute() or ".." in relative.parts:
+            if relative.as_posix() != f"{split}/{clip_id}.mov":
+                _fail("invalid_annotations")
+            clip_digest = _text(clip["sha256"], "invalid_annotations", 64)
+            if re.fullmatch(r"[0-9a-f]{64}", clip_digest) is None:
                 _fail("invalid_annotations")
             frames = clip["frames"]
             if not isinstance(frames, list) or len(frames) != 86:
                 _fail("invalid_annotations")
+            validated_frames: list[dict[str, object]] = []
             expected_pts = 0
             for index, raw_frame in enumerate(frames):
                 frame = _mapping(raw_frame, "invalid_annotations")
+                if set(frame) != {
+                    "duration_ms",
+                    "event_id",
+                    "frame_index",
+                    "object_box",
+                    "pts_ms",
+                    "rgb24_sha256",
+                    "stratum",
+                }:
+                    _fail("invalid_annotations")
                 if (
                     frame.get("frame_index") != index
                     or type(frame.get("frame_index")) is not int
@@ -259,13 +338,36 @@ def _validate_annotations(
                     _fail("invalid_annotations")
                 expected_pts += _integer(frame.get("duration_ms"), "invalid_annotations", 1, 1000)
                 digest = _text(frame.get("rgb24_sha256"), "invalid_annotations", 64)
-                if len(digest) != 64:
+                event_id_value = frame.get("event_id")
+                stratum_value = frame.get("stratum")
+                box_value = frame.get("object_box")
+                if (
+                    re.fullmatch(r"[0-9a-f]{64}", digest) is None
+                    or (event_id_value is not None and type(event_id_value) is not str)
+                    or (stratum_value is not None and stratum_value not in STRATA[1:])
+                    or (event_id_value is None) != (stratum_value is None)
+                    or (event_id_value is None) != (box_value is None)
+                ):
                     _fail("invalid_annotations")
+                if box_value is not None:
+                    if (
+                        not isinstance(box_value, list)
+                        or len(box_value) != 4
+                        or any(type(coordinate) is not int for coordinate in box_value)
+                    ):
+                        _fail("invalid_annotations")
+                    left, top, right, bottom = cast(list[int], box_value)
+                    if not (0 <= left < right <= WIDTH and 0 <= top < bottom <= HEIGHT):
+                        _fail("invalid_annotations")
+                validated_frames.append(frame)
             if expected_pts != 6000:
                 _fail("invalid_annotations")
+            clip_cut_ms[clip_id] = cut_ms
+            clip_frames[clip_id] = validated_frames
         split_sources[split] = sources
         event_ids: set[str] = set()
         counts = {stratum: 0 for stratum in STRATA}
+        events_by_clip: dict[str, list[dict[str, object]]] = {clip_id: [] for clip_id in clip_ids}
         for event in events:
             if set(event) != {
                 "clip_id",
@@ -278,23 +380,64 @@ def _validate_annotations(
             }:
                 _fail("invalid_annotations")
             event_id = _text(event["event_id"], "invalid_annotations")
+            clip_id = _text(event["clip_id"], "invalid_annotations")
+            source_id = _text(event["source_id"], "invalid_annotations")
             strata = event["strata"]
+            start_ms = _integer(event["start_ms"], "invalid_annotations", 0, 5999)
+            end_ms = _integer(event["end_ms"], "invalid_annotations", 1, 6000)
             if (
                 _IDENTIFIER.fullmatch(event_id) is None
                 or event_id in event_ids
-                or event["clip_id"] not in clip_ids
-                or event["source_id"] not in sources
+                or clip_id not in clip_ids
+                or source_id != clip_sources.get(clip_id)
+                or event["split"] != split
                 or not isinstance(strata, list)
                 or len(strata) != 2
                 or strata[0] != "overall"
                 or strata[1] not in STRATA[1:]
+                or event_id != f"{clip_id}-{cast(str, strata[1]).replace('_', '-')}"
+                or start_ms >= end_ms
             ):
                 _fail("invalid_annotations")
             event_ids.add(event_id)
+            events_by_clip[clip_id].append(event)
             counts["overall"] += 1
             counts[cast(str, strata[1])] += 1
         if counts != expected["stratum_item_counts"]:
             _fail("dataset_lock_mismatch")
+        for clip_id, frames in clip_frames.items():
+            clip_events = events_by_clip[clip_id]
+            if {cast(list[str], event["strata"])[1] for event in clip_events} != set(
+                STRATA[1:]
+            ) or len(clip_events) != len(STRATA) - 1:
+                _fail("invalid_annotations")
+            for frame in frames:
+                pts_ms = cast(int, frame["pts_ms"])
+                active = [
+                    event
+                    for event in clip_events
+                    if cast(int, event["start_ms"]) <= pts_ms < cast(int, event["end_ms"])
+                ]
+                if len(active) > 1:
+                    _fail("invalid_annotations")
+                expected_event = active[0] if active else None
+                expected_event_id = None if expected_event is None else expected_event["event_id"]
+                expected_stratum = (
+                    None if expected_event is None else cast(list[str], expected_event["strata"])[1]
+                )
+                if frame["event_id"] != expected_event_id or frame["stratum"] != expected_stratum:
+                    _fail("invalid_annotations")
+            phase_ms = clip_cut_ms[clip_id] - 3000
+            expected_intervals = {
+                "small_fast": (300 + phase_ms, 1200 + phase_ms),
+                "camera_motion": (1450 + phase_ms, 2850 + phase_ms),
+                "cut_adjacent": (3020 + phase_ms, 3900 + phase_ms),
+                "vfr_gap": (4200 + phase_ms, 5700 + phase_ms),
+            }
+            for event in clip_events:
+                stratum = cast(list[str], event["strata"])[1]
+                if (event["start_ms"], event["end_ms"]) != expected_intervals[stratum]:
+                    _fail("invalid_annotations")
     if split_sources["calibration"] & split_sources["test"]:
         _fail("dataset_lock_mismatch")
 
@@ -328,8 +471,10 @@ def _read_clip(
     return frames
 
 
-def _fixed_targets(
-    frames: list[tuple[dict[str, object], bytes]], fps: int
+def _nearest_targets(
+    frames: list[tuple[dict[str, object], bytes]],
+    fps: int,
+    eligible_indices: tuple[int, ...],
 ) -> list[tuple[int, int]]:
     horizon = Fraction(6000, 1000)
     target = Fraction(0)
@@ -337,7 +482,7 @@ def _fixed_targets(
     targets: list[tuple[int, int]] = []
     while target < horizon:
         chosen_index = min(
-            range(len(frames)),
+            eligible_indices,
             key=lambda index: (
                 abs(Fraction(cast(int, frames[index][0]["pts_ms"]), 1000) - target),
                 index,
@@ -348,6 +493,12 @@ def _fixed_targets(
         targets.append((chosen_index, error_ms))
         target += step
     return targets
+
+
+def _fixed_targets(
+    frames: list[tuple[dict[str, object], bytes]], fps: int
+) -> list[tuple[int, int]]:
+    return _nearest_targets(frames, fps, tuple(range(len(frames))))
 
 
 def _fixed_selection(
@@ -383,8 +534,9 @@ def _motion_scores(frames: list[tuple[dict[str, object], bytes]]) -> list[int]:
 def _adaptive_selection(
     frames: list[tuple[dict[str, object], bytes]], threshold: int
 ) -> tuple[set[int], list[int], list[int]]:
-    base_targets = _fixed_targets(frames, 3)
     high_targets = _fixed_targets(frames, 8)
+    high_indices = tuple(sorted({index for index, _ in high_targets}))
+    base_targets = _nearest_targets(frames, 3, high_indices)
     scores = _motion_scores(frames)
     windows: list[tuple[int, int]] = []
     for index, score in enumerate(scores):
@@ -1153,7 +1305,7 @@ def run_benchmark(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = _StableArgumentParser(description=__doc__)
     parser.add_argument("--dataset-root", required=True, type=Path)
     parser.add_argument("--models-root", required=True, type=Path)
     parser.add_argument("--base-python", required=True, type=Path)
@@ -1161,8 +1313,8 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--source-revision", required=True)
     parser.add_argument("--evaluated-on", required=True)
-    arguments = parser.parse_args()
     try:
+        arguments = parser.parse_args()
         result = run_benchmark(
             dataset_root=arguments.dataset_root.resolve(),
             models_root=arguments.models_root.resolve(),
