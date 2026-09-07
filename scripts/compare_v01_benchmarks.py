@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import stat
 import sys
@@ -58,18 +59,44 @@ def _canonical(value: object) -> bytes:
 
 
 def _load(path: Path) -> dict[str, object]:
+    descriptor = -1
     try:
-        metadata = path.lstat()
+        if not hasattr(os, "O_NOFOLLOW"):
+            _fail("invalid_receipt")
+        descriptor = os.open(
+            path,
+            os.O_RDONLY | os.O_CLOEXEC | os.O_NONBLOCK | os.O_NOFOLLOW,
+        )
+        metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > _MAX_RECEIPT_BYTES:
             _fail("invalid_receipt")
-        raw = path.read_bytes()
-        if len(raw) != metadata.st_size:
+        chunks: list[bytes] = []
+        remaining = metadata.st_size + 1
+        while remaining > 0:
+            chunk = os.read(descriptor, min(64 * 1024, remaining))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        raw = b"".join(chunks)
+        final_metadata = os.fstat(descriptor)
+        if (
+            len(raw) != metadata.st_size
+            or final_metadata.st_dev != metadata.st_dev
+            or final_metadata.st_ino != metadata.st_ino
+            or final_metadata.st_size != metadata.st_size
+            or final_metadata.st_mtime_ns != metadata.st_mtime_ns
+            or final_metadata.st_ctime_ns != metadata.st_ctime_ns
+        ):
             _fail("invalid_receipt")
         loaded = json.loads(raw)
     except ComparisonError:
         raise
     except (OSError, TypeError, ValueError):
         _fail("invalid_receipt")
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
     return _receipt(loaded)
 
 
