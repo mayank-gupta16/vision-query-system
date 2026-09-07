@@ -232,6 +232,38 @@ resource measurements. It omits temporary paths, record/deletion identifiers,
 hostile strings, and pixel bytes. The reviewed CPU-LITE result is retained in
 the [machine-readable receipt](../research/v01-regressions-cpu-lite-receipt.json).
 
+The combined v0.1 CPU-LITE benchmark exercises the full released fake/manual
+boundary over a virtual 60-second 1920×1080 source: bounded exact-PTS sampling,
+300 full-resolution crop/hash operations, transactional frame/evidence storage,
+reopen/verification, retrieval, and paginated index queries. It generates only
+Apache-2.0 synthetic bytes, retains no temporary store, and makes no decode,
+inference, model-accuracy, or external-dataset claim:
+
+```sh
+revision=$(git rev-parse HEAD)
+PYTHONPATH=src artifacts/toolchain/3.13.15/python/\
+cpython-3.13.15-linux-x86_64-gnu/bin/python3 \
+  scripts/run_v01_benchmark.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/v0.1-candidate.json \
+  --revision "$revision"
+
+PYTHONPATH=src artifacts/toolchain/3.13.15/python/\
+cpython-3.13.15-linux-x86_64-gnu/bin/python3 \
+  scripts/compare_v01_benchmarks.py \
+  --baseline docs/benchmarks/v0.1-cpu-lite-baseline.json \
+  --candidate /private/visualworld-validation/v0.1-candidate.json \
+  --output /private/visualworld-validation/v0.1-comparison.json
+```
+
+Both tools emit only a canonical status to the terminal and put detailed
+aggregate output in the requested JSON file. The comparator requires compatible
+fixture, configuration, CPU-LITE/runtime provenance, and positive metrics. It
+enforces the fixed 2 GiB RSS ceiling and the fixture manifest's initial 20%
+single-run regression budget. The reviewed result, boundary, stage table, and
+exact receipt are in the
+[v0.1 CPU-LITE baseline report](../benchmarks/v0.1-cpu-lite-baseline.md).
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

@@ -1,0 +1,94 @@
+{
+  "comparator": {
+    "max_regression_basis_points": 2000,
+    "metrics": {
+      "combined_store_logical_bytes": "lower_is_better",
+      "frames_per_second_milli": "higher_is_better",
+      "process_cpu_ns": "lower_is_better",
+      "process_peak_rss_bytes": "lower_is_better",
+      "real_time_factor_milli": "higher_is_better",
+      "total_wall_ns": "lower_is_better"
+    }
+  },
+  "configuration": {
+    "candidate_fps": {
+      "denominator": "1",
+      "numerator": "30"
+    },
+    "crop_box_xyxy": [
+      320,
+      180,
+      1600,
+      900
+    ],
+    "frame_duration_ticks": "1000",
+    "metadata_batch_size": 64,
+    "pixel_generation": "packed RGB24 byte values 0 through 255 repeated",
+    "sample_page_candidates": 64,
+    "target_fps": {
+      "denominator": "1",
+      "numerator": "5"
+    },
+    "time_base": {
+      "denominator": "30000",
+      "numerator": "1"
+    },
+    "warmup_crop_count": 1,
+    "warmup_sampling_candidates": 64
+  },
+  "golden": {
+    "candidate_index_sha256": "5fc98b01af87d408dff759fb96c87965e057241cbf8d03890810c5411956f1bf",
+    "crop_aggregate_sha256": "84029ed897c1de8bf0d7ac5ae5690cb5a522465cdbe7ed78015ddcb8106c8a86",
+    "crop_rgb24_bytes": 2764800,
+    "crop_sha256": "04a74562089ec6547967c09f4d1b058956ba9b829691f8ff46fb099a11d22a07",
+    "evidence_ids_sha256": "3713f3ecb5f424debdbd418798bc85f3506747540cd22ee69e6fa9da9b84db69",
+    "full_frame_sha256": "77df06e8fef7fcebf11c66e11b4c1468472cdd2ef418b9cba94efcfefdeee3a2",
+    "run_id": "run_cc25aa41b8632747351afc1ef96678f75470ee1d25ceaf2f861e48179dfcb4c4",
+    "run_manifest_sha256": "a05d36479e9aebe5b0ba09fa4bf83c70047da42cd8030dc63c7d2a3d5ce8af18",
+    "sample_index_sha256": "370ca966f31481f1f2ad9d5cd9a411b4bf0672fbce9b2e101577b91726c9edf5",
+    "selected_frame_ids_sha256": "4ae03b5eb62187af31e900372de3ba9ddb7c56b14118e8f2dd0ad73bc0495ed7",
+    "source_id": "src_14c0354876ab44d7d566b43bd17342c285ce61d53a35e24b0ff41e3a57664795",
+    "unique_artifact_count": 1,
+    "world_artifact_count": 1,
+    "world_intent_count": 0,
+    "world_record_count": 602
+  },
+  "privacy": {
+    "classification": "public-synthetic-no-personal-data",
+    "consent_status": "not-applicable-no-personal-data",
+    "contains_faces": false,
+    "contains_imported_assets": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false,
+    "temporary_outputs_retained": false
+  },
+  "rights": {
+    "allowed_uses": [
+      "benchmarking",
+      "modification",
+      "redistribution",
+      "testing"
+    ],
+    "derivatives_allowed": true,
+    "external_sources": [],
+    "license_expression": "Apache-2.0",
+    "redistribution_allowed": true
+  },
+  "schema": "visualworld.v01-benchmark-manifest",
+  "schema_version": 1,
+  "workload": {
+    "candidate_frame_count": 1800,
+    "full_frame_rgb24_bytes": 6220800,
+    "materialized_encoded_media": false,
+    "perception_dataset_used": false,
+    "repetition_count": 1,
+    "sample_count": 300,
+    "source_dimensions": [
+      1920,
+      1080
+    ],
+    "source_seconds": 60,
+    "virtual_source_kind": "deterministic-generated-rgb24"
+  }
+}

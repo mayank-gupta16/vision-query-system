@@ -1,0 +1,176 @@
+{
+  "checks": {
+    "artifact_integrity_valid": true,
+    "crop_bytes_retrievable": true,
+    "evidence_index_matches": true,
+    "exact_candidate_count": true,
+    "exact_near_five_fps_selection": true,
+    "exact_sample_count": true,
+    "exact_source_pts": true,
+    "fixture_rights_and_privacy_proven": true,
+    "frame_index_matches": true,
+    "golden_matches": true,
+    "manifest_reopened": true,
+    "temporary_outputs_removed": true,
+    "world_counts_match": true
+  },
+  "configuration": {
+    "candidate_fps": {
+      "denominator": "1",
+      "numerator": "30"
+    },
+    "crop_box_xyxy": [
+      320,
+      180,
+      1600,
+      900
+    ],
+    "frame_duration_ticks": "1000",
+    "metadata_batch_size": 64,
+    "pixel_generation": "packed RGB24 byte values 0 through 255 repeated",
+    "sample_page_candidates": 64,
+    "target_fps": {
+      "denominator": "1",
+      "numerator": "5"
+    },
+    "time_base": {
+      "denominator": "30000",
+      "numerator": "1"
+    },
+    "warmup_crop_count": 1,
+    "warmup_sampling_candidates": 64
+  },
+  "implementation": {
+    "benchmark_harness_sha256": "71d394ee7b52afb85cf10b3517a9de8a0cffee2cc87fab1d8eda98c7da8a0857",
+    "executable_implementation": "cpython",
+    "geometry_module_sha256": "1eee4ef653e03cf4e04425eb9b117861eaf80ef07574e9de17f20990d631f315",
+    "ingestion_module_sha256": "719be8804a4e9830d37ae0ea85add81bb6db5a6f4206a9d5b71dcdc1ee53935f",
+    "python_version": "3.13.15",
+    "sampling_module_sha256": "c64b601bc99ae53050a0574f6a29ac5d5a7f93514c0b3603a548f06f092c590b",
+    "sqlite_version": "3.53.1",
+    "storage_module_sha256": "2c4a37c5218bac08092ab359d69f134312a0055f488727e02e625e530b0f705c",
+    "world_store_module_sha256": "0e521297a1c1e6733ebb70d1dc20482e26b4c90020fe621b6bff910bcaaa0af7"
+  },
+  "measurements": {
+    "artifact_promotion": {
+      "cpu_ns": 5592646,
+      "wall_ns": 5595218
+    },
+    "artifact_stage": {
+      "cpu_ns": 10521969,
+      "wall_ns": 10526105
+    },
+    "crop_and_hash": {
+      "cpu_ns": 1639864150,
+      "wall_ns": 1640071008
+    },
+    "finalize_transaction": {
+      "cpu_ns": 2837585,
+      "wall_ns": 2840553
+    },
+    "indexed_queries": {
+      "cpu_ns": 98188216,
+      "wall_ns": 98194220
+    },
+    "input_generation": {
+      "cpu_ns": 54996035,
+      "wall_ns": 55004002
+    },
+    "intent_transaction": {
+      "cpu_ns": 1123336,
+      "wall_ns": 1125763
+    },
+    "metadata_transactions": {
+      "cpu_ns": 97707380,
+      "transaction_count": 10,
+      "wall_ns": 97721623
+    },
+    "prepare_transaction": {
+      "cpu_ns": 1326141,
+      "wall_ns": 1328983
+    },
+    "record_construction": {
+      "cpu_ns": 16222948,
+      "wall_ns": 16227869
+    },
+    "reopen_and_verify": {
+      "cpu_ns": 87090292,
+      "wall_ns": 87097001
+    },
+    "sampling": {
+      "cpu_ns": 12329625,
+      "page_count": 29,
+      "wall_ns": 12332979
+    },
+    "store_initialization": {
+      "cpu_ns": 4436904,
+      "wall_ns": 4456589
+    }
+  },
+  "metrics": {
+    "cpu_utilization_milli_percent": 99987,
+    "frames_per_second_milli": 151674,
+    "process_cpu_ns": 1977674664,
+    "real_time_factor_milli": 30334,
+    "total_wall_ns": 1977916196
+  },
+  "profile": {
+    "cpu_count": 4,
+    "gpu_required": false,
+    "machine": "x86_64",
+    "meets_requirements": true,
+    "memory_bytes": 16221589504,
+    "name": "CPU-LITE",
+    "os": "Linux-7.0.0-30-generic-x86_64-with-glibc2.43",
+    "required_memory_bytes": 16000000000,
+    "required_vcpu": 4
+  },
+  "provenance": {
+    "fixture_manifest_sha256": "326a76734cf0cd4fed8fc3cc7b422ade97fc1d2ca3835ac003b068eda930eb8c",
+    "generated_input": true,
+    "license_expression": "Apache-2.0",
+    "perception_accuracy_claimed": false,
+    "privacy_classification": "public-synthetic-no-personal-data",
+    "source_revision": "5f3d7ea7992f388fb31204f3b16ddcaea76d3344"
+  },
+  "resources": {
+    "artifact_store_allocated_bytes": 2764800,
+    "artifact_store_file_count": 1,
+    "artifact_store_logical_bytes": 2764800,
+    "combined_store_allocated_bytes": 4120576,
+    "combined_store_file_count": 5,
+    "combined_store_logical_bytes": 4120576,
+    "disk_measured": true,
+    "index_measured": true,
+    "metadata_index_allocated_bytes": 1355776,
+    "metadata_index_file_count": 3,
+    "metadata_index_logical_bytes": 1355776,
+    "peak_rss_limit_bytes": 2147483648,
+    "process_peak_rss_bytes": 46694400,
+    "rss_bounded": true,
+    "rss_measured": true,
+    "timing_measured": true
+  },
+  "schema": "visualworld.v01-benchmark-receipt",
+  "schema_version": 1,
+  "status": "pass",
+  "warmup": {
+    "crop_count": 1,
+    "excluded_from_total": true,
+    "sampling_candidate_count": 64
+  },
+  "workload": {
+    "candidate_frame_count": 1800,
+    "full_frame_rgb24_bytes": 6220800,
+    "materialized_encoded_media": false,
+    "perception_dataset_used": false,
+    "repetition_count": 1,
+    "sample_count": 300,
+    "source_dimensions": [
+      1920,
+      1080
+    ],
+    "source_seconds": 60,
+    "virtual_source_kind": "deterministic-generated-rgb24"
+  }
+}

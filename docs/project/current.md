@@ -15,13 +15,15 @@
   probing the built-in fixture, ingesting a manual box, inspecting run-owned
   samples, and exporting exact RGB24 evidence, plus a release-gate end-to-end
   regression suite for locked goldens, interrupted recovery/deletion, and
-  hostile-input/no-egress boundaries
+  hostile-input/no-egress boundaries, and a pinned combined CPU-LITE benchmark
+  harness with machine-readable comparison
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
   CPU-LITE generated fixtures, plus fresh-process CLI wall/RSS/disk overhead for
   the deterministic vertical slice and bounded v0.1 golden/recovery/security
-  regression-suite cost
+  regression-suite cost, plus the
+  [combined 60-second application baseline](../benchmarks/v0.1-cpu-lite-baseline.md)
 
 ## Established facts
 
@@ -103,18 +105,18 @@
   maintainer retains recovery access.
 - The first end-to-end library path requires caller-supplied RGB24 pixels and
   manual/fake regions; the CLI deliberately supplies only a built-in 2×2 fixture.
-  No query engine, real perception model adapter, real-video CLI input, or
-  combined 60-second application benchmark exists. The local-video adapter is
-  Linux x86_64 only and tests generate only the approved tiny synthetic-v1 media
-  plus temporary metadata/archive fixtures.
+  No query engine, real perception model adapter, or real-video CLI input exists.
+  The combined benchmark therefore measures generated exact-PTS records,
+  full-resolution crop/hash work, and the local stores without claiming decode
+  or perception throughput. The local-video adapter is Linux x86_64 only and
+  tests generate only the approved tiny synthetic-v1 media plus temporary
+  metadata/archive fixtures.
 - The project license does not relicense models, weights, datasets, media,
   runtimes, codecs, services, or other third-party material.
 
 ## Next priorities
 
-1. Establish issue #19's combined 60-second CPU-LITE application harness and
-   baseline.
-2. Cut and verify the v0.1 release through issue #20 after every prerequisite
+1. Cut and verify the v0.1 release through issue #20 after every prerequisite
    closes.
-3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
+2. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.
