@@ -10,88 +10,88 @@
     "original_pixel_crop_retrievable": true
   },
   "implementation": {
-    "coordinator_module_sha256": "c99ed9da90635a9be1f0336e74c092e4363ff43eb17759c0f9d7985932856250",
+    "coordinator_module_sha256": "bd13610e3befea9ebe1b416e94bdd44483c9f227f0118896cb02f14d67ca5f62",
     "executable_implementation": "cpython",
     "harness_sha256": "538e8ec2f08f89ef65732cca1a8bbb28eb76c2a0949ecacdcdf0b1c550f16efd",
     "python_version": "3.13.15",
     "storage_module_sha256": "2c4a37c5218bac08092ab359d69f134312a0055f488727e02e625e530b0f705c",
-    "world_store_module_sha256": "12cf159110318588b732a14f7a95f06d44c8423e79e4f53bee4ac56d681a7729"
+    "world_store_module_sha256": "99c47bcfc706b573d7ba54e76e33a8afc30b5dba19e40b2e1d660473d14045bd"
   },
   "measurements": {
     "clean_staging": {
       "calls": 2,
       "items": 0,
-      "wall_ns": 1384
+      "wall_ns": 1836
     },
     "crop": {
       "calls": 2,
       "items": 2,
-      "wall_ns": 348341
+      "wall_ns": 371796
     },
     "delete_artifacts": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 138885
+      "wall_ns": 173777
     },
     "delete_checkpoint": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 814743
+      "wall_ns": 907195
     },
     "delete_metadata": {
       "calls": 1,
       "items": 4,
-      "wall_ns": 1600229
+      "wall_ns": 1805642
     },
     "delete_pending": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 1554484
+      "wall_ns": 1770296
     },
     "finalize": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 1322207
+      "wall_ns": 1562413
     },
     "prepare": {
       "calls": 1,
       "items": 2,
-      "wall_ns": 1236033
+      "wall_ns": 1309690
     },
     "probe": {
       "calls": 4,
       "items": 130,
-      "wall_ns": 30270
+      "wall_ns": 44792
     },
     "promote": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 174124
+      "wall_ns": 194388
     },
     "record_intents": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 816945
+      "wall_ns": 871052
     },
     "record_metadata": {
       "calls": 1,
       "items": 2,
-      "wall_ns": 2052979
+      "wall_ns": 2355415
     },
     "sample": {
       "calls": 2,
       "items": 6,
-      "wall_ns": 18806
+      "wall_ns": 18421
     },
     "stage": {
       "calls": 1,
       "items": 1,
-      "wall_ns": 140180
+      "wall_ns": 171478
     },
     "verify": {
       "calls": 2,
       "items": 6,
-      "wall_ns": 5338531
+      "wall_ns": 5915366
     }
   },
   "profile": {
@@ -108,7 +108,7 @@
   "resources": {
     "disk_bounded": true,
     "peak_rss_limit_bytes": 2147483648,
-    "process_peak_rss_bytes": 26710016,
+    "process_peak_rss_bytes": 26669056,
     "rss_bounded": true,
     "rss_measured": true,
     "store_logical_bytes_after_delete": 167936,

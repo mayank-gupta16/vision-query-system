@@ -995,7 +995,8 @@ class LocalWorldStore:
         for source_id in source_ids:
             pending = connection.execute(
                 """SELECT 1 FROM deletion_jobs
-                WHERE root_kind = 'source' AND root_id = ? AND state = 'pending'
+                WHERE state = 'metadata_purged'
+                   OR (root_kind = 'source' AND root_id = ? AND state = 'pending')
                 LIMIT 1""",
                 (source_id,),
             ).fetchone()

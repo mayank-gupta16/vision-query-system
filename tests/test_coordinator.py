@@ -48,11 +48,13 @@ from visualworld.ingestion import (
     TimeBase,
 )
 from visualworld.ports import (
+    CapabilityDescriptor,
     FakeFrameSampler,
     FakeVideoSource,
     PortError,
     PortErrorCode,
     PortKind,
+    VideoSource,
 )
 from visualworld.storage import InventoryKind, LocalEvidenceStore, StageHandle
 from visualworld.world_store import (
@@ -598,6 +600,79 @@ def test_adapter_coordinator_error_chain_is_rebuilt_without_private_context(
     assert raised.value.__context__ is None
 
 
+def test_validated_adapter_descriptors_are_snapshotted_once(tmp_path: Path) -> None:
+    source, frames, pixels = _fixture()
+    coordinator, _, _ = _coordinator(tmp_path / "store")
+    delegate = FakeVideoSource(source, frames)
+
+    class OneShotDescriptorVideo:
+        def __init__(self) -> None:
+            self.descriptor_reads = 0
+
+        @property
+        def descriptor(self) -> CapabilityDescriptor:
+            self.descriptor_reads += 1
+            if self.descriptor_reads > 1:
+                raise RuntimeError("private repeated descriptor detail")
+            return delegate.descriptor
+
+        def probe(self) -> Source:
+            return delegate.probe()
+
+        def read_frames(
+            self,
+            *,
+            stream_index: int,
+            after_decode_index: str | None = None,
+            limit: int = 64,
+        ) -> tuple[FrameRef, ...]:
+            return delegate.read_frames(
+                stream_index=stream_index,
+                after_decode_index=after_decode_index,
+                limit=limit,
+            )
+
+    video = OneShotDescriptorVideo()
+    result = coordinator.ingest(
+        video,
+        FakeFrameSampler((frames[1].frame_id,)),
+        IngestionConfig(Sampling(Rational("5", "1")), max_frame_bytes=12),
+        (ManualEvidenceInput(frames[1].frame_id, pixels, (1, 0, 2, 2)),),
+    )
+
+    assert result.manifest.state == "committed"
+    assert video.descriptor_reads == 1
+
+
+def test_adapter_method_lookup_errors_are_sanitized(tmp_path: Path) -> None:
+    source, frames, _ = _fixture()
+    coordinator, _, _ = _coordinator(tmp_path / "store")
+    delegate = FakeVideoSource(source, frames)
+    private_detail = "private-method-lookup-detail"
+
+    class ExplodingProbeLookup:
+        @property
+        def descriptor(self) -> CapabilityDescriptor:
+            return delegate.descriptor
+
+        @property
+        def probe(self) -> object:
+            raise RuntimeError(private_detail)
+
+    with pytest.raises(CoordinatorError) as raised:
+        coordinator.ingest(
+            cast(VideoSource, ExplodingProbeLookup()),
+            FakeFrameSampler(()),
+            IngestionConfig(Sampling(Rational("5", "1")), max_frame_bytes=12),
+            (),
+        )
+
+    rendered = "".join(traceback.format_exception(raised.value))
+    assert private_detail not in rendered
+    assert raised.value.__cause__ is None
+    assert raised.value.__context__ is None
+
+
 def test_ingest_rejects_overflow_missing_regions_and_bad_stream(tmp_path: Path) -> None:
     source, frames, pixels = _fixture()
     coordinator, _, _ = _coordinator(tmp_path / "store")
@@ -924,9 +999,17 @@ def test_recovery_completes_already_purged_deletion(tmp_path: Path) -> None:
             fault_hook=crash,
         )
 
+    assert world.deletion_status(deletion_id).state is DeletionState.METADATA_PURGED
+    with pytest.raises(PortError) as frozen:
+        world.commit((source,))
+    assert frozen.value.code is PortErrorCode.CONFLICT
+    world.verify()
+
     report = coordinator.recover()
     assert report.deletions_completed == 1
     assert world.deletion_status(deletion_id).state is DeletionState.COMPLETE
+    with pytest.raises(PortError, match="not_found"):
+        world.get(source.source_id)
 
 
 def test_verify_existing_rejects_record_drift_and_missing_cas(tmp_path: Path) -> None:

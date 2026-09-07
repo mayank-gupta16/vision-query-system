@@ -429,7 +429,7 @@ class IngestionCoordinator:
             hook(boundary, identifier)
 
     @staticmethod
-    def _validate_adapter(adapter: object, port: PortKind) -> None:
+    def _validate_adapter(adapter: object, port: PortKind) -> CapabilityDescriptor:
         descriptor_error = False
         try:
             descriptor = getattr(adapter, "descriptor", None)
@@ -459,6 +459,7 @@ class IngestionCoordinator:
                     else CoordinatorStage.SAMPLE
                 ),
             )
+        return descriptor
 
     @staticmethod
     def _producer(
@@ -481,8 +482,8 @@ class IngestionCoordinator:
         selected: tuple[FrameRef, ...],
         manual: tuple[ManualEvidenceInput, ...],
         config: IngestionConfig,
-        video_source: VideoSource,
-        sampler: FrameSampler,
+        video_descriptor: CapabilityDescriptor,
+        sampler_descriptor: CapabilityDescriptor,
         events: list[CoordinatorEvent],
     ) -> tuple[RunManifest, RunManifest, tuple[EvidenceRef, ...], tuple[bytes, ...]]:
         by_id = {item.frame_id: item for item in manual}
@@ -530,8 +531,6 @@ class IngestionCoordinator:
             item_count=len(selected),
         )
         evidence_by_frame = {item.frame_id: item for item in evidence}
-        video_descriptor = video_source.descriptor
-        sampler_descriptor = sampler.descriptor
         ordered_frames = [frame.frame_id for frame in selected]
         producers = (
             self._producer(
@@ -602,14 +601,14 @@ class IngestionCoordinator:
                 CoordinatorErrorCode.INVALID_REQUEST,
                 CoordinatorStage.PROBE,
             )
-        self._validate_adapter(video_source, PortKind.VIDEO_SOURCE)
-        self._validate_adapter(sampler, PortKind.FRAME_SAMPLER)
+        video_descriptor = self._validate_adapter(video_source, PortKind.VIDEO_SOURCE)
+        sampler_descriptor = self._validate_adapter(sampler, PortKind.FRAME_SAMPLER)
         self.recover()
         events: list[CoordinatorEvent] = []
         source = self._step(
             events,
             CoordinatorStage.PROBE,
-            video_source.probe,
+            lambda: video_source.probe(),
             item_count=1,
         )
         if not isinstance(source, Source) or config.stream_index not in {
@@ -687,8 +686,8 @@ class IngestionCoordinator:
             selected,
             manual,
             config,
-            video_source,
-            sampler,
+            video_descriptor,
+            sampler_descriptor,
             events,
         )
         run_id = preparing.run_id

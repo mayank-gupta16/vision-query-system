@@ -14,52 +14,52 @@
     "python_version": "3.13.15",
     "sqlite_version": "3.53.1",
     "storage_module_sha256": "2c4a37c5218bac08092ab359d69f134312a0055f488727e02e625e530b0f705c",
-    "world_store_module_sha256": "12cf159110318588b732a14f7a95f06d44c8423e79e4f53bee4ac56d681a7729"
+    "world_store_module_sha256": "99c47bcfc706b573d7ba54e76e33a8afc30b5dba19e40b2e1d660473d14045bd"
   },
   "measurements": {
     "evidence_index_lookups": {
-      "cpu_ns": 596297182,
+      "cpu_ns": 581410382,
       "lookup_count": 300,
-      "wall_ns": 596372496
+      "wall_ns": 581496569
     },
     "finalize_transaction": {
-      "cpu_ns": 34673094,
-      "wall_ns": 34681809
+      "cpu_ns": 25687816,
+      "wall_ns": 25685444
     },
     "frame_index_scan": {
-      "cpu_ns": 49754249,
+      "cpu_ns": 47678829,
       "page_count": 5,
-      "wall_ns": 49752148
+      "wall_ns": 47677622
     },
     "idempotent_retry": {
-      "cpu_ns": 4025689,
-      "wall_ns": 4022479
+      "cpu_ns": 2579639,
+      "wall_ns": 2577929
     },
     "initialize_migration": {
-      "cpu_ns": 4347374,
-      "wall_ns": 4347399
+      "cpu_ns": 4720523,
+      "wall_ns": 4720673
     },
     "intent_transactions": {
-      "cpu_ns": 10012910,
+      "cpu_ns": 10565075,
       "transaction_count": 5,
-      "wall_ns": 10011198
+      "wall_ns": 10562882
     },
     "prepare_transaction": {
-      "cpu_ns": 1336446,
-      "wall_ns": 1334971
+      "cpu_ns": 1486190,
+      "wall_ns": 1484003
     },
     "record_transactions": {
-      "cpu_ns": 78812395,
+      "cpu_ns": 76003395,
       "transaction_count": 10,
-      "wall_ns": 78811890
+      "wall_ns": 76003223
     },
     "reopen": {
-      "cpu_ns": 1707399,
-      "wall_ns": 1706103
+      "cpu_ns": 2045120,
+      "wall_ns": 2043324
     },
     "verify": {
-      "cpu_ns": 55748275,
-      "wall_ns": 55756576
+      "cpu_ns": 58294223,
+      "wall_ns": 58326068
     }
   },
   "profile": {
@@ -80,7 +80,7 @@
     "database_logical_limit_bytes": 16777216,
     "disk_bounded": true,
     "peak_rss_limit_bytes": 2147483648,
-    "process_peak_rss_bytes": 28889088,
+    "process_peak_rss_bytes": 28958720,
     "rss_bounded": true,
     "rss_measured": true,
     "timing_measured": true
