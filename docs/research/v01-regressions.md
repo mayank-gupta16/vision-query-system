@@ -45,9 +45,9 @@ documented network boundaries.
 
 The 2026-09-07 CPython 3.13.15 run used Linux x86_64 CPU-LITE (4 vCPU,
 16,221,589,504 bytes RAM, no GPU). All 25 functional/security checks passed.
-The three scenarios completed in 209,615,761 ns total, process peak RSS was
-35,315,712 bytes, and the 1 ms sampled peak temporary-store footprint was
-962,758 logical bytes. The 10-second, 512 MiB, and 32 MiB PR bounds all passed.
+The three scenarios completed in 228,117,264 ns total, process peak RSS was
+35,459,072 bytes, and the 1 ms sampled peak temporary-store footprint was
+946,401 logical bytes. The 10-second, 512 MiB, and 32 MiB PR bounds all passed.
 These values are suite-cost observations for the tiny synthetic fixture, not
 media-throughput claims.
 
