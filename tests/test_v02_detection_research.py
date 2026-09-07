@@ -207,11 +207,11 @@ def test_published_machine_results_reproduce_frozen_gate_outputs() -> None:
     raw_bytes = raw_path.read_bytes()
     raw = cast(dict[str, object], json.loads(raw_bytes))
     assert hashlib.sha256(raw_bytes).hexdigest() == (
-        "df3cdbf68e5bd40c861b2f374d65882a749f273bbb2848e36a283d3373cc4a2e"
+        "80c4c777d275a50bc7451373acd0ebb67df00213d87c3553a75af955252f27d8"
     )
     assert b"/root" not in raw_bytes
     provenance = cast(dict[str, object], raw["provenance"])
-    assert provenance["source_revision"] == "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd"
+    assert provenance["source_revision"] == "e9066798a3514098d4c421a5a0a380fc5eb38844"
     assert (
         provenance["evaluation_harness_sha256"]
         == hashlib.sha256(

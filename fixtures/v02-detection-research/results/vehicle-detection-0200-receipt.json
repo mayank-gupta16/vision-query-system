@@ -2,13 +2,13 @@
   "aggregate": {
     "dispersion": {
       "cold_start_wall_ms": {
-        "overall": 2
+        "overall": 14
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 11084
+        "overall": 24933
       },
       "install_and_model_bytes": {
         "overall": 0
@@ -19,7 +19,7 @@
         "small_distant": 0
       },
       "peak_rss_bytes": {
-        "overall": 122880
+        "overall": 49152
       },
       "precision_basis_points": {
         "easy": 0,
@@ -27,7 +27,7 @@
         "small_distant": 0
       },
       "real_time_factor_milli": {
-        "overall": 2216
+        "overall": 4987
       },
       "recall_basis_points": {
         "easy": 0,
@@ -40,24 +40,24 @@
     },
     "metrics": {
       "cold_start_wall_ms": {
-        "overall": 459
+        "overall": 489
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 224629
+        "overall": 195908
       },
       "install_and_model_bytes": {
         "overall": 243382667
       },
       "map50_basis_points": {
         "easy": 10000,
-        "overall": 10000,
+        "overall": 9579,
         "small_distant": 10000
       },
       "peak_rss_bytes": {
-        "overall": 230215680
+        "overall": 230342656
       },
       "precision_basis_points": {
         "easy": 6000,
@@ -65,7 +65,7 @@
         "small_distant": 10000
       },
       "real_time_factor_milli": {
-        "overall": 44925
+        "overall": 39181
       },
       "recall_basis_points": {
         "easy": 10000,
@@ -73,7 +73,7 @@
         "small_distant": 6666
       },
       "warm_start_wall_ms": {
-        "overall": 4
+        "overall": 5
       }
     }
   },
@@ -181,20 +181,20 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-harness",
-      "revision": "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd",
-      "sha256": "fcc0c0bae8d57806f1fda5b4a59e352fca559e66a227233930d39b254435f99f",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd/scripts/run_v02_detection_benchmark.py"
+      "revision": "e9066798a3514098d4c421a5a0a380fc5eb38844",
+      "sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/e9066798a3514098d4c421a5a0a380fc5eb38844/scripts/run_v02_detection_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-metrics",
-      "revision": "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd",
-      "sha256": "fcc0c0bae8d57806f1fda5b4a59e352fca559e66a227233930d39b254435f99f",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd/scripts/run_v02_detection_benchmark.py"
+      "revision": "e9066798a3514098d4c421a5a0a380fc5eb38844",
+      "sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/e9066798a3514098d4c421a5a0a380fc5eb38844/scripts/run_v02_detection_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "225ddf9d32a7acad9c6b8ade8a965cd1dace0bbd"
+    "source_revision": "e9066798a3514098d4c421a5a0a380fc5eb38844"
   },
   "policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
   "policy_version": "v0.2-gates-1",
@@ -214,24 +214,24 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 461
+          "overall": 489
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 192897
+          "overall": 191098
         },
         "install_and_model_bytes": {
           "overall": 243382667
         },
         "map50_basis_points": {
           "easy": 10000,
-          "overall": 10000,
+          "overall": 9579,
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 229986304
+          "overall": 230256640
         },
         "precision_basis_points": {
           "easy": 6000,
@@ -239,7 +239,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 38579
+          "overall": 38219
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -247,7 +247,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 4
+          "overall": 6
         }
       },
       "processed_item_count": 12,
@@ -259,24 +259,24 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 451
+          "overall": 541
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 231876
+          "overall": 167228
         },
         "install_and_model_bytes": {
           "overall": 243382667
         },
         "map50_basis_points": {
           "easy": 10000,
-          "overall": 10000,
+          "overall": 9579,
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 229859328
+          "overall": 230342656
         },
         "precision_basis_points": {
           "easy": 6000,
@@ -284,7 +284,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 46375
+          "overall": 33445
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -292,7 +292,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 4
+          "overall": 6
         }
       },
       "processed_item_count": 12,
@@ -304,24 +304,24 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 462
+          "overall": 498
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 213545
+          "overall": 220841
         },
         "install_and_model_bytes": {
           "overall": 243382667
         },
         "map50_basis_points": {
           "easy": 10000,
-          "overall": 10000,
+          "overall": 9579,
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 229912576
+          "overall": 230203392
         },
         "precision_basis_points": {
           "easy": 6000,
@@ -329,7 +329,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 42709
+          "overall": 44168
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -337,7 +337,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 6
+          "overall": 5
         }
       },
       "processed_item_count": 12,
@@ -349,24 +349,24 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 459
+          "overall": 470
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 245107
+          "overall": 195908
         },
         "install_and_model_bytes": {
           "overall": 243382667
         },
         "map50_basis_points": {
           "easy": 10000,
-          "overall": 10000,
+          "overall": 9579,
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 230215680
+          "overall": 230252544
         },
         "precision_basis_points": {
           "easy": 6000,
@@ -374,7 +374,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 49021
+          "overall": 39181
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -382,7 +382,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 4
+          "overall": 5
         }
       },
       "processed_item_count": 12,
@@ -394,24 +394,24 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 459
+          "overall": 475
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 224629
+          "overall": 233814
         },
         "install_and_model_bytes": {
           "overall": 243382667
         },
         "map50_basis_points": {
           "easy": 10000,
-          "overall": 10000,
+          "overall": 9579,
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 230109184
+          "overall": 229998592
         },
         "precision_basis_points": {
           "easy": 6000,
@@ -419,7 +419,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 44925
+          "overall": 46762
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -427,7 +427,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 6
+          "overall": 5
         }
       },
       "processed_item_count": 12,
