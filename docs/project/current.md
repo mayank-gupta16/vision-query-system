@@ -13,12 +13,15 @@
   fake/manual original-pixel ingestion, crash recovery, orphan repair, and
   reference-aware source deletion, exposed through a canonical-JSON CLI for
   probing the built-in fixture, ingesting a manual box, inspecting run-owned
-  samples, and exporting exact RGB24 evidence
+  samples, and exporting exact RGB24 evidence, plus a release-gate end-to-end
+  regression suite for locked goldens, interrupted recovery/deletion, and
+  hostile-input/no-egress boundaries
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
   CPU-LITE generated fixtures, plus fresh-process CLI wall/RSS/disk overhead for
-  the deterministic vertical slice
+  the deterministic vertical slice and bounded v0.1 golden/recovery/security
+  regression-suite cost
 
 ## Established facts
 
@@ -109,8 +112,9 @@
 
 ## Next priorities
 
-1. Add issue #18's end-to-end golden, recovery, and hostile-input regressions for
-   the now-exposed CLI/store vertical slice.
-2. Establish issue #19's combined CPU-LITE application harness and baseline.
+1. Establish issue #19's combined 60-second CPU-LITE application harness and
+   baseline.
+2. Cut and verify the v0.1 release through issue #20 after every prerequisite
+   closes.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

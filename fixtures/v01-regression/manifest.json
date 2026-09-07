@@ -1,0 +1,68 @@
+{
+  "fixture": {
+    "candidate_frame_count": 2,
+    "default_box_xyxy": [
+      1,
+      0,
+      2,
+      2
+    ],
+    "fixture_name": "deterministic-rgb24-v1",
+    "height": 2,
+    "pixel_generation": "packed RGB24 byte values 0 through 11",
+    "selected_frame_count": 1,
+    "width": 2
+  },
+  "golden": {
+    "artifact_bytes": "6",
+    "artifact_media_type": "application/vnd.visualworld.rgb24",
+    "artifact_sha256": "ee0c0ca710ef28a12edd6f7d1454fc6516e434d4e33c733f886bee5f3e62233c",
+    "deletion_artifact_count": 1,
+    "deletion_record_count": 4,
+    "deletion_shared_retention_count": 0,
+    "evidence_id": "evi_9b67023110875b73b507013544e80ae3d0885e25674544df92ba1fccdccfa627",
+    "frame_id": "frm_057bef9d0a0843bc7a0afdde0994583e1599648053c76d9cf29aa8a2840225f6",
+    "probe_golden_sha256": "e4327d2836e573f2b8588e72b0a780e21b9be8143fec525d5469a7b71784a502",
+    "run_id": "run_37efc231ab0ad7f7097df5e19af3b365c298c5fc326965c54e258fe481301844",
+    "run_manifest_sha256": "a729eb07c0e0fc1c6c69f2b0cad8353064541f11012207dbd6df115d7be694cf",
+    "sample_index_sha256": "79d53e3432d7bfb76aa8728f4aa9d52b50a1368ff52a8721e5b23e5a4b4bc894",
+    "source_id": "src_d162b9dbf50ad56dc89659a2b2379b64bc57a0d7816842f80adfdc213a10b96e",
+    "world_artifact_count": 1,
+    "world_intent_count": 0,
+    "world_record_count": 4
+  },
+  "hostile_cases": [
+    "artifact-content-injection",
+    "corrupt-artifact",
+    "malicious-record-json",
+    "no-egress-or-process-launch",
+    "oversized-frame",
+    "path-traversal",
+    "redaction-and-terminal-control",
+    "symlink-store-and-output"
+  ],
+  "privacy": {
+    "classification": "public-synthetic-no-personal-data",
+    "consent_status": "not-applicable-no-personal-data",
+    "contains_faces": false,
+    "contains_imported_assets": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false,
+    "temporary_outputs_retained": false
+  },
+  "rights": {
+    "allowed_uses": [
+      "benchmarking",
+      "modification",
+      "redistribution",
+      "testing"
+    ],
+    "derivatives_allowed": true,
+    "external_sources": [],
+    "license_expression": "Apache-2.0",
+    "redistribution_allowed": true
+  },
+  "schema": "visualworld.v01-regression-fixture-manifest",
+  "schema_version": 1
+}

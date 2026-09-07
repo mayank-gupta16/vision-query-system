@@ -4,6 +4,10 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add the v0.1 release-gate regression suite with a rights/privacy-declared
+  test-time fixture, locked ingest/reopen/retry/delete goldens, interrupted
+  recovery, corrupt/oversize/path/link/injection/redaction/no-egress checks, and
+  bounded redacted CPU-LITE evidence.
 - Add the deterministic v0.1 CLI vertical slice with `probe`, fake/manual
   `ingest`, `inspect-run`, run-owned `list-samples`, and exact RGB24
   `show-evidence`; data commands use canonical JSON, stable exit codes,

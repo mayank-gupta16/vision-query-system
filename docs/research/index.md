@@ -45,3 +45,7 @@ architecture.
 - [Deterministic CLI vertical slice](cli-vertical-slice.md) — issue #17 command,
   error, redaction, exact-crop, fresh-wheel, and CPU-LITE validation with a
   [machine-readable receipt](cli-vertical-slice-cpu-lite-receipt.json).
+- [v0.1 end-to-end regressions](v01-regressions.md) — issue #18 locked golden,
+  interrupted recovery/deletion, hostile-input, no-egress, and PR-budget
+  validation with a
+  [machine-readable receipt](v01-regressions-cpu-lite-receipt.json).
