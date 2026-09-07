@@ -257,6 +257,7 @@ def _run_list_samples(arguments: argparse.Namespace) -> dict[str, object]:
             lambda: bool(
                 world.list_run_frames(
                     run_id,
+                    after_stream_index=frames[-1].stream_index,
                     after_decode_index=frames[-1].decode_index,
                     limit=1,
                 )

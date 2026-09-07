@@ -7,42 +7,42 @@
     "vertical_commands_completed": true
   },
   "implementation": {
-    "cli_module_sha256": "3e05211ebc9e436ff7a4d341859da874bc63b5c94defff6a6d1f044718b89a98",
+    "cli_module_sha256": "1cfa1511cc244b7fcbf4d6f226772b700c642caee31e75ab98f72adfd88b344f",
     "executable_implementation": "cpython",
     "harness_sha256": "ca9ca8330d8ee243e2b95687c5d9b46cbac0e2861647645c51cce40ffc7cb4c3",
     "python_version": "3.13.15",
-    "world_store_module_sha256": "0c9baa4e094d4a7f029557ebf207b4536c5b92425a1e5103737647e5a719a553"
+    "world_store_module_sha256": "0e521297a1c1e6733ebb70d1dc20482e26b4c90020fe621b6bff910bcaaa0af7"
   },
   "measurements": {
     "ingest": {
       "stderr_bytes": 0,
       "stdout_bytes": 393,
-      "wall_ns": 110555367
+      "wall_ns": 116801445
     },
     "inspect_run": {
       "stderr_bytes": 0,
       "stdout_bytes": 1115,
-      "wall_ns": 83044199
+      "wall_ns": 83979267
     },
     "list_samples": {
       "stderr_bytes": 0,
       "stdout_bytes": 1197,
-      "wall_ns": 87268004
+      "wall_ns": 105014378
     },
     "probe": {
       "stderr_bytes": 0,
       "stdout_bytes": 1566,
-      "wall_ns": 77089880
+      "wall_ns": 81702233
     },
     "show_evidence": {
       "stderr_bytes": 0,
       "stdout_bytes": 893,
-      "wall_ns": 94133796
+      "wall_ns": 91629459
     },
     "usage_error": {
       "stderr_bytes": 173,
       "stdout_bytes": 0,
-      "wall_ns": 83709159
+      "wall_ns": 90420553
     }
   },
   "profile": {
@@ -57,7 +57,7 @@
     "required_vcpu": 4
   },
   "resources": {
-    "child_process_peak_rss_bytes": 25817088,
+    "child_process_peak_rss_bytes": 26001408,
     "disk_bounded": true,
     "peak_rss_limit_bytes": 536870912,
     "per_command_wall_bounded": true,
@@ -65,7 +65,7 @@
     "store_logical_bytes": 200710,
     "store_logical_limit_bytes": 16777216,
     "timing_measured": true,
-    "total_command_wall_ns": 535800405
+    "total_command_wall_ns": 569547335
   },
   "schema": "visualworld.cli-acceptance-receipt",
   "schema_version": 1,

@@ -41,8 +41,8 @@ path.
 
 The 2026-09-07 run used CPython 3.13.15 on the mandatory Linux x86_64 CPU-LITE
 profile (4 vCPU, 16,221,589,504 bytes RAM, no GPU). Six fresh-process commands
-completed in 535,800,405 ns total. The slowest individual command was below
-111 ms, child peak RSS was 25,817,088 bytes, and the committed store occupied
+completed in 569,547,335 ns total. The slowest individual command was below
+117 ms, child peak RSS was 26,001,408 bytes, and the committed store occupied
 200,710 logical bytes. All functional, redaction, timing, RSS, and disk bounds
 passed. These are boundedness observations for this fixture, not real-video
 throughput claims.

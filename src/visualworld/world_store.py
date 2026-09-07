@@ -796,7 +796,17 @@ class LocalWorldStore:
             ) as connection,
         ):
             self._validate_schema(connection, operation)
-            yield connection
+            began = False
+            try:
+                connection.execute("BEGIN")
+                began = True
+                yield connection
+                connection.execute("COMMIT")
+                began = False
+            finally:
+                if began:
+                    with suppress(sqlite3.Error):
+                        connection.execute("ROLLBACK")
 
     @contextmanager
     def _write_connection(self, operation: str) -> Iterator[sqlite3.Connection]:
@@ -2476,6 +2486,7 @@ class LocalWorldStore:
         self,
         run_id: str,
         *,
+        after_stream_index: int | None = None,
         after_decode_index: str | None = None,
         limit: int,
     ) -> tuple[FrameRef, ...]:
@@ -2484,14 +2495,20 @@ class LocalWorldStore:
         operation = "list_run_frames"
         selected_run = _identifier(run_id, _RUN_ID, operation)
         selected_limit = _bounded_limit(limit, operation)
+        after_stream = -1
         after = ""
-        if after_decode_index is not None:
+        if (after_stream_index is None) != (after_decode_index is None):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        if after_stream_index is not None and after_decode_index is not None:
+            if type(after_stream_index) is not int or not 0 <= after_stream_index <= 2**31 - 1:
+                _fail(PortErrorCode.INVALID_REQUEST, operation)
             if type(after_decode_index) is not str or not _UNSIGNED_DECIMAL.fullmatch(
                 after_decode_index
             ):
                 _fail(PortErrorCode.INVALID_REQUEST, operation)
             if len(after_decode_index) > 20 or int(after_decode_index) > 2**64 - 1:
                 _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+            after_stream = after_stream_index
             after = after_decode_index
         with self._read_connection(operation) as connection:
             try:
@@ -2530,10 +2547,16 @@ class LocalWorldStore:
                     WHERE owned.run_id = ? AND owned.record_type = 'frame'
                       AND frame.source_id = ?
                       AND (
-                        length(frame.decode_index) > length(?)
+                        frame.stream_index > ?
                         OR (
-                            length(frame.decode_index) = length(?)
-                            AND frame.decode_index > ?
+                            frame.stream_index = ?
+                            AND (
+                                length(frame.decode_index) > length(?)
+                                OR (
+                                    length(frame.decode_index) = length(?)
+                                    AND frame.decode_index > ?
+                                )
+                            )
                         )
                       )
                       AND NOT EXISTS (
@@ -2541,11 +2564,14 @@ class LocalWorldStore:
                         WHERE hidden.record_id = frame.frame_id
                           AND hidden.record_type = 'frame'
                       )
-                    ORDER BY length(frame.decode_index), frame.decode_index
+                    ORDER BY frame.stream_index,
+                      length(frame.decode_index), frame.decode_index
                     LIMIT ?""",
                     (
                         selected_run,
                         manifest.source_id,
+                        after_stream,
+                        after_stream,
                         after,
                         after,
                         after,
