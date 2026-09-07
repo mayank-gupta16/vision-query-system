@@ -176,6 +176,23 @@ verification. The receipt reports transaction/index timings, SQLite/WAL disk
 cost, CPU time, peak RSS, implementation hashes, and aggregate counts; it omits
 store paths and all source/run/frame/evidence/artifact identifiers.
 
+The dependency-free coordinator acceptance composes the real local stores with
+the deterministic fake source/sampler and a manual source-pixel region:
+
+```sh
+PYTHONPATH=src artifacts/toolchain/3.13.15/dev/bin/python \
+  scripts/run_coordinator_acceptance.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/coordinator-acceptance.json
+```
+
+It verifies a deterministic manifest, idempotent retry, byte-exact retrievable
+RGB24 evidence, offline adapter capabilities, checkpointed source deletion, and
+per-stage wall costs. The receipt contains aggregate dimensions, counts,
+resource measurements, and implementation hashes; it omits store paths,
+record/deletion identifiers, and pixel bytes. The combined 60-second application
+baseline remains assigned to the v0.1 benchmark issue.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

@@ -11,6 +11,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import NoReturn, cast
 
@@ -35,6 +36,7 @@ from visualworld.ports import (
 )
 from visualworld.storage import (
     DEFAULT_LOCK_TIMEOUT_MS,
+    ArtifactState,
     EvidenceWriterSession,
     LocalEvidenceStore,
     StageHandle,
@@ -51,7 +53,9 @@ _UNEXPECTED_DATABASE_FILES = ("world.sqlite3-journal",)
 _RECORD_ID = re.compile(r"(?:src|frm|evi|run)_[0-9a-f]{64}\Z")
 _SOURCE_ID = re.compile(r"src_[0-9a-f]{64}\Z")
 _FRAME_ID = re.compile(r"frm_[0-9a-f]{64}\Z")
+_EVIDENCE_ID = re.compile(r"evi_[0-9a-f]{64}\Z")
 _RUN_ID = re.compile(r"run_[0-9a-f]{64}\Z")
+_DELETION_ID = re.compile(r"del_[0-9a-f]{64}\Z")
 _STAGING_NAME = re.compile(r"[0-9a-f]{32}\.part\Z")
 _UNSIGNED_DECIMAL = re.compile(r"(?:0|[1-9][0-9]*)\Z")
 
@@ -102,6 +106,10 @@ def _identifier(value: object, pattern: re.Pattern[str], operation: str) -> str:
     if type(value) is not str or not pattern.fullmatch(value):
         _fail(PortErrorCode.INVALID_REQUEST, operation)
     return value
+
+
+def _deletion_id(value: object, operation: str) -> str:
+    return _identifier(value, _DELETION_ID, operation)
 
 
 def _record_identifier(record: Record) -> str:
@@ -293,6 +301,136 @@ class WorldStoreStats:
             or self.schema_version != WORLD_SCHEMA_VERSION
         ):
             raise ValueError("invalid world store statistics")
+
+
+class DeletionState(StrEnum):
+    PENDING = "pending"
+    METADATA_PURGED = "metadata_purged"
+    COMPLETE = "complete"
+
+
+@dataclass(frozen=True, slots=True, repr=False)
+class DeletionArtifact:
+    artifact: Artifact
+    delete_required: bool
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.artifact, Artifact) or type(self.delete_required) is not bool:
+            raise ValueError("invalid deletion artifact")
+
+    def __repr__(self) -> str:
+        return f"DeletionArtifact(<redacted>, delete_required={self.delete_required!r})"
+
+
+@dataclass(frozen=True, slots=True, repr=False)
+class RunCleanupPlan:
+    run_id: str
+    artifacts: tuple[Artifact, ...]
+    stages: tuple[StageHandle, ...]
+    protocol_version: int = WORLD_PROTOCOL_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.run_id) is not str
+            or not _RUN_ID.fullmatch(self.run_id)
+            or not isinstance(self.artifacts, tuple)
+            or not all(isinstance(item, Artifact) for item in self.artifacts)
+            or len({item.sha256 for item in self.artifacts}) != len(self.artifacts)
+            or not isinstance(self.stages, tuple)
+            or not all(isinstance(item, StageHandle) for item in self.stages)
+            or any(item.run_id != self.run_id for item in self.stages)
+            or type(self.protocol_version) is not int
+            or self.protocol_version != WORLD_PROTOCOL_VERSION
+        ):
+            raise ValueError("invalid run cleanup plan")
+
+    def __repr__(self) -> str:
+        return (
+            f"RunCleanupPlan(run_id={self.run_id!r}, artifacts={len(self.artifacts)}, "
+            f"stages={len(self.stages)}, protocol_version={self.protocol_version})"
+        )
+
+
+@dataclass(frozen=True, slots=True, repr=False)
+class DeletionPlan:
+    deletion_id: str
+    artifacts: tuple[DeletionArtifact, ...]
+    stages: tuple[StageHandle, ...]
+    run_ids: tuple[str, ...]
+    record_count: int
+    artifact_count: int
+    shared_retention_count: int
+    protocol_version: int = WORLD_PROTOCOL_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.deletion_id) is not str
+            or not _DELETION_ID.fullmatch(self.deletion_id)
+            or not isinstance(self.artifacts, tuple)
+            or not all(isinstance(item, DeletionArtifact) for item in self.artifacts)
+            or len({item.artifact.sha256 for item in self.artifacts}) != len(self.artifacts)
+            or not isinstance(self.stages, tuple)
+            or not all(isinstance(item, StageHandle) for item in self.stages)
+            or not isinstance(self.run_ids, tuple)
+            or not all(type(item) is str and _RUN_ID.fullmatch(item) for item in self.run_ids)
+            or len(set(self.run_ids)) != len(self.run_ids)
+            or any(item.run_id not in self.run_ids for item in self.stages)
+            or any(
+                type(value) is not int or value < 0
+                for value in (
+                    self.record_count,
+                    self.artifact_count,
+                    self.shared_retention_count,
+                )
+            )
+            or self.artifact_count != sum(item.delete_required for item in self.artifacts)
+            or self.shared_retention_count
+            != sum(not item.delete_required for item in self.artifacts)
+            or type(self.protocol_version) is not int
+            or self.protocol_version != WORLD_PROTOCOL_VERSION
+        ):
+            raise ValueError("invalid deletion plan")
+
+    def __repr__(self) -> str:
+        return (
+            f"DeletionPlan(deletion_id={self.deletion_id!r}, records={self.record_count}, "
+            f"artifacts={self.artifact_count}, shared={self.shared_retention_count}, "
+            f"runs={len(self.run_ids)}, protocol_version={self.protocol_version})"
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class DeletionStatus:
+    deletion_id: str
+    state: DeletionState
+    record_count: int
+    artifact_count: int
+    shared_retention_count: int
+    completed_at_utc: str | None
+    protocol_version: int = WORLD_PROTOCOL_VERSION
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.deletion_id) is not str
+            or not _DELETION_ID.fullmatch(self.deletion_id)
+            or not isinstance(self.state, DeletionState)
+            or any(
+                type(value) is not int or value < 0
+                for value in (
+                    self.record_count,
+                    self.artifact_count,
+                    self.shared_retention_count,
+                )
+            )
+            or (
+                self.state is DeletionState.COMPLETE
+                and (type(self.completed_at_utc) is not str or not self.completed_at_utc)
+            )
+            or (self.state is not DeletionState.COMPLETE and self.completed_at_utc is not None)
+            or type(self.protocol_version) is not int
+            or self.protocol_version != WORLD_PROTOCOL_VERSION
+        ):
+            raise ValueError("invalid deletion status")
 
 
 class LocalWorldStore:
@@ -1351,6 +1489,765 @@ class LocalWorldStore:
                 _sqlite_error(error, operation)
         raise AssertionError("unreachable")
 
+    def _artifact_spec(
+        self,
+        connection: sqlite3.Connection,
+        digest: str,
+        operation: str,
+    ) -> Artifact:
+        rows = connection.execute(
+            """SELECT byte_count, media_type, layout_version FROM artifact_catalog
+            WHERE digest = ?
+            UNION ALL
+            SELECT byte_count, media_type, protocol_version FROM artifact_intents
+            WHERE artifact_digest = ?""",
+            (digest, digest),
+        ).fetchall()
+        if not rows:
+            _fail(PortErrorCode.CORRUPT, operation)
+        try:
+            artifacts = tuple(Artifact(digest, row[0], row[1]) for row in rows)
+        except (TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        if any(row[2] != WORLD_PROTOCOL_VERSION for row in rows) or any(
+            item != artifacts[0] for item in artifacts[1:]
+        ):
+            _fail(PortErrorCode.CORRUPT, operation)
+        return artifacts[0]
+
+    def _stages_for_run(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        operation: str,
+    ) -> tuple[StageHandle, ...]:
+        rows = connection.execute(
+            """SELECT staging_name, artifact_digest, byte_count, media_type,
+            protocol_version FROM artifact_intents WHERE run_id = ?
+            ORDER BY staging_name LIMIT ?""",
+            (run_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        try:
+            return tuple(
+                StageHandle(run_id, row[0], Artifact(row[1], row[2], row[3]), row[4])
+                for row in rows
+            )
+        except (TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        raise AssertionError("unreachable")
+
+    def run_cleanup_plan(
+        self,
+        run_id: str,
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> RunCleanupPlan:
+        """Freeze the deterministic cleanup inputs for one incomplete run."""
+
+        operation = "run_cleanup_plan"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                state = connection.execute(
+                    "SELECT state FROM runs WHERE run_id = ?", (selected_run,)
+                ).fetchone()
+                if state is None:
+                    _fail(PortErrorCode.NOT_FOUND, operation)
+                if state[0] == "committed":
+                    _fail(PortErrorCode.CONFLICT, operation)
+                if state[0] not in {"preparing", "failed", "cancelled"}:
+                    _fail(PortErrorCode.CORRUPT, operation)
+                stages = self._stages_for_run(connection, selected_run, operation)
+                digest_rows = connection.execute(
+                    """SELECT artifact_digest FROM artifact_intents WHERE run_id = ?
+                    UNION
+                    SELECT reference.artifact_digest
+                    FROM run_records AS owned
+                    JOIN artifact_references AS reference
+                      ON reference.evidence_id = owned.record_id
+                    WHERE owned.run_id = ? AND owned.record_type = 'evidence'
+                    ORDER BY artifact_digest LIMIT ?""",
+                    (selected_run, selected_run, self._max_audit_records + 1),
+                ).fetchall()
+                if len(digest_rows) > self._max_audit_records:
+                    _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                artifacts: list[Artifact] = []
+                for row in digest_rows:
+                    if type(row[0]) is not str:
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    digest = row[0]
+                    artifact = self._artifact_spec(connection, digest, operation)
+                    surviving = connection.execute(
+                        """SELECT 1 FROM artifact_references AS reference
+                        WHERE reference.artifact_digest = ? AND NOT (
+                            EXISTS (
+                                SELECT 1 FROM run_records AS target
+                                WHERE target.run_id = ?
+                                  AND target.record_id = reference.evidence_id
+                                  AND target.record_type = 'evidence'
+                            ) AND NOT EXISTS (
+                                SELECT 1 FROM run_records AS other
+                                WHERE other.run_id != ?
+                                  AND other.record_id = reference.evidence_id
+                                  AND other.record_type = 'evidence'
+                            )
+                        ) LIMIT 1""",
+                        (digest, selected_run, selected_run),
+                    ).fetchone()
+                    if surviving is None:
+                        artifacts.append(artifact)
+                return RunCleanupPlan(selected_run, tuple(artifacts), stages)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def finish_run_cleanup(
+        self,
+        run_id: str,
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> None:
+        """Remove hidden run-owned metadata and leave a retryable failed marker."""
+
+        operation = "finish_run_cleanup"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                with self._transaction(connection, operation):
+                    row = connection.execute(
+                        "SELECT state, record_json FROM runs WHERE run_id = ?",
+                        (selected_run,),
+                    ).fetchone()
+                    if row is None:
+                        _fail(PortErrorCode.NOT_FOUND, operation)
+                    if row[0] == "committed":
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    run = self._decode_record(row[1], operation)
+                    if not isinstance(run, RunManifest) or run.state != row[0]:
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    evidence_rows = connection.execute(
+                        """SELECT owned.record_id FROM run_records AS owned
+                        WHERE owned.run_id = ? AND owned.record_type = 'evidence'
+                          AND NOT EXISTS (
+                            SELECT 1 FROM run_records AS other
+                            WHERE other.run_id != owned.run_id
+                              AND other.record_id = owned.record_id
+                          ) LIMIT ?""",
+                        (selected_run, self._max_audit_records + 1),
+                    ).fetchall()
+                    frame_rows = connection.execute(
+                        """SELECT owned.record_id FROM run_records AS owned
+                        WHERE owned.run_id = ? AND owned.record_type = 'frame'
+                          AND NOT EXISTS (
+                            SELECT 1 FROM run_records AS other
+                            WHERE other.run_id != owned.run_id
+                              AND other.record_id = owned.record_id
+                          ) LIMIT ?""",
+                        (selected_run, self._max_audit_records + 1),
+                    ).fetchall()
+                    if (
+                        len(evidence_rows) > self._max_audit_records
+                        or len(frame_rows) > self._max_audit_records
+                    ):
+                        _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                    evidence_ids = tuple(row[0] for row in evidence_rows)
+                    candidate_frames = tuple(row[0] for row in frame_rows)
+                    if not all(type(value) is str for value in (*evidence_ids, *candidate_frames)):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    evidence_set = set(evidence_ids)
+                    frame_ids = tuple(
+                        frame_id
+                        for frame_id in candidate_frames
+                        if connection.execute(
+                            "SELECT evidence_id FROM evidence WHERE frame_id = ? LIMIT 1",
+                            (frame_id,),
+                        ).fetchone()
+                        is None
+                        or all(
+                            evidence_id in evidence_set
+                            for (evidence_id,) in connection.execute(
+                                "SELECT evidence_id FROM evidence WHERE frame_id = ?",
+                                (frame_id,),
+                            ).fetchall()
+                        )
+                    )
+                    digest_rows = connection.execute(
+                        """SELECT artifact_digest FROM artifact_intents WHERE run_id = ?
+                        UNION
+                        SELECT reference.artifact_digest
+                        FROM run_records AS owned
+                        JOIN artifact_references AS reference
+                          ON reference.evidence_id = owned.record_id
+                        WHERE owned.run_id = ? AND owned.record_type = 'evidence'""",
+                        (selected_run, selected_run),
+                    ).fetchall()
+                    connection.execute("DELETE FROM run_records WHERE run_id = ?", (selected_run,))
+                    connection.executemany(
+                        "DELETE FROM evidence WHERE evidence_id = ?",
+                        ((value,) for value in evidence_ids),
+                    )
+                    connection.executemany(
+                        "DELETE FROM frames WHERE frame_id = ?",
+                        ((value,) for value in frame_ids),
+                    )
+                    connection.execute(
+                        "DELETE FROM artifact_intents WHERE run_id = ?", (selected_run,)
+                    )
+                    for (digest,) in digest_rows:
+                        connection.execute(
+                            """DELETE FROM artifact_catalog WHERE digest = ?
+                            AND NOT EXISTS (
+                                SELECT 1 FROM artifact_references
+                                WHERE artifact_digest = ?
+                            )""",
+                            (digest, digest),
+                        )
+                    if run.state == "preparing":
+                        failed = RunManifest.create(
+                            run.source_id,
+                            run.producers,
+                            run.sampling,
+                            "failed",
+                        )
+                        self._write_run(
+                            connection,
+                            failed,
+                            dumps_record(failed),
+                            hashlib.sha256(dumps_record(failed)).hexdigest(),
+                            operation,
+                        )
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+
+    def unreferenced_artifacts(
+        self,
+        artifacts: tuple[Artifact, ...],
+    ) -> tuple[Artifact, ...]:
+        """Return exact catalog-free or unreferenced artifacts from a bounded batch."""
+
+        operation = "unreferenced_artifacts"
+        if type(artifacts) is not tuple or len(artifacts) > MAX_PORT_BATCH_ITEMS:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        try:
+            selected = tuple(Artifact.from_mapping(item.to_mapping()) for item in artifacts)
+        except (AttributeError, TypeError, ValueError):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                result: list[Artifact] = []
+                for artifact in selected:
+                    catalog = connection.execute(
+                        """SELECT byte_count, media_type, layout_version
+                        FROM artifact_catalog WHERE digest = ?""",
+                        (artifact.sha256,),
+                    ).fetchone()
+                    if catalog is not None and catalog != (
+                        artifact.bytes,
+                        artifact.media_type,
+                        WORLD_PROTOCOL_VERSION,
+                    ):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    referenced = connection.execute(
+                        """SELECT 1 FROM artifact_references
+                        WHERE artifact_digest = ? LIMIT 1""",
+                        (artifact.sha256,),
+                    ).fetchone()
+                    if referenced is None:
+                        result.append(artifact)
+                return tuple(result)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def _deletion_status_row(
+        self,
+        row: tuple[object, ...],
+        operation: str,
+    ) -> DeletionStatus:
+        try:
+            return DeletionStatus(
+                deletion_id=cast(str, row[0]),
+                state=DeletionState(cast(str, row[1])),
+                record_count=cast(int, row[2]),
+                artifact_count=cast(int, row[3]),
+                shared_retention_count=cast(int, row[4]),
+                completed_at_utc=cast(str | None, row[5]),
+                protocol_version=cast(int, row[6]),
+            )
+        except (TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        raise AssertionError("unreachable")
+
+    def _deletion_status(
+        self,
+        connection: sqlite3.Connection,
+        deletion_id: str,
+        operation: str,
+    ) -> DeletionStatus:
+        row = connection.execute(
+            """SELECT deletion_id, state, record_count, artifact_count,
+            shared_retention_count, completed_at_utc, protocol_version
+            FROM deletion_jobs WHERE deletion_id = ?""",
+            (deletion_id,),
+        ).fetchone()
+        if row is None:
+            _fail(PortErrorCode.NOT_FOUND, operation)
+        return self._deletion_status_row(row, operation)
+
+    def _source_closure(
+        self,
+        connection: sqlite3.Connection,
+        source_id: str,
+        operation: str,
+    ) -> tuple[tuple[str, str], ...]:
+        rows = connection.execute(
+            """SELECT record_id, record_type FROM (
+                SELECT ? AS record_id, 'source' AS record_type
+                UNION ALL
+                SELECT frame_id, 'frame' FROM frames WHERE source_id = ?
+                UNION ALL
+                SELECT item.evidence_id, 'evidence' FROM evidence AS item
+                JOIN frames AS frame ON frame.frame_id = item.frame_id
+                WHERE frame.source_id = ?
+                UNION ALL
+                SELECT run_id, 'run' FROM runs WHERE source_id = ?
+            ) ORDER BY record_type, record_id LIMIT ?""",
+            (
+                source_id,
+                source_id,
+                source_id,
+                source_id,
+                self._max_audit_records + 1,
+            ),
+        ).fetchall()
+        if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        patterns = {
+            "source": _SOURCE_ID,
+            "frame": _FRAME_ID,
+            "evidence": _EVIDENCE_ID,
+            "run": _RUN_ID,
+        }
+        if any(
+            type(record_id) is not str
+            or record_type not in patterns
+            or not patterns[record_type].fullmatch(record_id)
+            for record_id, record_type in rows
+        ):
+            _fail(PortErrorCode.CORRUPT, operation)
+        return cast(tuple[tuple[str, str], ...], tuple(rows))
+
+    def _load_deletion_plan(
+        self,
+        connection: sqlite3.Connection,
+        deletion_id: str,
+        operation: str,
+    ) -> DeletionPlan:
+        status = self._deletion_status(connection, deletion_id, operation)
+        if status.state is not DeletionState.PENDING:
+            _fail(PortErrorCode.CONFLICT, operation)
+        job = connection.execute(
+            """SELECT root_kind, root_id FROM deletion_jobs
+            WHERE deletion_id = ?""",
+            (deletion_id,),
+        ).fetchone()
+        if (
+            job is None
+            or job[0] != "source"
+            or type(job[1]) is not str
+            or not _SOURCE_ID.fullmatch(job[1])
+        ):
+            _fail(PortErrorCode.CORRUPT, operation)
+        source_id = job[1]
+        closure_rows = connection.execute(
+            """SELECT record_id, record_type FROM deletion_closure
+            WHERE deletion_id = ? ORDER BY record_type, record_id LIMIT ?""",
+            (deletion_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(closure_rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        expected_closure = set(self._source_closure(connection, source_id, operation))
+        if len(closure_rows) != status.record_count or set(closure_rows) != expected_closure:
+            _fail(PortErrorCode.CORRUPT, operation)
+        rows = connection.execute(
+            """SELECT artifact_digest, delete_required FROM deletion_artifacts
+            WHERE deletion_id = ? ORDER BY artifact_digest LIMIT ?""",
+            (deletion_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        expected_digest_rows = connection.execute(
+            """SELECT reference.artifact_digest
+                FROM artifact_references AS reference
+                JOIN deletion_closure AS closure
+                  ON closure.record_id = reference.evidence_id
+                WHERE closure.deletion_id = ? AND closure.record_type = 'evidence'
+                UNION
+                SELECT intent.artifact_digest FROM artifact_intents AS intent
+                JOIN deletion_closure AS closure ON closure.record_id = intent.run_id
+                WHERE closure.deletion_id = ? AND closure.record_type = 'run'
+                LIMIT ?""",
+            (deletion_id, deletion_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(expected_digest_rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        if any(type(row[0]) is not str for row in expected_digest_rows):
+            _fail(PortErrorCode.CORRUPT, operation)
+        expected_digests = {row[0] for row in expected_digest_rows}
+        if {row[0] for row in rows} != expected_digests:
+            _fail(PortErrorCode.CORRUPT, operation)
+        artifacts: list[DeletionArtifact] = []
+        for digest, delete_required in rows:
+            if type(digest) is not str or delete_required not in {0, 1}:
+                _fail(PortErrorCode.CORRUPT, operation)
+            surviving = connection.execute(
+                """SELECT 1 FROM artifact_references AS reference
+                WHERE reference.artifact_digest = ? AND NOT EXISTS (
+                    SELECT 1 FROM deletion_closure AS closure
+                    WHERE closure.deletion_id = ?
+                      AND closure.record_id = reference.evidence_id
+                      AND closure.record_type = 'evidence'
+                ) LIMIT 1""",
+                (digest, deletion_id),
+            ).fetchone()
+            expected_delete = surviving is None
+            if (delete_required == 1) != expected_delete:
+                _fail(PortErrorCode.CORRUPT, operation)
+            artifacts.append(
+                DeletionArtifact(
+                    self._artifact_spec(connection, digest, operation),
+                    expected_delete,
+                )
+            )
+        stage_rows = connection.execute(
+            """SELECT intent.run_id, intent.staging_name, intent.artifact_digest,
+            intent.byte_count, intent.media_type, intent.protocol_version
+            FROM artifact_intents AS intent
+            JOIN deletion_closure AS closure ON closure.record_id = intent.run_id
+            WHERE closure.deletion_id = ? AND closure.record_type = 'run'
+            ORDER BY intent.run_id, intent.staging_name LIMIT ?""",
+            (deletion_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(stage_rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        try:
+            stages = tuple(
+                StageHandle(row[0], row[1], Artifact(row[2], row[3], row[4]), row[5])
+                for row in stage_rows
+            )
+            run_ids = tuple(
+                record_id for record_id, record_type in closure_rows if record_type == "run"
+            )
+            return DeletionPlan(
+                deletion_id,
+                tuple(artifacts),
+                stages,
+                run_ids,
+                status.record_count,
+                status.artifact_count,
+                status.shared_retention_count,
+            )
+        except (TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        raise AssertionError("unreachable")
+
+    def begin_source_deletion(
+        self,
+        source_id: str,
+        deletion_id: str,
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> DeletionPlan:
+        """Freeze one source closure and its reference-safe artifact decisions."""
+
+        operation = "begin_source_deletion"
+        selected_source = _identifier(source_id, _SOURCE_ID, operation)
+        selected_deletion = _deletion_id(deletion_id, operation)
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                with self._transaction(connection, operation):
+                    existing = connection.execute(
+                        """SELECT deletion_id FROM deletion_jobs
+                        WHERE root_kind = 'source' AND root_id = ?
+                          AND state = 'pending' LIMIT 1""",
+                        (selected_source,),
+                    ).fetchone()
+                    if existing is not None:
+                        if type(existing[0]) is not str:
+                            _fail(PortErrorCode.CORRUPT, operation)
+                        return self._load_deletion_plan(connection, existing[0], operation)
+                    active = connection.execute(
+                        """SELECT 1 FROM deletion_jobs
+                        WHERE state != 'complete' LIMIT 1"""
+                    ).fetchone()
+                    if active is not None:
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    collision = connection.execute(
+                        "SELECT 1 FROM deletion_jobs WHERE deletion_id = ?",
+                        (selected_deletion,),
+                    ).fetchone()
+                    if collision is not None:
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    source = connection.execute(
+                        "SELECT 1 FROM sources WHERE source_id = ?",
+                        (selected_source,),
+                    ).fetchone()
+                    if source is None:
+                        _fail(PortErrorCode.NOT_FOUND, operation)
+                    hidden = connection.execute(
+                        "SELECT 1 FROM deletion_closure WHERE record_id = ? LIMIT 1",
+                        (selected_source,),
+                    ).fetchone()
+                    if hidden is not None:
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    connection.execute(
+                        """INSERT INTO deletion_jobs(
+                            deletion_id, root_kind, root_id, protocol_version, state,
+                            record_count, artifact_count, shared_retention_count,
+                            completed_at_utc
+                        ) VALUES (?, 'source', ?, ?, 'pending', 0, 0, 0, NULL)""",
+                        (selected_deletion, selected_source, WORLD_PROTOCOL_VERSION),
+                    )
+                    closure = tuple(
+                        (selected_deletion, record_id, record_type)
+                        for record_id, record_type in self._source_closure(
+                            connection,
+                            selected_source,
+                            operation,
+                        )
+                    )
+                    connection.executemany(
+                        """INSERT INTO deletion_closure(
+                            deletion_id, record_id, record_type
+                        ) VALUES (?, ?, ?)""",
+                        closure,
+                    )
+                    digest_rows = connection.execute(
+                        """SELECT reference.artifact_digest
+                        FROM artifact_references AS reference
+                        JOIN deletion_closure AS closure
+                          ON closure.record_id = reference.evidence_id
+                        WHERE closure.deletion_id = ? AND closure.record_type = 'evidence'
+                        UNION
+                        SELECT intent.artifact_digest FROM artifact_intents AS intent
+                        JOIN deletion_closure AS closure ON closure.record_id = intent.run_id
+                        WHERE closure.deletion_id = ? AND closure.record_type = 'run'
+                        ORDER BY artifact_digest LIMIT ?""",
+                        (selected_deletion, selected_deletion, self._max_audit_records + 1),
+                    ).fetchall()
+                    if len(digest_rows) > self._max_audit_records:
+                        _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                    decisions: list[tuple[str, int]] = []
+                    for (digest,) in digest_rows:
+                        if type(digest) is not str:
+                            _fail(PortErrorCode.CORRUPT, operation)
+                        self._artifact_spec(connection, digest, operation)
+                        surviving = connection.execute(
+                            """SELECT 1 FROM artifact_references AS reference
+                            WHERE reference.artifact_digest = ? AND NOT EXISTS (
+                                SELECT 1 FROM deletion_closure AS closure
+                                WHERE closure.deletion_id = ?
+                                  AND closure.record_id = reference.evidence_id
+                                  AND closure.record_type = 'evidence'
+                            ) LIMIT 1""",
+                            (digest, selected_deletion),
+                        ).fetchone()
+                        decisions.append((digest, 0 if surviving is not None else 1))
+                    connection.executemany(
+                        """INSERT INTO deletion_artifacts(
+                            deletion_id, artifact_digest, delete_required
+                        ) VALUES (?, ?, ?)""",
+                        (
+                            (selected_deletion, digest, delete_required)
+                            for digest, delete_required in decisions
+                        ),
+                    )
+                    delete_count = sum(item[1] for item in decisions)
+                    shared_count = len(decisions) - delete_count
+                    connection.execute(
+                        """UPDATE deletion_jobs SET record_count = ?, artifact_count = ?,
+                        shared_retention_count = ? WHERE deletion_id = ?""",
+                        (len(closure), delete_count, shared_count, selected_deletion),
+                    )
+                    return self._load_deletion_plan(connection, selected_deletion, operation)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def get_deletion_plan(self, deletion_id: str) -> DeletionPlan:
+        operation = "get_deletion_plan"
+        selected = _deletion_id(deletion_id, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                return self._load_deletion_plan(connection, selected, operation)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def pending_deletions(
+        self,
+        *,
+        after_deletion_id: str | None = None,
+        limit: int = MAX_PORT_BATCH_ITEMS,
+    ) -> tuple[DeletionStatus, ...]:
+        operation = "pending_deletions"
+        selected_limit = _bounded_limit(limit, operation)
+        after = ""
+        if after_deletion_id is not None:
+            after = _deletion_id(after_deletion_id, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                rows = connection.execute(
+                    """SELECT deletion_id, state, record_count, artifact_count,
+                    shared_retention_count, completed_at_utc, protocol_version
+                    FROM deletion_jobs WHERE state != 'complete' AND deletion_id > ?
+                    ORDER BY deletion_id LIMIT ?""",
+                    (after, selected_limit),
+                ).fetchall()
+                return tuple(self._deletion_status_row(row, operation) for row in rows)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def purge_deletion_metadata(
+        self,
+        deletion_id: str,
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> DeletionStatus:
+        """Purge a pending source closure after its required files are absent."""
+
+        operation = "purge_deletion_metadata"
+        selected = _deletion_id(deletion_id, operation)
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                with self._transaction(connection, operation):
+                    status = self._deletion_status(connection, selected, operation)
+                    if status.state in {DeletionState.METADATA_PURGED, DeletionState.COMPLETE}:
+                        return status
+                    plan = self._load_deletion_plan(connection, selected, operation)
+                    if evidence_session is None:
+                        _fail(PortErrorCode.INVALID_REQUEST, operation)
+                    required = tuple(
+                        item.artifact for item in plan.artifacts if item.delete_required
+                    )
+                    checks = evidence_session.inspect(required)
+                    if any(check.state is ArtifactState.CORRUPT for check in checks):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    if any(check.state is not ArtifactState.MISSING for check in checks):
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    root = connection.execute(
+                        """SELECT root_kind, root_id FROM deletion_jobs
+                        WHERE deletion_id = ?""",
+                        (selected,),
+                    ).fetchone()
+                    if root is None or root[0] != "source" or not isinstance(root[1], str):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    digests = connection.execute(
+                        """SELECT artifact_digest FROM deletion_artifacts
+                        WHERE deletion_id = ? AND delete_required = 1""",
+                        (selected,),
+                    ).fetchall()
+                    removed = connection.execute(
+                        "DELETE FROM sources WHERE source_id = ?", (root[1],)
+                    )
+                    if removed.rowcount != 1:
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    for (digest,) in digests:
+                        connection.execute(
+                            """DELETE FROM artifact_catalog WHERE digest = ?
+                            AND NOT EXISTS (
+                                SELECT 1 FROM artifact_references
+                                WHERE artifact_digest = ?
+                            )""",
+                            (digest, digest),
+                        )
+                    connection.execute(
+                        "DELETE FROM deletion_closure WHERE deletion_id = ?", (selected,)
+                    )
+                    connection.execute(
+                        "DELETE FROM deletion_artifacts WHERE deletion_id = ?", (selected,)
+                    )
+                    connection.execute(
+                        """UPDATE deletion_jobs SET root_kind = NULL, root_id = NULL,
+                        state = 'metadata_purged' WHERE deletion_id = ?""",
+                        (selected,),
+                    )
+                    return self._deletion_status(connection, selected, operation)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def complete_deletion(
+        self,
+        deletion_id: str,
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> DeletionStatus:
+        """Truncate obsolete WAL content and write the reduced completion receipt."""
+
+        operation = "complete_deletion"
+        selected = _deletion_id(deletion_id, operation)
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                status = self._deletion_status(connection, selected, operation)
+                if status.state is DeletionState.COMPLETE:
+                    return status
+                if status.state is not DeletionState.METADATA_PURGED:
+                    _fail(PortErrorCode.CONFLICT, operation)
+                checkpoint = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+                if (
+                    checkpoint is None
+                    or len(checkpoint) != 3
+                    or any(type(value) is not int for value in checkpoint)
+                    or checkpoint[0] != 0
+                    or checkpoint[1] != 0
+                    or checkpoint[2] != 0
+                ):
+                    _fail(PortErrorCode.TIMEOUT, operation, retryable=True)
+                completed = datetime.now(UTC).isoformat(timespec="microseconds")
+                with self._transaction(connection, operation):
+                    connection.execute(
+                        """UPDATE deletion_jobs SET state = 'complete',
+                        completed_at_utc = ? WHERE deletion_id = ?
+                          AND state = 'metadata_purged'""",
+                        (completed, selected),
+                    )
+                return self._deletion_status(connection, selected, operation)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def deletion_status(self, deletion_id: str) -> DeletionStatus:
+        operation = "deletion_status"
+        selected = _deletion_id(deletion_id, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                return self._deletion_status(connection, selected, operation)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
     def get(self, record_id: str) -> Record:
         operation = "get"
         selected = _identifier(record_id, _RECORD_ID, operation)
@@ -1789,6 +2686,76 @@ class LocalWorldStore:
                 )
         except (TypeError, ValueError):
             _fail(PortErrorCode.CORRUPT, operation)
+        deletion_rows = connection.execute(
+            """SELECT deletion_id, state, record_count, artifact_count,
+            shared_retention_count, completed_at_utc, protocol_version,
+            root_kind, root_id FROM deletion_jobs ORDER BY deletion_id LIMIT ?""",
+            (self._max_audit_records + 1,),
+        ).fetchall()
+        if len(deletion_rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        overlap = connection.execute(
+            """SELECT 1 FROM deletion_closure GROUP BY record_id
+            HAVING count(*) > 1 LIMIT 1"""
+        ).fetchone()
+        if overlap is not None:
+            _fail(PortErrorCode.CORRUPT, operation)
+        record_queries = {
+            "source": "SELECT 1 FROM sources WHERE source_id = ?",
+            "frame": "SELECT 1 FROM frames WHERE frame_id = ?",
+            "evidence": "SELECT 1 FROM evidence WHERE evidence_id = ?",
+            "run": "SELECT 1 FROM runs WHERE run_id = ?",
+        }
+        for row in deletion_rows:
+            status = self._deletion_status_row(row[:7], operation)
+            root_kind, root_id = row[7], row[8]
+            closure = connection.execute(
+                """SELECT record_id, record_type FROM deletion_closure
+                WHERE deletion_id = ? ORDER BY record_id LIMIT ?""",
+                (status.deletion_id, self._max_audit_records + 1),
+            ).fetchall()
+            artifacts = connection.execute(
+                """SELECT artifact_digest, delete_required FROM deletion_artifacts
+                WHERE deletion_id = ? ORDER BY artifact_digest LIMIT ?""",
+                (status.deletion_id, self._max_audit_records + 1),
+            ).fetchall()
+            if len(closure) > self._max_audit_records or len(artifacts) > self._max_audit_records:
+                _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+            if status.state is DeletionState.PENDING:
+                self._load_deletion_plan(connection, status.deletion_id, operation)
+                if (
+                    root_kind != "source"
+                    or type(root_id) is not str
+                    or not _SOURCE_ID.fullmatch(root_id)
+                    or (root_id, "source") not in closure
+                    or status.record_count != len(closure)
+                    or status.artifact_count
+                    != sum(delete_required == 1 for _, delete_required in artifacts)
+                    or status.shared_retention_count
+                    != sum(delete_required == 0 for _, delete_required in artifacts)
+                ):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                for record_id, record_type in closure:
+                    if type(record_id) is not str or record_type not in record_queries:
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    if (
+                        connection.execute(
+                            record_queries[record_type],
+                            (record_id,),
+                        ).fetchone()
+                        is None
+                    ):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                for digest, delete_required in artifacts:
+                    if (
+                        type(digest) is not str
+                        or delete_required not in {0, 1}
+                        or not re.fullmatch(r"[0-9a-f]{64}", digest)
+                    ):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    self._artifact_spec(connection, digest, operation)
+            elif root_kind is not None or root_id is not None or closure or artifacts:
+                _fail(PortErrorCode.CORRUPT, operation)
 
 
 __all__ = [
@@ -1796,6 +2763,11 @@ __all__ = [
     "DEFAULT_MAX_AUDIT_RECORDS",
     "WORLD_PROTOCOL_VERSION",
     "WORLD_SCHEMA_VERSION",
+    "DeletionArtifact",
+    "DeletionPlan",
+    "DeletionState",
+    "DeletionStatus",
     "LocalWorldStore",
+    "RunCleanupPlan",
     "WorldStoreStats",
 ]

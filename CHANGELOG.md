@@ -4,6 +4,10 @@ All notable project changes will be recorded here.
 
 ## Unreleased
 
+- Add deterministic evidence-safe ingestion coordination with fake/manual
+  original-pixel regions, staged commit markers, crash-boundary retry, orphan
+  repair, reference-aware cascade deletion, redacted stage timings, and a
+  CPU-LITE acceptance receipt.
 - Add the private versioned local WorldStore with checksummed transactional
   SQLite migrations, canonical-record/projection integrity, WAL concurrency,
   run/intents coordination primitives, adversarial tests, and CPU-LITE
