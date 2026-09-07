@@ -1,0 +1,144 @@
+{
+  "canvas": {
+    "detector_height": 384,
+    "detector_pixel_format": "rgb24",
+    "detector_width": 384,
+    "source_height": 2160,
+    "source_pixel_format": "rgb24",
+    "source_width": 3840
+  },
+  "clips": [
+    {
+      "background_seed": 11,
+      "clip_id": "calibration-kit-buggy",
+      "input_frame_sha256": "a5dffa70e2e70b1e5744fa0ca59b77e0741d874ff07790ae4020263f88d5aa39",
+      "input_object_box": [174, 108, 447, 348],
+      "input_relative_path": "calibration/calibration-kit-buggy-easy.ppm",
+      "source_id": "kit-buggy",
+      "split": "calibration"
+    },
+    {
+      "background_seed": 29,
+      "clip_id": "calibration-vintage-green",
+      "input_frame_sha256": "d8c52a65547f6e5c827884d2b97fd15f7a586fdb2e689727d3796c5908279469",
+      "input_object_box": [100, 124, 560, 348],
+      "input_relative_path": "calibration/calibration-vintage-green-easy.ppm",
+      "source_id": "vintage-green",
+      "split": "calibration"
+    },
+    {
+      "background_seed": 47,
+      "clip_id": "calibration-lime-van",
+      "input_frame_sha256": "ddeefd1421e4230ef7374bc5353e6fe14d3fce6cf9d43370580442f0f3a7ea81",
+      "input_object_box": [184, 108, 472, 348],
+      "input_relative_path": "calibration/calibration-lime-van-easy.ppm",
+      "source_id": "lime-van",
+      "split": "calibration"
+    },
+    {
+      "background_seed": 71,
+      "clip_id": "calibration-li-l7-side",
+      "input_frame_sha256": "204f638c73ac7611b0ac10c375bd73a7fe776c90d182c22ba4490384983e8ea5",
+      "input_object_box": [96, 168, 556, 348],
+      "input_relative_path": "calibration/calibration-li-l7-side-easy.ppm",
+      "source_id": "li-l7-side",
+      "split": "calibration"
+    },
+    {
+      "background_seed": 89,
+      "clip_id": "test-bmw-i3",
+      "input_frame_sha256": "97728c98ccf28347e8780fc8ee5b7717f9f86327b560cafc63b2751df1c09a33",
+      "input_object_box": [135, 108, 498, 348],
+      "input_relative_path": "test/test-bmw-i3-easy.ppm",
+      "source_id": "bmw-i3",
+      "split": "test"
+    },
+    {
+      "background_seed": 107,
+      "clip_id": "test-pink-cadillac",
+      "input_frame_sha256": "530077fa3bb668b0779d1929dab9fe4a68ae4dbd401dc40d58b89646ee8b9cc9",
+      "input_object_box": [105, 108, 519, 348],
+      "input_relative_path": "test/test-pink-cadillac-easy.ppm",
+      "source_id": "pink-cadillac",
+      "split": "test"
+    },
+    {
+      "background_seed": 131,
+      "clip_id": "test-red-opel",
+      "input_frame_sha256": "8e0a7b3654d656b7893018f1dda488fba110332e41496ee4f09f1e4a61fde8e0",
+      "input_object_box": [158, 108, 492, 348],
+      "input_relative_path": "test/test-red-opel-easy.ppm",
+      "source_id": "red-opel",
+      "split": "test"
+    },
+    {
+      "background_seed": 149,
+      "clip_id": "test-li-l9-side",
+      "input_frame_sha256": "bbed37badc3d98191009580483f93c7a7769293b4f92883929b554bbeb0e6203",
+      "input_object_box": [86, 176, 546, 348],
+      "input_relative_path": "test/test-li-l9-side-easy.ppm",
+      "source_id": "li-l9-side",
+      "split": "test"
+    },
+    {
+      "background_seed": 173,
+      "clip_id": "test-li-l9-rear",
+      "input_frame_sha256": "c9805607c4a58b9f1841c78b155f4c764ce5e039f4a07962183a60f7a748f32d",
+      "input_object_box": [86, 150, 546, 348],
+      "input_relative_path": "test/test-li-l9-rear-easy.ppm",
+      "source_id": "li-l9-rear",
+      "split": "test"
+    },
+    {
+      "background_seed": 197,
+      "clip_id": "test-li-l7-white",
+      "input_frame_sha256": "6a886fc862ac96a929f659ea7bff8b4ee43aa660b654df586ed6e82bc7faf99b",
+      "input_object_box": [94, 139, 554, 348],
+      "input_relative_path": "test/test-li-l7-white-easy.ppm",
+      "source_id": "li-l7-white",
+      "split": "test"
+    }
+  ],
+  "derivation": {
+    "clip_duration_ms": 3000,
+    "detail_controls": [
+      "source_resolvable",
+      "source_absent"
+    ],
+    "frame_duration_ms": 1000,
+    "interpolation": "visualworld-fixed-point-bilinear-v1",
+    "specialist_panels": "project-generated binary charts; no real identifier or biometric content",
+    "strata": {
+      "medium": {
+        "detector_box": [96, 144, 288, 240],
+        "left_panel_box": [104, 160, 184, 208],
+        "right_panel_box": [200, 160, 280, 208]
+      },
+      "small": {
+        "detector_box": [144, 168, 240, 216],
+        "left_panel_box": [148, 176, 188, 200],
+        "right_panel_box": [196, 176, 236, 200]
+      },
+      "tiny": {
+        "detector_box": [168, 176, 216, 208],
+        "left_panel_box": [170, 184, 190, 200],
+        "right_panel_box": [194, 184, 214, 200]
+      }
+    }
+  },
+  "license_expression": "CC0-1.0",
+  "privacy": {
+    "contains_faces": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false,
+    "generated_detail_is_identifying": false,
+    "sensitive_derived_outputs_retained": false,
+    "source_boundary": "only plate-sanitized issue-21 RGB derivatives are accepted"
+  },
+  "schema": "visualworld.v02-crop-source-manifest",
+  "schema_version": 1,
+  "source_detection_annotation_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
+  "source_detection_manifest_sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66",
+  "terms_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+}

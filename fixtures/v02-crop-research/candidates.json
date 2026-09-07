@@ -1,0 +1,43 @@
+{
+  "baseline": {
+    "crop": "locked detector-space box from the 384x384 linear RGB24 input",
+    "name": "detector-input-rgb24"
+  },
+  "candidate": {
+    "crop": "byte-preserving packed RGB24 source crop",
+    "mapping": "visualworld DetectorTransform affine rational outward rounding",
+    "name": "original-source-rgb24"
+  },
+  "decision": {
+    "absent_control_maximum_absolute_gain_basis_points": 500,
+    "eager_retention_maximum_byte_ratio_milli": 4000,
+    "material_readable_gain_basis_points": 500,
+    "material_specialist_gain_basis_points": 1000
+  },
+  "detector": {
+    "candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
+    "confidence_millionths": 950000,
+    "height": 384,
+    "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
+    "preprocessing": "visualworld-fixed-point-bilinear-v1 RGB to 384x384 without letterbox",
+    "width": 384
+  },
+  "metric": {
+    "readable_detail": "fraction of 192 frozen chart cells recovered at threshold 127",
+    "specialist_accuracy": "fraction of plate_ocr, face_visibility, and vehicle_detail chart labels selected by minimum Hamming distance"
+  },
+  "schema": "visualworld.v02-crop-candidates",
+  "schema_version": 1,
+  "specialist": {
+    "cell_grid_height": 8,
+    "cell_grid_width": 24,
+    "labels_per_task": 8,
+    "tasks": [
+      "face_visibility",
+      "plate_ocr",
+      "vehicle_detail"
+    ],
+    "threshold": 127,
+    "tie_break": "lexicographically-smallest-label"
+  }
+}

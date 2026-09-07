@@ -1,0 +1,64 @@
+{
+  "acquisition": {
+    "method": "deterministic 4K three-frame rawvideo derivatives of privacy-sanitized Issue #21 CC0 vehicle frames with project-generated non-identifying detail charts",
+    "owner": "VisualWorld contributors and the CC0 source creators recorded by the bound source manifest",
+    "revision": "v02-crop-research-source-manifest-1",
+    "sha256": "c6dcc6fed5cb5e367fa0428099c9903c30392e31837873ab7d50448a8b81f8e6",
+    "url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-crop-research"
+  },
+  "experiment": "crop_value",
+  "manifest_id": "v02-original-resolution-crop-value-1",
+  "privacy": {
+    "classification": "licensed-no-personal-data",
+    "consent_status": "not-applicable-no-personal-data",
+    "contains_faces": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false,
+    "sensitive_derived_outputs_retained": false
+  },
+  "rights": {
+    "allowed_uses": [
+      "benchmarking",
+      "evaluation",
+      "modification",
+      "redistribution"
+    ],
+    "commercial_use_allowed": true,
+    "derivatives_allowed": true,
+    "license_expression": "CC0-1.0",
+    "redistribution_allowed": true
+  },
+  "schema": "visualworld.v02-evaluation-dataset-manifest",
+  "schema_version": 1,
+  "splits": {
+    "calibration": {
+      "annotation_sha256": "acd0814cd345714929787e794d069bf899719468618447124b233b760f2c883f",
+      "item_count": 12,
+      "item_ids_sha256": "85bef650634c3bf53464ebbfe43817fc93486034bc5f0ec3fc87e1b5b1dfb6a8",
+      "stratum_item_counts": {
+        "medium": 4,
+        "overall": 12,
+        "small": 4,
+        "tiny": 4
+      }
+    },
+    "test": {
+      "annotation_sha256": "601e1a1fb042224e0e7407532751969fd7dea6ad3b1579d748ca74ce8c0c8d44",
+      "item_count": 18,
+      "item_ids_sha256": "d72bc4f9d060bebb112a527b133e2e19b8f1253cc1f1fa6681f4f058b49e2f17",
+      "stratum_item_counts": {
+        "medium": 6,
+        "overall": 18,
+        "small": 6,
+        "tiny": 6
+      }
+    }
+  },
+  "strata": [
+    "overall",
+    "tiny",
+    "small",
+    "medium"
+  ]
+}
