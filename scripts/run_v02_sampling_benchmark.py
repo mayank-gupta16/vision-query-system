@@ -811,6 +811,26 @@ def _receipt_repetition(repetition: dict[str, object]) -> dict[str, object]:
     }
 
 
+def _raw_repetitions(repetitions: list[dict[str, object]]) -> list[dict[str, object]]:
+    compact: list[dict[str, object]] = []
+    first_prediction_sha256 = _sha256(_canonical(repetitions[0]["predictions"]))
+    first_samples_sha256 = _sha256(_canonical(repetitions[0]["samples"]))
+    for index, repetition in enumerate(repetitions):
+        raw = {
+            key: value for key, value in repetition.items() if key not in {"predictions", "samples"}
+        }
+        prediction_sha256 = _sha256(_canonical(repetition["predictions"]))
+        samples_sha256 = _sha256(_canonical(repetition["samples"]))
+        raw["predictions_sha256"] = prediction_sha256
+        raw["samples_sha256"] = samples_sha256
+        if index == 0 or prediction_sha256 != first_prediction_sha256:
+            raw["representative_predictions"] = repetition["predictions"]
+        if index == 0 or samples_sha256 != first_samples_sha256:
+            raw["representative_samples"] = repetition["samples"]
+        compact.append(raw)
+    return compact
+
+
 def run_benchmark(
     *,
     dataset_root: Path,
@@ -950,7 +970,7 @@ def run_benchmark(
             {
                 "aggregate": aggregate,
                 "passes_accuracy_floors": passed,
-                "repetitions": repetitions,
+                "repetitions": _raw_repetitions(repetitions),
                 "sample_count": median_sample_count,
                 "threshold_millionths": threshold,
             }
@@ -1087,7 +1107,7 @@ def run_benchmark(
                 raise SamplingBenchmarkError("output_failed") from error
             raw_candidates[candidate_name] = {
                 "configuration": configuration,
-                "repetitions": repetitions,
+                "repetitions": _raw_repetitions(repetitions),
             }
             output_index[candidate_name] = {
                 "gate": gate_name,
