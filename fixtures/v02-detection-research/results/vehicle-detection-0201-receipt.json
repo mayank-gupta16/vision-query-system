@@ -2,13 +2,13 @@
   "aggregate": {
     "dispersion": {
       "cold_start_wall_ms": {
-        "overall": 5
+        "overall": 11
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 4324
+        "overall": 8272
       },
       "install_and_model_bytes": {
         "overall": 0
@@ -19,7 +19,7 @@
         "small_distant": 0
       },
       "peak_rss_bytes": {
-        "overall": 57344
+        "overall": 126976
       },
       "precision_basis_points": {
         "easy": 0,
@@ -27,7 +27,7 @@
         "small_distant": 0
       },
       "real_time_factor_milli": {
-        "overall": 865
+        "overall": 1654
       },
       "recall_basis_points": {
         "easy": 0,
@@ -40,16 +40,16 @@
     },
     "metrics": {
       "cold_start_wall_ms": {
-        "overall": 498
+        "overall": 605
       },
       "failure_rate_basis_points": {
         "overall": 0
       },
       "frames_per_second_milli": {
-        "overall": 83006
+        "overall": 85048
       },
       "install_and_model_bytes": {
-        "overall": 243382858
+        "overall": 243344441
       },
       "map50_basis_points": {
         "easy": 10000,
@@ -57,7 +57,7 @@
         "small_distant": 10000
       },
       "peak_rss_bytes": {
-        "overall": 234373120
+        "overall": 246484992
       },
       "precision_basis_points": {
         "easy": 10000,
@@ -65,7 +65,7 @@
         "small_distant": 10000
       },
       "real_time_factor_milli": {
-        "overall": 16601
+        "overall": 17009
       },
       "recall_basis_points": {
         "easy": 10000,
@@ -81,6 +81,7 @@
     "artifacts": [
       {
         "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
         "executable_serialization": false,
         "format": "openvino-ir",
         "isolation": "isolated-worker",
@@ -99,6 +100,7 @@
       },
       {
         "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
         "executable_serialization": false,
         "format": "openvino-ir",
         "isolation": "isolated-worker",
@@ -117,10 +119,33 @@
       },
       {
         "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
         "executable_serialization": false,
         "format": "native-library",
         "isolation": "isolated-worker",
         "kind": "runtime",
+        "license_evidence": {
+          "bundled_components": [],
+          "metadata_license_expression": "Apache-2.0",
+          "notice_files": [
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/LICENSE",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/licensing/onednn_third-party-programs.txt",
+              "sha256": "f1b16991dfe8488f3f5f07cccba575c31c91175a9f2c8d9e1569665f86e0b2f6"
+            },
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/licensing/onetbb_third-party-programs.txt",
+              "sha256": "b10997cc50652ba6ab365e3bc43e13057681cd4a56533b46171529bd249749f3"
+            },
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/licensing/runtime-third-party-programs.txt",
+              "sha256": "85481d0f8a01308fb8c837e0007897ab5f35c90b6ee6333e6e6dfeff4ca3f46c"
+            }
+          ]
+        },
         "license_expression": "Apache-2.0",
         "name": "openvino",
         "redistribution_allowed": true,
@@ -135,11 +160,103 @@
       },
       {
         "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
         "executable_serialization": false,
         "format": "native-library",
         "isolation": "isolated-worker",
         "kind": "runtime",
-        "license_expression": "BSD-3-Clause",
+        "license_evidence": {
+          "bundled_components": [
+            {
+              "license_expression": "BSD-3-Clause",
+              "name": "OpenBLAS"
+            },
+            {
+              "license_expression": "BSD-3-Clause-Open-MPI",
+              "name": "LAPACK"
+            },
+            {
+              "license_expression": "GPL-3.0-or-later WITH GCC-exception-3.1",
+              "name": "libgfortran"
+            },
+            {
+              "license_expression": "LGPL-2.1-or-later",
+              "name": "libquadmath"
+            }
+          ],
+          "metadata_license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+          "notice_files": [
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/LICENSE.txt",
+              "sha256": "4860083caa0de2ac3292ca98bd074bd8f45d8b32624e37b1e70a240bff61e488"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+              "sha256": "fbc539f47d0cf83bc61378080fb873d5c14630126cacbfe754035c3926daa5ec"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+              "sha256": "3f2c1ffa76383a55ae0aac01c9737cd70050dff63e1f026694fbe9d662573c98"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+              "sha256": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+              "sha256": "f7b14309e5f54e5022b26448eefd419988ada2aec01d3c1162d84a0ea8f21f2c"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+              "sha256": "211e7d737d6179a08f791ebb0a99897ce7cd2457410c542876d125576edfe910"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+              "sha256": "c17011467b4fe6e20fbfbeda4df09e58c2bca5480a063e55735a4000a379aad9"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+              "sha256": "a85ca13fdf90160b64a0698215868c13b74d835ad0a4e2ba44713b8c5058a056"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+              "sha256": "a14cc25e10d40a3aa705b7de2fb764a6535d8ee9b2db4e1724900585457dfd55"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/ma/LICENSE",
+              "sha256": "05f3b88351988ecfad10abe92c0c50e5875c6452d5009a0084cc291551ffcca6"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/LICENSE.md",
+              "sha256": "103166b62b80443afb9eb3488e052ea06be0cff566b908f199e561fde49af19f"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+              "sha256": "469778be8f33d54e1bcaab28c281cc472916d2d273f835e55bc487d30503face"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+              "sha256": "0e111337b25494a773106695f0e799f642b8567aaacca4f116a74a8177179156"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+              "sha256": "e7d4f4fb20358f314210a892ae17351e04993813646f697ec387385ca2a36918"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+              "sha256": "6f5828a57223d4cc7f8ea505a2623e7b978b242752c1515e355f46ba2cec1800"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+              "sha256": "9d4098846018319cd68e228ee6220361787f73bccbf00237a85e4fc9621b998f"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+              "sha256": "268b0ca06759d31ea3ca68dd35f20e877916e927b1c2a835e4592a3c4354b1f9"
+            }
+          ]
+        },
+        "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
         "name": "numpy",
         "redistribution_allowed": true,
         "review_status": "approved-for-evaluation",
@@ -153,10 +270,21 @@
       },
       {
         "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
         "executable_serialization": false,
         "format": "python-source",
         "isolation": "isolated-worker",
         "kind": "runtime",
+        "license_evidence": {
+          "bundled_components": [],
+          "metadata_license_expression": null,
+          "notice_files": [
+            {
+              "path": "openvino_telemetry-2025.2.0.dist-info/LICENSE",
+              "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+            }
+          ]
+        },
         "license_expression": "Apache-2.0",
         "name": "openvino-telemetry",
         "redistribution_allowed": true,
@@ -168,10 +296,30 @@
         "terms_url": "https://pypi.org/project/openvino-telemetry/2025.2.0/",
         "trust_remote_code": false,
         "use": "offline CPU inference runtime closure"
+      },
+      {
+        "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
+        "executable_serialization": false,
+        "format": "native-library",
+        "isolation": "isolated-worker",
+        "kind": "runtime",
+        "license_expression": "LicenseRef-python-build-standalone-composite-20260825",
+        "name": "cpython-3.13.15-python-build-standalone-20260825",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-07",
+        "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
+        "sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+        "source_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+        "terms_url": "https://github.com/astral-sh/python-build-standalone/blob/c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779/docs/running.rst",
+        "trust_remote_code": false,
+        "use": "pinned interpreter for isolated CPU inference"
       }
     ],
-    "configuration_sha256": "ebe2aa4714aebe67d63ecf9f08e517e97a2c5524e03427ffa05c0ede2f5c03b2",
-    "name": "vehicle-detection-0201-fp32-openvino-2026.3.1"
+    "configuration_sha256": "9e1cd2fd701941ba521a123a2676435bf67fbfafa1eb0b1996988bdfeaf03608",
+    "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
+    "runtime_closure_sha256": "a01b42bc19b7d4eeef98edae539f95df8422dc184306cad4f97c562bdc802d18"
   },
   "dataset_manifest_sha256": "7c41fda4b14553922727e31801478b569a17dda176dd85a7c2fe8789ae9c1599",
   "evaluated_on": "2026-09-07",
@@ -181,23 +329,23 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-harness",
-      "revision": "e9066798a3514098d4c421a5a0a380fc5eb38844",
-      "sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/e9066798a3514098d4c421a5a0a380fc5eb38844/scripts/run_v02_detection_benchmark.py"
+      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
+      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-metrics",
-      "revision": "e9066798a3514098d4c421a5a0a380fc5eb38844",
-      "sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/e9066798a3514098d4c421a5a0a380fc5eb38844/scripts/run_v02_detection_benchmark.py"
+      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
+      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "e9066798a3514098d4c421a5a0a380fc5eb38844"
+    "source_revision": "8896c166c69429dfeb5297eebe4b9833a90d880a"
   },
-  "policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
-  "policy_version": "v0.2-gates-1",
+  "policy_sha256": "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519",
+  "policy_version": "v0.2-gates-2",
   "profile": {
     "architecture": "x86_64",
     "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
@@ -214,16 +362,16 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 493
+          "overall": 613
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 87330
+          "overall": 84592
         },
         "install_and_model_bytes": {
-          "overall": 243382858
+          "overall": 243344441
         },
         "map50_basis_points": {
           "easy": 10000,
@@ -231,7 +379,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 234369024
+          "overall": 246444032
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -239,7 +387,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 17466
+          "overall": 16918
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -259,16 +407,16 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 493
+          "overall": 621
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 106758
+          "overall": 76776
         },
         "install_and_model_bytes": {
-          "overall": 243382858
+          "overall": 243344441
         },
         "map50_basis_points": {
           "easy": 10000,
@@ -276,7 +424,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 234311680
+          "overall": 246104064
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -284,7 +432,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 21351
+          "overall": 15355
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -292,7 +440,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 10
+          "overall": 14
         }
       },
       "processed_item_count": 12,
@@ -304,16 +452,16 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 498
+          "overall": 594
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 80464
+          "overall": 100849
         },
         "install_and_model_bytes": {
-          "overall": 243382858
+          "overall": 243344441
         },
         "map50_basis_points": {
           "easy": 10000,
@@ -321,7 +469,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 234180608
+          "overall": 246181888
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -329,7 +477,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 16092
+          "overall": 20169
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -349,16 +497,16 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 530
+          "overall": 605
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 67985
+          "overall": 106717
         },
         "install_and_model_bytes": {
-          "overall": 243382858
+          "overall": 243344441
         },
         "map50_basis_points": {
           "easy": 10000,
@@ -366,7 +514,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 234258432
+          "overall": 246484992
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -374,7 +522,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 13597
+          "overall": 21343
         },
         "recall_basis_points": {
           "easy": 10000,
@@ -382,7 +530,7 @@
           "small_distant": 6666
         },
         "warm_start_wall_ms": {
-          "overall": 15
+          "overall": 9
         }
       },
       "processed_item_count": 12,
@@ -394,16 +542,16 @@
       "failure_code": null,
       "metrics": {
         "cold_start_wall_ms": {
-          "overall": 620
+          "overall": 592
         },
         "failure_rate_basis_points": {
           "overall": 0
         },
         "frames_per_second_milli": {
-          "overall": 83006
+          "overall": 85048
         },
         "install_and_model_bytes": {
-          "overall": 243382858
+          "overall": 243344441
         },
         "map50_basis_points": {
           "easy": 10000,
@@ -411,7 +559,7 @@
           "small_distant": 10000
         },
         "peak_rss_bytes": {
-          "overall": 234373120
+          "overall": 246231040
         },
         "precision_basis_points": {
           "easy": 10000,
@@ -419,7 +567,7 @@
           "small_distant": 10000
         },
         "real_time_factor_milli": {
-          "overall": 16601
+          "overall": 17009
         },
         "recall_basis_points": {
           "easy": 10000,

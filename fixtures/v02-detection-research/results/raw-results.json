@@ -425,21 +425,22 @@
         "repetitions": [
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 576754505,
-            "cpu_ns": 198572999,
+            "cold_start_ns": 589234792,
+            "cpu_ns": 148992000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 6348587,
-              "calibration-kit-buggy-small_distant": 6217890,
-              "calibration-li-l7-side-easy": 6142059,
-              "calibration-li-l7-side-small_distant": 6096435,
-              "calibration-lime-van-easy": 5916141,
-              "calibration-lime-van-small_distant": 6709418,
-              "calibration-vintage-green-easy": 5876724,
-              "calibration-vintage-green-small_distant": 6066621
+              "calibration-kit-buggy-easy": 4701460,
+              "calibration-kit-buggy-small_distant": 4681418,
+              "calibration-li-l7-side-easy": 4703736,
+              "calibration-li-l7-side-small_distant": 4400405,
+              "calibration-lime-van-easy": 4516683,
+              "calibration-lime-van-small_distant": 4370277,
+              "calibration-vintage-green-easy": 4888925,
+              "calibration-vintage-green-small_distant": 4658124
             },
-            "measurement_wall_ns": 49931180,
+            "measurement_wall_ns": 37420570,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 227479552,
+            "peak_rss_bytes": 239706112,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -836,30 +837,32 @@
                 }
               ]
             },
-            "process_wall_ns": 772011328,
+            "process_wall_ns": 955051859,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 1729,
             "split": "calibration",
-            "warm_start_ns": 6348587
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 4701460
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 558317545,
-            "cpu_ns": 208841000,
+            "cold_start_ns": 613996797,
+            "cpu_ns": 161780999,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 6368656,
-              "calibration-kit-buggy-small_distant": 6473179,
-              "calibration-li-l7-side-easy": 6267420,
-              "calibration-li-l7-side-small_distant": 6466486,
-              "calibration-lime-van-easy": 6234499,
-              "calibration-lime-van-small_distant": 6168653,
-              "calibration-vintage-green-easy": 7025811,
-              "calibration-vintage-green-small_distant": 6775683
+              "calibration-kit-buggy-easy": 6127838,
+              "calibration-kit-buggy-small_distant": 4413092,
+              "calibration-li-l7-side-easy": 5353335,
+              "calibration-li-l7-side-small_distant": 5326243,
+              "calibration-lime-van-easy": 4564005,
+              "calibration-lime-van-small_distant": 5411460,
+              "calibration-vintage-green-easy": 4284941,
+              "calibration-vintage-green-small_distant": 4491309
             },
-            "measurement_wall_ns": 52490942,
+            "measurement_wall_ns": 40534190,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 227594240,
+            "peak_rss_bytes": 239366144,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -1256,30 +1259,32 @@
                 }
               ]
             },
-            "process_wall_ns": 783782798,
+            "process_wall_ns": 1010222537,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 3253,
             "split": "calibration",
-            "warm_start_ns": 6368656
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 6127838
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 506804696,
-            "cpu_ns": 181373000,
+            "cold_start_ns": 568724550,
+            "cpu_ns": 172756000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 5510993,
-              "calibration-kit-buggy-small_distant": 5630054,
-              "calibration-li-l7-side-easy": 5499126,
-              "calibration-li-l7-side-small_distant": 5670852,
-              "calibration-lime-van-easy": 5633396,
-              "calibration-lime-van-small_distant": 5684383,
-              "calibration-vintage-green-easy": 5499801,
-              "calibration-vintage-green-small_distant": 5815915
+              "calibration-kit-buggy-easy": 5725031,
+              "calibration-kit-buggy-small_distant": 5229855,
+              "calibration-li-l7-side-easy": 5271113,
+              "calibration-li-l7-side-small_distant": 5594348,
+              "calibration-lime-van-easy": 5214634,
+              "calibration-lime-van-small_distant": 5396261,
+              "calibration-vintage-green-easy": 5084942,
+              "calibration-vintage-green-small_distant": 5311220
             },
-            "measurement_wall_ns": 45466111,
+            "measurement_wall_ns": 43371562,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 227803136,
+            "peak_rss_bytes": 239562752,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -1676,30 +1681,32 @@
                 }
               ]
             },
-            "process_wall_ns": 693828981,
+            "process_wall_ns": 938915067,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 5081,
             "split": "calibration",
-            "warm_start_ns": 5510993
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 5725031
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 489557856,
-            "cpu_ns": 189262000,
+            "cold_start_ns": 618844058,
+            "cpu_ns": 203963000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 5783338,
-              "calibration-kit-buggy-small_distant": 5776550,
-              "calibration-li-l7-side-easy": 5714123,
-              "calibration-li-l7-side-small_distant": 5813971,
-              "calibration-lime-van-easy": 5798673,
-              "calibration-lime-van-small_distant": 5838497,
-              "calibration-vintage-green-easy": 6057096,
-              "calibration-vintage-green-small_distant": 5912427
+              "calibration-kit-buggy-easy": 6246026,
+              "calibration-kit-buggy-small_distant": 6382521,
+              "calibration-li-l7-side-easy": 6581584,
+              "calibration-li-l7-side-small_distant": 6422794,
+              "calibration-lime-van-easy": 6171700,
+              "calibration-lime-van-small_distant": 6071215,
+              "calibration-vintage-green-easy": 6283162,
+              "calibration-vintage-green-small_distant": 6248005
             },
-            "measurement_wall_ns": 47428031,
+            "measurement_wall_ns": 51137114,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 227577856,
+            "peak_rss_bytes": 239493120,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -2096,30 +2103,32 @@
                 }
               ]
             },
-            "process_wall_ns": 697126238,
+            "process_wall_ns": 1031378030,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 7919,
             "split": "calibration",
-            "warm_start_ns": 5783338
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 6246026
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 532713940,
-            "cpu_ns": 218783999,
+            "cold_start_ns": 617773588,
+            "cpu_ns": 140699000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 6709157,
-              "calibration-kit-buggy-small_distant": 7081739,
-              "calibration-li-l7-side-easy": 6638753,
-              "calibration-li-l7-side-small_distant": 7105878,
-              "calibration-lime-van-easy": 6764479,
-              "calibration-lime-van-small_distant": 6748195,
-              "calibration-vintage-green-easy": 6643399,
-              "calibration-vintage-green-small_distant": 6512305
+              "calibration-kit-buggy-easy": 4457495,
+              "calibration-kit-buggy-small_distant": 4893746,
+              "calibration-li-l7-side-easy": 4309906,
+              "calibration-li-l7-side-small_distant": 4252035,
+              "calibration-lime-van-easy": 4004697,
+              "calibration-lime-van-small_distant": 4124860,
+              "calibration-vintage-green-easy": 4323513,
+              "calibration-vintage-green-small_distant": 4322716
             },
-            "measurement_wall_ns": 54982764,
+            "measurement_wall_ns": 35186812,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 227565568,
+            "peak_rss_bytes": 239460352,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -2516,12 +2525,13 @@
                 }
               ]
             },
-            "process_wall_ns": 739074865,
+            "process_wall_ns": 965639155,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 104729,
             "split": "calibration",
-            "warm_start_ns": 6709157
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 4457495
           }
         ],
         "selected_threshold_millionths": 100000
@@ -2545,72 +2555,74 @@
           "numpy": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
           "openvino": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
           "openvino_telemetry": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599"
-        }
+        },
+        "runtime_closure_sha256": "a01b42bc19b7d4eeef98edae539f95df8422dc184306cad4f97c562bdc802d18"
       },
       "diagnostics": [
         {
-          "cpu_nanoseconds_per_frame": 20872666,
-          "cpu_time_ns": 250472000,
-          "cpu_utilization_basis_points": 39887,
-          "frames_per_cpu_second_milli": 47909,
-          "process_wall_ns": 712088110,
+          "cpu_nanoseconds_per_frame": 16174333,
+          "cpu_time_ns": 194091999,
+          "cpu_utilization_basis_points": 39982,
+          "frames_per_cpu_second_milli": 61826,
+          "process_wall_ns": 944694168,
           "seed": 1729
         },
         {
-          "cpu_nanoseconds_per_frame": 23798250,
-          "cpu_time_ns": 285579000,
-          "cpu_utilization_basis_points": 39797,
-          "frames_per_cpu_second_milli": 42019,
-          "process_wall_ns": 782229863,
+          "cpu_nanoseconds_per_frame": 17468666,
+          "cpu_time_ns": 209624000,
+          "cpu_utilization_basis_points": 39918,
+          "frames_per_cpu_second_milli": 57245,
+          "process_wall_ns": 962781847,
           "seed": 3253
         },
         {
-          "cpu_nanoseconds_per_frame": 18009666,
-          "cpu_time_ns": 216115999,
-          "cpu_utilization_basis_points": 39772,
-          "frames_per_cpu_second_milli": 55525,
-          "process_wall_ns": 702677480,
+          "cpu_nanoseconds_per_frame": 21405999,
+          "cpu_time_ns": 256871999,
+          "cpu_utilization_basis_points": 39988,
+          "frames_per_cpu_second_milli": 46715,
+          "process_wall_ns": 1009322601,
           "seed": 5081
         },
         {
-          "cpu_nanoseconds_per_frame": 20317583,
-          "cpu_time_ns": 243811000,
-          "cpu_utilization_basis_points": 39803,
-          "frames_per_cpu_second_milli": 49218,
-          "process_wall_ns": 675969244,
+          "cpu_nanoseconds_per_frame": 16517666,
+          "cpu_time_ns": 198212000,
+          "cpu_utilization_basis_points": 39888,
+          "frames_per_cpu_second_milli": 60541,
+          "process_wall_ns": 1009188425,
           "seed": 7919
         },
         {
-          "cpu_nanoseconds_per_frame": 17012416,
-          "cpu_time_ns": 204149000,
-          "cpu_utilization_basis_points": 39777,
-          "frames_per_cpu_second_milli": 58780,
-          "process_wall_ns": 662264951,
+          "cpu_nanoseconds_per_frame": 19451166,
+          "cpu_time_ns": 233414000,
+          "cpu_utilization_basis_points": 39912,
+          "frames_per_cpu_second_milli": 51410,
+          "process_wall_ns": 1027641622,
           "seed": 104729
         }
       ],
       "test_repetitions": [
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 488226587,
-          "cpu_ns": 250472000,
+          "cold_start_ns": 569355435,
+          "cpu_ns": 194091999,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 5942143,
-            "test-bmw-i3-small_distant": 5874194,
-            "test-li-l7-white-easy": 4435570,
-            "test-li-l7-white-small_distant": 5431144,
-            "test-li-l9-rear-easy": 4730231,
-            "test-li-l9-rear-small_distant": 4558329,
-            "test-li-l9-side-easy": 4406574,
-            "test-li-l9-side-small_distant": 4444410,
-            "test-pink-cadillac-easy": 5094109,
-            "test-pink-cadillac-small_distant": 6426920,
-            "test-red-opel-easy": 5768768,
-            "test-red-opel-small_distant": 4753702
+            "test-bmw-i3-easy": 3830242,
+            "test-bmw-i3-small_distant": 4244611,
+            "test-li-l7-white-easy": 3708277,
+            "test-li-l7-white-small_distant": 3960964,
+            "test-li-l9-rear-easy": 4751349,
+            "test-li-l9-rear-small_distant": 4033647,
+            "test-li-l9-side-easy": 3902110,
+            "test-li-l9-side-small_distant": 3727700,
+            "test-pink-cadillac-easy": 3984465,
+            "test-pink-cadillac-small_distant": 3909180,
+            "test-red-opel-easy": 3896654,
+            "test-red-opel-small_distant": 3891976
           },
-          "measurement_wall_ns": 62794679,
+          "measurement_wall_ns": 48544409,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 230256640,
+          "peak_rss_bytes": 241795072,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -3483,34 +3495,36 @@
               }
             ]
           },
-          "process_wall_ns": 712088110,
+          "process_wall_ns": 944694168,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 1729,
           "split": "test",
-          "warm_start_ns": 5942143
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 3830242
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 540636899,
-          "cpu_ns": 285579000,
+          "cold_start_ns": 578307254,
+          "cpu_ns": 209624000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 5879113,
-            "test-bmw-i3-small_distant": 5820302,
-            "test-li-l7-white-easy": 5704146,
-            "test-li-l7-white-small_distant": 5661002,
-            "test-li-l9-rear-easy": 5810592,
-            "test-li-l9-rear-small_distant": 5728489,
-            "test-li-l9-side-easy": 5897337,
-            "test-li-l9-side-small_distant": 6128416,
-            "test-pink-cadillac-easy": 6050319,
-            "test-pink-cadillac-small_distant": 6069467,
-            "test-red-opel-easy": 5954785,
-            "test-red-opel-small_distant": 5905099
+            "test-bmw-i3-easy": 4641140,
+            "test-bmw-i3-small_distant": 5316516,
+            "test-li-l7-white-easy": 4193885,
+            "test-li-l7-white-small_distant": 4153818,
+            "test-li-l9-rear-easy": 3784597,
+            "test-li-l9-rear-small_distant": 5564365,
+            "test-li-l9-side-easy": 3958724,
+            "test-li-l9-side-small_distant": 3905219,
+            "test-pink-cadillac-easy": 3997782,
+            "test-pink-cadillac-small_distant": 4125186,
+            "test-red-opel-easy": 3912825,
+            "test-red-opel-small_distant": 4033958
           },
-          "measurement_wall_ns": 71757987,
+          "measurement_wall_ns": 52512388,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 230342656,
+          "peak_rss_bytes": 242016256,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -4383,34 +4397,36 @@
               }
             ]
           },
-          "process_wall_ns": 782229863,
+          "process_wall_ns": 962781847,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 3253,
           "split": "test",
-          "warm_start_ns": 5879113
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 4641140
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 497139692,
-          "cpu_ns": 216115999,
+          "cold_start_ns": 604975081,
+          "cpu_ns": 256871999,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 4197976,
-            "test-bmw-i3-small_distant": 4084779,
-            "test-li-l7-white-easy": 5311237,
-            "test-li-l7-white-small_distant": 5424243,
-            "test-li-l9-rear-easy": 3967641,
-            "test-li-l9-rear-small_distant": 5025588,
-            "test-li-l9-side-easy": 4121118,
-            "test-li-l9-side-small_distant": 4091362,
-            "test-pink-cadillac-easy": 4729191,
-            "test-pink-cadillac-small_distant": 4223207,
-            "test-red-opel-easy": 4243828,
-            "test-red-opel-small_distant": 4116563
+            "test-bmw-i3-easy": 5588232,
+            "test-bmw-i3-small_distant": 5826083,
+            "test-li-l7-white-easy": 5169757,
+            "test-li-l7-white-small_distant": 5153425,
+            "test-li-l9-rear-easy": 5332426,
+            "test-li-l9-rear-small_distant": 5576616,
+            "test-li-l9-side-easy": 5544132,
+            "test-li-l9-side-small_distant": 5607488,
+            "test-pink-cadillac-easy": 5605799,
+            "test-pink-cadillac-small_distant": 4301038,
+            "test-red-opel-easy": 4456180,
+            "test-red-opel-small_distant": 5096786
           },
-          "measurement_wall_ns": 54337525,
+          "measurement_wall_ns": 64235859,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 230203392,
+          "peak_rss_bytes": 241983488,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -5283,34 +5299,36 @@
               }
             ]
           },
-          "process_wall_ns": 702677480,
+          "process_wall_ns": 1009322601,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 5081,
           "split": "test",
-          "warm_start_ns": 4197976
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 5588232
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 469376815,
-          "cpu_ns": 243811000,
+          "cold_start_ns": 594868127,
+          "cpu_ns": 198212000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 4290501,
-            "test-bmw-i3-small_distant": 5579768,
-            "test-li-l7-white-easy": 4259026,
-            "test-li-l7-white-small_distant": 4701213,
-            "test-li-l9-rear-easy": 4147065,
-            "test-li-l9-rear-small_distant": 5483619,
-            "test-li-l9-side-easy": 5355315,
-            "test-li-l9-side-small_distant": 4298197,
-            "test-pink-cadillac-easy": 5369092,
-            "test-pink-cadillac-small_distant": 5640874,
-            "test-red-opel-easy": 5534359,
-            "test-red-opel-small_distant": 5753350
+            "test-bmw-i3-easy": 3880879,
+            "test-bmw-i3-small_distant": 4364548,
+            "test-li-l7-white-easy": 4236983,
+            "test-li-l7-white-small_distant": 4181334,
+            "test-li-l9-rear-easy": 3884617,
+            "test-li-l9-rear-small_distant": 3906342,
+            "test-li-l9-side-easy": 3891253,
+            "test-li-l9-side-small_distant": 3818893,
+            "test-pink-cadillac-easy": 4702856,
+            "test-pink-cadillac-small_distant": 4100182,
+            "test-red-opel-easy": 4003080,
+            "test-red-opel-small_distant": 3967923
           },
-          "measurement_wall_ns": 61253035,
+          "measurement_wall_ns": 49690919,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 230252544,
+          "peak_rss_bytes": 242053120,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -6183,34 +6201,36 @@
               }
             ]
           },
-          "process_wall_ns": 675969244,
+          "process_wall_ns": 1009188425,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 7919,
           "split": "test",
-          "warm_start_ns": 4290501
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 3880879
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 474873199,
-          "cpu_ns": 204149000,
+          "cold_start_ns": 618730257,
+          "cpu_ns": 233414000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 4423601,
-            "test-bmw-i3-small_distant": 4046601,
-            "test-li-l7-white-easy": 4154149,
-            "test-li-l7-white-small_distant": 4254882,
-            "test-li-l9-rear-easy": 3958088,
-            "test-li-l9-rear-small_distant": 4244518,
-            "test-li-l9-side-easy": 4139093,
-            "test-li-l9-side-small_distant": 4715258,
-            "test-pink-cadillac-easy": 4397645,
-            "test-pink-cadillac-small_distant": 4134417,
-            "test-red-opel-easy": 3972037,
-            "test-red-opel-small_distant": 4133168
+            "test-bmw-i3-easy": 4152564,
+            "test-bmw-i3-small_distant": 4198349,
+            "test-li-l7-white-easy": 5272150,
+            "test-li-l7-white-small_distant": 5544164,
+            "test-li-l9-rear-easy": 5452392,
+            "test-li-l9-rear-small_distant": 5569321,
+            "test-li-l9-side-easy": 4500135,
+            "test-li-l9-side-small_distant": 5595656,
+            "test-pink-cadillac-easy": 4062025,
+            "test-pink-cadillac-small_distant": 4321393,
+            "test-red-opel-easy": 3978563,
+            "test-red-opel-small_distant": 4919164
           },
-          "measurement_wall_ns": 51322729,
+          "measurement_wall_ns": 58481260,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 229998592,
+          "peak_rss_bytes": 242163712,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -7083,12 +7103,13 @@
               }
             ]
           },
-          "process_wall_ns": 662264951,
+          "process_wall_ns": 1027641622,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 104729,
           "split": "test",
-          "warm_start_ns": 4423601
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 4152564
         }
       ]
     },
@@ -7517,21 +7538,22 @@
         "repetitions": [
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 445512201,
-            "cpu_ns": 346780999,
+            "cold_start_ns": 630409897,
+            "cpu_ns": 373970000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 11491065,
-              "calibration-kit-buggy-small_distant": 12215926,
-              "calibration-li-l7-side-easy": 10406333,
-              "calibration-li-l7-side-small_distant": 10251041,
-              "calibration-lime-van-easy": 10128499,
-              "calibration-lime-van-small_distant": 10117957,
-              "calibration-vintage-green-easy": 12618582,
-              "calibration-vintage-green-small_distant": 9638999
+              "calibration-kit-buggy-easy": 13338046,
+              "calibration-kit-buggy-small_distant": 13683106,
+              "calibration-li-l7-side-easy": 9975698,
+              "calibration-li-l7-side-small_distant": 10366298,
+              "calibration-lime-van-easy": 10427296,
+              "calibration-lime-van-small_distant": 10659281,
+              "calibration-vintage-green-easy": 12486121,
+              "calibration-vintage-green-small_distant": 12640469
             },
-            "measurement_wall_ns": 87321068,
+            "measurement_wall_ns": 94147069,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 231456768,
+            "peak_rss_bytes": 243793920,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -7766,30 +7788,32 @@
                 }
               ]
             },
-            "process_wall_ns": 712849271,
+            "process_wall_ns": 1118795024,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 1729,
             "split": "calibration",
-            "warm_start_ns": 11491065
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 13338046
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 514628960,
-            "cpu_ns": 422007000,
+            "cold_start_ns": 618573118,
+            "cpu_ns": 459956000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 14429076,
-              "calibration-kit-buggy-small_distant": 14277360,
-              "calibration-li-l7-side-easy": 12258015,
-              "calibration-li-l7-side-small_distant": 12403443,
-              "calibration-lime-van-easy": 11583563,
-              "calibration-lime-van-small_distant": 12994787,
-              "calibration-vintage-green-easy": 14210506,
-              "calibration-vintage-green-small_distant": 14181866
+              "calibration-kit-buggy-easy": 14556168,
+              "calibration-kit-buggy-small_distant": 14242272,
+              "calibration-li-l7-side-easy": 14501334,
+              "calibration-li-l7-side-small_distant": 14018284,
+              "calibration-lime-van-easy": 14974211,
+              "calibration-lime-van-small_distant": 14664651,
+              "calibration-vintage-green-easy": 14186800,
+              "calibration-vintage-green-small_distant": 14368831
             },
-            "measurement_wall_ns": 106809384,
+            "measurement_wall_ns": 116143580,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 231514112,
+            "peak_rss_bytes": 243662848,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -8024,30 +8048,32 @@
                 }
               ]
             },
-            "process_wall_ns": 819586219,
+            "process_wall_ns": 1165598407,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 3253,
             "split": "calibration",
-            "warm_start_ns": 14429076
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 14556168
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 458953858,
-            "cpu_ns": 308484000,
+            "cold_start_ns": 587669991,
+            "cpu_ns": 302506000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 9826508,
-              "calibration-kit-buggy-small_distant": 9587271,
-              "calibration-li-l7-side-easy": 9321565,
-              "calibration-li-l7-side-small_distant": 9532213,
-              "calibration-lime-van-easy": 9260171,
-              "calibration-lime-van-small_distant": 9543967,
-              "calibration-vintage-green-easy": 11064039,
-              "calibration-vintage-green-small_distant": 9243152
+              "calibration-kit-buggy-easy": 9478864,
+              "calibration-kit-buggy-small_distant": 9534635,
+              "calibration-li-l7-side-easy": 9261087,
+              "calibration-li-l7-side-small_distant": 9603600,
+              "calibration-lime-van-easy": 9379132,
+              "calibration-lime-van-small_distant": 9507889,
+              "calibration-vintage-green-easy": 9185319,
+              "calibration-vintage-green-small_distant": 9597270
             },
-            "measurement_wall_ns": 77813571,
+            "measurement_wall_ns": 76049486,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 231620608,
+            "peak_rss_bytes": 243486720,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -8282,30 +8308,32 @@
                 }
               ]
             },
-            "process_wall_ns": 698901094,
+            "process_wall_ns": 1043423913,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 5081,
             "split": "calibration",
-            "warm_start_ns": 9826508
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 9478864
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 496513125,
-            "cpu_ns": 349720999,
+            "cold_start_ns": 583737068,
+            "cpu_ns": 364998000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 10972793,
-              "calibration-kit-buggy-small_distant": 10890706,
-              "calibration-li-l7-side-easy": 14868149,
-              "calibration-li-l7-side-small_distant": 13444775,
-              "calibration-lime-van-easy": 10081096,
-              "calibration-lime-van-small_distant": 9700487,
-              "calibration-vintage-green-easy": 10176220,
-              "calibration-vintage-green-small_distant": 9747377
+              "calibration-kit-buggy-easy": 11581992,
+              "calibration-kit-buggy-small_distant": 10467275,
+              "calibration-li-l7-side-easy": 11485685,
+              "calibration-li-l7-side-small_distant": 13047041,
+              "calibration-lime-van-easy": 11337073,
+              "calibration-lime-van-small_distant": 11434329,
+              "calibration-vintage-green-easy": 10158078,
+              "calibration-vintage-green-small_distant": 11963009
             },
-            "measurement_wall_ns": 90310961,
+            "measurement_wall_ns": 91933885,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 231587840,
+            "peak_rss_bytes": 243400704,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -8540,30 +8568,32 @@
                 }
               ]
             },
-            "process_wall_ns": 757791848,
+            "process_wall_ns": 1078189972,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 7919,
             "split": "calibration",
-            "warm_start_ns": 10972793
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 11581992
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 463932993,
-            "cpu_ns": 345080000,
+            "cold_start_ns": 562480474,
+            "cpu_ns": 368264999,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 9934935,
-              "calibration-kit-buggy-small_distant": 12544587,
-              "calibration-li-l7-side-easy": 10006139,
-              "calibration-li-l7-side-small_distant": 10550892,
-              "calibration-lime-van-easy": 9853140,
-              "calibration-lime-van-small_distant": 9273149,
-              "calibration-vintage-green-easy": 12580780,
-              "calibration-vintage-green-small_distant": 12087727
+              "calibration-kit-buggy-easy": 9153966,
+              "calibration-kit-buggy-small_distant": 10491863,
+              "calibration-li-l7-side-easy": 11638295,
+              "calibration-li-l7-side-small_distant": 12052698,
+              "calibration-lime-van-easy": 11724990,
+              "calibration-lime-van-small_distant": 12018837,
+              "calibration-vintage-green-easy": 12141984,
+              "calibration-vintage-green-small_distant": 12952534
             },
-            "measurement_wall_ns": 87310963,
+            "measurement_wall_ns": 92648419,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 231608320,
+            "peak_rss_bytes": 243490816,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -8798,12 +8828,13 @@
                 }
               ]
             },
-            "process_wall_ns": 708551108,
+            "process_wall_ns": 1053510120,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 104729,
             "split": "calibration",
-            "warm_start_ns": 9934935
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 9153966
           }
         ],
         "selected_threshold_millionths": 950000
@@ -8827,72 +8858,74 @@
           "numpy": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
           "openvino": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
           "openvino_telemetry": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599"
-        }
+        },
+        "runtime_closure_sha256": "a01b42bc19b7d4eeef98edae539f95df8422dc184306cad4f97c562bdc802d18"
       },
       "diagnostics": [
         {
-          "cpu_nanoseconds_per_frame": 45003000,
-          "cpu_time_ns": 540036000,
-          "cpu_utilization_basis_points": 39301,
-          "frames_per_cpu_second_milli": 22220,
-          "process_wall_ns": 846515317,
+          "cpu_nanoseconds_per_frame": 47031833,
+          "cpu_time_ns": 564382000,
+          "cpu_utilization_basis_points": 39785,
+          "frames_per_cpu_second_milli": 21262,
+          "process_wall_ns": 1193911464,
           "seed": 1729
         },
         {
-          "cpu_nanoseconds_per_frame": 37220833,
-          "cpu_time_ns": 446650000,
-          "cpu_utilization_basis_points": 39736,
-          "frames_per_cpu_second_milli": 26866,
-          "process_wall_ns": 799834613,
+          "cpu_nanoseconds_per_frame": 51674916,
+          "cpu_time_ns": 620099000,
+          "cpu_utilization_basis_points": 39674,
+          "frames_per_cpu_second_milli": 19351,
+          "process_wall_ns": 1255123530,
           "seed": 3253
         },
         {
-          "cpu_nanoseconds_per_frame": 49092750,
-          "cpu_time_ns": 589113000,
-          "cpu_utilization_basis_points": 39502,
-          "frames_per_cpu_second_milli": 20369,
-          "process_wall_ns": 895974281,
+          "cpu_nanoseconds_per_frame": 39349083,
+          "cpu_time_ns": 472188999,
+          "cpu_utilization_basis_points": 39683,
+          "frames_per_cpu_second_milli": 25413,
+          "process_wall_ns": 1149521233,
           "seed": 5081
         },
         {
-          "cpu_nanoseconds_per_frame": 58054583,
-          "cpu_time_ns": 696655000,
-          "cpu_utilization_basis_points": 39468,
-          "frames_per_cpu_second_milli": 17225,
-          "process_wall_ns": 987129439,
+          "cpu_nanoseconds_per_frame": 37283999,
+          "cpu_time_ns": 447407999,
+          "cpu_utilization_basis_points": 39788,
+          "frames_per_cpu_second_milli": 26821,
+          "process_wall_ns": 1125167523,
           "seed": 7919
         },
         {
-          "cpu_nanoseconds_per_frame": 47683916,
-          "cpu_time_ns": 572206999,
-          "cpu_utilization_basis_points": 39580,
-          "frames_per_cpu_second_milli": 20971,
-          "process_wall_ns": 1045451552,
+          "cpu_nanoseconds_per_frame": 46712583,
+          "cpu_time_ns": 560551000,
+          "cpu_utilization_basis_points": 39728,
+          "frames_per_cpu_second_milli": 21407,
+          "process_wall_ns": 1157685629,
           "seed": 104729
         }
       ],
       "test_repetitions": [
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 492195507,
-          "cpu_ns": 540036000,
+          "cold_start_ns": 612163124,
+          "cpu_ns": 564382000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 9365466,
-            "test-bmw-i3-small_distant": 9824607,
-            "test-li-l7-white-easy": 10155495,
-            "test-li-l7-white-small_distant": 10539057,
-            "test-li-l9-rear-easy": 10194083,
-            "test-li-l9-rear-small_distant": 12609025,
-            "test-li-l9-side-easy": 12307718,
-            "test-li-l9-side-small_distant": 12059868,
-            "test-pink-cadillac-easy": 12825603,
-            "test-pink-cadillac-small_distant": 10472356,
-            "test-red-opel-easy": 13117715,
-            "test-red-opel-small_distant": 13167248
+            "test-bmw-i3-easy": 9278462,
+            "test-bmw-i3-small_distant": 10071369,
+            "test-li-l7-white-easy": 13621603,
+            "test-li-l7-white-small_distant": 13308984,
+            "test-li-l9-rear-easy": 12440133,
+            "test-li-l9-rear-small_distant": 14059247,
+            "test-li-l9-side-easy": 12152772,
+            "test-li-l9-side-small_distant": 12262945,
+            "test-pink-cadillac-easy": 10244784,
+            "test-pink-cadillac-small_distant": 9904369,
+            "test-red-opel-easy": 11460793,
+            "test-red-opel-small_distant": 12180078
           },
-          "measurement_wall_ns": 137409467,
+          "measurement_wall_ns": 141856209,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 234369024,
+          "peak_rss_bytes": 246444032,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -9243,34 +9276,36 @@
               }
             ]
           },
-          "process_wall_ns": 846515317,
+          "process_wall_ns": 1193911464,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 1729,
           "split": "test",
-          "warm_start_ns": 9365466
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 9278462
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 492705641,
-          "cpu_ns": 446650000,
+          "cold_start_ns": 620845815,
+          "cpu_ns": 620099000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 9002573,
-            "test-bmw-i3-small_distant": 8828366,
-            "test-li-l7-white-easy": 9791012,
-            "test-li-l7-white-small_distant": 9609568,
-            "test-li-l9-rear-easy": 9455276,
-            "test-li-l9-rear-small_distant": 9132807,
-            "test-li-l9-side-easy": 9517706,
-            "test-li-l9-side-small_distant": 9459811,
-            "test-pink-cadillac-easy": 8798475,
-            "test-pink-cadillac-small_distant": 9659202,
-            "test-red-opel-easy": 9246719,
-            "test-red-opel-small_distant": 9224402
+            "test-bmw-i3-easy": 13635242,
+            "test-bmw-i3-small_distant": 15572307,
+            "test-li-l7-white-easy": 11504544,
+            "test-li-l7-white-small_distant": 10870737,
+            "test-li-l9-rear-easy": 11771352,
+            "test-li-l9-rear-small_distant": 12175853,
+            "test-li-l9-side-easy": 12842321,
+            "test-li-l9-side-small_distant": 12392404,
+            "test-pink-cadillac-easy": 14154185,
+            "test-pink-cadillac-small_distant": 14323129,
+            "test-red-opel-easy": 13328327,
+            "test-red-opel-small_distant": 12907804
           },
-          "measurement_wall_ns": 112402781,
+          "measurement_wall_ns": 156297952,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 234311680,
+          "peak_rss_bytes": 246104064,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -9621,34 +9656,36 @@
               }
             ]
           },
-          "process_wall_ns": 799834613,
+          "process_wall_ns": 1255123530,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 3253,
           "split": "test",
-          "warm_start_ns": 9002573
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 13635242
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 497757549,
-          "cpu_ns": 589113000,
+          "cold_start_ns": 593744571,
+          "cpu_ns": 472188999,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 10178571,
-            "test-bmw-i3-small_distant": 10403026,
-            "test-li-l7-white-easy": 13372003,
-            "test-li-l7-white-small_distant": 13308896,
-            "test-li-l9-rear-easy": 12914182,
-            "test-li-l9-rear-small_distant": 15322642,
-            "test-li-l9-side-easy": 13749277,
-            "test-li-l9-side-small_distant": 13225428,
-            "test-pink-cadillac-easy": 11406185,
-            "test-pink-cadillac-small_distant": 10141053,
-            "test-red-opel-easy": 10988041,
-            "test-red-opel-small_distant": 13376955
+            "test-bmw-i3-easy": 10731358,
+            "test-bmw-i3-small_distant": 10118323,
+            "test-li-l7-white-easy": 9457873,
+            "test-li-l7-white-small_distant": 9446701,
+            "test-li-l9-rear-easy": 9404290,
+            "test-li-l9-rear-small_distant": 9695174,
+            "test-li-l9-side-easy": 10125555,
+            "test-li-l9-side-small_distant": 9768766,
+            "test-pink-cadillac-easy": 9735188,
+            "test-pink-cadillac-small_distant": 10545812,
+            "test-red-opel-easy": 9756231,
+            "test-red-opel-small_distant": 9576857
           },
-          "measurement_wall_ns": 149134623,
+          "measurement_wall_ns": 118988677,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 234180608,
+          "peak_rss_bytes": 246181888,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -9999,34 +10036,36 @@
               }
             ]
           },
-          "process_wall_ns": 895974281,
+          "process_wall_ns": 1149521233,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 5081,
           "split": "test",
-          "warm_start_ns": 10178571
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 10731358
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 529550522,
-          "cpu_ns": 696655000,
+          "cold_start_ns": 604687506,
+          "cpu_ns": 447407999,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 14807354,
-            "test-bmw-i3-small_distant": 15630533,
-            "test-li-l7-white-easy": 13745771,
-            "test-li-l7-white-small_distant": 14945967,
-            "test-li-l9-rear-easy": 12813439,
-            "test-li-l9-rear-small_distant": 13836349,
-            "test-li-l9-side-easy": 15351749,
-            "test-li-l9-side-small_distant": 12911545,
-            "test-pink-cadillac-easy": 15340892,
-            "test-pink-cadillac-small_distant": 15691388,
-            "test-red-opel-easy": 15311206,
-            "test-red-opel-small_distant": 15371790
+            "test-bmw-i3-easy": 8956322,
+            "test-bmw-i3-small_distant": 9032432,
+            "test-li-l7-white-easy": 9280332,
+            "test-li-l7-white-small_distant": 9389098,
+            "test-li-l9-rear-easy": 8763813,
+            "test-li-l9-rear-small_distant": 9399731,
+            "test-li-l9-side-easy": 9113170,
+            "test-li-l9-side-small_distant": 10247226,
+            "test-pink-cadillac-easy": 9434681,
+            "test-pink-cadillac-small_distant": 9133377,
+            "test-red-opel-easy": 9116119,
+            "test-red-opel-small_distant": 9937836
           },
-          "measurement_wall_ns": 176508322,
+          "measurement_wall_ns": 112445962,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 234258432,
+          "peak_rss_bytes": 246484992,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -10377,34 +10416,36 @@
               }
             ]
           },
-          "process_wall_ns": 987129439,
+          "process_wall_ns": 1125167523,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 7919,
           "split": "test",
-          "warm_start_ns": 14807354
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 8956322
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 619924822,
-          "cpu_ns": 572206999,
+          "cold_start_ns": 591165917,
+          "cpu_ns": 560551000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 11369014,
-            "test-bmw-i3-small_distant": 11752394,
-            "test-li-l7-white-easy": 12367202,
-            "test-li-l7-white-small_distant": 12999451,
-            "test-li-l9-rear-easy": 12592568,
-            "test-li-l9-rear-small_distant": 11832597,
-            "test-li-l9-side-easy": 12363096,
-            "test-li-l9-side-small_distant": 10901714,
-            "test-pink-cadillac-easy": 10722609,
-            "test-pink-cadillac-small_distant": 11985126,
-            "test-red-opel-easy": 12521733,
-            "test-red-opel-small_distant": 12405386
+            "test-bmw-i3-easy": 11093475,
+            "test-bmw-i3-small_distant": 12850878,
+            "test-li-l7-white-easy": 13267634,
+            "test-li-l7-white-small_distant": 12952057,
+            "test-li-l9-rear-easy": 12081182,
+            "test-li-l9-rear-small_distant": 12917068,
+            "test-li-l9-side-easy": 10794201,
+            "test-li-l9-side-small_distant": 10796470,
+            "test-pink-cadillac-easy": 11466327,
+            "test-pink-cadillac-small_distant": 11681882,
+            "test-red-opel-easy": 10171546,
+            "test-red-opel-small_distant": 10336553
           },
-          "measurement_wall_ns": 144566573,
+          "measurement_wall_ns": 141096648,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 234373120,
+          "peak_rss_bytes": 246231040,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -10755,12 +10796,13 @@
               }
             ]
           },
-          "process_wall_ns": 1045451552,
+          "process_wall_ns": 1157685629,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 104729,
           "split": "test",
-          "warm_start_ns": 11369014
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 11093475
         }
       ]
     },
@@ -11189,21 +11231,22 @@
         "repetitions": [
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 509723630,
-            "cpu_ns": 593796999,
+            "cold_start_ns": 557278988,
+            "cpu_ns": 615091999,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 17517724,
-              "calibration-kit-buggy-small_distant": 19328425,
-              "calibration-li-l7-side-easy": 17881801,
-              "calibration-li-l7-side-small_distant": 18335022,
-              "calibration-lime-van-easy": 18732599,
-              "calibration-lime-van-small_distant": 20120383,
-              "calibration-vintage-green-easy": 18149910,
-              "calibration-vintage-green-small_distant": 18696287
+              "calibration-kit-buggy-easy": 15772470,
+              "calibration-kit-buggy-small_distant": 16781586,
+              "calibration-li-l7-side-easy": 20488635,
+              "calibration-li-l7-side-small_distant": 20898036,
+              "calibration-lime-van-easy": 20150414,
+              "calibration-lime-van-small_distant": 20450625,
+              "calibration-vintage-green-easy": 18905066,
+              "calibration-vintage-green-small_distant": 20253989
             },
-            "measurement_wall_ns": 149170089,
+            "measurement_wall_ns": 154098850,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 240975872,
+            "peak_rss_bytes": 252973056,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -11356,30 +11399,32 @@
               ],
               "calibration-vintage-green-small_distant": []
             },
-            "process_wall_ns": 926494254,
+            "process_wall_ns": 1139498113,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 1729,
             "split": "calibration",
-            "warm_start_ns": 17517724
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 15772470
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 509280410,
-            "cpu_ns": 741468000,
+            "cold_start_ns": 597653283,
+            "cpu_ns": 615332999,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 25559908,
-              "calibration-kit-buggy-small_distant": 24830043,
-              "calibration-li-l7-side-easy": 19560500,
-              "calibration-li-l7-side-small_distant": 19528682,
-              "calibration-lime-van-easy": 24691595,
-              "calibration-lime-van-small_distant": 22338181,
-              "calibration-vintage-green-easy": 23018133,
-              "calibration-vintage-green-small_distant": 26339918
+              "calibration-kit-buggy-easy": 21288769,
+              "calibration-kit-buggy-small_distant": 21438625,
+              "calibration-li-l7-side-easy": 16773146,
+              "calibration-li-l7-side-small_distant": 19062916,
+              "calibration-lime-van-easy": 17683950,
+              "calibration-lime-van-small_distant": 17245038,
+              "calibration-vintage-green-easy": 22120701,
+              "calibration-vintage-green-small_distant": 18019398
             },
-            "measurement_wall_ns": 186322108,
+            "measurement_wall_ns": 154073633,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 240963584,
+            "peak_rss_bytes": 253005824,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -11532,30 +11577,32 @@
               ],
               "calibration-vintage-green-small_distant": []
             },
-            "process_wall_ns": 949426688,
+            "process_wall_ns": 1201196113,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 3253,
             "split": "calibration",
-            "warm_start_ns": 25559908
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 21288769
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 736024572,
-            "cpu_ns": 922052999,
+            "cold_start_ns": 707601937,
+            "cpu_ns": 841267000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 29510340,
-              "calibration-kit-buggy-small_distant": 29386927,
-              "calibration-li-l7-side-easy": 27052497,
-              "calibration-li-l7-side-small_distant": 28503966,
-              "calibration-lime-van-easy": 30062476,
-              "calibration-lime-van-small_distant": 27372153,
-              "calibration-vintage-green-easy": 29843872,
-              "calibration-vintage-green-small_distant": 29612841
+              "calibration-kit-buggy-easy": 24844050,
+              "calibration-kit-buggy-small_distant": 25293324,
+              "calibration-li-l7-side-easy": 26346746,
+              "calibration-li-l7-side-small_distant": 26606108,
+              "calibration-lime-van-easy": 27752390,
+              "calibration-lime-van-small_distant": 26896262,
+              "calibration-vintage-green-easy": 26040858,
+              "calibration-vintage-green-small_distant": 26511275
             },
-            "measurement_wall_ns": 231929089,
+            "measurement_wall_ns": 210868736,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 241348608,
+            "peak_rss_bytes": 253046784,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -11708,30 +11755,32 @@
               ],
               "calibration-vintage-green-small_distant": []
             },
-            "process_wall_ns": 1312054379,
+            "process_wall_ns": 1412439366,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 5081,
             "split": "calibration",
-            "warm_start_ns": 29510340
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 24844050
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 531511582,
-            "cpu_ns": 656879000,
+            "cold_start_ns": 652695981,
+            "cpu_ns": 826971000,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 18448650,
-              "calibration-kit-buggy-small_distant": 18139408,
-              "calibration-li-l7-side-easy": 21099944,
-              "calibration-li-l7-side-small_distant": 24103829,
-              "calibration-lime-van-easy": 22254359,
-              "calibration-lime-van-small_distant": 22190378,
-              "calibration-vintage-green-easy": 17524724,
-              "calibration-vintage-green-small_distant": 20743024
+              "calibration-kit-buggy-easy": 31113092,
+              "calibration-kit-buggy-small_distant": 28897109,
+              "calibration-li-l7-side-easy": 23476766,
+              "calibration-li-l7-side-small_distant": 23642822,
+              "calibration-lime-van-easy": 22765059,
+              "calibration-lime-van-small_distant": 24792453,
+              "calibration-vintage-green-easy": 27555967,
+              "calibration-vintage-green-small_distant": 26955779
             },
-            "measurement_wall_ns": 164918283,
+            "measurement_wall_ns": 209703123,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 240881664,
+            "peak_rss_bytes": 253104128,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -11884,30 +11933,32 @@
               ],
               "calibration-vintage-green-small_distant": []
             },
-            "process_wall_ns": 949200262,
+            "process_wall_ns": 1367339742,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 7919,
             "split": "calibration",
-            "warm_start_ns": 18448650
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 31113092
           },
           {
             "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-            "cold_start_ns": 528947431,
-            "cpu_ns": 853929999,
+            "cold_start_ns": 644297311,
+            "cpu_ns": 878720999,
             "item_wall_ns": {
-              "calibration-kit-buggy-easy": 23998792,
-              "calibration-kit-buggy-small_distant": 25458050,
-              "calibration-li-l7-side-easy": 29204928,
-              "calibration-li-l7-side-small_distant": 27303059,
-              "calibration-lime-van-easy": 26216716,
-              "calibration-lime-van-small_distant": 34717542,
-              "calibration-vintage-green-easy": 25645381,
-              "calibration-vintage-green-small_distant": 28049633
+              "calibration-kit-buggy-easy": 25866541,
+              "calibration-kit-buggy-small_distant": 29625350,
+              "calibration-li-l7-side-easy": 27027913,
+              "calibration-li-l7-side-small_distant": 26278007,
+              "calibration-lime-van-easy": 28104983,
+              "calibration-lime-van-small_distant": 25906838,
+              "calibration-vintage-green-easy": 37363402,
+              "calibration-vintage-green-small_distant": 27980507
             },
-            "measurement_wall_ns": 221149121,
+            "measurement_wall_ns": 228669712,
+            "numpy_version": "2.5.3",
             "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-            "peak_rss_bytes": 241135616,
+            "peak_rss_bytes": 253128704,
             "predictions": {
               "calibration-kit-buggy-easy": [
                 {
@@ -12060,12 +12111,13 @@
               ],
               "calibration-vintage-green-small_distant": []
             },
-            "process_wall_ns": 1034297583,
+            "process_wall_ns": 1397767078,
             "processed_item_count": 8,
             "python_version": "3.13.15",
             "seed": 104729,
             "split": "calibration",
-            "warm_start_ns": 23998792
+            "telemetry_version": "2025.2.0",
+            "warm_start_ns": 25866541
           }
         ],
         "selected_threshold_millionths": 300000
@@ -12089,72 +12141,74 @@
           "numpy": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
           "openvino": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
           "openvino_telemetry": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599"
-        }
+        },
+        "runtime_closure_sha256": "a01b42bc19b7d4eeef98edae539f95df8422dc184306cad4f97c562bdc802d18"
       },
       "diagnostics": [
         {
-          "cpu_nanoseconds_per_frame": 69701333,
-          "cpu_time_ns": 836416000,
-          "cpu_utilization_basis_points": 39841,
-          "frames_per_cpu_second_milli": 14346,
-          "process_wall_ns": 1041386427,
+          "cpu_nanoseconds_per_frame": 70753416,
+          "cpu_time_ns": 849041000,
+          "cpu_utilization_basis_points": 39926,
+          "frames_per_cpu_second_milli": 14133,
+          "process_wall_ns": 1360982188,
           "seed": 1729
         },
         {
-          "cpu_nanoseconds_per_frame": 77554416,
-          "cpu_time_ns": 930652999,
-          "cpu_utilization_basis_points": 39807,
-          "frames_per_cpu_second_milli": 12894,
-          "process_wall_ns": 1095204409,
+          "cpu_nanoseconds_per_frame": 97669083,
+          "cpu_time_ns": 1172029000,
+          "cpu_utilization_basis_points": 39898,
+          "frames_per_cpu_second_milli": 10238,
+          "process_wall_ns": 1447680556,
           "seed": 3253
         },
         {
-          "cpu_nanoseconds_per_frame": 92147916,
-          "cpu_time_ns": 1105775000,
-          "cpu_utilization_basis_points": 39798,
-          "frames_per_cpu_second_milli": 10852,
-          "process_wall_ns": 1199425841,
+          "cpu_nanoseconds_per_frame": 103373250,
+          "cpu_time_ns": 1240479000,
+          "cpu_utilization_basis_points": 39891,
+          "frames_per_cpu_second_milli": 9673,
+          "process_wall_ns": 1658400171,
           "seed": 5081
         },
         {
-          "cpu_nanoseconds_per_frame": 113834083,
-          "cpu_time_ns": 1366009000,
-          "cpu_utilization_basis_points": 39734,
-          "frames_per_cpu_second_milli": 8784,
-          "process_wall_ns": 1306215401,
+          "cpu_nanoseconds_per_frame": 104304750,
+          "cpu_time_ns": 1251657000,
+          "cpu_utilization_basis_points": 39908,
+          "frames_per_cpu_second_milli": 9587,
+          "process_wall_ns": 1788690789,
           "seed": 7919
         },
         {
-          "cpu_nanoseconds_per_frame": 90455999,
-          "cpu_time_ns": 1085471999,
-          "cpu_utilization_basis_points": 39085,
-          "frames_per_cpu_second_milli": 11055,
-          "process_wall_ns": 1210721125,
+          "cpu_nanoseconds_per_frame": 67987333,
+          "cpu_time_ns": 815848000,
+          "cpu_utilization_basis_points": 39918,
+          "frames_per_cpu_second_milli": 14708,
+          "process_wall_ns": 1397384794,
           "seed": 104729
         }
       ],
       "test_repetitions": [
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 528311385,
-          "cpu_ns": 836416000,
+          "cold_start_ns": 609328168,
+          "cpu_ns": 849041000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 17064724,
-            "test-bmw-i3-small_distant": 18223869,
-            "test-li-l7-white-easy": 16875298,
-            "test-li-l7-white-small_distant": 17996946,
-            "test-li-l9-rear-easy": 17652653,
-            "test-li-l9-rear-small_distant": 17725075,
-            "test-li-l9-side-easy": 16573831,
-            "test-li-l9-side-small_distant": 18280486,
-            "test-pink-cadillac-easy": 17067029,
-            "test-pink-cadillac-small_distant": 17330917,
-            "test-red-opel-easy": 16664106,
-            "test-red-opel-small_distant": 17889459
+            "test-bmw-i3-easy": 17595177,
+            "test-bmw-i3-small_distant": 17304935,
+            "test-li-l7-white-easy": 17669972,
+            "test-li-l7-white-small_distant": 17971205,
+            "test-li-l9-rear-easy": 18053865,
+            "test-li-l9-rear-small_distant": 17957994,
+            "test-li-l9-side-easy": 17239994,
+            "test-li-l9-side-small_distant": 17778458,
+            "test-pink-cadillac-easy": 17537094,
+            "test-pink-cadillac-small_distant": 17564992,
+            "test-red-opel-easy": 17106801,
+            "test-red-opel-small_distant": 18257872
           },
-          "measurement_wall_ns": 209935705,
+          "measurement_wall_ns": 212651738,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 243924992,
+          "peak_rss_bytes": 255803392,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -12388,34 +12442,36 @@
               }
             ]
           },
-          "process_wall_ns": 1041386427,
+          "process_wall_ns": 1360982188,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 1729,
           "split": "test",
-          "warm_start_ns": 17064724
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 17595177
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 540566648,
-          "cpu_ns": 930652999,
+          "cold_start_ns": 590451006,
+          "cpu_ns": 1172029000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 18393536,
-            "test-bmw-i3-small_distant": 18721408,
-            "test-li-l7-white-easy": 17239787,
-            "test-li-l7-white-small_distant": 19329337,
-            "test-li-l9-rear-easy": 20722875,
-            "test-li-l9-rear-small_distant": 21089547,
-            "test-li-l9-side-easy": 21916378,
-            "test-li-l9-side-small_distant": 22230451,
-            "test-pink-cadillac-easy": 16975981,
-            "test-pink-cadillac-small_distant": 18326208,
-            "test-red-opel-easy": 16753499,
-            "test-red-opel-small_distant": 21478046
+            "test-bmw-i3-easy": 24562449,
+            "test-bmw-i3-small_distant": 24100493,
+            "test-li-l7-white-easy": 24306191,
+            "test-li-l7-white-small_distant": 25220174,
+            "test-li-l9-rear-easy": 23873967,
+            "test-li-l9-rear-small_distant": 25056537,
+            "test-li-l9-side-easy": 24456801,
+            "test-li-l9-side-small_distant": 23979917,
+            "test-pink-cadillac-easy": 23243342,
+            "test-pink-cadillac-small_distant": 23872605,
+            "test-red-opel-easy": 24401912,
+            "test-red-opel-small_distant": 25877245
           },
-          "measurement_wall_ns": 233789011,
+          "measurement_wall_ns": 293749438,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 243650560,
+          "peak_rss_bytes": 255787008,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -12649,34 +12705,36 @@
               }
             ]
           },
-          "process_wall_ns": 1095204409,
+          "process_wall_ns": 1447680556,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 3253,
           "split": "test",
-          "warm_start_ns": 18393536
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 24562449
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 539759450,
-          "cpu_ns": 1105775000,
+          "cold_start_ns": 667415113,
+          "cpu_ns": 1240479000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 22932755,
-            "test-bmw-i3-small_distant": 23557005,
-            "test-li-l7-white-easy": 23658822,
-            "test-li-l7-white-small_distant": 22411030,
-            "test-li-l9-rear-easy": 22109576,
-            "test-li-l9-rear-small_distant": 24054715,
-            "test-li-l9-side-easy": 22087983,
-            "test-li-l9-side-small_distant": 22027302,
-            "test-pink-cadillac-easy": 23775155,
-            "test-pink-cadillac-small_distant": 23818221,
-            "test-red-opel-easy": 24316188,
-            "test-red-opel-small_distant": 22450591
+            "test-bmw-i3-easy": 25701116,
+            "test-bmw-i3-small_distant": 25858445,
+            "test-li-l7-white-easy": 26692856,
+            "test-li-l7-white-small_distant": 25918235,
+            "test-li-l9-rear-easy": 25724566,
+            "test-li-l9-rear-small_distant": 28390240,
+            "test-li-l9-side-easy": 24147184,
+            "test-li-l9-side-small_distant": 25539788,
+            "test-pink-cadillac-easy": 24125229,
+            "test-pink-cadillac-small_distant": 26485634,
+            "test-red-opel-easy": 26277256,
+            "test-red-opel-small_distant": 25398512
           },
-          "measurement_wall_ns": 277845753,
+          "measurement_wall_ns": 310961073,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 243847168,
+          "peak_rss_bytes": 255803392,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -12910,34 +12968,36 @@
               }
             ]
           },
-          "process_wall_ns": 1199425841,
+          "process_wall_ns": 1658400171,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 5081,
           "split": "test",
-          "warm_start_ns": 22932755
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 25701116
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 558492022,
-          "cpu_ns": 1366009000,
+          "cold_start_ns": 787768946,
+          "cpu_ns": 1251657000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 28294073,
-            "test-bmw-i3-small_distant": 29258950,
-            "test-li-l7-white-easy": 29015160,
-            "test-li-l7-white-small_distant": 29980809,
-            "test-li-l9-rear-easy": 26139942,
-            "test-li-l9-rear-small_distant": 27332326,
-            "test-li-l9-side-easy": 28907261,
-            "test-li-l9-side-small_distant": 28813257,
-            "test-pink-cadillac-easy": 29367969,
-            "test-pink-cadillac-small_distant": 29534621,
-            "test-red-opel-easy": 28126081,
-            "test-red-opel-small_distant": 28137757
+            "test-bmw-i3-easy": 23662216,
+            "test-bmw-i3-small_distant": 27450155,
+            "test-li-l7-white-easy": 25610506,
+            "test-li-l7-white-small_distant": 24925637,
+            "test-li-l9-rear-easy": 25561752,
+            "test-li-l9-rear-small_distant": 25898693,
+            "test-li-l9-side-easy": 25744233,
+            "test-li-l9-side-small_distant": 25383466,
+            "test-pink-cadillac-easy": 27352275,
+            "test-pink-cadillac-small_distant": 27462393,
+            "test-red-opel-easy": 26608038,
+            "test-red-opel-small_distant": 27131854
           },
-          "measurement_wall_ns": 343782217,
+          "measurement_wall_ns": 313633433,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 243896320,
+          "peak_rss_bytes": 255840256,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -13171,34 +13231,36 @@
               }
             ]
           },
-          "process_wall_ns": 1306215401,
+          "process_wall_ns": 1788690789,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 7919,
           "split": "test",
-          "warm_start_ns": 28294073
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 23662216
         },
         {
           "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-          "cold_start_ns": 574279783,
-          "cpu_ns": 1085471999,
+          "cold_start_ns": 639666055,
+          "cpu_ns": 815848000,
           "item_wall_ns": {
-            "test-bmw-i3-easy": 23594668,
-            "test-bmw-i3-small_distant": 25106867,
-            "test-li-l7-white-easy": 22877369,
-            "test-li-l7-white-small_distant": 26221722,
-            "test-li-l9-rear-easy": 19568936,
-            "test-li-l9-rear-small_distant": 28092305,
-            "test-li-l9-side-easy": 25047394,
-            "test-li-l9-side-small_distant": 22950367,
-            "test-pink-cadillac-easy": 23330963,
-            "test-pink-cadillac-small_distant": 21165134,
-            "test-red-opel-easy": 18934413,
-            "test-red-opel-small_distant": 20147281
+            "test-bmw-i3-easy": 16223263,
+            "test-bmw-i3-small_distant": 16721546,
+            "test-li-l7-white-easy": 17927780,
+            "test-li-l7-white-small_distant": 16757434,
+            "test-li-l9-rear-easy": 17745961,
+            "test-li-l9-rear-small_distant": 16403773,
+            "test-li-l9-side-easy": 16848603,
+            "test-li-l9-side-small_distant": 16672636,
+            "test-pink-cadillac-easy": 17933274,
+            "test-pink-cadillac-small_distant": 16873322,
+            "test-red-opel-easy": 16655730,
+            "test-red-opel-small_distant": 17010156
           },
-          "measurement_wall_ns": 277715424,
+          "measurement_wall_ns": 204379157,
+          "numpy_version": "2.5.3",
           "openvino_version": "2026.3.1-22476-759c5a6ab8c-releases/2026/3",
-          "peak_rss_bytes": 243683328,
+          "peak_rss_bytes": 255827968,
           "predictions": {
             "test-bmw-i3-easy": [
               {
@@ -13432,19 +13494,20 @@
               }
             ]
           },
-          "process_wall_ns": 1210721125,
+          "process_wall_ns": 1397384794,
           "processed_item_count": 12,
           "python_version": "3.13.15",
           "seed": 104729,
           "split": "test",
-          "warm_start_ns": 23594668
+          "telemetry_version": "2025.2.0",
+          "warm_start_ns": 16223263
         }
       ]
     }
   },
   "environment": {
-    "installed_runtime_logical_bytes": 235928276,
-    "installed_runtime_tree_sha256": "1a054a8e57733331ad0d7bd8146184cb36565a8f5281ea1e80dcd023e3c777a5",
+    "installed_runtime_logical_bytes": 235889859,
+    "installed_runtime_tree_sha256": "345dfb0ec081283a609389cdd48090db8d74245ed32ade3574d4872a5801e253",
     "network_isolation": "bubblewrap-unshare-all",
     "profile": {
       "architecture": "x86_64",
@@ -13456,9 +13519,106 @@
       "operating_system": "Linux",
       "vcpu": 4
     },
+    "python": {
+      "archive_sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6",
+      "executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+      "runtime_tree_sha256": "7bf650c9ac94c945b0ff154bdc96830bc1ad876d24b0cbe8deb5860fd3270a0c",
+      "version": "3.13.15"
+    },
     "runtime": {
       "numpy": {
-        "license_expression": "BSD-3-Clause",
+        "license_evidence": {
+          "bundled_components": [
+            {
+              "license_expression": "BSD-3-Clause",
+              "name": "OpenBLAS"
+            },
+            {
+              "license_expression": "BSD-3-Clause-Open-MPI",
+              "name": "LAPACK"
+            },
+            {
+              "license_expression": "GPL-3.0-or-later WITH GCC-exception-3.1",
+              "name": "libgfortran"
+            },
+            {
+              "license_expression": "LGPL-2.1-or-later",
+              "name": "libquadmath"
+            }
+          ],
+          "metadata_license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+          "notice_files": [
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/LICENSE.txt",
+              "sha256": "4860083caa0de2ac3292ca98bd074bd8f45d8b32624e37b1e70a240bff61e488"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+              "sha256": "fbc539f47d0cf83bc61378080fb873d5c14630126cacbfe754035c3926daa5ec"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+              "sha256": "3f2c1ffa76383a55ae0aac01c9737cd70050dff63e1f026694fbe9d662573c98"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+              "sha256": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+              "sha256": "f7b14309e5f54e5022b26448eefd419988ada2aec01d3c1162d84a0ea8f21f2c"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+              "sha256": "211e7d737d6179a08f791ebb0a99897ce7cd2457410c542876d125576edfe910"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+              "sha256": "c17011467b4fe6e20fbfbeda4df09e58c2bca5480a063e55735a4000a379aad9"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+              "sha256": "a85ca13fdf90160b64a0698215868c13b74d835ad0a4e2ba44713b8c5058a056"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+              "sha256": "a14cc25e10d40a3aa705b7de2fb764a6535d8ee9b2db4e1724900585457dfd55"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/ma/LICENSE",
+              "sha256": "05f3b88351988ecfad10abe92c0c50e5875c6452d5009a0084cc291551ffcca6"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/LICENSE.md",
+              "sha256": "103166b62b80443afb9eb3488e052ea06be0cff566b908f199e561fde49af19f"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+              "sha256": "469778be8f33d54e1bcaab28c281cc472916d2d273f835e55bc487d30503face"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+              "sha256": "0e111337b25494a773106695f0e799f642b8567aaacca4f116a74a8177179156"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+              "sha256": "e7d4f4fb20358f314210a892ae17351e04993813646f697ec387385ca2a36918"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+              "sha256": "6f5828a57223d4cc7f8ea505a2623e7b978b242752c1515e355f46ba2cec1800"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+              "sha256": "9d4098846018319cd68e228ee6220361787f73bccbf00237a85e4fc9621b998f"
+            },
+            {
+              "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+              "sha256": "268b0ca06759d31ea3ca68dd35f20e877916e927b1c2a835e4592a3c4354b1f9"
+            }
+          ]
+        },
+        "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
         "revision": "dd88c0c19b54ad9ed3533224221285bf0873249a",
         "sha256": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
         "size": 16708577,
@@ -13466,6 +13626,28 @@
         "version": "2.5.3"
       },
       "openvino": {
+        "license_evidence": {
+          "bundled_components": [],
+          "metadata_license_expression": "Apache-2.0",
+          "notice_files": [
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/LICENSE",
+              "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+            },
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/licensing/onednn_third-party-programs.txt",
+              "sha256": "f1b16991dfe8488f3f5f07cccba575c31c91175a9f2c8d9e1569665f86e0b2f6"
+            },
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/licensing/onetbb_third-party-programs.txt",
+              "sha256": "b10997cc50652ba6ab365e3bc43e13057681cd4a56533b46171529bd249749f3"
+            },
+            {
+              "path": "openvino-2026.3.1.dist-info/licenses/licensing/runtime-third-party-programs.txt",
+              "sha256": "85481d0f8a01308fb8c837e0007897ab5f35c90b6ee6333e6e6dfeff4ca3f46c"
+            }
+          ]
+        },
         "license_expression": "Apache-2.0",
         "revision": "759c5a6ab8c066af5f4bc5ebd04643706012a37d",
         "sha256": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
@@ -13474,6 +13656,16 @@
         "version": "2026.3.1"
       },
       "openvino_telemetry": {
+        "license_evidence": {
+          "bundled_components": [],
+          "metadata_license_expression": null,
+          "notice_files": [
+            {
+              "path": "openvino_telemetry-2025.2.0.dist-info/LICENSE",
+              "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+            }
+          ]
+        },
         "license_expression": "Apache-2.0",
         "revision": "2025.2.0+sha256.bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
         "sha256": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
@@ -13481,40 +13673,49 @@
         "url": "https://files.pythonhosted.org/packages/3b/ac/5ab0ca0aa269ad3c73f7bfc3801b10e5f56f75a31bf68c1ae8bd51cf70a4/openvino_telemetry-2025.2.0-py3-none-any.whl",
         "version": "2025.2.0"
       },
-      "python": "3.13.15"
-    }
+      "python": {
+        "archive_sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6",
+        "executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+        "license_expression": "LicenseRef-python-build-standalone-composite-20260825",
+        "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
+        "runtime_tree_sha256": "7bf650c9ac94c945b0ff154bdc96830bc1ad876d24b0cbe8deb5860fd3270a0c",
+        "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+        "version": "3.13.15"
+      }
+    },
+    "runtime_closure_sha256": "a01b42bc19b7d4eeef98edae539f95df8422dc184306cad4f97c562bdc802d18"
   },
   "evaluated_on": "2026-09-07",
   "outputs": {
     "vehicle-detection-0200-fp32-openvino-2026.3.1": {
       "gate": "vehicle-detection-0200-gate.json",
-      "gate_sha256": "f31ad8c1c17ab3ce194aac11d4c2b7343d305080f6a5a5dcc870ecb94712c5d5",
+      "gate_sha256": "001309b4585f5eaafe125745973eb8f78e614279cc367c5eadf5a7c8f0afabde",
       "gate_status": "fail",
       "receipt": "vehicle-detection-0200-receipt.json",
-      "receipt_sha256": "dcca4b5fbb9d60e1c3e89958031e8053f43060c6aec1e3cf006afeefa742966d"
+      "receipt_sha256": "859540460b87807f0e5cbd2a92632c9dcd02c03b04a27ed2c9254a22549d6a32"
     },
     "vehicle-detection-0201-fp32-openvino-2026.3.1": {
       "gate": "vehicle-detection-0201-gate.json",
-      "gate_sha256": "f855eacca61f55e7780753df5024f78fda932979f459afa83e5ab5feb2fbdc70",
+      "gate_sha256": "d6e5e690643fafdaf7052d79e85e435e184170cac196e78ff3650404b3bb4af4",
       "gate_status": "pass",
       "receipt": "vehicle-detection-0201-receipt.json",
-      "receipt_sha256": "c6aa2eeaeaec95c9a321593ee2c2d22229e15eb4f010d8904486e309e6ce79e4"
+      "receipt_sha256": "abe07b5ebe97438005d5d1f45a405837e7628bd80814e700c5ea9a4dae6a2e78"
     },
     "vehicle-detection-0202-fp32-openvino-2026.3.1": {
       "gate": "vehicle-detection-0202-gate.json",
-      "gate_sha256": "53629e902989fbadea57398196ebe0f30d6afa7e63bd0b45c3ce7a3f74207a32",
+      "gate_sha256": "e6dc705d94d74524f9fbaa60c6879550f5da3451583599fdcebb7c843e652064",
       "gate_status": "pass",
       "receipt": "vehicle-detection-0202-receipt.json",
-      "receipt_sha256": "8b4c4714a9fe3d41b23341b48cab93be991665af6d845a3909d761d42c405d76"
+      "receipt_sha256": "468f1c4c094eea227cdcde7d9ccecaf397c44171bc4c70baa3824f3f66fbabf7"
     }
   },
   "provenance": {
     "annotation_lock_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
-    "candidate_manifest_sha256": "2156a794fabf1d057017f394e87cbfad8bbd97316492f2c8d55527f91cff70f5",
+    "candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
     "dataset_manifest_sha256": "7c41fda4b14553922727e31801478b569a17dda176dd85a7c2fe8789ae9c1599",
-    "evaluation_harness_sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
-    "policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
-    "source_revision": "e9066798a3514098d4c421a5a0a380fc5eb38844"
+    "evaluation_harness_sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
+    "policy_sha256": "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519",
+    "source_revision": "8896c166c69429dfeb5297eebe4b9833a90d880a"
   },
   "schema": "visualworld.v02-detection-raw-results",
   "schema_version": 1

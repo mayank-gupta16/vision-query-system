@@ -6,7 +6,7 @@
         "maximum": 30000,
         "minimum": null,
         "status": "pass",
-        "value": 498
+        "value": 605
       }
     },
     "failure_rate_basis_points": {
@@ -24,7 +24,7 @@
         "maximum": null,
         "minimum": 5000,
         "status": "pass",
-        "value": 83006
+        "value": 85048
       }
     },
     "install_and_model_bytes": {
@@ -33,7 +33,7 @@
         "maximum": 1073741824,
         "minimum": null,
         "status": "pass",
-        "value": 243382858
+        "value": 243344441
       }
     },
     "map50_basis_points": {
@@ -65,7 +65,7 @@
         "maximum": 2147483648,
         "minimum": null,
         "status": "pass",
-        "value": 234373120
+        "value": 246484992
       }
     },
     "precision_basis_points": {
@@ -97,7 +97,7 @@
         "maximum": null,
         "minimum": 1000,
         "status": "pass",
-        "value": 16601
+        "value": 17009
       }
     },
     "recall_basis_points": {
@@ -136,7 +136,7 @@
   "baseline_candidate": null,
   "baseline_receipt_sha256": null,
   "candidate": {
-    "configuration_sha256": "ebe2aa4714aebe67d63ecf9f08e517e97a2c5524e03427ffa05c0ede2f5c03b2",
+    "configuration_sha256": "9e1cd2fd701941ba521a123a2676435bf67fbfafa1eb0b1996988bdfeaf03608",
     "name": "vehicle-detection-0201-fp32-openvino-2026.3.1"
   },
   "checks": {
@@ -154,23 +154,23 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-harness",
-      "revision": "e9066798a3514098d4c421a5a0a380fc5eb38844",
-      "sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/e9066798a3514098d4c421a5a0a380fc5eb38844/scripts/run_v02_detection_benchmark.py"
+      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
+      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-detection-metrics",
-      "revision": "e9066798a3514098d4c421a5a0a380fc5eb38844",
-      "sha256": "116120f4bc117d1184744dff8c4e8ba49face193448ae8f0ba06004dd54135e6",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/e9066798a3514098d4c421a5a0a380fc5eb38844/scripts/run_v02_detection_benchmark.py"
+      "revision": "8896c166c69429dfeb5297eebe4b9833a90d880a",
+      "sha256": "42ad23caea2bf7e9c15ec6e933a6da6b4a68d1ec1f976d2377c060b049a9485d",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/8896c166c69429dfeb5297eebe4b9833a90d880a/scripts/run_v02_detection_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "e9066798a3514098d4c421a5a0a380fc5eb38844"
+    "source_revision": "8896c166c69429dfeb5297eebe4b9833a90d880a"
   },
-  "policy_sha256": "e745f520485e0de3f2ad9c312b3f09d6ffda361e134e717187f3d3839100d6eb",
-  "policy_version": "v0.2-gates-1",
+  "policy_sha256": "e8553008eef8f0d9472a8bbcbb5d4efd4a326abe4316b9189839c9fa574cf519",
+  "policy_version": "v0.2-gates-2",
   "profile": {
     "architecture": "x86_64",
     "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
@@ -181,7 +181,7 @@
     "operating_system": "Linux",
     "vcpu": 4
   },
-  "receipt_sha256": "c6aa2eeaeaec95c9a321593ee2c2d22229e15eb4f010d8904486e309e6ce79e4",
+  "receipt_sha256": "abe07b5ebe97438005d5d1f45a405837e7628bd80814e700c5ea9a4dae6a2e78",
   "regression": {},
   "schema": "visualworld.v02-evaluation-result",
   "schema_version": 1,
