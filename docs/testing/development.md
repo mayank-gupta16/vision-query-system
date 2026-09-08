@@ -84,6 +84,18 @@ The production-oracle test replays all ten pixel-free representative held-out
 sequences from the committed v0.2 result and requires identical observation
 partitions and termination counts. It performs no inference and reads no media.
 
+The local v0.2 persistence tests require fresh and migrated schema equality,
+fault-injected rollback at every migration durability step, hidden multi-batch
+staging, exact graph publication, complete-key pagination beyond 64 rows,
+index-backed order, corruption detection, failed-run cleanup, and source-cascade
+recovery. They use generated metadata and no model runtime or media:
+
+```sh
+uv run --frozen --no-sync --offline pytest -q \
+  tests/test_world_store_v2.py \
+  tests/test_world_store_v2_oracles.py
+```
+
 ## Separately provisioned perception runtime
 
 The v0.2 application does not download, resolve, package, or redistribute its

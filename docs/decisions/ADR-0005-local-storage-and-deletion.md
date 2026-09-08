@@ -233,6 +233,16 @@ deterministic code in one exclusive transaction after pending operations are
 recovered. They validate before and after and roll back completely on failure.
 Automatic downgrade is unsupported.
 
+Schema version 2 is a strictly additive metadata migration: it creates no
+derived rows and does not rewrite version-1 canonical records or coordination
+markers. Initialization may therefore apply this migration while a version-1
+preparing run or deletion job exists, validate the exact two-entry ledger and
+schema, and immediately resume the unchanged recovery protocol. A future
+migration that transforms existing state must retain the original
+recovery-before-migration ordering. Injected interruption at every version-2
+DDL, ledger, `user_version`, and commit boundary must reopen as an exact readable
+version-1 or validated version-2 store; retry then converges on version 2.
+
 Version 1 permits only transactional metadata migrations. A future artifact
 layout change must copy to a new versioned tree, verify every digest, atomically
 switch catalog references, and remove the old tree only after an explicit audit;

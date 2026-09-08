@@ -9,10 +9,12 @@ import re
 from dataclasses import dataclass
 from enum import StrEnum
 from fractions import Fraction
+from typing import BinaryIO, cast
 
 from visualworld.geometry import CropError, Rgb24Crop, extract_rgb24_crop
 from visualworld.ingestion import (
     MAX_I31,
+    MAX_RECORD_BYTES,
     AffineCoefficients,
     Artifact,
     EvidenceRef,
@@ -22,6 +24,9 @@ from visualworld.ingestion import (
     ProducerSpace,
     Rational,
     TimeBase,
+    _canonical_bytes,
+    _exact_fields,
+    _parse_json,
 )
 from visualworld.perception import (
     MAX_CONFIDENCE_MILLIONTHS,
@@ -550,6 +555,61 @@ class EvidenceScore:
             },
         }
 
+    @classmethod
+    def from_mapping(cls, value: object) -> EvidenceScore:
+        item = _exact_fields(value, {"components", "tie_break"}, "score")
+        components = _exact_fields(
+            item["components"],
+            {
+                "boundary_touch_count",
+                "confidence_millionths",
+                "source_area_pixels",
+                "visible_area_millionths",
+                "visible_area_pixels",
+            },
+            "score.components",
+        )
+        tie_break = _exact_fields(
+            item["tie_break"],
+            {
+                "midpoint_distance_seconds_x2",
+                "observation_id",
+                "point_count",
+                "point_index",
+                "pts",
+            },
+            "score.tie_break",
+        )
+        midpoint = _exact_fields(
+            tie_break["midpoint_distance_seconds_x2"],
+            {"denominator", "numerator"},
+            "score.tie_break.midpoint_distance_seconds_x2",
+        )
+        integers = cast(
+            tuple[int, int, int, int, int, int, int, int, int],
+            (
+                components["boundary_touch_count"],
+                components["confidence_millionths"],
+                components["visible_area_pixels"],
+                components["source_area_pixels"],
+                components["visible_area_millionths"],
+                midpoint["numerator"],
+                midpoint["denominator"],
+                tie_break["point_index"],
+                tie_break["point_count"],
+            ),
+        )
+        if any(type(number) is not int for number in integers):
+            raise ValueError("evidence score components must be integers")
+        observation_id = tie_break["observation_id"]
+        if type(observation_id) is not str:
+            raise ValueError("observation identifier is invalid")
+        return cls(
+            *integers,
+            MediaTime.from_mapping(tie_break["pts"], "score.tie_break.pts"),
+            observation_id,
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class EvidenceIntent:
@@ -645,6 +705,106 @@ class EvidenceIntent:
             "stream_index": self.stream_index,
             "tracklet_id": self.tracklet_id,
         }
+
+    @classmethod
+    def from_mapping(cls, value: object) -> EvidenceIntent:
+        item = _exact_fields(
+            value,
+            {
+                "deletion_owner",
+                "frame_id",
+                "geometry",
+                "kind",
+                "observation_id",
+                "pts",
+                "rank",
+                "retention",
+                "schema",
+                "schema_version",
+                "score",
+                "selector",
+                "source_id",
+                "stream_index",
+                "tracklet_id",
+            },
+            "$",
+        )
+        schema = item["schema"]
+        schema_version = item["schema_version"]
+        if (
+            type(schema) is not str
+            or schema != "visualworld.evidence_intent"
+            or type(schema_version) is not int
+            or schema_version != 1
+        ):
+            raise ValueError("unsupported evidence intent schema")
+        scalar_strings = (
+            item["tracklet_id"],
+            item["observation_id"],
+            item["source_id"],
+            item["frame_id"],
+            item["kind"],
+            item["retention"],
+            item["deletion_owner"],
+        )
+        if any(type(text) is not str for text in scalar_strings):
+            raise ValueError("evidence intent scalar is invalid")
+        if type(item["rank"]) is not int or type(item["stream_index"]) is not int:
+            raise ValueError("evidence intent integer is invalid")
+        return cls(
+            item["rank"],
+            cast(str, item["tracklet_id"]),
+            cast(str, item["observation_id"]),
+            cast(str, item["source_id"]),
+            cast(str, item["frame_id"]),
+            item["stream_index"],
+            MediaTime.from_mapping(item["pts"], "pts"),
+            Geometry.from_mapping(item["geometry"]),
+            EvidenceScore.from_mapping(item["score"]),
+            Producer.from_mapping(item["selector"], "selector"),
+            cast(str, item["kind"]),
+            cast(str, item["retention"]),
+            cast(str, item["deletion_owner"]),
+        )
+
+
+def dumps_evidence_intent(intent: EvidenceIntent) -> bytes:
+    """Serialize one validated metadata-only evidence intent canonically."""
+
+    if type(intent) is not EvidenceIntent:
+        raise ValueError("unsupported evidence intent")
+    intent.__post_init__()
+    return _canonical_bytes(intent.to_mapping())
+
+
+def loads_evidence_intent(data: bytes) -> EvidenceIntent:
+    """Parse one bounded strict-JSON evidence intent."""
+
+    if type(data) is not bytes:
+        raise ValueError("evidence intent must be bytes")
+    return EvidenceIntent.from_mapping(_parse_json(data))
+
+
+def load_evidence_intent(reader: BinaryIO) -> EvidenceIntent:
+    """Read at most 256 KiB plus one byte before parsing an evidence intent."""
+
+    chunks: list[bytes] = []
+    remaining = MAX_RECORD_BYTES + 1
+    read_failed = False
+    try:
+        while remaining > 0:
+            chunk = reader.read(remaining)
+            if type(chunk) is not bytes:
+                raise ValueError("evidence intent reader must be binary")
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+    except OSError:
+        read_failed = True
+    if read_failed:
+        raise ValueError("evidence intent read failed")
+    return loads_evidence_intent(b"".join(chunks))
 
 
 @dataclass(frozen=True, slots=True)
@@ -1224,4 +1384,7 @@ __all__ = [
     "EvidenceScore",
     "EvidenceSelectionLimits",
     "MaterializedEvidence",
+    "dumps_evidence_intent",
+    "load_evidence_intent",
+    "loads_evidence_intent",
 ]

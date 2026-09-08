@@ -19,6 +19,7 @@ import pytest
 
 import visualworld.storage as filesystem
 import visualworld.world_store as world_store
+import visualworld.world_store_v2 as world_store_v2
 from visualworld.ingestion import (
     Artifact,
     EvidenceRef,
@@ -101,7 +102,7 @@ def test_initialization_creates_private_wal_schema_and_satisfies_port(tmp_path: 
     assert isinstance(store, WorldStore)
     assert store.descriptor.port is PortKind.WORLD_STORE
     assert store.descriptor.implementation == "local-sqlite"
-    assert store.descriptor.implementation_version == "1"
+    assert store.descriptor.implementation_version == "2"
     assert store.descriptor.allowed_effects == ()
     for name in ("writer.lock", "world.sqlite3"):
         metadata = (store.root / name).stat()
@@ -116,10 +117,14 @@ def test_initialization_creates_private_wal_schema_and_satisfies_port(tmp_path: 
 
     with _database(store.root) as connection:
         assert connection.execute("PRAGMA journal_mode").fetchone() == ("wal",)
-        assert connection.execute("PRAGMA user_version").fetchone() == (1,)
+        assert connection.execute("PRAGMA user_version").fetchone() == (2,)
         assert connection.execute(
-            "SELECT schema_version, migration_name, code_sha256 FROM schema_migrations"
-        ).fetchone() == (1, "v1_ingestion_metadata", world_store._MIGRATION_CHECKSUM)
+            """SELECT schema_version, migration_name, code_sha256
+            FROM schema_migrations ORDER BY schema_version"""
+        ).fetchall() == [
+            (1, "v1_ingestion_metadata", world_store._MIGRATION_CHECKSUM),
+            (2, "v2_perception_metadata", world_store_v2.MIGRATION_V2_CHECKSUM),
+        ]
 
 
 @pytest.mark.parametrize(
@@ -144,7 +149,7 @@ def test_configuration_rejects_invalid_values(tmp_path: Path, options: dict[str,
     with pytest.raises(ValueError, match="invalid world store statistics"):
         WorldStoreStats(-1, 0, 0)
     with pytest.raises(ValueError, match="unsupported migration"):
-        LocalWorldStore._migration_statements(cast(LocalWorldStore, object()), 2)
+        LocalWorldStore._migration_statements(cast(LocalWorldStore, object()), 3)
 
 
 def test_stable_contract_is_atomic_idempotent_ordered_and_reopenable(tmp_path: Path) -> None:
@@ -972,7 +977,7 @@ def test_pending_deletion_closure_hides_records_and_source_streams(tmp_path: Pat
 @pytest.mark.parametrize(
     "corruption",
     [
-        "PRAGMA user_version = 2",
+        "PRAGMA user_version = 3",
         "PRAGMA user_version = -1",
         "UPDATE schema_migrations SET code_sha256 = " + repr("0" * 64),
         "DROP INDEX frames_exact_pts",

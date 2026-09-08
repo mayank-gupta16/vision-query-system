@@ -98,6 +98,18 @@ the same APIs can instead consume an active `EvidenceWriterSession` so the
 future coordinator can keep filesystem and metadata steps under one exclusive
 kernel lock without receiving a raw SQLite connection.
 
+The additive private schema version 2 keeps that stable port and its version-1
+record union unchanged. `LocalWorldStore` adapter methods accept exact
+`Observation` and completed `Tracklet` records in bounded hidden batches, retain
+ordered track points as the trajectory projection, and persist the complete
+metadata-only `EvidenceIntent` before optionally linking it to a run-owned
+`EvidenceRef`. Finalization validates source, frame, run, membership, intent,
+artifact-reference, and CAS agreement before publishing the existing run marker
+in the same SQLite transaction. Reads use complete integer-PTS cursors and short
+SQLite snapshots; source deletion and failed-run cleanup traverse the additive
+graph without treating a model, category, or hardware runtime as a storage
+concept.
+
 ## Version-1 perception ports
 
 Issue [#70](https://github.com/mayank-gupta16/vision-query-system/issues/70)

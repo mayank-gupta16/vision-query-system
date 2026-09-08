@@ -26,7 +26,9 @@
   OpenVINO `vehicle-detection-0201` adapter with a sealed composite
   decode/inference worker and deterministic CI fixture seam, plus a concrete
   integer-only best-frame selector with pixel-free source-coordinate intents
-  and explicit on-demand exact RGB24 materialization
+  and explicit on-demand exact RGB24 materialization, plus additive schema-v2
+  persistence for generic observations, completed tracklets, ordered points,
+  and selected-evidence metadata with atomic publication and cascade recovery
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -153,10 +155,14 @@
   audit primitives. Reference classification, SQLite state, and cascade-deletion
   authorization remain coordinator-owned.
 - LocalWorldStore implements the stable WorldStore port with private SQLite WAL,
-  checksummed schema version 1, canonical JSON plus verified typed projections,
-  fixed parameterized reads/writes, bounded verification, hidden preparing-run
-  batches, durable artifact intents, and atomic run publication. It composes
-  metadata mutations with an active EvidenceStore writer session.
+  an ordered checksummed schema ledger through version 2, canonical JSON plus
+  verified typed projections, fixed parameterized reads/writes, and bounded
+  verification. Its additive v0.2 adapter APIs persist generic observations,
+  completed tracklets and their exact ordered points, and full selected-evidence
+  intents while keeping preparing runs hidden. Publication validates the entire
+  run-owned graph and durable CAS references before one atomic commit-marker
+  transition; recovery and source deletion cover the same graph. The stable
+  v0.1 `WorldStore` record contract and stored canonical bytes remain unchanged.
 - IngestionCoordinator composes deterministic offline source/sampler adapters
   with manual source-pixel regions and the two local stores. It publishes only
   complete runs, retries every durable crash boundary, repairs proven orphans,
@@ -196,8 +202,8 @@
 
 ## Next priorities
 
-1. Continue the #30 critical path with perception storage in #75, then
-   coordination, CLI, regressions, benchmark, and release issues #76–#80.
+1. Continue the #30 critical path with perception coordination, CLI,
+   regressions, benchmark, and release issues #76–#80.
 2. Preserve the accepted detector and tracker boundaries while completing the
    first real-video perception vertical slice; do not broaden model/platform or
    identity scope before its release gates pass.
