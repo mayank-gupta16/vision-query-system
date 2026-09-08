@@ -2177,7 +2177,8 @@ class LocalWorldStore:
                     ).fetchone()
                     if existing is None:
                         _fail(PortErrorCode.CONFLICT, operation)
-                    if existing[0] == "committed":
+                    committed_retry = existing[0] == "committed"
+                    if committed_retry:
                         if existing[1] != encoded_manifest:
                             _fail(PortErrorCode.CONFLICT, operation)
                         self._guard_committed_retries(
@@ -2228,7 +2229,7 @@ class LocalWorldStore:
                         connection,
                         selected_manifest.run_id,
                         operation,
-                        require_publication=True,
+                        require_publication=not committed_retry,
                     )
                     linked_rows = connection.execute(
                         """SELECT item.record_json FROM selected_evidence AS selected
@@ -2248,11 +2249,14 @@ class LocalWorldStore:
                             _fail(PortErrorCode.CORRUPT, operation)
                         linked_artifacts.append(linked_record.artifact)
                     if evidence_session is not None and linked_artifacts:
-                        checks = evidence_session.inspect(tuple(linked_artifacts))
-                        if any(check.state is ArtifactState.CORRUPT for check in checks):
-                            _fail(PortErrorCode.CORRUPT, operation)
-                        if any(check.state is not ArtifactState.VALID for check in checks):
-                            _fail(PortErrorCode.CONFLICT, operation)
+                        for start in range(0, len(linked_artifacts), MAX_PORT_BATCH_ITEMS):
+                            checks = evidence_session.inspect(
+                                tuple(linked_artifacts[start : start + MAX_PORT_BATCH_ITEMS])
+                            )
+                            if any(check.state is ArtifactState.CORRUPT for check in checks):
+                                _fail(PortErrorCode.CORRUPT, operation)
+                            if any(check.state is not ArtifactState.VALID for check in checks):
+                                _fail(PortErrorCode.CONFLICT, operation)
                     self._write_run(
                         connection,
                         selected_manifest,
@@ -2442,21 +2446,26 @@ class LocalWorldStore:
                     digest = row[0]
                     artifact = self._artifact_spec(connection, digest, operation)
                     surviving = connection.execute(
-                        """SELECT 1 FROM artifact_references AS reference
-                        WHERE reference.artifact_digest = ? AND NOT (
-                            EXISTS (
-                                SELECT 1 FROM run_records AS target
-                                WHERE target.run_id = ?
-                                  AND target.record_id = reference.evidence_id
-                                  AND target.record_type = 'evidence'
-                            ) AND NOT EXISTS (
-                                SELECT 1 FROM run_records AS other
-                                WHERE other.run_id != ?
-                                  AND other.record_id = reference.evidence_id
-                                  AND other.record_type = 'evidence'
+                        """SELECT 1 WHERE EXISTS (
+                            SELECT 1 FROM artifact_references AS reference
+                            WHERE reference.artifact_digest = ? AND NOT (
+                                EXISTS (
+                                    SELECT 1 FROM run_records AS target
+                                    WHERE target.run_id = ?
+                                      AND target.record_id = reference.evidence_id
+                                      AND target.record_type = 'evidence'
+                                ) AND NOT EXISTS (
+                                    SELECT 1 FROM run_records AS other
+                                    WHERE other.run_id != ?
+                                      AND other.record_id = reference.evidence_id
+                                      AND other.record_type = 'evidence'
+                                )
                             )
-                        ) LIMIT 1""",
-                        (digest, selected_run, selected_run),
+                        ) OR EXISTS (
+                            SELECT 1 FROM artifact_intents AS intent
+                            WHERE intent.artifact_digest = ? AND intent.run_id != ?
+                        )""",
+                        (digest, selected_run, selected_run, digest, selected_run),
                     ).fetchone()
                     if surviving is None:
                         artifacts.append(artifact)
@@ -2619,8 +2628,11 @@ class LocalWorldStore:
                             AND NOT EXISTS (
                                 SELECT 1 FROM artifact_references
                                 WHERE artifact_digest = ?
+                            ) AND NOT EXISTS (
+                                SELECT 1 FROM artifact_intents
+                                WHERE artifact_digest = ?
                             )""",
-                            (digest, digest),
+                            (digest, digest, digest),
                         )
                     if run.state == "preparing":
                         failed = RunManifest.create(
@@ -2868,14 +2880,24 @@ class LocalWorldStore:
             if type(digest) is not str or delete_required not in {0, 1}:
                 _fail(PortErrorCode.CORRUPT, operation)
             surviving = connection.execute(
-                """SELECT 1 FROM artifact_references AS reference
-                WHERE reference.artifact_digest = ? AND NOT EXISTS (
-                    SELECT 1 FROM deletion_closure AS closure
-                    WHERE closure.deletion_id = ?
-                      AND closure.record_id = reference.evidence_id
-                      AND closure.record_type = 'evidence'
-                ) LIMIT 1""",
-                (digest, deletion_id),
+                """SELECT 1 WHERE EXISTS (
+                    SELECT 1 FROM artifact_references AS reference
+                    WHERE reference.artifact_digest = ? AND NOT EXISTS (
+                        SELECT 1 FROM deletion_closure AS closure
+                        WHERE closure.deletion_id = ?
+                          AND closure.record_id = reference.evidence_id
+                          AND closure.record_type = 'evidence'
+                    )
+                ) OR EXISTS (
+                    SELECT 1 FROM artifact_intents AS intent
+                    WHERE intent.artifact_digest = ? AND NOT EXISTS (
+                        SELECT 1 FROM deletion_closure AS closure
+                        WHERE closure.deletion_id = ?
+                          AND closure.record_id = intent.run_id
+                          AND closure.record_type = 'run'
+                    )
+                )""",
+                (digest, deletion_id, digest, deletion_id),
             ).fetchone()
             expected_delete = surviving is None
             if (delete_required == 1) != expected_delete:
@@ -3024,14 +3046,24 @@ class LocalWorldStore:
                             _fail(PortErrorCode.CORRUPT, operation)
                         self._artifact_spec(connection, digest, operation)
                         surviving = connection.execute(
-                            """SELECT 1 FROM artifact_references AS reference
-                            WHERE reference.artifact_digest = ? AND NOT EXISTS (
-                                SELECT 1 FROM deletion_closure AS closure
-                                WHERE closure.deletion_id = ?
-                                  AND closure.record_id = reference.evidence_id
-                                  AND closure.record_type = 'evidence'
-                            ) LIMIT 1""",
-                            (digest, selected_deletion),
+                            """SELECT 1 WHERE EXISTS (
+                                SELECT 1 FROM artifact_references AS reference
+                                WHERE reference.artifact_digest = ? AND NOT EXISTS (
+                                    SELECT 1 FROM deletion_closure AS closure
+                                    WHERE closure.deletion_id = ?
+                                      AND closure.record_id = reference.evidence_id
+                                      AND closure.record_type = 'evidence'
+                                )
+                            ) OR EXISTS (
+                                SELECT 1 FROM artifact_intents AS intent
+                                WHERE intent.artifact_digest = ? AND NOT EXISTS (
+                                    SELECT 1 FROM deletion_closure AS closure
+                                    WHERE closure.deletion_id = ?
+                                      AND closure.record_id = intent.run_id
+                                      AND closure.record_type = 'run'
+                                )
+                            )""",
+                            (digest, selected_deletion, digest, selected_deletion),
                         ).fetchone()
                         decisions.append((digest, 0 if surviving is not None else 1))
                     connection.executemany(
@@ -3153,8 +3185,11 @@ class LocalWorldStore:
                             AND NOT EXISTS (
                                 SELECT 1 FROM artifact_references
                                 WHERE artifact_digest = ?
+                            ) AND NOT EXISTS (
+                                SELECT 1 FROM artifact_intents
+                                WHERE artifact_digest = ?
                             )""",
-                            (digest, digest),
+                            (digest, digest, digest),
                         )
                     connection.execute(
                         "DELETE FROM deletion_closure WHERE deletion_id = ?", (selected,)
@@ -3683,7 +3718,7 @@ class LocalWorldStore:
                     SELECT 1 FROM perception_run_records AS owned
                     JOIN runs AS run ON run.run_id = owned.run_id
                     WHERE owned.record_id = ? AND owned.record_type = ?
-                      AND run.state = 'committed'
+                      AND run.state = 'committed' AND run.source_id = ?
                 )
                 AND NOT EXISTS (
                     SELECT 1 FROM deletion_jobs AS job
@@ -3695,12 +3730,101 @@ class LocalWorldStore:
                     WHERE hidden.record_id = ? AND hidden.record_type = ?
                 )
             )""",
-            (record_id, record_type, source_id, record_id, record_type),
+            (record_id, record_type, source_id, source_id, record_id, record_type),
         ).fetchone()
         value: object = None if row is None else row[0]
         if type(value) is not int or value not in {0, 1}:
             _fail(PortErrorCode.CORRUPT, operation)
         return value == 1
+
+    @staticmethod
+    def _verify_run_perception_ownership(
+        connection: sqlite3.Connection,
+        run_id: str,
+        record_type: str,
+        operation: str,
+    ) -> None:
+        if record_type == "observation":
+            invalid = connection.execute(
+                """SELECT 1 FROM perception_run_records AS owned
+                JOIN runs AS run ON run.run_id = owned.run_id
+                LEFT JOIN observations AS item
+                  ON item.observation_id = owned.record_id
+                WHERE owned.run_id = ? AND owned.record_type = 'observation'
+                  AND (
+                    item.observation_id IS NULL
+                    OR item.source_id != run.source_id
+                    OR NOT EXISTS (
+                        SELECT 1 FROM run_records AS frame_owned
+                        WHERE frame_owned.run_id = owned.run_id
+                          AND frame_owned.record_id = item.frame_id
+                          AND frame_owned.record_type = 'frame'
+                    )
+                  ) LIMIT 1""",
+                (run_id,),
+            ).fetchone()
+        elif record_type == "tracklet":
+            invalid = connection.execute(
+                """SELECT 1 FROM perception_run_records AS owned
+                JOIN runs AS run ON run.run_id = owned.run_id
+                LEFT JOIN tracklets AS item ON item.tracklet_id = owned.record_id
+                WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                  AND (
+                    item.tracklet_id IS NULL
+                    OR item.source_id != run.source_id
+                    OR EXISTS (
+                        SELECT 1 FROM tracklet_points AS point
+                        WHERE point.tracklet_id = owned.record_id AND (
+                            NOT EXISTS (
+                                SELECT 1 FROM perception_run_records AS member
+                                WHERE member.run_id = owned.run_id
+                                  AND member.record_id = point.observation_id
+                                  AND member.record_type = 'observation'
+                            ) OR NOT EXISTS (
+                                SELECT 1 FROM run_records AS frame_owned
+                                WHERE frame_owned.run_id = owned.run_id
+                                  AND frame_owned.record_id = point.frame_id
+                                  AND frame_owned.record_type = 'frame'
+                            )
+                        )
+                    )
+                  ) LIMIT 1""",
+                (run_id,),
+            ).fetchone()
+        else:
+            raise AssertionError("unsupported perception ownership type")
+        if invalid is not None:
+            _fail(PortErrorCode.CORRUPT, operation)
+
+    def _verify_visible_perception_ownership(
+        self,
+        connection: sqlite3.Connection,
+        record: PerceptionRecord,
+        operation: str,
+    ) -> None:
+        identifier = (
+            record.observation_id if isinstance(record, Observation) else record.tracklet_id
+        )
+        record_type = "observation" if isinstance(record, Observation) else "tracklet"
+        rows = connection.execute(
+            """SELECT owned.run_id FROM perception_run_records AS owned
+            JOIN runs AS run ON run.run_id = owned.run_id
+            WHERE owned.record_id = ? AND owned.record_type = ?
+              AND run.state = 'committed'
+            ORDER BY owned.run_id LIMIT ?""",
+            (identifier, record_type, self._max_audit_records + 1),
+        ).fetchall()
+        if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        for (run_id,) in rows:
+            if type(run_id) is not str:
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._verify_run_perception_ownership(
+                connection,
+                run_id,
+                record_type,
+                operation,
+            )
 
     def get_perception(self, record_id: str) -> PerceptionRecord:
         """Get one visible committed Observation or Tracklet by typed identifier."""
@@ -3727,10 +3851,6 @@ class LocalWorldStore:
                 row = connection.execute(statements[(table, column)], (record_id,)).fetchone()
                 if row is None or type(row[1]) is not str:
                     _fail(PortErrorCode.NOT_FOUND, operation)
-                if not self._perception_record_visible(
-                    connection, record_id, record_type, row[1], operation
-                ):
-                    _fail(PortErrorCode.NOT_FOUND, operation)
                 record = self._decode_perception_record(row[0], operation)
                 identifier = (
                     record.observation_id if isinstance(record, Observation) else record.tracklet_id
@@ -3738,6 +3858,11 @@ class LocalWorldStore:
                 if identifier != record_id:
                     _fail(PortErrorCode.CORRUPT, operation)
                 self._verify_perception_projection(connection, record, operation)
+                self._verify_visible_perception_ownership(connection, record, operation)
+                if not self._perception_record_visible(
+                    connection, record_id, record_type, row[1], operation
+                ):
+                    _fail(PortErrorCode.NOT_FOUND, operation)
                 return record
             except PortError:
                 raise
@@ -3776,6 +3901,12 @@ class LocalWorldStore:
         with self._read_connection(operation) as connection:
             try:
                 manifest = self._committed_run(connection, selected_run, operation)
+                self._verify_run_perception_ownership(
+                    connection,
+                    selected_run,
+                    "observation",
+                    operation,
+                )
                 rows = connection.execute(
                     _v2_schema.LIST_RUN_OBSERVATIONS_SQL,
                     (
@@ -3833,6 +3964,12 @@ class LocalWorldStore:
         with self._read_connection(operation) as connection:
             try:
                 manifest = self._committed_run(connection, selected_run, operation)
+                self._verify_run_perception_ownership(
+                    connection,
+                    selected_run,
+                    "tracklet",
+                    operation,
+                )
                 rows = connection.execute(
                     _v2_schema.LIST_RUN_TRACKLETS_SQL,
                     (
@@ -3881,17 +4018,22 @@ class LocalWorldStore:
         with self._read_connection(operation) as connection:
             try:
                 row = connection.execute(
-                    "SELECT source_id FROM tracklets WHERE tracklet_id = ?",
+                    "SELECT record_json, source_id FROM tracklets WHERE tracklet_id = ?",
                     (selected_tracklet,),
                 ).fetchone()
                 if (
                     row is None
-                    or type(row[0]) is not str
+                    or type(row[1]) is not str
                     or not self._perception_record_visible(
-                        connection, selected_tracklet, "tracklet", row[0], operation
+                        connection, selected_tracklet, "tracklet", row[1], operation
                     )
                 ):
                     _fail(PortErrorCode.NOT_FOUND, operation)
+                tracklet = self._decode_perception_record(row[0], operation)
+                if not isinstance(tracklet, Tracklet):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                self._verify_perception_projection(connection, tracklet, operation)
+                self._verify_visible_perception_ownership(connection, tracklet, operation)
                 rows = connection.execute(
                     _v2_schema.LIST_TRACKLET_OBSERVATIONS_SQL,
                     (selected_tracklet, after, selected_limit),
@@ -3930,6 +4072,18 @@ class LocalWorldStore:
         with self._read_connection(operation) as connection:
             try:
                 manifest = self._committed_run(connection, selected_run, operation)
+                self._verify_run_perception_ownership(
+                    connection,
+                    selected_run,
+                    "observation",
+                    operation,
+                )
+                self._verify_run_perception_ownership(
+                    connection,
+                    selected_run,
+                    "tracklet",
+                    operation,
+                )
                 tracklet_row = connection.execute(
                     """SELECT tracklet.record_json FROM tracklets AS tracklet
                     JOIN perception_run_records AS owned
@@ -4143,7 +4297,17 @@ class LocalWorldStore:
             )""",
             (run_id, tracklet_id, intent.observation_id),
         ).fetchone()
-        if tracklet_row is None or observation_row is None or ownership != (2,):
+        frame_ownership = connection.execute(
+            """SELECT 1 FROM run_records WHERE run_id = ? AND record_id = ?
+            AND record_type = 'frame'""",
+            (run_id, intent.frame_id),
+        ).fetchone()
+        if (
+            tracklet_row is None
+            or observation_row is None
+            or ownership != (2,)
+            or frame_ownership is None
+        ):
             _fail(PortErrorCode.CORRUPT, operation)
         tracklet = self._decode_perception_record(tracklet_row[0], operation)
         observation = self._decode_perception_record(observation_row[0], operation)
@@ -4224,6 +4388,18 @@ class LocalWorldStore:
         ).fetchone()
         if run is None or type(run[0]) is not str:
             _fail(PortErrorCode.CORRUPT, operation)
+        self._verify_run_perception_ownership(
+            connection,
+            run_id,
+            "observation",
+            operation,
+        )
+        self._verify_run_perception_ownership(
+            connection,
+            run_id,
+            "tracklet",
+            operation,
+        )
         rows = connection.execute(
             """SELECT record_id, record_type FROM perception_run_records
             WHERE run_id = ? ORDER BY record_type, record_id LIMIT ?""",

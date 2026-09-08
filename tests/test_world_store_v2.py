@@ -20,6 +20,8 @@ from visualworld.evidence import (
     loads_evidence_intent,
 )
 from visualworld.ingestion import (
+    Artifact,
+    EvidenceRef,
     Fingerprint,
     FrameRef,
     Geometry,
@@ -36,7 +38,7 @@ from visualworld.ingestion import (
     dumps_record,
 )
 from visualworld.perception import Observation, Tracklet, TrackPoint
-from visualworld.ports import PortError, PortErrorCode
+from visualworld.ports import MAX_PORT_BATCH_ITEMS, PortError, PortErrorCode
 from visualworld.storage import LocalEvidenceStore
 from visualworld.world_store import (
     DeletionState,
@@ -161,6 +163,27 @@ def _prepare(
         preparing,
         committed,
     )
+
+
+def _single_frame_values(
+    fingerprint_byte: str,
+) -> tuple[Source, FrameRef, RunManifest, RunManifest]:
+    time_base = TimeBase("1", "1000")
+    source = Source.create(
+        Fingerprint(fingerprint_byte * 32, "3"),
+        (SourceStream(0, 2, 2, 0, time_base),),
+    )
+    frame = FrameRef.create(source.source_id, 0, "0", MediaTime("0", time_base))
+    sampling = Sampling(Rational("1", "1"))
+    preparing = RunManifest.create(source.source_id, (), sampling, "preparing")
+    committed = RunManifest.create(
+        source.source_id,
+        (),
+        sampling,
+        "committed",
+        RunOutputs("1", hashlib.sha256(fingerprint_byte.encode()).hexdigest()),
+    )
+    return source, frame, preparing, committed
 
 
 def _create_v1_store(root: Path, source: Source | None = None) -> bytes | None:
@@ -538,6 +561,26 @@ def test_selected_evidence_reuses_cas_intents_and_requires_exact_link(tmp_path: 
             evidence_session=session,
         )
         store.finalize_run(committed, evidence_session=session)
+        assert store.list_artifact_intents(committed.run_id) == ()
+        store.finalize_run(committed, evidence_session=session)
+
+    reopened = LocalWorldStore(store.root)
+    with evidence_store.writer_session() as session:
+        reopened.finalize_run(committed, evidence_session=session)
+        assert committed.outputs is not None
+        conflicting = RunManifest.create(
+            committed.source_id,
+            committed.producers,
+            committed.sampling,
+            "committed",
+            RunOutputs(
+                committed.outputs.sample_count,
+                hashlib.sha256(b"conflicting-sample-index").hexdigest(),
+            ),
+        )
+        assert conflicting.run_id == committed.run_id
+        with pytest.raises(PortError, match="conflict"):
+            reopened.finalize_run(conflicting, evidence_session=session)
 
     assert store.list_selected_evidence(committed.run_id, tracklet.tracklet_id, limit=8)[0] == (
         PersistedEvidenceSelection(committed.run_id, intent, materialized.reference)
@@ -548,6 +591,136 @@ def test_selected_evidence_reuses_cas_intents_and_requires_exact_link(tmp_path: 
             "trk_" + "0" * 64,
             limit=8,
         )
+
+
+def test_finalize_inspects_more_than_one_artifact_batch(tmp_path: Path) -> None:
+    root = tmp_path / "store"
+    evidence_store = LocalEvidenceStore(root)
+    store = LocalWorldStore(root)
+    time_base = TimeBase("1", "1000")
+    source = Source.create(
+        Fingerprint("e1" * 32, "195"),
+        (SourceStream(0, 1, 1, 0, time_base),),
+    )
+    frames = tuple(
+        FrameRef.create(source.source_id, 0, str(index), MediaTime(str(index), time_base))
+        for index in range(MAX_PORT_BATCH_ITEMS + 1)
+    )
+    detector = Producer("visualworld.batch-detector", "1", "e2" * 32)
+    tracker = Producer("visualworld.batch-tracker", "1", "e3" * 32)
+    observations = tuple(
+        Observation.create(
+            source.source_id,
+            frame.frame_id,
+            0,
+            frame.pts,
+            Geometry(1, 1, (0, 0, 1, 1), "inferred"),
+            "vehicle",
+            900_000,
+            detector,
+        )
+        for frame in frames
+    )
+    tracklets = tuple(
+        Tracklet.create(
+            source.source_id,
+            0,
+            observation.category,
+            (TrackPoint.from_observation(observation),),
+            "source_end",
+            tracker,
+        )
+        for observation in observations
+    )
+    selector = BestFrameEvidenceSelector()
+    intents = tuple(
+        selector.plan(tracklet, (observation,)).intents[0]
+        for tracklet, observation in zip(tracklets, observations, strict=True)
+    )
+    sampling = Sampling(Rational("1", "1"))
+    preparing = RunManifest.create(source.source_id, (), sampling, "preparing")
+    committed = RunManifest.create(
+        source.source_id,
+        (),
+        sampling,
+        "committed",
+        RunOutputs(
+            str(len(frames)),
+            hashlib.sha256(b"batch-sample-index").hexdigest(),
+        ),
+    )
+    materialized = tuple(
+        selector.materialize(
+            intent,
+            tracklet,
+            (observation,),
+            need=EvidenceNeed.INSPECTION,
+            detail_resolution=DetailResolution.UNKNOWN,
+            frame_rgb24=b"\x00\x00\x00",
+        ).materialized
+        for intent, tracklet, observation in zip(
+            intents,
+            tracklets,
+            observations,
+            strict=True,
+        )
+    )
+    assert all(item is not None for item in materialized)
+    materialized_items = tuple(item for item in materialized if item is not None)
+    references = tuple(item.reference for item in materialized_items)
+    assert len(references) == MAX_PORT_BATCH_ITEMS + 1
+    assert len({item.artifact for item in references}) == 1
+
+    with evidence_store.writer_session() as session:
+        store.commit((source, preparing), evidence_session=session)
+        for start in range(0, len(frames), MAX_PORT_BATCH_ITEMS):
+            store.commit_for_run(
+                preparing.run_id,
+                frames[start : start + MAX_PORT_BATCH_ITEMS],
+                evidence_session=session,
+            )
+            store.commit_perception_for_run(
+                preparing.run_id,
+                observations[start : start + MAX_PORT_BATCH_ITEMS],
+                evidence_session=session,
+            )
+            store.commit_perception_for_run(
+                preparing.run_id,
+                tracklets[start : start + MAX_PORT_BATCH_ITEMS],
+                intents[start : start + MAX_PORT_BATCH_ITEMS],
+                evidence_session=session,
+            )
+        first = materialized_items[0]
+        stage = session.stage(
+            preparing.run_id,
+            first.reference.artifact,
+            first.crop.pixels,
+        )
+        store.record_artifact_intents(
+            preparing.run_id,
+            (stage,),
+            evidence_session=session,
+        )
+        session.commit_stage(stage)
+        links = tuple(
+            EvidenceSelectionLink(tracklet.tracklet_id, 1, reference.evidence_id)
+            for tracklet, reference in zip(tracklets, references, strict=True)
+        )
+        for start in range(0, len(references), MAX_PORT_BATCH_ITEMS):
+            store.commit_for_run(
+                preparing.run_id,
+                references[start : start + MAX_PORT_BATCH_ITEMS],
+                evidence_session=session,
+            )
+            store.link_selected_evidence(
+                preparing.run_id,
+                links[start : start + MAX_PORT_BATCH_ITEMS],
+                evidence_session=session,
+            )
+        store.finalize_run(committed, evidence_session=session)
+
+    assert store.list_artifact_intents(committed.run_id) == ()
+    assert store.verify().selection_count == MAX_PORT_BATCH_ITEMS + 1
 
 
 def test_incomplete_run_cleanup_removes_only_run_owned_v2_graph(tmp_path: Path) -> None:
@@ -618,6 +791,117 @@ def test_incomplete_run_cleanup_preserves_v2_records_shared_by_another_run(
             "SELECT count(*) FROM perception_run_records WHERE run_id = ?",
             (first.run_id,),
         ).fetchone() == (0,)
+
+
+def test_run_cleanup_preserves_cas_needed_by_another_runs_durable_intent(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    evidence_store = LocalEvidenceStore(root)
+    store = LocalWorldStore(root)
+    first_source, first_frame, first_run, _ = _single_frame_values("a1")
+    second_source, _, second_run, _ = _single_frame_values("a2")
+    content = b"shared-pending-run-artifact"
+    artifact = Artifact(hashlib.sha256(content).hexdigest(), str(len(content)))
+    evidence = EvidenceRef.create(first_frame.frame_id, artifact, None)
+
+    with evidence_store.writer_session() as session:
+        store.commit(
+            (first_source, first_run, second_source, second_run),
+            evidence_session=session,
+        )
+        store.commit_for_run(
+            first_run.run_id,
+            (first_frame,),
+            evidence_session=session,
+        )
+        first_stage = session.stage(first_run.run_id, artifact, content)
+        store.record_artifact_intents(
+            first_run.run_id,
+            (first_stage,),
+            evidence_session=session,
+        )
+        session.commit_stage(first_stage)
+        store.commit_for_run(
+            first_run.run_id,
+            (evidence,),
+            evidence_session=session,
+        )
+        second_stage = session.stage(second_run.run_id, artifact, content)
+        store.record_artifact_intents(
+            second_run.run_id,
+            (second_stage,),
+            evidence_session=session,
+        )
+
+        plan = store.run_cleanup_plan(first_run.run_id, evidence_session=session)
+        assert plan.artifacts == ()
+        store.finish_run_cleanup(first_run.run_id, evidence_session=session)
+
+    assert evidence_store.get(artifact.sha256) == content
+    assert store.list_artifact_intents(second_run.run_id) == (second_stage,)
+    assert store.verify().artifact_count == 1
+
+
+def test_source_deletion_preserves_cas_needed_by_another_runs_durable_intent(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    evidence_store = LocalEvidenceStore(root)
+    store = LocalWorldStore(root)
+    first_source, first_frame, first_run, first_committed = _single_frame_values("b1")
+    second_source, _, second_run, _ = _single_frame_values("b2")
+    content = b"shared-pending-deletion-artifact"
+    artifact = Artifact(hashlib.sha256(content).hexdigest(), str(len(content)))
+    evidence = EvidenceRef.create(first_frame.frame_id, artifact, None)
+    deletion_id = "del_" + "b3" * 32
+
+    with evidence_store.writer_session() as session:
+        store.commit((first_source, first_run), evidence_session=session)
+        store.commit_for_run(
+            first_run.run_id,
+            (first_frame,),
+            evidence_session=session,
+        )
+        first_stage = session.stage(first_run.run_id, artifact, content)
+        store.record_artifact_intents(
+            first_run.run_id,
+            (first_stage,),
+            evidence_session=session,
+        )
+        session.commit_stage(first_stage)
+        store.commit_for_run(
+            first_run.run_id,
+            (evidence,),
+            evidence_session=session,
+        )
+        store.finalize_run(first_committed, evidence_session=session)
+
+        store.commit((second_source, second_run), evidence_session=session)
+        second_stage = session.stage(second_run.run_id, artifact, content)
+        store.record_artifact_intents(
+            second_run.run_id,
+            (second_stage,),
+            evidence_session=session,
+        )
+        plan = store.begin_source_deletion(
+            first_source.source_id,
+            deletion_id,
+            evidence_session=session,
+        )
+
+    assert plan.artifact_count == 0
+    assert plan.shared_retention_count == 1
+    assert len(plan.artifacts) == 1
+    assert plan.artifacts[0].artifact == artifact
+    assert not plan.artifacts[0].delete_required
+    with evidence_store.writer_session() as session:
+        store.purge_deletion_metadata(deletion_id, evidence_session=session)
+        store.complete_deletion(deletion_id, evidence_session=session)
+
+    assert evidence_store.get(artifact.sha256) == content
+    assert store.list_artifact_intents(second_run.run_id) == (second_stage,)
+    assert store.verify().artifact_count == 1
 
 
 def test_source_deletion_freezes_hides_and_cascades_v2_graph(tmp_path: Path) -> None:
@@ -729,6 +1013,108 @@ def test_v2_projection_membership_and_selection_corruption_fail_closed(
     with pytest.raises(PortError) as raised:
         store.verify()
     assert raised.value.code is PortErrorCode.CORRUPT
+
+
+def test_missing_same_run_frame_ownership_fails_all_graph_reads_closed(
+    tmp_path: Path,
+) -> None:
+    _, store, _, frames, observations, tracklet, _, committed = _prepare(tmp_path / "store")
+    store.finalize_run(committed)
+    with _database(store.root) as connection:
+        connection.execute(
+            """DELETE FROM run_records WHERE run_id = ? AND record_id = ?
+            AND record_type = 'frame'""",
+            (committed.run_id, frames[0].frame_id),
+        )
+
+    reads = (
+        lambda: store.get_perception(observations[0].observation_id),
+        lambda: store.get_perception(tracklet.tracklet_id),
+        lambda: store.list_run_observations(committed.run_id, stream_index=0, limit=64),
+        lambda: store.list_run_tracklets(committed.run_id, stream_index=0, limit=64),
+        lambda: store.list_tracklet_observations(tracklet.tracklet_id, limit=64),
+        lambda: store.list_selected_evidence(committed.run_id, tracklet.tracklet_id, limit=8),
+        store.verify,
+    )
+    for read in reads:
+        with pytest.raises(PortError) as corrupt:
+            read()
+        assert corrupt.value.code is PortErrorCode.CORRUPT
+
+
+def test_run_observation_query_rejects_dangling_ownership(tmp_path: Path) -> None:
+    _, store, _, _, _, _, _, committed = _prepare(tmp_path / "store")
+    store.finalize_run(committed)
+    with _database(store.root) as connection:
+        connection.execute(
+            """UPDATE perception_run_records SET record_id = ?
+            WHERE rowid = (
+                SELECT rowid FROM perception_run_records
+                WHERE run_id = ? AND record_type = 'observation' LIMIT 1
+            )""",
+            ("obs_" + "f1" * 32, committed.run_id),
+        )
+
+    with pytest.raises(PortError) as corrupt:
+        store.list_run_observations(committed.run_id, stream_index=0, limit=64)
+    assert corrupt.value.code is PortErrorCode.CORRUPT
+
+
+def test_tracklet_observation_query_rejects_corrupt_ordinal_projection(
+    tmp_path: Path,
+) -> None:
+    _, store, _, _, _, tracklet, _, committed = _prepare(tmp_path / "store")
+    store.finalize_run(committed)
+    with _database(store.root) as connection:
+        connection.execute(
+            """UPDATE tracklet_points SET ordinal = 63
+            WHERE tracklet_id = ? AND ordinal = 1""",
+            (tracklet.tracklet_id,),
+        )
+
+    with pytest.raises(PortError) as corrupt:
+        store.list_tracklet_observations(tracklet.tracklet_id, limit=64)
+    assert corrupt.value.code is PortErrorCode.CORRUPT
+
+
+def test_source_mismatched_committed_ownership_never_exposes_preparing_observation(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    store = LocalWorldStore(root)
+    first_source, first_frame, first_run, _ = _single_frame_values("c1")
+    second_source, _, second_run, _ = _single_frame_values("c2")
+    second_committed = RunManifest.create(
+        second_source.source_id,
+        (),
+        second_run.sampling,
+        "committed",
+        RunOutputs("0", hashlib.sha256(b"empty-second-run").hexdigest()),
+    )
+    observation = Observation.create(
+        first_source.source_id,
+        first_frame.frame_id,
+        0,
+        first_frame.pts,
+        Geometry(2, 2, (0, 0, 1, 1), "inferred"),
+        "vehicle",
+        900_000,
+        Producer("visualworld.visibility-detector", "1", "c3" * 32),
+    )
+    store.commit((first_source, first_run, second_source, second_run))
+    store.commit_for_run(first_run.run_id, (first_frame,))
+    store.commit_perception_for_run(first_run.run_id, (observation,))
+    store.finalize_run(second_committed)
+    with _database(root) as connection:
+        connection.execute(
+            """INSERT INTO perception_run_records(run_id, record_id, record_type)
+            VALUES (?, ?, 'observation')""",
+            (second_committed.run_id, observation.observation_id),
+        )
+
+    with pytest.raises(PortError) as corrupt:
+        store.get_perception(observation.observation_id)
+    assert corrupt.value.code is PortErrorCode.CORRUPT
 
 
 def test_v2_queries_have_matching_stable_indexes(tmp_path: Path) -> None:
