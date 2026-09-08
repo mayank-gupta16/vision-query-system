@@ -27,6 +27,9 @@
 - [v0.2 original-resolution crop results](v0.2-crop-results.md) finds material
   tiny-detail value and recommends transient on-demand source retrieval with
   selective best-frame retention instead of eager crop storage.
+- [v0.2 short-term tracking methodology](v0.2-tracking-methodology.md) locks
+  source-separated complete-sequence evaluation for issue #24 before test
+  inference.
 
 Version-specific measured implementation baselines are recorded with their
 validation reports: [local video](../research/local-video-source.md),

@@ -1,0 +1,62 @@
+{
+  "calibration": {
+    "cut_threshold_grid_basis_points": [1500, 2500, 3500],
+    "iou_threshold_grid_basis_points": [1000, 3000, 5000],
+    "max_missed_samples_grid": [0, 2, 5],
+    "selection": "for each tracker family, configurations passing every calibration gate are ordered by higher overall HOTA, higher overall IDF1, higher worst hard-stratum HOTA, fewer overall ID switches, fewer overall fragmentations, fewer maximum missed samples, higher IoU threshold, and lower cut threshold",
+    "split": "calibration"
+  },
+  "candidates": [
+    {
+      "association": "exact maximum-total-IoU one-to-one assignment with deterministic tie-breaks",
+      "motion": "last observed box",
+      "name": "global-last-iou"
+    },
+    {
+      "association": "exact maximum-total-IoU one-to-one assignment with deterministic tie-breaks",
+      "motion": "constant center velocity from the two latest observations, bounded to the canvas",
+      "name": "global-velocity-iou"
+    }
+  ],
+  "detector": {
+    "annotation_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
+    "candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
+    "confidence_millionths": 950000,
+    "dataset_manifest_sha256": "7c41fda4b14553922727e31801478b569a17dda176dd85a7c2fe8789ae9c1599",
+    "gate_sha256": "998821517c254e305e00ebbfdf0e67e04897550eb2f48742851ea624757b5085",
+    "name": "vehicle-detection-0201-fp32-openvino-2026.3.1",
+    "receipt_sha256": "e7f25d13788d657aea46b0c3ba9b7cdbbcdbbcfa017b80c2da53397bc8e5bb33",
+    "source_manifest_sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66"
+  },
+  "dataset": {
+    "annotation_sha256": "531132855a677b97bf76545a07eb10626b8c5b4187c21e047c338df459e5eb3c",
+    "dataset_manifest_sha256": "38debc4c0b6e4ec15e84170c56ff1b896f74e39743be9b6dfb2a154db88c25f9",
+    "source_manifest_sha256": "07a02287ea612a5baf28245f1be98867cff270604c4e4e21aa78b6ffa10a005b"
+  },
+  "metric_reference": {
+    "hota_sha256": "c582255c3d36bdb49c3ceeb2a5bd912cee009190dfcfe465b4173d03aaa97d6a",
+    "identity_sha256": "e76b1bdcbf5b193662431596a984cf70a5be32e903eb5f2a3d9921b4762f93ba",
+    "license_expression": "MIT",
+    "license_sha256": "f7e548c5729e464d878dd4abf691e323bbea028a756d08395d88b83e43dd2d86",
+    "name": "TrackEval",
+    "revision": "12c8791b303e0a0b50f753af204249e622d0281a",
+    "source_url": "https://github.com/JonathonLuiten/TrackEval"
+  },
+  "sampling": {
+    "annotation_sha256": "46e2d5f6511d972b769d93df3d03854f54b64c9f6bce39854cf2461c6fe21089",
+    "candidate_manifest_sha256": "cd1ea1d6a7a2d2b63d32f8ea1c416c533551c3e6423d92e54ecc7365c4aac40a",
+    "dataset_manifest_sha256": "e51ebe8ae7c1732e4c2344e2b409cd22e60a51e41ac3f22d341353403d6ae4ef",
+    "gate_sha256": "a3289a458f42ca4a54f09469507cc50ee43de62740bb95a34658e18af1545945",
+    "name": "fixed-5-fps",
+    "receipt_sha256": "6f9b37f6b5e5e660d7034cd37a7bdeee223681733a27f7684a2bc4cce58108a6",
+    "source_manifest_sha256": "4a53262d93f2473a747bfc3c36b38209d42cafff38c9d8251cc3e503eba81139"
+  },
+  "schema": "visualworld.v02-tracking-candidate-list",
+  "schema_version": 1,
+  "termination": {
+    "cut_score": "mean absolute RGB delta sampled every fourth pixel, in basis points of 255",
+    "cut_semantics": "a score meeting the calibrated threshold terminates every active track before processing the first post-cut frame",
+    "gap_semantics": "associate first, increment misses for each unmatched active track, and terminate when misses become max_missed_samples plus one; never emit extrapolated observations",
+    "scope": "clip-local occurrence tracklets only; no appearance embedding, cross-clip identity, or persistent entity ReID"
+  }
+}
