@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import math
 import os
 import platform
 import runpy
@@ -26,6 +27,7 @@ from visualworld import detection
 from visualworld.detection import (
     DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS,
     DETECTOR_CONFIGURATION_SHA256,
+    DETECTOR_COORDINATE_SCALE,
     DETECTOR_INPUT_HEIGHT,
     DETECTOR_INPUT_WIDTH,
     DETECTOR_MANIFEST_SHA256,
@@ -89,6 +91,18 @@ def _frames(source: Source, count: int = 2) -> tuple[FrameRef, ...]:
     )
 
 
+def _normalized_box(
+    box: tuple[int, int, int, int],
+) -> tuple[int, int, int, int]:
+    left, top, right, bottom = box
+    return (
+        left * DETECTOR_COORDINATE_SCALE // DETECTOR_INPUT_WIDTH,
+        top * DETECTOR_COORDINATE_SCALE // DETECTOR_INPUT_HEIGHT,
+        (right * DETECTOR_COORDINATE_SCALE + DETECTOR_INPUT_WIDTH - 1) // DETECTOR_INPUT_WIDTH,
+        (bottom * DETECTOR_COORDINATE_SCALE + DETECTOR_INPUT_HEIGHT - 1) // DETECTOR_INPUT_HEIGHT,
+    )
+
+
 def _worker_result(
     source: Source,
     frames: tuple[FrameRef, ...],
@@ -130,7 +144,7 @@ def _worker_payload(source: Source, frames: tuple[FrameRef, ...]) -> dict[str, o
                 "decode_index": frame.decode_index,
                 "detections": [
                     {
-                        "box_xyxy": [96, 96, 192, 192],
+                        "box_normalized_millionths": [250_000, 250_000, 500_000, 500_000],
                         "confidence_millionths": 975_000,
                     }
                 ],
@@ -194,7 +208,7 @@ def test_detector_contract_fake_substitution_and_exact_provenance() -> None:
             source,
             frames,
             (
-                (WorkerDetection((96, 96, 192, 192), 975_000),),
+                (WorkerDetection((250_000, 250_000, 500_000, 500_000), 975_000),),
                 (),
             ),
         )
@@ -234,13 +248,50 @@ def test_detector_contract_fake_substitution_and_exact_provenance() -> None:
     assert provenance.perception_manifest_sha256 == DETECTOR_MANIFEST_SHA256
 
 
+def test_detector_outputs_own_nested_time_and_producer_values() -> None:
+    source = _source()
+    frames = _frames(source, 1)
+    worker = FixturePerceptionWorker(
+        _worker_result(
+            source,
+            frames,
+            ((WorkerDetection((250_000, 250_000, 500_000, 500_000), 975_000),),),
+        )
+    )
+    adapter = OpenVinoVehicleDetector(worker)
+
+    first = adapter.detect(source, frames).observations[0]
+    assert first.pts is not frames[0].pts
+    assert first.pts.time_base is not frames[0].pts.time_base
+    assert first.producer is not DETECTOR_PRODUCER
+    object.__setattr__(first.pts, "value", "/private/changed-time")
+    object.__setattr__(first.pts.time_base, "denominator", "/private/changed-base")
+    object.__setattr__(first.producer, "name", "/private/changed-producer")
+    published_producer = adapter.producer
+    object.__setattr__(published_producer, "name", "/private/changed-property")
+
+    second = adapter.detect(source, frames).observations[0]
+
+    assert frames[0].pts.value == "0"
+    assert frames[0].pts.time_base.denominator == "1000"
+    assert DETECTOR_PRODUCER.name == "visualworld.openvino-vehicle-detector"
+    assert second.pts == frames[0].pts
+    assert second.pts is not frames[0].pts
+    assert second.producer == DETECTOR_PRODUCER
+    assert second.producer is not first.producer
+    assert adapter.producer == DETECTOR_PRODUCER
+    assert adapter.producer is not published_producer
+    assert adapter.descriptor.implementation == "visualworld.openvino-vehicle-detector"
+
+
 def test_frozen_detector_configuration_and_worker_digest_are_exact() -> None:
     root = Path(__file__).resolve().parents[1]
     assert DETECTOR_INPUT_WIDTH == DETECTOR_INPUT_HEIGHT == 384
+    assert DETECTOR_COORDINATE_SCALE == 1_000_000
     assert DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS == 950_000
     assert (
         DETECTOR_CONFIGURATION_SHA256
-        == "b9524cd868305d0a8c98ef693b5b3effeb24861528815c86544dd961085f8ad5"
+        == "cff8a2f9ec2dfad146ba56d0e7f88c2f8e8df18b4195ba4b1cc0a170703f9b99"
     )
     assert hashlib.sha256((root / "workers/perception_worker.py").read_bytes()).hexdigest() == (
         DETECTOR_WORKER_SHA256
@@ -271,7 +322,7 @@ def test_generated_rotation_goldens_map_to_encoded_source(
             _worker_result(
                 source,
                 frames,
-                ((WorkerDetection((0, 0, 192, 192), 950_000),),),
+                ((WorkerDetection((0, 0, 500_000, 500_000), 950_000),),),
             )
         )
     )
@@ -282,9 +333,9 @@ def test_generated_rotation_goldens_map_to_encoded_source(
     assert geometry.source_width == 640
     assert geometry.source_height == 360
     assert geometry.producer_space is not None
-    assert geometry.producer_space.width == 384
-    assert geometry.producer_space.height == 384
-    assert geometry.producer_space.box_xyxy == (0, 0, 192, 192)
+    assert geometry.producer_space.width == DETECTOR_COORDINATE_SCALE
+    assert geometry.producer_space.height == DETECTOR_COORDINATE_SCALE
+    assert geometry.producer_space.box_xyxy == (0, 0, 500_000, 500_000)
     assert geometry.transform_kind == "affine_rational"
     assert geometry.measurement == "inferred"
 
@@ -306,7 +357,9 @@ def test_generated_resize_goldens_have_no_letterbox_or_silent_clipping(
     source = _source(width=width, height=height)
     frames = _frames(source, 1)
     adapter = OpenVinoVehicleDetector(
-        FixturePerceptionWorker(_worker_result(source, frames, ((WorkerDetection(box, 999_999),),)))
+        FixturePerceptionWorker(
+            _worker_result(source, frames, ((WorkerDetection(_normalized_box(box), 999_999),),))
+        )
     )
     geometry = adapter.detect(source, frames).observations[0].geometry
 
@@ -321,9 +374,9 @@ def test_generated_resize_goldens_have_no_letterbox_or_silent_clipping(
 def _outward_scaled(value: int, extent: int, *, upper: bool) -> int:
     numerator = value * extent
     return (
-        (numerator + DETECTOR_INPUT_WIDTH - 1) // DETECTOR_INPUT_WIDTH
+        (numerator + DETECTOR_COORDINATE_SCALE - 1) // DETECTOR_COORDINATE_SCALE
         if upper
-        else (numerator // DETECTOR_INPUT_WIDTH)
+        else (numerator // DETECTOR_COORDINATE_SCALE)
     )
 
 
@@ -376,24 +429,74 @@ def test_generated_pixel_goldens_match_independent_quarter_turn_oracle() -> None
             source = _source(width=width, height=height, rotation=rotation)
             frames = _frames(source, 1)
             for box in boxes:
+                normalized_box = _normalized_box(box)
                 adapter = OpenVinoVehicleDetector(
                     FixturePerceptionWorker(
                         _worker_result(
                             source,
                             frames,
-                            ((WorkerDetection(box, 950_000),),),
+                            ((WorkerDetection(normalized_box, 950_000),),),
                         )
                     )
                 )
 
                 actual = adapter.detect(source, frames).observations[0].geometry.box_xyxy
-                expected = _independent_source_box(box, width, height, rotation)
+                expected = _independent_source_box(normalized_box, width, height, rotation)
 
                 assert all(
                     abs(observed - golden) <= 1
                     for observed, golden in zip(actual, expected, strict=True)
                 )
                 assert actual == expected
+
+
+@pytest.mark.parametrize("width", [1920, 4095])
+def test_normalized_model_coordinates_round_only_once_at_source_scale(width: int) -> None:
+    source = _source(width=width, height=2161)
+    frames = _frames(source, 1)
+    raw_coordinates = (
+        0.019055500626564026,
+        0.203_456_789,
+        0.701_234_567,
+        0.812_345_678,
+    )
+    worker = _worker_namespace()
+    parse_detections = cast(Any, worker["_detections"])
+    worker_values = parse_detections(
+        _SyntheticModelOutput([[0.0, 0.0, 0.95, *raw_coordinates]]),
+        1,
+    )
+    normalized = tuple(worker_values[0]["box_normalized_millionths"])
+    output = _worker_result(
+        source,
+        frames,
+        (
+            (
+                WorkerDetection(
+                    cast(tuple[int, int, int, int], normalized),
+                    950_000,
+                ),
+            ),
+        ),
+    )
+
+    actual = (
+        OpenVinoVehicleDetector(FixturePerceptionWorker(output))
+        .detect(source, frames)
+        .observations[0]
+        .geometry.box_xyxy
+    )
+    ideal = (
+        math.floor(raw_coordinates[0] * width),
+        math.floor(raw_coordinates[1] * 2161),
+        math.ceil(raw_coordinates[2] * width),
+        math.ceil(raw_coordinates[3] * 2161),
+    )
+
+    assert all(
+        abs(observed - expected) <= 1 for observed, expected in zip(actual, ideal, strict=True)
+    )
+    assert actual[0] >= ideal[0] - 1
 
 
 class _SyntheticModelOutput:
@@ -426,8 +529,14 @@ def test_worker_detection_filter_matches_exact_reviewed_threshold_and_class() ->
     )
 
     assert detect(output, 2) == [
-        {"box_xyxy": [0, 192, 384, 384], "confidence_millionths": 1_000_000},
-        {"box_xyxy": [96, 96, 192, 192], "confidence_millionths": 950_000},
+        {
+            "box_normalized_millionths": [0, 500_000, 1_000_000, 1_000_000],
+            "confidence_millionths": 1_000_000,
+        },
+        {
+            "box_normalized_millionths": [250_000, 250_000, 500_000, 500_000],
+            "confidence_millionths": 950_000,
+        },
     ]
 
     with pytest.raises(cast(type[BaseException], worker["_LimitExceeded"])):
@@ -548,7 +657,9 @@ def test_worker_output_parser_builds_only_bounded_pixel_free_values() -> None:
 
     assert result.provenance == DetectionProvenance(source.fingerprint.digest, 1000)
     assert tuple(item.decode_index for item in result.frames) == ("0", "1")
-    assert result.frames[0].detections == (WorkerDetection((96, 96, 192, 192), 975_000),)
+    assert result.frames[0].detections == (
+        WorkerDetection((250_000, 250_000, 500_000, 500_000), 975_000),
+    )
     rendered = repr(result)
     assert "pixel" not in rendered.lower()
     assert "source.mov" not in rendered
@@ -601,7 +712,7 @@ def _invalid_payloads() -> list[object]:
                     cast(list[object], cast(dict[str, object], item)["frames"])[0],
                 )["detections"],
             )[0],
-        ).update(box_xyxy=[384, 0, 384, 10])
+        ).update(box_normalized_millionths=[1_000_000, 0, 1_000_000, 10])
     )
     changed(
         lambda item: cast(
@@ -836,6 +947,55 @@ def test_supervisor_kills_and_cleans_the_whole_process_on_failure(
     assert process.poll() is not None
 
 
+def test_supervisor_reads_cancellation_without_overridable_method(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(detection, "_CGROUP_ROOT", tmp_path)
+    monkeypatch.setattr(detection, "_kill_unit", _kill_process)
+    monkeypatch.setattr(detection, "_wait_unit_stopped", lambda *_args: True)
+    cancelled = threading.Event()
+    cancelled.set()
+
+    def poisoned_method() -> bool:
+        raise KeyboardInterrupt("/private/cancel-token")
+
+    object.__setattr__(cancelled, "is_set", poisoned_method)
+    process = _child("import time;time.sleep(1)")
+
+    with pytest.raises(PortError) as raised:
+        detection._drain_worker(process, "test", PerceptionLimits(), cancelled)
+
+    assert raised.value.code is PortErrorCode.CANCELLED
+    assert raised.value.__context__ is None
+    assert "/private" not in str(raised.value)
+    assert process.poll() is not None
+
+
+def test_supervisor_rejects_hostile_cancellation_flag_without_boolean_coercion(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class HostileFlag:
+        def __bool__(self) -> bool:
+            raise KeyboardInterrupt("/private/cancel-flag")
+
+    monkeypatch.setattr(detection, "_CGROUP_ROOT", tmp_path)
+    monkeypatch.setattr(detection, "_kill_unit", _kill_process)
+    monkeypatch.setattr(detection, "_wait_unit_stopped", lambda *_args: True)
+    cancelled = threading.Event()
+    object.__setattr__(cancelled, "_flag", HostileFlag())
+    process = _child("import time;time.sleep(1)")
+
+    with pytest.raises(PortError) as raised:
+        detection._drain_worker(process, "test", PerceptionLimits(), cancelled)
+
+    assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+    assert raised.value.__context__ is None
+    assert "/private" not in str(raised.value)
+    assert process.poll() is not None
+
+
 def test_production_and_fixture_workers_are_adapter_substitutable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -886,6 +1046,145 @@ def test_production_and_fixture_workers_are_adapter_substitutable(
     assert production == fixture
     assert production.state is PerceptionResultState.COMPLETE
     assert len(production.observations) == 2
+
+
+def test_production_worker_snapshots_runtime_and_limits_before_verify_and_launch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    source_path = tmp_path / "source.mov"
+    content = b"sealed-source"
+    source_path.write_bytes(content)
+    digest = hashlib.sha256(content).hexdigest()
+    source = _source(digest=digest, source_bytes=len(content))
+    frames = _frames(source, 1)
+    media = MediaRuntime(Path("/opt/media"), Path("/opt/media/worker/media_worker.py"))
+    runtime = PerceptionRuntime(Path("/opt/perception"), media)
+    limits = PerceptionLimits(max_source_bytes=4096, wall_timeout_ms=12_345)
+    worker = IsolatedPerceptionWorker(
+        tmp_path,
+        "source.mov",
+        runtime,
+        limits=limits,
+    )
+    object.__setattr__(runtime, "root", Path("/private/borrowed-runtime"))
+    object.__setattr__(media, "root", Path("/private/borrowed-media"))
+    object.__setattr__(limits, "max_source_bytes", 2**30 + 1)
+    object.__setattr__(limits, "wall_timeout_ms", 300_001)
+    seen: dict[str, object] = {}
+    monkeypatch.setattr(detection, "_supported_platform", lambda: True)
+
+    def verify_media(value: MediaRuntime) -> None:
+        seen["media"] = value
+
+    def verify_perception(value: PerceptionRuntime) -> None:
+        seen["verified_runtime"] = value
+        object.__setattr__(cast(Any, worker)._runtime, "root", Path("/private/race-runtime"))
+        object.__setattr__(cast(Any, worker)._limits, "wall_timeout_ms", 300_001)
+
+    def open_source(_root: Path, _relative: str, maximum: int) -> tuple[int, os.stat_result]:
+        seen["open_maximum"] = maximum
+        return os.open(source_path, os.O_RDONLY), source_path.stat()
+
+    def snapshot(source_fd: int, maximum: int) -> tuple[int, str, int]:
+        seen["snapshot_maximum"] = maximum
+        raw = os.read(source_fd, 1024)
+        return os.dup(source_fd), hashlib.sha256(raw).hexdigest(), len(raw)
+
+    def run_worker(
+        used_runtime: PerceptionRuntime,
+        used_limits: PerceptionLimits,
+        *_args: object,
+    ) -> detection._WorkerRun:
+        seen["launched_runtime"] = used_runtime
+        seen["launched_limits"] = used_limits
+        return _run(_worker_payload(source, frames))
+
+    monkeypatch.setattr(detection, "_verify_media_boundary", verify_media)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", verify_perception)
+    monkeypatch.setattr(detection, "_open_source", open_source)
+    monkeypatch.setattr(detection, "_sealed_snapshot", snapshot)
+    monkeypatch.setattr(detection, "_run_worker", run_worker)
+
+    result = OpenVinoVehicleDetector(worker).detect(source, frames)
+
+    assert result.state is PerceptionResultState.COMPLETE
+    assert cast(MediaRuntime, seen["media"]).root == Path("/opt/media")
+    verified = cast(PerceptionRuntime, seen["verified_runtime"])
+    launched = cast(PerceptionRuntime, seen["launched_runtime"])
+    launched_limits = cast(PerceptionLimits, seen["launched_limits"])
+    assert verified is launched
+    assert launched.root == Path("/opt/perception")
+    assert launched.media.root == Path("/opt/media")
+    assert launched_limits.wall_timeout_ms == 12_345
+    assert seen["open_maximum"] == seen["snapshot_maximum"] == 4096
+
+
+@pytest.mark.parametrize(("failed_close", "expected_runs"), [(1, 0), (2, 1)])
+def test_production_worker_close_failures_are_nested_closed_once_and_redacted(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    failed_close: int,
+    expected_runs: int,
+) -> None:
+    source_path = tmp_path / "source.mov"
+    content = b"sealed-source"
+    source_path.write_bytes(content)
+    digest = hashlib.sha256(content).hexdigest()
+    source = _source(digest=digest, source_bytes=len(content))
+    frames = _frames(source, 1)
+    runtime = PerceptionRuntime(
+        Path("/opt/perception"),
+        MediaRuntime(Path("/opt/media"), Path("/opt/media/worker/media_worker.py")),
+    )
+    descriptors: list[int] = []
+    close_calls: list[int] = []
+    run_calls = 0
+    monkeypatch.setattr(detection, "_supported_platform", lambda: True)
+    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime: None)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime: None)
+
+    def open_source(*_args: object) -> tuple[int, os.stat_result]:
+        descriptor = os.open(source_path, os.O_RDONLY)
+        descriptors.append(descriptor)
+        return descriptor, source_path.stat()
+
+    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+        raw = os.read(source_fd, 1024)
+        descriptor = os.dup(source_fd)
+        descriptors.append(descriptor)
+        return descriptor, hashlib.sha256(raw).hexdigest(), len(raw)
+
+    def close_file(stream: Any) -> bool:
+        descriptor = stream.fileno()
+        stream.close()
+        close_calls.append(descriptor)
+        return len(close_calls) != failed_close
+
+    def run_worker(*_args: object) -> detection._WorkerRun:
+        nonlocal run_calls
+        run_calls += 1
+        return _run(_worker_payload(source, frames))
+
+    monkeypatch.setattr(detection, "_open_source", open_source)
+    monkeypatch.setattr(detection, "_sealed_snapshot", snapshot)
+    monkeypatch.setattr(detection, "_close_file", close_file)
+    monkeypatch.setattr(detection, "_run_worker", run_worker)
+    adapter = OpenVinoVehicleDetector(IsolatedPerceptionWorker(tmp_path, "source.mov", runtime))
+
+    with pytest.raises(PortError) as raised:
+        adapter.detect(source, frames)
+
+    assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+    assert raised.value.__context__ is None
+    assert "/private" not in str(raised.value)
+    assert adapter.calls == ()
+    assert run_calls == expected_runs
+    assert len(close_calls) == len(descriptors) == 2
+    assert len(set(close_calls)) == 2
+    for descriptor in descriptors:
+        with pytest.raises(OSError):
+            os.fstat(descriptor)
 
 
 def test_production_worker_closes_source_and_snapshot_on_digest_conflict(
@@ -1079,7 +1378,7 @@ def test_worker_records_reject_mutation_and_do_not_store_pixels_or_paths() -> No
     assert not any("path" in field for field in type(result).__dataclass_fields__)
 
     for changes in (
-        {"box_xyxy": (0, 0, 0, 1)},
+        {"box_normalized_millionths": (0, 0, 0, 1)},
         {"confidence_millionths": 949_999},
     ):
         with pytest.raises(ValueError, match="invalid worker detection"):
@@ -1108,6 +1407,52 @@ def test_detector_value_records_reject_every_frozen_provenance_drift() -> None:
             replace(provenance, **change)
 
 
+def test_hostile_scalar_subclasses_cannot_forge_detector_provenance() -> None:
+    class Liar(str):
+        def __eq__(self, _other: object) -> bool:
+            return True
+
+        def __ne__(self, _other: object) -> bool:
+            return False
+
+    with pytest.raises(ValueError, match="invalid detector provenance"):
+        DetectionProvenance(
+            "aa" * 32,
+            1,
+            configuration_sha256=cast(str, Liar("not-a-digest")),
+            runtime_id=cast(str, Liar("/private/path")),
+        )
+
+    source = _source()
+    frames = _frames(source, 1)
+    result = _worker_result(source, frames)
+    object.__setattr__(
+        result.provenance,
+        "configuration_sha256",
+        Liar("not-a-digest"),
+    )
+    object.__setattr__(result.provenance, "runtime_id", Liar("/private/path"))
+
+    class HostileWorker:
+        supported = True
+
+        def infer(
+            self,
+            _source: Source,
+            _frames: tuple[FrameRef, ...],
+        ) -> PerceptionWorkerResult:
+            return result
+
+    adapter = OpenVinoVehicleDetector(cast(PerceptionWorker, HostileWorker()))
+    with pytest.raises(PortError) as raised:
+        adapter.detect(source, frames)
+
+    assert raised.value.code is PortErrorCode.DECODE_FAILED
+    assert raised.value.__context__ is None
+    assert "/private" not in str(raised.value)
+    assert adapter.calls == ()
+
+
 def test_worker_value_records_reject_hostile_shapes_times_and_duplicates() -> None:
     time_base = TimeBase("1", "1000")
     pts = MediaTime("0", time_base)
@@ -1124,9 +1469,9 @@ def test_worker_value_records_reject_hostile_shapes_times_and_duplicates() -> No
     )
 
     invalid_detections = (
-        {"box_xyxy": cast(Any, [1, 2, 3, 4])},
-        {"box_xyxy": cast(Any, (1, 2, 3))},
-        {"box_xyxy": cast(Any, (True, 2, 3, 4))},
+        {"box_normalized_millionths": cast(Any, [1, 2, 3, 4])},
+        {"box_normalized_millionths": cast(Any, (1, 2, 3))},
+        {"box_normalized_millionths": cast(Any, (True, 2, 3, 4))},
         {"confidence_millionths": True},
     )
     for change in invalid_detections:
@@ -1706,9 +2051,9 @@ def test_worker_output_protocol_rejects_semantic_frame_mismatches() -> None:
 
     invalid_box = fresh()
     invalid_box_frame = cast(dict[str, object], cast(list[object], invalid_box["frames"])[0])
-    cast(dict[str, object], cast(list[object], invalid_box_frame["detections"])[0])["box_xyxy"] = (
-        None
-    )
+    cast(dict[str, object], cast(list[object], invalid_box_frame["detections"])[0])[
+        "box_normalized_millionths"
+    ] = None
     payloads.append(invalid_box)
 
     duplicate_detection = fresh()

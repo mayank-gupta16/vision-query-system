@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 import platform
@@ -46,13 +47,14 @@ from visualworld.ports import (
 
 DETECTOR_INPUT_WIDTH = 384
 DETECTOR_INPUT_HEIGHT = 384
+DETECTOR_COORDINATE_SCALE = 1_000_000
 DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS = 950_000
 DETECTOR_RUNTIME_ID = "visualworld-perception-openvino-2026.3.1-vehicle-0201-v1"
 DETECTOR_RUNTIME_CLOSURE_SHA256 = "5859db2175bcf154586052d891f7e4f06cfb6b38cea5c62ac625c7d7aa961530"
 DETECTOR_MODEL_XML_SHA256 = "ae39ec7c4cc5c1ab5ef3db71c8fa307500f07a87f17d95bdb0d1c84762751d1a"
 DETECTOR_MODEL_BIN_SHA256 = "612df843314c179460e754316d67e6eedd0e778f96ad1129fc0c34c8e935cb0b"
-DETECTOR_WORKER_SHA256 = "6188e2960985bf983f829222bf0f4c8d174275077b46605e7b451c44780c66aa"
-DETECTOR_MANIFEST_SHA256 = "6a3af4c3f82d9fc08a45971ad27562c583c02daa1e26df0811d8fa7588e5a3f5"
+DETECTOR_WORKER_SHA256 = "674e1748b1bdc84db711db71e05a2fdfd73bcdeeecc16800e209727a99b47f2e"
+DETECTOR_MANIFEST_SHA256 = "0feb184e4dff58a728aeb34e155af278da5df2705d27a8a6d43fe0f7b9bd7599"
 MEDIA_RUNTIME_ID = "visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2"
 MEDIA_MANIFEST_SHA256 = "58cf6f64280888ecc01c647044c38b9b56f197389b6bfc7ead7fbbe93a52ba32"
 MEDIA_TREE_SHA256 = "7015262cd5dfdfd976d6ee092f0f93541597ea35e0331c3abb9ce6d4c54daeaf"
@@ -106,6 +108,10 @@ _CONFIGURATION = {
     "model_bin_sha256": DETECTOR_MODEL_BIN_SHA256,
     "model_xml_sha256": DETECTOR_MODEL_XML_SHA256,
     "num_streams": 1,
+    "output": {
+        "coordinate_scale": DETECTOR_COORDINATE_SCALE,
+        "coordinate_space": "normalized_millionths",
+    },
     "performance_hint": "LATENCY",
     "runtime_closure_sha256": DETECTOR_RUNTIME_CLOSURE_SHA256,
     "runtime_id": DETECTOR_RUNTIME_ID,
@@ -117,11 +123,19 @@ _CONFIGURATION = {
 DETECTOR_CONFIGURATION_SHA256 = hashlib.sha256(
     json.dumps(_CONFIGURATION, sort_keys=True, separators=(",", ":")).encode()
 ).hexdigest()
-DETECTOR_PRODUCER = Producer(
-    "visualworld.openvino-vehicle-detector",
-    "1",
-    DETECTOR_CONFIGURATION_SHA256,
-)
+_DETECTOR_PRODUCER_NAME = "visualworld.openvino-vehicle-detector"
+_DETECTOR_PRODUCER_VERSION = "1"
+
+
+def _detector_producer() -> Producer:
+    return Producer(
+        _DETECTOR_PRODUCER_NAME,
+        _DETECTOR_PRODUCER_VERSION,
+        DETECTOR_CONFIGURATION_SHA256,
+    )
+
+
+DETECTOR_PRODUCER = _detector_producer()
 
 
 def _error(code: PortErrorCode, operation: str = "detect") -> PortError:
@@ -225,11 +239,25 @@ class DetectionProvenance:
     media_tree_sha256: str = MEDIA_TREE_SHA256
 
     def __post_init__(self) -> None:
+        fixed_text = (
+            self.configuration_sha256,
+            self.model_xml_sha256,
+            self.model_bin_sha256,
+            self.runtime_id,
+            self.runtime_closure_sha256,
+            self.worker_sha256,
+            self.perception_manifest_sha256,
+            self.media_runtime_id,
+            self.media_manifest_sha256,
+            self.media_tree_sha256,
+        )
         if (
             type(self.source_sha256) is not str
             or not _DIGEST_RE.fullmatch(self.source_sha256)
             or type(self.source_bytes) is not int
             or not 1 <= self.source_bytes <= 2**63 - 1
+            or not all(type(value) is str for value in fixed_text)
+            or type(self.confidence_floor_millionths) is not int
             or self.configuration_sha256 != DETECTOR_CONFIGURATION_SHA256
             or self.confidence_floor_millionths != DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS
             or self.model_xml_sha256 != DETECTOR_MODEL_XML_SHA256
@@ -247,18 +275,19 @@ class DetectionProvenance:
 
 @dataclass(frozen=True, slots=True)
 class WorkerDetection:
-    box_xyxy: tuple[int, int, int, int]
+    box_normalized_millionths: tuple[int, int, int, int]
     confidence_millionths: int
 
     def __post_init__(self) -> None:
-        if type(self.box_xyxy) is not tuple or len(self.box_xyxy) != 4:
+        box = self.box_normalized_millionths
+        if type(box) is not tuple or len(box) != 4:
             raise ValueError("invalid worker detection")
-        if any(type(value) is not int for value in self.box_xyxy):
+        if any(type(value) is not int for value in box):
             raise ValueError("invalid worker detection")
-        left, top, right, bottom = self.box_xyxy
+        left, top, right, bottom = box
         if not (
-            0 <= left < right <= DETECTOR_INPUT_WIDTH
-            and 0 <= top < bottom <= DETECTOR_INPUT_HEIGHT
+            0 <= left < right <= DETECTOR_COORDINATE_SCALE
+            and 0 <= top < bottom <= DETECTOR_COORDINATE_SCALE
             and type(self.confidence_millionths) is int
             and DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS <= self.confidence_millionths <= 1_000_000
         ):
@@ -294,9 +323,12 @@ class WorkerFrame:
                 raise ValueError("invalid worker frame")
         for item in self.detections:
             WorkerDetection.__post_init__(item)
-        if len({(item.box_xyxy, item.confidence_millionths) for item in self.detections}) != len(
-            self.detections
-        ):
+        if len(
+            {
+                (item.box_normalized_millionths, item.confidence_millionths)
+                for item in self.detections
+            }
+        ) != len(self.detections):
             raise ValueError("invalid worker frame")
 
 
@@ -443,6 +475,77 @@ class PerceptionRuntime:
         if not isinstance(self.root, Path) or type(self.media) is not MediaRuntime:
             raise ValueError("runtime paths must use the approved records")
         object.__setattr__(self, "root", Path(os.path.abspath(os.fspath(self.root))))
+
+
+def _copy_limits(value: PerceptionLimits) -> PerceptionLimits:
+    return PerceptionLimits(
+        max_source_bytes=value.max_source_bytes,
+        max_duration_seconds=value.max_duration_seconds,
+        max_width=value.max_width,
+        max_height=value.max_height,
+        max_pixels=value.max_pixels,
+        max_frames=value.max_frames,
+        max_decoded_bytes=value.max_decoded_bytes,
+        max_detections_per_frame=value.max_detections_per_frame,
+        max_stdout_bytes=value.max_stdout_bytes,
+        max_stderr_bytes=value.max_stderr_bytes,
+        wall_timeout_ms=value.wall_timeout_ms,
+        memory_bytes=value.memory_bytes,
+        task_count=value.task_count,
+    )
+
+
+def _copy_runtime(value: PerceptionRuntime) -> PerceptionRuntime:
+    path_type = type(Path())
+    media = value.media
+    if (
+        type(value.root) is not path_type
+        or type(media) is not MediaRuntime
+        or type(media.root) is not path_type
+        or type(media.worker) is not path_type
+    ):
+        raise ValueError("runtime paths must use the approved records")
+    return PerceptionRuntime(
+        Path(value.root),
+        MediaRuntime(Path(media.root), Path(media.worker)),
+    )
+
+
+def _close_file(stream: io.FileIO) -> bool:
+    try:
+        stream.close()
+    except OSError:
+        return False
+    return True
+
+
+def _cancellation_state(cancelled: threading.Event | None) -> bool | None:
+    if cancelled is None:
+        return False
+    failed = False
+    state: object = False
+    try:
+        state = threading.Event.is_set(cancelled)
+    except BaseException:
+        failed = True
+    if failed or type(state) is not bool:
+        return None
+    return state
+
+
+def _copy_producer(value: Producer) -> Producer:
+    return Producer(value.name, value.version, value.configuration_sha256)
+
+
+def _copy_media_time(value: MediaTime) -> MediaTime:
+    estimate_producer = value.estimate_producer
+    return MediaTime(
+        value.value,
+        TimeBase(value.time_base.numerator, value.time_base.denominator),
+        value.basis,
+        value.estimate_method,
+        None if estimate_producer is None else _copy_producer(estimate_producer),
+    )
 
 
 def _read_runtime_file(path: Path, maximum: int = _MAX_RUNTIME_FILE_BYTES) -> bytes:
@@ -949,7 +1052,10 @@ def _drain_worker(
                 _read_number(cgroup / "memory.peak"),
                 _read_number(cgroup / "memory.current"),
             )
-            if cancelled is not None and cancelled.is_set():
+            cancellation = _cancellation_state(cancelled)
+            if cancellation is None:
+                failure = PortErrorCode.ISOLATION_UNAVAILABLE
+            elif cancellation:
                 failure = PortErrorCode.CANCELLED
             elif now >= deadline:
                 failure = PortErrorCode.TIMEOUT
@@ -1081,13 +1187,17 @@ class IsolatedPerceptionWorker:
         selected_limits = PerceptionLimits() if limits is None else limits
         if type(selected_limits) is not PerceptionLimits:
             raise ValueError("limits must use PerceptionLimits")
-        PerceptionLimits.__post_init__(selected_limits)
+        try:
+            owned_limits = _copy_limits(selected_limits)
+            owned_runtime = _copy_runtime(runtime)
+        except (AttributeError, TypeError, ValueError):
+            raise ValueError("invalid perception runtime or limits") from None
         if cancelled is not None and type(cancelled) is not threading.Event:
             raise ValueError("cancelled must be a threading.Event")
         self._source_root = Path(os.path.abspath(os.fspath(source_root)))
         self._relative_path = relative_path
-        self._runtime = runtime
-        self._limits = selected_limits
+        self._runtime = owned_runtime
+        self._limits = owned_limits
         self._cancelled = cancelled
 
     @property
@@ -1100,62 +1210,101 @@ class IsolatedPerceptionWorker:
             _fail(PortErrorCode.UNSUPPORTED)
         if not frames:
             raise ValueError("the adapter does not invoke a worker for an empty batch")
+        runtime: PerceptionRuntime | None = None
+        limits: PerceptionLimits | None = None
+        try:
+            runtime = _copy_runtime(self._runtime)
+            limits = _copy_limits(self._limits)
+        except (AttributeError, TypeError, ValueError):
+            pass
+        if runtime is None or limits is None:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
         stream_indexes = {frame.stream_index for frame in frames}
         if len(stream_indexes) != 1:
             _fail(PortErrorCode.INVALID_REQUEST)
         requested = tuple(sorted(int(frame.decode_index) for frame in frames))
-        if requested[-1] >= self._limits.max_frames:
+        if requested[-1] >= limits.max_frames:
             _fail(PortErrorCode.LIMIT_EXCEEDED)
         media_error: PortErrorCode | None = None
         try:
-            _verify_media_boundary(self._runtime.media)
+            _verify_media_boundary(runtime.media)
         except PortError as error:
             media_error = error.code
         if media_error is not None:
             _fail(media_error)
-        _verify_perception_boundary(self._runtime)
+        _verify_perception_boundary(runtime)
         source_error: PortErrorCode | None = None
         source_fd = -1
         try:
             source_fd, _ = _open_source(
                 self._source_root,
                 self._relative_path,
-                self._limits.max_source_bytes,
+                limits.max_source_bytes,
             )
         except PortError as error:
             source_error = error.code
         if source_error is not None:
             _fail(source_error)
-        snapshot_error: PortErrorCode | None = None
-        snapshot_fd = -1
+        source_stream: io.FileIO | None = None
+        source_ownership_failed = False
+        try:
+            source_stream = io.FileIO(source_fd, mode="rb", closefd=True)
+        except (OSError, ValueError):
+            source_ownership_failed = True
+        if source_ownership_failed or source_stream is None:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        setup_error: PortErrorCode | None = None
+        snapshot_stream: io.FileIO | None = None
         digest = ""
         source_bytes = 0
         try:
             try:
                 snapshot_fd, digest, source_bytes = _sealed_snapshot(
-                    source_fd,
-                    self._limits.max_source_bytes,
+                    source_stream.fileno(),
+                    limits.max_source_bytes,
+                )
+                snapshot_stream = io.FileIO(snapshot_fd, mode="rb", closefd=True)
+            except PortError as error:
+                setup_error = error.code
+            except OSError:
+                setup_error = PortErrorCode.ISOLATION_UNAVAILABLE
+        finally:
+            if not _close_file(source_stream):
+                setup_error = PortErrorCode.ISOLATION_UNAVAILABLE
+        if setup_error is not None:
+            if snapshot_stream is not None and not _close_file(snapshot_stream):
+                setup_error = PortErrorCode.ISOLATION_UNAVAILABLE
+            _fail(setup_error)
+        if snapshot_stream is None:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        if digest != source.fingerprint.digest or str(source_bytes) != source.fingerprint.bytes:
+            if not _close_file(snapshot_stream):
+                _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+            _fail(PortErrorCode.CONFLICT)
+        run: _WorkerRun | None = None
+        run_error: PortErrorCode | None = None
+        try:
+            try:
+                run = _run_worker(
+                    runtime,
+                    limits,
+                    snapshot_stream.fileno(),
+                    requested,
+                    self._cancelled,
                 )
             except PortError as error:
-                snapshot_error = error.code
+                run_error = error.code
+            except (OSError, subprocess.SubprocessError):
+                run_error = PortErrorCode.ISOLATION_UNAVAILABLE
         finally:
-            os.close(source_fd)
-        if snapshot_error is not None:
-            _fail(snapshot_error)
-        if digest != source.fingerprint.digest or str(source_bytes) != source.fingerprint.bytes:
-            os.close(snapshot_fd)
-            _fail(PortErrorCode.CONFLICT)
-        try:
-            run = _run_worker(
-                self._runtime,
-                self._limits,
-                snapshot_fd,
-                requested,
-                self._cancelled,
-            )
-        finally:
-            os.close(snapshot_fd)
-        return _decode_worker_output(run, source, frames, digest, source_bytes, self._limits)
+            close_ok = _close_file(snapshot_stream)
+        if not close_ok:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        if run_error is not None:
+            _fail(run_error)
+        if run is None:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        return _decode_worker_output(run, source, frames, digest, source_bytes, limits)
 
 
 def _no_duplicate_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -1339,12 +1488,14 @@ def _decode_worker_output(
         for raw_detection in raw_detections:
             detection = _mapping(
                 raw_detection,
-                frozenset({"box_xyxy", "confidence_millionths"}),
+                frozenset({"box_normalized_millionths", "confidence_millionths"}),
             )
-            raw_box = detection["box_xyxy"]
+            raw_box = detection["box_normalized_millionths"]
             if type(raw_box) is not list or len(raw_box) != 4:
                 _fail(PortErrorCode.DECODE_FAILED)
-            box = tuple(_bounded_integer(coordinate, 0, 384) for coordinate in raw_box)
+            box = tuple(
+                _bounded_integer(coordinate, 0, DETECTOR_COORDINATE_SCALE) for coordinate in raw_box
+            )
             confidence = _bounded_integer(
                 detection["confidence_millionths"],
                 DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS,
@@ -1402,8 +1553,8 @@ class OpenVinoVehicleDetector:
         self._call_lock = threading.Lock()
         self._descriptor = CapabilityDescriptor(
             PortKind.DETECTOR,
-            DETECTOR_PRODUCER.name,
-            DETECTOR_PRODUCER.version,
+            _DETECTOR_PRODUCER_NAME,
+            _DETECTOR_PRODUCER_VERSION,
             deterministic=True,
             offline=True,
             max_batch_items=MAX_PORT_BATCH_ITEMS,
@@ -1416,7 +1567,7 @@ class OpenVinoVehicleDetector:
 
     @property
     def producer(self) -> Producer:
-        return DETECTOR_PRODUCER
+        return _detector_producer()
 
     @property
     def calls(self) -> tuple[PortCall, ...]:
@@ -1508,23 +1659,26 @@ class OpenVinoVehicleDetector:
             transform = DetectorTransform(
                 stream.width,
                 stream.height,
-                DETECTOR_INPUT_WIDTH,
-                DETECTOR_INPUT_HEIGHT,
+                DETECTOR_COORDINATE_SCALE,
+                DETECTOR_COORDINATE_SCALE,
                 stream.rotation_degrees,
             )
             for detection in worker_frame.detections:
                 observation: Observation | None = None
                 try:
-                    geometry = transform.map_box(detection.box_xyxy, measurement="inferred")
+                    geometry = transform.map_box(
+                        detection.box_normalized_millionths,
+                        measurement="inferred",
+                    )
                     observation = Observation.create(
                         source.source_id,
                         frame.frame_id,
                         frame.stream_index,
-                        frame.pts,
+                        _copy_media_time(frame.pts),
                         geometry,
                         "vehicle",
                         detection.confidence_millionths,
-                        DETECTOR_PRODUCER,
+                        _detector_producer(),
                     )
                 except (TypeError, ValueError):
                     pass
@@ -1541,6 +1695,7 @@ class OpenVinoVehicleDetector:
 __all__ = [
     "DETECTOR_CONFIDENCE_FLOOR_MILLIONTHS",
     "DETECTOR_CONFIGURATION_SHA256",
+    "DETECTOR_COORDINATE_SCALE",
     "DETECTOR_INPUT_HEIGHT",
     "DETECTOR_INPUT_WIDTH",
     "DETECTOR_MANIFEST_SHA256",

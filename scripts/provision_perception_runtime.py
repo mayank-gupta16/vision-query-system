@@ -38,7 +38,7 @@ DEFAULT_APPLICATION_WORKER = ROOT / "workers" / "perception_worker.py"
 INSTALL_MANIFEST_NAME = "perception-runtime-manifest.json"
 INSTALL_RECEIPT_NAME = "visualworld-perception-runtime.json"
 _APPROVED_CANONICAL_MANIFEST_SHA256 = (
-    "c069e067dd868baa956d0186d92250276e5f9e979f884bc330303ba38126cf65"
+    "7c658028266f92f94c388b24fc5f122162182362a58a9997c0255931926ba29d"
 )
 _MAX_MANIFEST_BYTES = 256 * 1024
 _MAX_MEMBER_BYTES = 128 * 1024 * 1024
@@ -339,6 +339,8 @@ def validate_manifest(value: object) -> dict[str, Any]:
         "input_width": 384,
         "model_layout": "NCHW",
         "num_streams": 1,
+        "output_coordinate_scale": 1000000,
+        "output_coordinate_space": "normalized_millionths",
         "performance_hint": "LATENCY",
         "resize": "OpenVINO RESIZE_LINEAR",
         "threads": 4,

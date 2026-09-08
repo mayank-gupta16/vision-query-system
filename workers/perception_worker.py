@@ -29,6 +29,7 @@ _MODEL_XML_SHA256 = "ae39ec7c4cc5c1ab5ef3db71c8fa307500f07a87f17d95bdb0d1c847627
 _MODEL_BIN_SHA256 = "612df843314c179460e754316d67e6eedd0e778f96ad1129fc0c34c8e935cb0b"
 _INPUT_WIDTH = 384
 _INPUT_HEIGHT = 384
+_COORDINATE_SCALE = 1_000_000
 _CONFIDENCE_FLOOR_MILLIONTHS = 950_000
 _ALLOWED_FORMATS = frozenset({"h264", "mov"})
 _ALLOWED_CODECS = frozenset({"h264", "rawvideo"})
@@ -378,15 +379,15 @@ def _detections(output: Any, maximum: int) -> list[dict[str, object]]:
         coordinates = values[3:7]
         if any(value < -1 or value > 2 for value in coordinates):
             raise _WorkerFailed("model_output")
-        left = max(0, min(_INPUT_WIDTH, math.floor(coordinates[0] * _INPUT_WIDTH)))
-        top = max(0, min(_INPUT_HEIGHT, math.floor(coordinates[1] * _INPUT_HEIGHT)))
-        right = max(0, min(_INPUT_WIDTH, math.ceil(coordinates[2] * _INPUT_WIDTH)))
-        bottom = max(0, min(_INPUT_HEIGHT, math.ceil(coordinates[3] * _INPUT_HEIGHT)))
+        left = max(0, min(_COORDINATE_SCALE, math.floor(coordinates[0] * _COORDINATE_SCALE)))
+        top = max(0, min(_COORDINATE_SCALE, math.floor(coordinates[1] * _COORDINATE_SCALE)))
+        right = max(0, min(_COORDINATE_SCALE, math.ceil(coordinates[2] * _COORDINATE_SCALE)))
+        bottom = max(0, min(_COORDINATE_SCALE, math.ceil(coordinates[3] * _COORDINATE_SCALE)))
         if left >= right or top >= bottom:
             continue
         selected.append(
             {
-                "box_xyxy": [left, top, right, bottom],
+                "box_normalized_millionths": [left, top, right, bottom],
                 "confidence_millionths": confidence,
             }
         )
@@ -395,13 +396,13 @@ def _detections(output: Any, maximum: int) -> list[dict[str, object]]:
     selected.sort(
         key=lambda item: (
             -cast(int, item["confidence_millionths"]),
-            cast(list[int], item["box_xyxy"]),
+            cast(list[int], item["box_normalized_millionths"]),
         )
     )
     if len(
         {
             (
-                tuple(cast(list[int], item["box_xyxy"])),
+                tuple(cast(list[int], item["box_normalized_millionths"])),
                 cast(int, item["confidence_millionths"]),
             )
             for item in selected

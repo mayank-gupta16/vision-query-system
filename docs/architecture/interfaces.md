@@ -162,8 +162,9 @@ the exact ADR-0007 Linux x86_64 closure: the parent opens and seals one authoriz
 local source, the composite worker decodes requested indices and runs the frozen
 384×384 RGB-to-BGR/NHWC-to-NCHW OpenVINO CPU pipeline, and only strict canonical
 pixel-free detections return. The adapter maps those display-oriented detector
-boxes through `DetectorTransform` to outward-rounded encoded-source pixels and
-emits category `vehicle` only at confidence 950,000 millionths or higher. Its
+boxes as normalized millionths through `DetectorTransform`, retaining model
+coordinate precision and rounding outward only once at encoded-source pixels.
+It emits category `vehicle` only at confidence 950,000 millionths or higher. Its
 producer configuration and separate provenance bind the threshold, preprocessing,
 model XML/BIN, runtime closure, worker, perception manifest, media runtime, and
 source digest/size. Unsupported platforms and missing or drifted isolation return

@@ -2,7 +2,7 @@
   "application_worker": {
     "install_path": "worker/perception_worker.py",
     "license_expression": "Apache-2.0",
-    "sha256": "6188e2960985bf983f829222bf0f4c8d174275077b46605e7b451c44780c66aa"
+    "sha256": "674e1748b1bdc84db711db71e05a2fdfd73bcdeeecc16800e209727a99b47f2e"
   },
   "artifacts": [
     {
@@ -445,6 +445,8 @@
     "input_width": 384,
     "model_layout": "NCHW",
     "num_streams": 1,
+    "output_coordinate_scale": 1000000,
+    "output_coordinate_space": "normalized_millionths",
     "performance_hint": "LATENCY",
     "resize": "OpenVINO RESIZE_LINEAR",
     "threads": 4
