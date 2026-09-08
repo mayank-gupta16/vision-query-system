@@ -82,8 +82,9 @@ entity.
 
 The first contract bounds a completed tracklet to 64 strictly time-ordered,
 detector-supported points. `GlobalLastBoxTracker.track_page` now provides the
-reviewed paging extension: an opaque immutable cursor carries active tracklets
-and miss counts across pages, and only `cut`, `miss_timeout`, or an explicit
-`source_end` can complete them. Paging does not manufacture a termination or
-reuse clip-local track ordinals. A continuous trajectory that would exceed 64
-points fails with a structured limit error rather than being silently split.
+reviewed paging extension: an opaque immutable cursor carries owned active
+tracklet snapshots and miss counts across pages. The issuing tracker authenticates
+that state before use. Only `cut`, `miss_timeout`, or an explicit `source_end`
+can complete a tracklet. Paging does not manufacture a termination or reuse
+clip-local track ordinals. A continuous trajectory that would exceed 64 points
+fails with a structured limit error rather than being silently split.

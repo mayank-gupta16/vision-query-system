@@ -23,7 +23,7 @@ from visualworld.ingestion import (
     SourceStream,
     TimeBase,
 )
-from visualworld.perception import FrameDiscontinuity, Observation
+from visualworld.perception import FrameDiscontinuity, Observation, TrackPoint
 from visualworld.ports import (
     FakeTracker,
     PerceptionResultState,
@@ -335,7 +335,9 @@ def test_resumed_pages_equal_one_shot_across_occlusion_and_empty_final_page() ->
         replace(final.cursor, finished=False)
 
 
-def test_cursor_owns_input_graphs_and_detects_direct_nested_mutation() -> None:
+def test_cursor_owns_input_graphs_and_detects_direct_nested_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     source = _source()
     frames = _frames(source, 2)
     first_observation = _observation(source, frames[0], BOX)
@@ -388,6 +390,7 @@ def test_cursor_owns_input_graphs_and_detects_direct_nested_mutation() -> None:
         "box_xyxy",
         (60, 10, 80, 30),
     )
+    prior_calls = tracker.calls
     with pytest.raises(PortError) as raised:
         tracker.track_page(
             source,
@@ -397,7 +400,83 @@ def test_cursor_owns_input_graphs_and_detects_direct_nested_mutation() -> None:
             cursor=clean_first.cursor,
             end_of_stream=True,
         )
+    assert raised.value.code is PortErrorCode.CONFLICT
+    assert tracker.calls == prior_calls
+
+    clean_again = tracker.track_page(
+        source,
+        clean_frames[:1],
+        (_observation(source, clean_frames[0], BOX),),
+        discontinuities=_scores(clean_frames[:1]),
+    )
+    assert clean_again.cursor is not None
+    point = clean_again.cursor.active_tracks[0].points[0]
+    object.__setattr__(point.geometry, "box_xyxy", (60, 10, 80, 30))
+    forged = hashlib.sha256(json.dumps(point.to_mapping(), sort_keys=True).encode()).hexdigest()
+    object.__setattr__(clean_again.cursor, "_integrity_hmac_sha256", forged)
+    prior_calls = tracker.calls
+    with pytest.raises(PortError) as raised:
+        tracker.track_page(
+            source,
+            clean_frames[1:],
+            (),
+            discontinuities=_scores(clean_frames[1:]),
+            cursor=clean_again.cursor,
+            end_of_stream=True,
+        )
+    assert raised.value.code is PortErrorCode.CONFLICT
+    assert tracker.calls == prior_calls
+
+    different_tracker = GlobalLastBoxTracker()
+    untouched = tracker.track_page(
+        source,
+        clean_frames[:1],
+        (_observation(source, clean_frames[0], BOX),),
+        discontinuities=_scores(clean_frames[:1]),
+    )
+    assert untouched.cursor is not None
+    with pytest.raises(PortError) as raised:
+        different_tracker.track_page(
+            source,
+            clean_frames[1:],
+            (),
+            discontinuities=_scores(clean_frames[1:]),
+            cursor=untouched.cursor,
+            end_of_stream=True,
+        )
+    assert raised.value.code is PortErrorCode.CONFLICT
+    assert different_tracker.calls == ()
+
+    bounded = tracker.track_page(
+        source,
+        clean_frames[:1],
+        (_observation(source, clean_frames[0], BOX),),
+        discontinuities=_scores(clean_frames[:1]),
+    )
+    assert bounded.cursor is not None
+    active_track = bounded.cursor.active_tracks[0]
+    object.__setattr__(bounded.cursor, "active_tracks", (active_track,) * 65)
+    nested_validations = 0
+
+    def count_nested_validation(_point: TrackPoint) -> None:
+        nonlocal nested_validations
+        nested_validations += 1
+        raise AssertionError("oversized cursors must be rejected before nested validation")
+
+    monkeypatch.setattr(TrackPoint, "__post_init__", count_nested_validation)
+    prior_calls = tracker.calls
+    with pytest.raises(PortError) as raised:
+        tracker.track_page(
+            source,
+            clean_frames[1:],
+            (),
+            discontinuities=_scores(clean_frames[1:]),
+            cursor=bounded.cursor,
+            end_of_stream=True,
+        )
     assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert nested_validations == 0
+    assert tracker.calls == prior_calls
 
 
 def test_missing_scores_and_out_of_boundary_category_or_rate_are_explicit() -> None:
@@ -700,6 +779,7 @@ def test_cursor_factory_and_resume_scope_fail_closed() -> None:
     with pytest.raises(TypeError):
         TrackingCursor(
             _factory=object(),
+            _integrity_key=b"0" * 32,
             source_id=cursor.source_id,
             stream_index=cursor.stream_index,
             time_base=cursor.time_base,

@@ -138,10 +138,12 @@ return `unknown`; other categories and sampling rates return `unsupported`.
 Deterministic IDs are source-clip-local and never imply persistent ReID.
 
 Its `track_page` extension carries bounded active state in an opaque immutable
-cursor, preserving association across page boundaries without hidden adapter
-state or a fabricated page termination. The cursor binds the source, stream,
-time base, limits, exact last position, active detector-supported trajectories,
-miss counts, and bounded diagnostics. End-of-stream finalization is explicit;
+cursor, preserving association across page boundaries without hidden progress
+state or a fabricated page termination. The cursor owns deep snapshots of and
+binds the source, stream, time base, limits, exact last position, active
+detector-supported trajectories, miss counts, and bounded diagnostics. A keyed
+integrity seal binds it to the tracker instance that issued it, so altered or
+cross-instance cursors fail closed. End-of-stream finalization is explicit;
 cancelled or invalid calls publish neither a call record nor continuation state.
 
 The stable operation remains bounded to 64 frames and 64 points in one completed

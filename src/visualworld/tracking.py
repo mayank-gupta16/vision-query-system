@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import re
+import secrets
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from fractions import Fraction
 from itertools import pairwise
 from typing import Protocol, runtime_checkable
@@ -454,7 +456,9 @@ def _copy_tracking_diagnostics(value: TrackingDiagnostics) -> TrackingDiagnostic
     )
 
 
-def _cursor_integrity_sha256(cursor: TrackingCursor) -> str:
+def _cursor_integrity_hmac_sha256(cursor: TrackingCursor, key: bytes) -> str:
+    if type(key) is not bytes or len(key) != 32:
+        raise ValueError("invalid cursor integrity key")
     payload = {
         "active_tracks": [
             {
@@ -493,9 +497,13 @@ def _cursor_integrity_sha256(cursor: TrackingCursor) -> str:
         "stream_index": cursor.stream_index,
         "time_base": cursor.time_base.to_mapping(),
     }
-    return hashlib.sha256(
-        json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode()
-    ).hexdigest()
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode()
+    return hmac.new(key, canonical, hashlib.sha256).hexdigest()
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -512,13 +520,14 @@ class TrackingCursor:
     active_tracks: tuple[_ActiveTrack, ...]
     next_ordinal: int
     diagnostics: TrackingDiagnostics
-    _integrity_sha256: str
+    _integrity_hmac_sha256: str = field(repr=False)
     finished: bool = False
 
     def __init__(
         self,
         *,
         _factory: object,
+        _integrity_key: bytes,
         source_id: str,
         stream_index: int,
         time_base: TimeBase,
@@ -547,8 +556,17 @@ class TrackingCursor:
             ("finished", finished),
         ):
             object.__setattr__(self, name, value)
-        object.__setattr__(self, "_integrity_sha256", _cursor_integrity_sha256(self))
+        object.__setattr__(
+            self,
+            "_integrity_hmac_sha256",
+            "0" * 64,
+        )
         self.__post_init__()
+        object.__setattr__(
+            self,
+            "_integrity_hmac_sha256",
+            _cursor_integrity_hmac_sha256(self, _integrity_key),
+        )
 
     def __post_init__(self) -> None:
         if (
@@ -562,19 +580,22 @@ class TrackingCursor:
             or type(self.first_pts) is not MediaTime
             or type(self.last_frame) is not FrameRef
             or type(self.active_tracks) is not tuple
-            or not all(type(track) is _ActiveTrack for track in self.active_tracks)
             or type(self.next_ordinal) is not int
             or type(self.diagnostics) is not TrackingDiagnostics
             or type(self.finished) is not bool
-            or type(self._integrity_sha256) is not str
-            or not re.fullmatch(r"[0-9a-f]{64}", self._integrity_sha256)
+            or type(self._integrity_hmac_sha256) is not str
+            or not re.fullmatch(r"[0-9a-f]{64}", self._integrity_hmac_sha256)
         ):
             raise ValueError("tracking cursor is invalid")
+        self.limits.__post_init__()
+        if len(self.active_tracks) > self.limits.max_active_tracks:
+            raise ValueError("tracking cursor exceeds its active-track bound")
+        if not all(type(track) is _ActiveTrack for track in self.active_tracks):
+            raise ValueError("tracking cursor contains an invalid active track")
         _validate_time_base(self.time_base)
         _validate_source_stream(self.source_stream)
         _validate_media_time(self.first_pts)
         _validate_frame(self.last_frame)
-        self.limits.__post_init__()
         self.diagnostics.__post_init__()
         for track in self.active_tracks:
             track.__post_init__()
@@ -592,7 +613,6 @@ class TrackingCursor:
             or self.source_stream.time_base != self.time_base
             or self.first_pts.time_base != self.time_base
             or len(ordinals) != len(set(ordinals))
-            or len(self.active_tracks) > self.limits.max_active_tracks
             or self.next_ordinal != self.diagnostics.created_tracks + 1
             or self.diagnostics.maximum_active_tracks > self.limits.max_active_tracks
             or self.diagnostics.maximum_active_tracks < len(self.active_tracks)
@@ -646,8 +666,6 @@ class TrackingCursor:
             ):
                 raise ValueError("tracking cursor conflicts with its active tracks")
             observation_ids.update(point_ids)
-        if self._integrity_sha256 != _cursor_integrity_sha256(self):
-            raise ValueError("tracking cursor integrity check failed")
 
 
 @dataclass(frozen=True, slots=True)
@@ -732,6 +750,7 @@ class GlobalLastBoxTracker:
         selected_limits = _copy_tracking_limits(supplied_limits)
         self._requested_category = requested_category
         self._limits = selected_limits
+        self._cursor_integrity_key = secrets.token_bytes(32)
         self._calls: list[PortCall] = []
         self._descriptor = CapabilityDescriptor(
             PortKind.TRACKER,
@@ -1005,6 +1024,7 @@ class GlobalLastBoxTracker:
         cursor_stream = _copy_source_stream(selected_stream)
         next_cursor = TrackingCursor(
             _factory=_CURSOR_FACTORY,
+            _integrity_key=self._cursor_integrity_key,
             source_id=source.source_id,
             stream_index=last_frame.stream_index,
             time_base=cursor_stream.time_base,
@@ -1081,6 +1101,11 @@ class GlobalLastBoxTracker:
                 cursor.__post_init__()
         except (TypeError, ValueError):
             raise _error(PortErrorCode.INVALID_REQUEST, operation) from None
+        if cursor is not None and not hmac.compare_digest(
+            cursor._integrity_hmac_sha256,
+            _cursor_integrity_hmac_sha256(cursor, self._cursor_integrity_key),
+        ):
+            raise _error(PortErrorCode.CONFLICT, operation)
         if cursor is not None and (
             cursor.finished or cursor.source_id != source.source_id or cursor.limits != self._limits
         ):
