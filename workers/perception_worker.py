@@ -304,6 +304,32 @@ def _packed_rgb24(frame: Any, reformatter: Any) -> bytes:
     )
 
 
+def _preprocessed_model(model: Any, ov: Any, preprocess: Any) -> Any:
+    preprocessing = preprocess.PrePostProcessor(model)
+    preprocessing.input().tensor().set_element_type(ov.Type.u8).set_layout(
+        ov.Layout("NHWC")
+    ).set_color_format(preprocess.ColorFormat.RGB).set_spatial_dynamic_shape()
+    preprocessing.input().preprocess().convert_color(preprocess.ColorFormat.BGR).resize(
+        preprocess.ResizeAlgorithm.RESIZE_LINEAR
+    )
+    preprocessing.input().model().set_layout(ov.Layout("NCHW"))
+    return preprocessing.build()
+
+
+def _inference_batch(
+    pixels: bytes,
+    width: int,
+    height: int,
+    rotation: int,
+    np: Any,
+) -> Any:
+    array = np.frombuffer(pixels, dtype=np.uint8).reshape((height, width, 3))
+    if rotation:
+        array = np.rot90(array, k={90: 3, 180: 2, 270: 1}[rotation])
+    array = np.ascontiguousarray(array)
+    return array.reshape((1, *array.shape))
+
+
 def _file_sha256(path: Path, maximum: int) -> str:
     try:
         metadata = path.stat()
@@ -453,16 +479,8 @@ def _run(arguments: argparse.Namespace) -> dict[str, object]:
     if core.available_devices != ["CPU"]:
         raise _IsolationUnavailable("device")
     model = core.read_model(_MODEL_XML)
-    preprocessing = preprocess.PrePostProcessor(model)
-    preprocessing.input().tensor().set_element_type(ov.Type.u8).set_layout(
-        ov.Layout("NHWC")
-    ).set_color_format(preprocess.ColorFormat.RGB).set_spatial_dynamic_shape()
-    preprocessing.input().preprocess().convert_color(preprocess.ColorFormat.BGR).resize(
-        preprocess.ResizeAlgorithm.RESIZE_LINEAR
-    )
-    preprocessing.input().model().set_layout(ov.Layout("NCHW"))
     compiled = core.compile_model(
-        preprocessing.build(),
+        _preprocessed_model(model, ov, preprocess),
         "CPU",
         {
             "INFERENCE_NUM_THREADS": 4,
@@ -550,11 +568,8 @@ def _run(arguments: argparse.Namespace) -> dict[str, object]:
             pixels = _packed_rgb24(frame, reformatter)
             if len(pixels) != expected_bytes:
                 raise _LimitExceeded("rgb_size")
-            array = np.frombuffer(pixels, dtype=np.uint8).reshape((frame_height, frame_width, 3))
-            if rotation:
-                array = np.rot90(array, k={90: 3, 180: 2, 270: 1}[rotation])
-            array = np.ascontiguousarray(array)
-            output = compiled([array.reshape((1, *array.shape))])[output_port]
+            batch = _inference_batch(pixels, frame_width, frame_height, rotation, np)
+            output = compiled([batch])[output_port]
             selected_frames.append(
                 {
                     "decode_index": str(index),
