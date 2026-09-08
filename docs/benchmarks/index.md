@@ -30,6 +30,9 @@
 - [v0.2 short-term tracking methodology](v0.2-tracking-methodology.md) locks
   source-separated complete-sequence evaluation for issue #24 before test
   inference.
+- [v0.2 short-term tracking results](v0.2-tracking-results.md) selects the
+  global last-box IoU policy, records both passing finalists and their frozen
+  test evidence, and keeps persistent ReID outside the measured boundary.
 
 Version-specific measured implementation baselines are recorded with their
 validation reports: [local video](../research/local-video-source.md),

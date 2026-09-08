@@ -31,7 +31,10 @@
   expert override, plus the
   [v0.2 crop-value result](../benchmarks/v0.2-crop-results.md), which finds
   material tiny-detail value in exact original-resolution crops but rejects
-  eager retention because median crop bytes are 56.25x the detector crop.
+  eager retention because median crop bytes are 56.25x the detector crop, plus
+  the [v0.2 short-term tracking result](../benchmarks/v0.2-tracking-results.md),
+  which selects global last-box IoU association with a 0.10 threshold, five
+  missed 5 FPS samples, and a 0.15 hard-cut threshold.
 
 ## Established facts
 
@@ -66,6 +69,13 @@
   coordinates and retrieve transiently for a declared downstream need; do not
   eagerly retain every crop because median source evidence was 56.25x the
   detector-input crop. No production crop adapter has yet changed.
+- Global last-box IoU is the selected v0.2 short-term tracking policy. On the
+  held-out vehicle fixture it passes every frozen gate at 8,217 HOTA, 8,580
+  IDF1, 8 switches and 24 fragmentations per 1,000 visible track frames, zero
+  false cut continuations, 4.251x real time, and 562.32 MiB peak RSS. Keep
+  identities clip-local, terminate before post-cut association, allow five
+  missed 5 FPS samples, and do not infer persistent ReID. No production tracker
+  adapter has yet changed.
 - ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
   signature-verified FFmpeg 9.0.1 build for the first Linux ingestion slice.
   Hostile decode is isolated and fail-closed; native hostile decode on macOS is
@@ -139,9 +149,10 @@
 
 ## Next priorities
 
-1. Resolve tracking research #24 against the selected detector, sampling, and
-   crop-evidence baselines before selecting shipped adapters.
-2. Decompose roadmap epic #30 into focused implementation issues only after its
-   research thresholds and license boundaries are ratified.
+1. Decompose roadmap epic #30 into focused, reviewable implementation issues
+   using the ratified detector, 5 FPS sampling, on-demand source-crop, and
+   global last-box tracklet boundaries.
+2. Build the smallest end-to-end v0.2 detector/tracklet vertical slice before
+   broadening model, platform, or persistent-identity support.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

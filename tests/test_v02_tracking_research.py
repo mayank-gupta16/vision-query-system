@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+from datetime import date
 from pathlib import Path
 from typing import cast
 
@@ -20,6 +21,7 @@ import run_v02_tracking_benchmark as benchmark  # noqa: E402
 import v02_tracking_metrics as metrics  # noqa: E402
 
 FIXTURE_ROOT = ROOT / "fixtures" / "v02-tracking-research"
+RESULT_ROOT = FIXTURE_ROOT / "results"
 B = (0, 0, 100, 100)
 
 
@@ -840,6 +842,131 @@ def test_committed_calibration_result_and_selection_validate_exactly() -> None:
         )
         == selected
     )
+
+
+def test_published_tracking_results_reproduce_frozen_gate_outputs() -> None:
+    raw_path = RESULT_ROOT / "raw-results.json"
+    raw_bytes = raw_path.read_bytes()
+    raw = cast(dict[str, object], json.loads(raw_bytes))
+    assert hashlib.sha256(raw_bytes).hexdigest() == (
+        "7ffb502f125435a63d50e9f2179419c34b8176e9ab2b19a0fa812f0756bfd3c3"
+    )
+    assert b"/root" not in raw_bytes
+    assert b"P6\n" not in raw_bytes
+    assert raw["phase"] == "test"
+    assert raw["recommended_candidate"] == "global-last-iou"
+
+    provenance = cast(dict[str, object], raw["provenance"])
+    assert provenance["source_revision"] == "4bf8154354dd89a6d34f59b9a90aa8a870c18b8c"
+    assert provenance["calibration_results_sha256"] == (
+        "2fc2b293cc184df5d52ff4a95505d0a1927fe4e6d91faf478c1d617e00e607c0"
+    )
+    assert provenance["calibration_selection_sha256"] == (
+        "82094975e973650dcb4ea3f6152f4b9bbb4c98295d446822ebfb5013c8b8568d"
+    )
+    assert (
+        provenance["evaluation_harness_sha256"]
+        == hashlib.sha256(Path(benchmark.__file__).read_bytes()).hexdigest()
+    )
+    assert (
+        provenance["metric_implementation_sha256"]
+        == hashlib.sha256(Path(metrics.__file__).read_bytes()).hexdigest()
+    )
+
+    candidates = cast(dict[str, dict[str, object]], raw["candidates"])
+    expected_metrics = {
+        "global-last-iou": {
+            "hota_basis_points": {"overall": 8217},
+            "idf1_basis_points": {"overall": 8580},
+            "id_switches_per_1000_track_frames": {"overall": 8},
+            "fragmentations_per_1000_track_frames": {"overall": 24},
+            "false_continuations_across_cuts": {"cuts": 0},
+            "failure_rate_basis_points": {"overall": 0},
+            "real_time_factor_milli": {"overall": 4251},
+            "peak_rss_bytes": {"overall": 589_635_584},
+        },
+        "global-velocity-iou": {
+            "hota_basis_points": {"overall": 8083},
+            "idf1_basis_points": {"overall": 8151},
+            "id_switches_per_1000_track_frames": {"overall": 12},
+            "fragmentations_per_1000_track_frames": {"overall": 24},
+            "false_continuations_across_cuts": {"cuts": 0},
+            "failure_rate_basis_points": {"overall": 0},
+            "real_time_factor_milli": {"overall": 4250},
+            "peak_rss_bytes": {"overall": 589_635_584},
+        },
+    }
+    deterministic_metric_names = {
+        "failure_rate_basis_points",
+        "false_continuations_across_cuts",
+        "fragmentations_per_1000_track_frames",
+        "hota_basis_points",
+        "idf1_basis_points",
+        "id_switches_per_1000_track_frames",
+    }
+    for candidate_name, expected in expected_metrics.items():
+        result = candidates[candidate_name]
+        aggregate = cast(dict[str, object], result["aggregate"])
+        aggregate_metrics = cast(dict[str, dict[str, int]], aggregate["metrics"])
+        for metric_name, strata in expected.items():
+            for stratum, value in strata.items():
+                assert aggregate_metrics[metric_name][stratum] == value
+        repetitions = cast(list[dict[str, object]], result["repetitions"])
+        assert [item["seed"] for item in repetitions] == list(benchmark.SEEDS)
+        assert len({cast(str, item["tracker_output_sha256"]) for item in repetitions}) == 1
+        for metric_name in deterministic_metric_names:
+            assert (
+                len(
+                    {
+                        benchmark._canonical(
+                            cast(dict[str, dict[str, int]], item["metrics"])[metric_name]
+                        )
+                        for item in repetitions
+                    }
+                )
+                == 1
+            )
+
+    policy, policy_sha256 = evaluator.load_policy(
+        ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
+    )
+    dataset, dataset_sha256 = evaluator.load_manifest(
+        FIXTURE_ROOT / "dataset-manifest.json", policy
+    )
+    outputs = cast(dict[str, dict[str, object]], raw["outputs"])
+    passing_results: list[dict[str, object]] = []
+    for candidate_name, result in candidates.items():
+        output = outputs[candidate_name]
+        receipt_path = RESULT_ROOT / cast(str, output["receipt"])
+        receipt_bytes = receipt_path.read_bytes()
+        receipt = cast(dict[str, object], json.loads(receipt_bytes))
+        receipt_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
+        assert receipt_sha256 == output["receipt_sha256"]
+        validated = evaluator.validate_receipt(
+            receipt,
+            policy,
+            policy_sha256,
+            dataset,
+            dataset_sha256,
+        )
+        generated_gate = evaluator.evaluate(
+            policy,
+            validated,
+            baseline=None,
+            baseline_receipt_sha256=None,
+            receipt_sha256=receipt_sha256,
+            as_of=date(2026, 9, 8),
+        )
+        gate_path = RESULT_ROOT / cast(str, output["gate"])
+        gate_bytes = gate_path.read_bytes()
+        assert hashlib.sha256(gate_bytes).hexdigest() == output["gate_sha256"]
+        assert cast(dict[str, object], json.loads(gate_bytes)) == generated_gate
+        assert generated_gate["status"] == output["gate_status"] == "pass"
+        passing_results.append(result)
+    recommended = cast(
+        dict[str, object], min(passing_results, key=benchmark._test_selection_key)["configuration"]
+    )["name"]
+    assert recommended == raw["recommended_candidate"]
 
 
 @pytest.mark.parametrize(
