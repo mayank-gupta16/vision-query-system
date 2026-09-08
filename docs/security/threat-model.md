@@ -34,3 +34,11 @@ shell, GitHub, database, arbitrary filesystem, or unrestricted network tools.
 
 Security issues must convert these controls into tests before their affected
 capability is considered ready. Residual risks and waivers belong in the issue/ADR.
+
+For the v0.2 perception path, hostile video, model XML/BIN, native runtime code,
+and worker stdout/stderr remain inside the composite Linux worker boundary from
+ADR-0007. Only a sealed source descriptor enters and validated pixel-free records
+leave. Root-owned immutable closures, no network/telemetry/shell, bounded streams
+and cgroup resources, whole-job cancellation, cleanup, and redacted stable errors
+are mandatory. Missing closure or isolation capabilities are unsupported, never
+permission to fall back.

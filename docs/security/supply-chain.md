@@ -33,3 +33,19 @@ and a four-lane aggregate application gate. The offline check command does not
 install dependencies. Vulnerability auditing is separately network-enabled and
 submits only public tool package names/versions. No media or model data is sent.
 Runtime package inventory excludes unshipped developer tools and interpreters.
+
+The v0.2 perception closure is governed by
+[ADR-0007](../decisions/ADR-0007-isolated-perception-runtime.md) and the frozen
+[perception manifest](../../workers/perception-runtime-v1.json). It is not an
+application dependency or release payload. Acquisition occurs only through the
+separately invoked standard-library provisioner, from exact allowlisted HTTPS
+URLs, into a private cache with byte-length and SHA-256 verification before any
+archive parsing. Installation re-verifies wheel RECORDs and declared notices,
+rejects paths/links/special files and partial roots, and atomically publishes a
+root-owned read-only closure after file and directory fsync, then fsyncs the
+destination parent. Full-tree verification includes shipped Python bytecode and
+rejects external or dangling symlinks and external hardlinks in both composed
+runtimes. Ordinary application execution stays offline and never resolves or
+downloads dependencies. Only Linux x86_64 with GNU libc 2.28 or newer is
+accepted. Model/runtime redistribution remains denied pending a separate
+complete shipping review.

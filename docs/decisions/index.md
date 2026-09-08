@@ -4,10 +4,11 @@ Architecture Decision Records capture choices with long-lived consequences.
 Use [the template](template.md) and add entries as `ADR-NNNN-short-title.md`.
 
 The project license, application toolchain, Linux media-worker direction,
-ingestion record contracts, local storage/deletion protocol, and v0.2 evaluation
-gates are accepted. No model or production dataset has been approved yet.
-Proposed choices must not be treated as decisions until the ADR status is
-`Accepted`.
+ingestion record contracts, local storage/deletion protocol, v0.2 evaluation
+gates, and separately provisioned Linux perception boundary are accepted. The
+selected vehicle model/runtime may be used only through that private boundary;
+redistribution and production datasets remain unapproved. Proposed choices must
+not be treated as decisions until the ADR status is `Accepted`.
 
 ## Accepted
 
@@ -17,3 +18,4 @@ Proposed choices must not be treated as decisions until the ADR status is
 - [ADR-0004: Ingestion records, identifiers, and rational time](ADR-0004-ingestion-records-identifiers-and-time.md)
 - [ADR-0005: Local metadata, artifacts, recovery, and deletion](ADR-0005-local-storage-and-deletion.md)
 - [ADR-0006: Frozen v0.2 evaluation gates and waivers](ADR-0006-v02-evaluation-gates.md)
+- [ADR-0007: Isolated perception runtime and provisioning boundary](ADR-0007-isolated-perception-runtime.md)

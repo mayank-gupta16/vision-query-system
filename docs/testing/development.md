@@ -49,6 +49,8 @@ not redistribution.
 | `dev.py check` | Lock, Ruff, strict mypy/pytest, application coverage, licenses, repository policy | uv offline/no-sync; checks do not intentionally use network |
 | `dev.py build` | Hash-constrained sdist then wheel, fresh runtime, contents/SBOM, bad-hash control | Exact approved backend wheel if uncached |
 | `dev.py audit` | Hashed lock export and pip-audit without pip resolution | Public dependency names/versions and advisory service |
+| `provision_perception_runtime.py fetch` | Explicitly acquire the six frozen v0.2 perception artifacts | Exact upstream GitHub, PyPI-file, and Open Model Zoo artifact URLs |
+| Other perception provisioner commands | Validate, install, or attest an already acquired private closure | None |
 
 The wrapper clears inherited `UV_*`, `PIP_*`, Python-path/home overrides and
 virtual-environment selectors before setting private paths. Do not use untrusted
@@ -66,6 +68,41 @@ An offline uv flag is not an OS network sandbox; hostile-media boundaries belong
 to the media ADR. The 90% coverage floor measures application source with branch
 tracking. Tooling tests provide separate regression evidence, not inflated
 application coverage.
+
+## Separately provisioned perception runtime
+
+The v0.2 application does not download, resolve, package, or redistribute its
+model/native perception closure. On a supported Linux x86_64 host with GNU libc
+2.28 or newer, an administrator may explicitly provision the exact ADR-0007
+closure from a trusted checkout:
+
+```sh
+python3 scripts/provision_perception_runtime.py verify-manifest
+sudo install -d -m 0700 /var/lib/visualworld/perception-cache
+sudo python3 scripts/provision_perception_runtime.py fetch \
+  --cache-root /var/lib/visualworld/perception-cache
+sudo python3 scripts/provision_perception_runtime.py verify-cache \
+  --cache-root /var/lib/visualworld/perception-cache
+sudo python3 scripts/provision_perception_runtime.py install \
+  --cache-root /var/lib/visualworld/perception-cache \
+  --runtime-root /opt/visualworld-perception-0201-v1
+sudo python3 scripts/provision_perception_runtime.py verify-runtime \
+  --runtime-root /opt/visualworld-perception-0201-v1 \
+  --media-runtime-root /opt/visualworld-runtime-probe-v2
+```
+
+Only `fetch` enables network access. Completed artifacts are verified and reused
+on retry; partial downloads are never promoted. `install` requires root so the
+published runtime is root-owned and non-writable by the worker. It never
+overwrites an existing incomplete root. `verify-runtime` checks both perception
+and media manifests, tree hashes, ownership, permissions, notices, platform, and
+completion receipt before the closure is eligible for execution. A cache or
+runtime path must be absolute and explicitly operator-selected; worker or media
+data can never choose it. The cache and installed closure are local operational
+state, not files to copy into Git, a VisualWorld release, container, or installer.
+The accepted media root is the sanitized
+`visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2` closure; `v1` is retired because it
+contained an interpreter symlink to an unbound host toolchain.
 
 Build output goes to fresh ignored `artifacts/build-*` directories with exact
 sizes/hashes printed. Runtime-only CycloneDX 1.6 inventory comes from the newly
@@ -99,10 +136,10 @@ The Linux-only local-video acceptance command requires the accepted root-owned
 media runtime and its reviewed worker installed inside that runtime:
 
 ```sh
-PYTHONPATH=src /opt/visualworld-runtime-probe/python/bin/python3.13 \
+PYTHONPATH=src /opt/visualworld-runtime-probe-v2/python/bin/python3.13 \
   scripts/run_media_acceptance.py \
-  --runtime /opt/visualworld-runtime-probe \
-  --worker /opt/visualworld-runtime-probe/worker/media_worker.py \
+  --runtime /opt/visualworld-runtime-probe-v2 \
+  --worker /opt/visualworld-runtime-probe-v2/worker/media_worker.py \
   --work-root /private/visualworld-validation \
   --output /private/visualworld-validation/media-acceptance.json
 ```
@@ -116,10 +153,10 @@ The exact-PTS sampler acceptance reuses that runtime and the same generated
 fixtures:
 
 ```sh
-PYTHONPATH=src /opt/visualworld-runtime-probe/python/bin/python3.13 \
+PYTHONPATH=src /opt/visualworld-runtime-probe-v2/python/bin/python3.13 \
   scripts/run_sampling_acceptance.py \
-  --runtime /opt/visualworld-runtime-probe \
-  --worker /opt/visualworld-runtime-probe/worker/media_worker.py \
+  --runtime /opt/visualworld-runtime-probe-v2 \
+  --worker /opt/visualworld-runtime-probe-v2/worker/media_worker.py \
   --work-root /private/visualworld-validation \
   --output /private/visualworld-validation/sampling-acceptance.json
 ```

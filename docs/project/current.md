@@ -18,7 +18,9 @@
   hostile-input/no-egress boundaries, plus strict pixel-free v0.2 Observation
   and clip-local Tracklet records and bounded Detector, Tracker, and
   EvidenceSelector contracts with deterministic fakes, and a pinned combined
-  CPU-LITE benchmark harness with machine-readable comparison
+  CPU-LITE benchmark harness with machine-readable comparison, plus an accepted
+  separately provisioned Linux x86_64/GNU-libc-2.28+ perception boundary with a
+  frozen artifact/runtime manifest and standard-library fail-closed provisioner
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -27,8 +29,9 @@
   regression-suite cost, plus the
   [combined 60-second application baseline](../benchmarks/v0.1-cpu-lite-baseline.md)
   and the [v0.2 detector/runtime selection](../benchmarks/v0.2-detection-results.md),
-  which chooses `vehicle-detection-0201` at confidence 0.95 as an evaluation-only
-  baseline, plus the [v0.2 sampling result](../benchmarks/v0.2-sampling-results.md),
+  which chooses `vehicle-detection-0201` at confidence 0.95 as the separately
+  provisioned Linux baseline, plus the
+  [v0.2 sampling result](../benchmarks/v0.2-sampling-results.md),
   which chooses fixed nearest-PTS 5 FPS and keeps fixed 8 FPS as a bounded
   expert override, plus the
   [v0.2 crop-value result](../benchmarks/v0.2-crop-results.md), which finds
@@ -57,9 +60,10 @@
   a universal lock with wheel-only installs for Linux x86_64 and macOS arm64,
   zero initial runtime dependencies, and a forced hash-verified PEP 517
   packaging lane.
-  `vehicle-detection-0201` with OpenVINO 2026.3.1 is the selected v0.2
-  evaluation baseline; product model/runtime distribution and production data
-  remain unresolved.
+  `vehicle-detection-0201` with OpenVINO 2026.3.1 is the selected v0.2 baseline.
+  ADR-0007 approves it only as a user-provisioned private Linux x86_64 GNU libc
+  2.28-or-newer closure;
+  product redistribution and production data remain unapproved.
 - Fixed nearest-PTS 5 FPS is the selected v0.2 sampling evaluation default. The
   measured 3-to-8 FPS tile-motion strategy is not selected because it consumed
   53.3% more samples without improving a gate metric. Fixed 8 FPS is reserved
@@ -78,11 +82,14 @@
   identities clip-local, terminate before post-cut association, allow five
   missed 5 FPS samples, and do not infer persistent ReID. No production tracker
   adapter has yet changed.
-- ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
-  signature-verified FFmpeg 9.0.1 build for the first Linux ingestion slice.
-  Hostile decode is isolated and fail-closed; native hostile decode on macOS is
-  intentionally unsupported until a validated boundary exists. No media runtime
-  has yet been added to the root package.
+- ADR-0003 accepts the source-built
+  `visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2` worker closure for the first Linux
+  ingestion slice. The minimal signature-verified FFmpeg build, CPython, PyAV,
+  and worker are fully tree-bound; development files, external links, and
+  multiply linked files are excluded. Hostile decode is isolated and
+  fail-closed; native hostile decode on macOS is intentionally unsupported
+  until a validated boundary exists. No media runtime has been added to the
+  root package.
 - ADR-0004 accepts strict versioned JSON ingestion records, typed SHA-256-based
   identifiers, exact rational PTS with measured/estimated provenance,
   original-pixel geometry, and explicit migration and untrusted-field limits.
@@ -103,6 +110,12 @@
   values. A combined public experimental record dispatcher is additive while
   the v0.1 WorldStore union remains unchanged; native runtimes, pixels,
   persistence, and concrete policies remain in later v0.2 issues.
+- ADR-0007 freezes the exact selected model, CPython/OpenVINO/NumPy/telemetry
+  closure, notices, media-runtime linkage, worker limits, platform, and
+  no-redistribution status. Its explicit provisioner is the only acquisition
+  path; it hash-verifies and atomically publishes a root-owned read-only closure.
+  Normal application execution remains offline. The bounded detector worker and
+  adapter remain assigned to issue #73.
 - PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
   exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
   cursor-based bounded-page resume.
@@ -160,10 +173,10 @@
 
 ## Next priorities
 
-1. Complete the isolated perception runtime/artifact decision in #71 and the
-   deterministic clip-local tracker in #72 against the new v0.2 contracts.
-2. Continue the #30 critical path through the bounded detector, evidence
+1. Complete the deterministic clip-local tracker in #72 and bounded detector in
+   #73 against the v0.2 contracts and accepted perception boundary.
+2. Continue the #30 critical path through evidence
    selector, storage, coordinator, CLI, regressions, benchmark, and release
-   issues #73–#80 before broadening model, platform, or identity support.
+   issues #74–#80 before broadening model, platform, or identity support.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

@@ -62,9 +62,9 @@ _BWRAP = Path("/usr/bin/bwrap")
 _CGROUP_ROOT = Path("/sys/fs/cgroup")
 _RUNTIME_MANIFEST_NAME = "visualworld-runtime.json"
 _APPROVED_RUNTIME_MANIFEST_SHA256 = (
-    "0f2c6c1ece67c35ca5cd52a97f1b5bcb632903b85fa024915e9d94cfe35276c4"
+    "58cf6f64280888ecc01c647044c38b9b56f197389b6bfc7ead7fbbe93a52ba32"
 )
-_APPROVED_RUNTIME_TREE_SHA256 = "24bd6fd652619b2189fc95a8fc1d97789bf6e90e7c5c0cba9b434e26eeca6b43"
+_APPROVED_RUNTIME_TREE_SHA256 = "7015262cd5dfdfd976d6ee092f0f93541597ea35e0331c3abb9ce6d4c54daeaf"
 _APPROVED_RUNTIME_WORKER = Path("worker/media_worker.py")
 
 
@@ -202,6 +202,15 @@ def _trusted_regular(path: Path) -> bool:
     )
 
 
+def _trusted_single_link_regular(path: Path) -> bool:
+    if not _trusted_regular(path):
+        return False
+    try:
+        return path.lstat().st_nlink == 1
+    except OSError:
+        return False
+
+
 def _trusted_directory(path: Path) -> bool:
     try:
         metadata = path.lstat()
@@ -237,6 +246,19 @@ def _digest_field(digest: Any, value: bytes) -> None:
     digest.update(value)
 
 
+def _runtime_internal_symlink(root: Path, path: Path) -> bool:
+    try:
+        link_text = os.readlink(path)
+        if not link_text or "\\" in link_text or PurePosixPath(link_text).is_absolute():
+            return False
+        resolved_root = root.resolve(strict=True)
+        resolved = path.resolve(strict=True)
+        resolved.relative_to(resolved_root)
+    except (OSError, RuntimeError, ValueError):
+        return False
+    return resolved.is_file()
+
+
 def _runtime_tree_digest(root: Path) -> str | None:
     digest = hashlib.sha256()
     try:
@@ -251,6 +273,8 @@ def _runtime_tree_digest(root: Path) -> str | None:
             if metadata.st_uid != 0:
                 return None
             if stat.S_ISLNK(metadata.st_mode):
+                if not _runtime_internal_symlink(root, path):
+                    return None
                 kind = b"link"
                 payload = os.fsencode(os.readlink(path))
             elif stat.S_ISDIR(metadata.st_mode):
@@ -259,7 +283,7 @@ def _runtime_tree_digest(root: Path) -> str | None:
                 kind = b"directory"
                 payload = b""
             elif stat.S_ISREG(metadata.st_mode):
-                if mode & 0o022 != 0:
+                if mode & 0o022 != 0 or metadata.st_nlink != 1:
                     return None
                 kind = b"file"
                 payload = f"{metadata.st_size}:{_file_sha256(path)}".encode("ascii")
@@ -276,7 +300,7 @@ def _runtime_manifest_valid(runtime: MediaRuntime) -> bool:
     manifest = runtime.root / _RUNTIME_MANIFEST_NAME
     if runtime.worker != runtime.root / _APPROVED_RUNTIME_WORKER:
         return False
-    if not _trusted_regular(manifest):
+    if not _trusted_single_link_regular(manifest):
         return False
     try:
         manifest_digest = _file_sha256(manifest)
