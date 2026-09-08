@@ -42,3 +42,13 @@ leave. Root-owned immutable closures, no network/telemetry/shell, bounded stream
 and cgroup resources, whole-job cancellation, cleanup, and redacted stable errors
 are mandatory. Missing closure or isolation capabilities are unsupported, never
 permission to fall back.
+
+The production detector enforces that boundary before each launch and again at
+the worker protocol: the source snapshot must match the declared digest/size;
+runtime, model, manifest, and first-party worker hashes must match; decoded frame
+identity/time and stream geometry must match the requested records; and every
+output field is exact-type, bounded, canonical, vehicle-only, and pixel/path-free.
+Independent stdout/stderr limits, wall timeout, cancellation, and whole-cgroup
+cleanup cover hostile or wedged descendants. OpenVINO thread creation is allowed
+only inside the fixed task/process/cgroup limits; network, execution, namespace,
+mount, tracing, kernel-module, and BPF syscalls remain denied.

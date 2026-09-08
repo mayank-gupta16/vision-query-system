@@ -57,3 +57,11 @@ read-only mounts, non-root/no-new-privileges execution, seccomp, Landlock, and
 bounded CPU/RSS/task/output/time limits. Linux x86_64 with GNU libc 2.28 or newer
 and CPU inference is the only supported path; there is no native or ordinary-
 subprocess fallback elsewhere.
+
+The implemented detector additionally rechecks the sealed snapshot digest and
+byte count against the caller's `Source` record, decodes only the requested
+bounded frame indices, and validates exact frame identity, PTS, duration, stream,
+rotation, runtime identity, model/worker hashes, and the worker's isolation probes
+before publishing an `Observation`. OpenVINO-required threads remain subject to
+the cgroup task limit; seccomp continues to deny networking and new namespace,
+process-execution, mount, tracing, module, and BPF capabilities.

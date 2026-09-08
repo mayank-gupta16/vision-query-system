@@ -34,10 +34,11 @@ from typing import IO, Any, NoReturn, TextIO, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "workers" / "perception-runtime-v1.json"
+DEFAULT_APPLICATION_WORKER = ROOT / "workers" / "perception_worker.py"
 INSTALL_MANIFEST_NAME = "perception-runtime-manifest.json"
 INSTALL_RECEIPT_NAME = "visualworld-perception-runtime.json"
 _APPROVED_CANONICAL_MANIFEST_SHA256 = (
-    "5272975903b925390df285b2175e5d551fbf05e7dcf5c716c8520c24e82bc639"
+    "7c658028266f92f94c388b24fc5f122162182362a58a9997c0255931926ba29d"
 )
 _MAX_MANIFEST_BYTES = 256 * 1024
 _MAX_MEMBER_BYTES = 128 * 1024 * 1024
@@ -55,6 +56,7 @@ _ALLOWED_DOWNLOAD_HOSTS = frozenset(
 )
 _TOP_LEVEL_FIELDS = frozenset(
     {
+        "application_worker",
         "artifacts",
         "closure",
         "distribution",
@@ -279,6 +281,16 @@ def validate_manifest(value: object) -> dict[str, Any]:
     ):
         _fail("invalid_manifest")
 
+    application_worker = _mapping(manifest["application_worker"])
+    _expect_fields(application_worker, {"install_path", "license_expression", "sha256"})
+    if (
+        _safe_relative_path(application_worker["install_path"]).as_posix()
+        != "worker/perception_worker.py"
+        or application_worker["license_expression"] != "Apache-2.0"
+    ):
+        _fail("invalid_manifest")
+    _sha256_text(application_worker["sha256"])
+
     support = _mapping(manifest["support"])
     if support != {
         "architecture": "x86_64",
@@ -327,6 +339,8 @@ def validate_manifest(value: object) -> dict[str, Any]:
         "input_width": 384,
         "model_layout": "NCHW",
         "num_streams": 1,
+        "output_coordinate_scale": 1000000,
+        "output_coordinate_space": "normalized_millionths",
         "performance_hint": "LATENCY",
         "resize": "OpenVINO RESIZE_LINEAR",
         "threads": 4,
@@ -1102,6 +1116,7 @@ def _expected_receipt(manifest: Mapping[str, Any], manifest_sha256: str) -> dict
     artifacts = cast(list[dict[str, Any]], manifest["artifacts"])
     closure = cast(dict[str, Any], manifest["closure"])
     return {
+        "application_worker_sha256": cast(dict[str, Any], manifest["application_worker"])["sha256"],
         "artifacts": {artifact["name"]: artifact["sha256"] for artifact in artifacts},
         "complete": True,
         "manifest_sha256": manifest_sha256,
@@ -1260,6 +1275,17 @@ def install_runtime(
                 [artifacts[name] for name in _MODEL_NAMES],
                 staging / "model",
             )
+            application_worker = cast(dict[str, Any], manifest["application_worker"])
+            worker_raw = _read_regular(
+                DEFAULT_APPLICATION_WORKER,
+                maximum=1024 * 1024,
+                code="application_worker_invalid",
+                single_link=True,
+            )
+            if _sha256_bytes(worker_raw) != application_worker["sha256"]:
+                _fail("application_worker_invalid")
+            worker_path = _safe_relative_path(application_worker["install_path"])
+            _write_exclusive(staging.joinpath(*worker_path.parts), worker_raw)
             closure = cast(dict[str, Any], manifest["closure"])
             if (
                 _tree_sha256(staging / "python", normalize_python_root=True)
@@ -1344,6 +1370,7 @@ def verify_installed_runtime(
         "model",
         "python",
         "site-packages",
+        "worker",
         INSTALL_MANIFEST_NAME,
         INSTALL_RECEIPT_NAME,
     }:
@@ -1375,6 +1402,16 @@ def verify_installed_runtime(
         or _tree_sha256(runtime_root / "model") != closure["model_tree_sha256"]
         or _logical_size(runtime_root / "site-packages") != closure["site_packages_logical_bytes"]
     ):
+        _fail("installed_runtime_invalid")
+    application_worker = cast(dict[str, Any], manifest["application_worker"])
+    worker_path = _safe_relative_path(application_worker["install_path"])
+    worker_raw = _read_regular(
+        runtime_root.joinpath(*worker_path.parts),
+        maximum=1024 * 1024,
+        code="installed_runtime_invalid",
+        single_link=True,
+    )
+    if _sha256_bytes(worker_raw) != application_worker["sha256"]:
         _fail("installed_runtime_invalid")
     executable = _resolved_inside(
         runtime_root / "python", runtime_root / "python" / "bin" / "python3"

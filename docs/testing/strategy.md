@@ -16,6 +16,12 @@ still require GitHub network access and the hosted image can receive patches. It
 never downloads large weights. Real-model/GPU benchmarks are
 manual, scheduled, or release-triggered and publish complete provenance.
 
+The frozen perception worker also has dependency-free generated asymmetric-pixel
+oracles for packed RGB rows, every quarter-turn, contiguous NHWC batching, and
+the exact RGB-to-BGR linear-resize/NHWC-to-NCHW OpenVINO configuration. Source
+geometry goldens begin from normalized model coordinates so they detect premature
+384-grid rounding as well as rotation, clipping, and letterbox drift.
+
 The version-1 `VideoSource`, `FrameSampler`, `EvidenceStore`, and `WorldStore`
 fakes are instrumented in memory. Their shared contract tests monkeypatch shell,
 network, filesystem, and SQL entry points to prove ordinary fake orchestration

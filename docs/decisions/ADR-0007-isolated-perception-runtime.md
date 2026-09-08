@@ -30,8 +30,11 @@ trusted parent opens an authorized bounded local video beneath its configured
 source root, seals the snapshot, and passes only the inherited read-only file
 descriptor. Decode, transient RGB24 frames, 384x384 preprocessing, and OpenVINO
 inference remain inside the worker. Only bounded canonical JSON containing
-pixel-free observation fields may return. Pixels, vendor objects, paths, model
-bytes, and arbitrary worker text do not cross the boundary.
+pixel-free observation fields may return. Model boxes cross as integer normalized
+millionths, then `DetectorTransform` maps them to the encoded source and rounds
+outward once; quantizing to the 384-pixel input grid first is prohibited. Pixels,
+vendor objects, paths, model bytes, and arbitrary worker text do not cross the
+boundary.
 
 The worker composes the accepted root-owned PyAV 18.1.0/minimal FFmpeg 9.0.1
 media runtime `visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2` from ADR-0003 with the
@@ -47,15 +50,16 @@ subprocess fallback.
 The exact product lock is
 [`workers/perception-runtime-v1.json`](../../workers/perception-runtime-v1.json),
 raw SHA-256
-`4f507b126afa9c31723f462d79fa6329f188936b0633a03ba878edca53609d36`.
+`0feb184e4dff58a728aeb34e155af278da5df2705d27a8a6d43fe0f7b9bd7599`.
 It binds:
 
 - the CPython 3.13.15 python-build-standalone 20260825 archive, raw extracted
   interpreter tree, executable, version, source revision, size, URL, license,
   and known incomplete redistribution notices;
-- the exact OpenVINO 2026.3.1, NumPy 2.5.3, and openvino-telemetry 2025.2.0
-  wheels, including their RECORD-verified notice files and the notice-derived
-  bundled-component/license-expression inventory;
+- the exact OpenVINO build
+  `2026.3.1-22476-759c5a6ab8c-releases/2026/3`, NumPy 2.5.3, and
+  openvino-telemetry 2025.2.0 wheels, including their RECORD-verified notice
+  files and the notice-derived bundled-component/license-expression inventory;
 - the selected model XML/BIN, pinned Open Model Zoo revision, byte sizes,
   hashes, URLs, format, and external license evidence;
 - the issue #21 uv-managed Python and runtime closure hashes as evaluation
@@ -63,6 +67,9 @@ It binds:
   `5859db2175bcf154586052d891f7e4f06cfb6b38cea5c62ac625c7d7aa961530`;
 - the accepted media-runtime identity and manifest/tree hashes, inference
   configuration, platform, policy, distribution status, and worker limits.
+- the first-party Apache-2.0 composite worker installed at
+  `worker/perception_worker.py`, SHA-256
+  `674e1748b1bdc84db711db71e05a2fdfd73bcdeeecc16800e209727a99b47f2e`.
 
 Provisioning is an administrator-invoked operation separate from application
 execution. The standard-library-only
@@ -93,6 +100,16 @@ streams, treats any malformed, oversized, crash, timeout, or unexpected stderr
 result as a structured redacted failure, kills the whole cgroup on failure or
 cancellation, waits for descendant cleanup, and does not expose worker text in
 logs or exception chains.
+
+The implemented worker permits the thread-creation syscalls OpenVINO/oneTBB
+requires, under the 1,024-task cgroup and process limits, while seccomp denies
+socket, process-execution, namespace, mount, tracing, module, BPF, and related
+ambient-capability syscalls. Bubblewrap exposes only the two immutable runtimes,
+fixed host loader libraries/cache, read-only CPU/NUMA/kernel-memory topology,
+an isolated `/proc`, an isolated `/dev`, and a 32 MiB temporary filesystem.
+Landlock independently restricts file reads/execution to the required runtime,
+loader, topology, and `/proc` paths; an internal canary confirms other paths are
+denied before inference.
 
 `OPENVINO_TELEMETRY_CONSENT=NO` is the only accepted telemetry setting, and the
 network namespace remains unshared even if a dependency ignores it. Remote code,

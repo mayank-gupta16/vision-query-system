@@ -45,7 +45,10 @@ rejects paths/links/special files and partial roots, and atomically publishes a
 root-owned read-only closure after file and directory fsync, then fsyncs the
 destination parent. Full-tree verification includes shipped Python bytecode and
 rejects external or dangling symlinks and external hardlinks in both composed
-runtimes. Ordinary application execution stays offline and never resolves or
-downloads dependencies. Only Linux x86_64 with GNU libc 2.28 or newer is
-accepted. Model/runtime redistribution remains denied pending a separate
-complete shipping review.
+runtimes. The manifest also hashes the reviewed first-party composite worker;
+installation copies that exact file into the immutable root, records its digest
+in the completion receipt, and every application launch verifies it again.
+Ordinary application execution stays offline and never resolves or downloads
+dependencies. Only Linux x86_64 with GNU libc 2.28 or newer is accepted.
+Model/runtime redistribution remains denied pending a separate complete shipping
+review.
