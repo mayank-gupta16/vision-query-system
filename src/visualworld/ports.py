@@ -24,7 +24,7 @@ from visualworld.ingestion import (
     TimeBase,
     dumps_record,
 )
-from visualworld.perception import Observation, Tracklet
+from visualworld.perception import FrameDiscontinuity, Observation, Tracklet
 
 MAX_PORT_BATCH_ITEMS = 64
 MAX_PERCEPTION_OBSERVATIONS = MAX_PORT_BATCH_ITEMS * MAX_PORT_BATCH_ITEMS
@@ -294,6 +294,8 @@ class Tracker(Protocol):
         source: Source,
         frames: tuple[FrameRef, ...],
         observations: tuple[Observation, ...],
+        *,
+        discontinuities: tuple[FrameDiscontinuity, ...] | None = None,
     ) -> TrackingResult: ...
 
 
@@ -659,6 +661,33 @@ def _perception_observations(
     return by_id
 
 
+def _perception_discontinuities(
+    frames: tuple[FrameRef, ...],
+    discontinuities: tuple[FrameDiscontinuity, ...] | None,
+    port: PortKind,
+    operation: str,
+) -> None:
+    if discontinuities is None:
+        return
+    if type(discontinuities) is not tuple or len(discontinuities) != len(frames):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    if not all(type(item) is FrameDiscontinuity for item in discontinuities):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    try:
+        for item in discontinuities:
+            FrameDiscontinuity.__post_init__(item)
+    except (TypeError, ValueError):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation) from None
+    if any(
+        item.source_id != frame.source_id
+        or item.frame_id != frame.frame_id
+        or item.stream_index != frame.stream_index
+        or item.pts != frame.pts
+        for item, frame in zip(discontinuities, frames, strict=True)
+    ):
+        raise _port_error(PortErrorCode.CONFLICT, port, operation)
+
+
 class FakeDetector(_InstrumentedFake):
     def __init__(self, result: DetectionResult) -> None:
         if type(result) is not DetectionResult:
@@ -695,8 +724,16 @@ class FakeTracker(_InstrumentedFake):
         source: Source,
         frames: tuple[FrameRef, ...],
         observations: tuple[Observation, ...],
+        *,
+        discontinuities: tuple[FrameDiscontinuity, ...] | None = None,
     ) -> TrackingResult:
         by_frame = _perception_frames(source, frames, PortKind.TRACKER, "track")
+        _perception_discontinuities(
+            frames,
+            discontinuities,
+            PortKind.TRACKER,
+            "track",
+        )
         by_observation = _perception_observations(
             source,
             by_frame,

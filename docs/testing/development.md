@@ -69,6 +69,21 @@ to the media ADR. The 90% coverage floor measures application source with branch
 tracking. Tooling tests provide separate regression evidence, not inflated
 application coverage.
 
+The dependency-free tracker contract and frozen research handoff can be checked
+without provisioning either native runtime:
+
+```sh
+uv run --frozen --no-sync --offline pytest -q \
+  tests/test_perception.py \
+  tests/test_perception_ports.py \
+  tests/test_tracking.py \
+  tests/test_v02_tracking_research.py
+```
+
+The production-oracle test replays all ten pixel-free representative held-out
+sequences from the committed v0.2 result and requires identical observation
+partitions and termination counts. It performs no inference and reads no media.
+
 ## Separately provisioned perception runtime
 
 The v0.2 application does not download, resolve, package, or redistribute its

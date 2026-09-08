@@ -118,17 +118,39 @@ measured boundary distinct from a measured frame with no vehicle.
 The stable `Detector` operation passes source and frame references, not pixels,
 paths, model tensors, or vendor objects. A later production adapter owns its
 authorized decode/inference boundary internally. `Tracker` and
-`EvidenceSelector` receive only versioned pixel-free domain values. All three
-ports use the existing capability/error/instrumentation contract and have
-offline deterministic fakes for ordinary orchestration, recovery, security,
-and adapter-substitution tests. Fake detector and tracker boundaries verify
-unique frame positions, frame PTS/duration time bases against the selected
-source stream, and observation geometry dimensions against that stream.
+`EvidenceSelector` receive only versioned pixel-free domain values. `Tracker`
+may also receive one `FrameDiscontinuity` score per frame; the RGB24 scoring
+utility runs transiently outside the port, and neither pixels nor source paths
+cross the tracking boundary. All three ports use the existing
+capability/error/instrumentation contract and have offline deterministic fakes
+for ordinary orchestration, recovery, security, and adapter-substitution tests.
+Fake detector and tracker boundaries verify unique frame positions, frame
+PTS/duration time bases against the selected source stream, and observation
+geometry dimensions against that stream.
 
-The initial operation is deliberately bounded to 64 frames and 64 points in
-one completed tracklet. A detector/tracker frame batch may carry at most 4,096
-observations so the bound still represents the frozen six-object tracking
-fixture. Longer clips, tracker continuation state, native artifact provisioning,
-concrete tracking and evidence ranking, persistence, and coordination belong to
-issues #71–#76; an adapter cannot hide those behaviors behind an implementation
-name.
+`visualworld.tracking.GlobalLastBoxTracker` is the first concrete `Tracker`.
+For the measured vehicle/5-FPS boundary it performs exact global
+maximum-total-IoU assignment against each active track's last detector-supported
+box, applies the frozen 0.10 IoU threshold, tolerates five misses, and terminates
+on the sixth. A discontinuity score of at least 1,500 basis points terminates
+active tracklets before post-cut association. Missing discontinuity scores
+return `unknown`; other categories and sampling rates return `unsupported`.
+Deterministic IDs are source-clip-local and never imply persistent ReID.
+
+Its `track_page` extension carries bounded active state in an opaque immutable
+cursor, preserving association across page boundaries without hidden progress
+state or a fabricated page termination. The cursor owns deep snapshots of and
+binds the source, stream, time base, limits, exact last position, active
+detector-supported trajectories, miss counts, and bounded diagnostics. A keyed
+integrity seal binds it to the tracker instance that issued it, so altered or
+cross-instance cursors fail closed. End-of-stream finalization is explicit;
+cancelled or invalid calls publish neither a call record nor continuation state.
+
+The stable operation remains bounded to 64 frames and 64 points in one completed
+tracklet. A detector/tracker frame batch may carry at most 4,096 observations so
+the bound still represents the frozen six-object tracking fixture. The concrete
+tracker extension can resume longer clips across bounded pages, but it still
+fails closed if one uninterrupted trajectory exceeds the record's 64-point
+limit. Native detector execution, evidence ranking, perception persistence, and
+coordination remain assigned to issues #73–#76; an adapter cannot hide those
+behaviors behind an implementation name.
