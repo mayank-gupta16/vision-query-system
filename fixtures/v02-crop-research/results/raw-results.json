@@ -62,7 +62,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -241,11 +241,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 28322,
-          "detector_crop_wall_ns_median": 30113,
+          "detector_crop_cpu_ns_median": 36921,
+          "detector_crop_wall_ns_median": 39714,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1499861,
-          "original_crop_wall_ns_median": 1504070
+          "original_crop_cpu_ns_median": 1515413,
+          "original_crop_wall_ns_median": 1521003
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -273,7 +273,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -960,11 +960,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 27772,
-          "detector_crop_wall_ns_median": 29414,
+          "detector_crop_cpu_ns_median": 29866,
+          "detector_crop_wall_ns_median": 32609,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1503592,
-          "original_crop_wall_ns_median": 1507812
+          "original_crop_cpu_ns_median": 1508946,
+          "original_crop_wall_ns_median": 1515308
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -992,7 +992,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -1173,11 +1173,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 28403,
-          "detector_crop_wall_ns_median": 30601,
+          "detector_crop_cpu_ns_median": 29287,
+          "detector_crop_wall_ns_median": 31898,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1518514,
-          "original_crop_wall_ns_median": 1523369
+          "original_crop_cpu_ns_median": 1518615,
+          "original_crop_wall_ns_median": 1523859
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -1205,7 +1205,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -1386,11 +1386,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 28084,
-          "detector_crop_wall_ns_median": 29698,
+          "detector_crop_cpu_ns_median": 30392,
+          "detector_crop_wall_ns_median": 32413,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1503071,
-          "original_crop_wall_ns_median": 1507616
+          "original_crop_cpu_ns_median": 1539079,
+          "original_crop_wall_ns_median": 1544217
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -1418,7 +1418,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -1599,18 +1599,18 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 27893,
-          "detector_crop_wall_ns_median": 30118,
+          "detector_crop_cpu_ns_median": 52862,
+          "detector_crop_wall_ns_median": 66516,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1501885,
-          "original_crop_wall_ns_median": 1506544
+          "original_crop_cpu_ns_median": 2457268,
+          "original_crop_wall_ns_median": 2467455
         },
         "failed_item_count": 0,
         "failure_code": null,
         "item_results_sha256": "3a6878c8cf650c58caf321575b3a818e17aa7194ccca061c16dd4f20e1ce6dc7",
         "metrics": {
           "crop_wall_ms": {
-            "overall": 2
+            "overall": 3
           },
           "evidence_bytes_per_crop": {
             "overall": 777600
@@ -1631,7 +1631,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -1671,13 +1671,13 @@
     },
     "runtime_closure_sha256": "a9a88faf3d396da4f7264b2da51dafd5331c8c653a2143e9bbb59285c0ff0306"
   },
-  "evaluated_on": "2026-09-07",
+  "evaluated_on": "2026-09-08",
   "outputs": {
     "gate": "original-source-rgb24-gate.json",
-    "gate_sha256": "1e96a0d1833170df44001f8eb9cc699698f6cb67705298d83d148ef929369e5b",
+    "gate_sha256": "361427ee78fbebc9c3d171d261efe56d2ec171044bbd69957af97bbe9aea9611",
     "gate_status": "pass",
     "receipt": "original-source-rgb24-receipt.json",
-    "receipt_sha256": "51e2d2ac6da1a99dcc5e5ff4e5d578baac13a9700fbd7aedc496da4801c7e4bb"
+    "receipt_sha256": "bca5b2ac9d8d5aa57d571be61935981a8bcd5ede729a607a42504a97d66f3dd5"
   },
   "provenance": {
     "annotation_lock_sha256": "dd1c8baf4542c8a5f278dc08bb3eea08a049987ac9d6df08a6f7ec2977429b7e",
@@ -1686,11 +1686,11 @@
     "detection_candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
     "detection_source_annotation_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
     "detection_source_manifest_sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66",
-    "evaluation_harness_sha256": "e150d8d431001a762447aa2f285ddcd27ac29a6f904db930f94627f3fa085deb",
+    "evaluation_harness_sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
     "geometry_sha256": "1eee4ef653e03cf4e04425eb9b117861eaf80ef07574e9de17f20990d631f315",
     "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
     "source_manifest_sha256": "77f8d845dabed77b584a72681f9910de6392e324144638fa9730e0e5c59235a2",
-    "source_revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03"
+    "source_revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5"
   },
   "schema": "visualworld.v02-crop-raw-results",
   "schema_version": 1,
@@ -1757,7 +1757,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -1936,18 +1936,18 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 29398,
-          "detector_crop_wall_ns_median": 31237,
+          "detector_crop_cpu_ns_median": 34899,
+          "detector_crop_wall_ns_median": 38596,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1523538,
-          "original_crop_wall_ns_median": 1527707
+          "original_crop_cpu_ns_median": 2018081,
+          "original_crop_wall_ns_median": 2024877
         },
         "failed_item_count": 0,
         "failure_code": null,
         "item_results_sha256": "679a0fd1391c7b4a3ce795210274187581e040d5759c9e2d2dc7f4b2dcf46f09",
         "metrics": {
           "crop_wall_ms": {
-            "overall": 2
+            "overall": 3
           },
           "evidence_bytes_per_crop": {
             "overall": 777600
@@ -1968,7 +1968,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -2907,11 +2907,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 29282,
-          "detector_crop_wall_ns_median": 37184,
+          "detector_crop_cpu_ns_median": 29761,
+          "detector_crop_wall_ns_median": 31875,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1524159,
-          "original_crop_wall_ns_median": 1529416
+          "original_crop_cpu_ns_median": 1531872,
+          "original_crop_wall_ns_median": 1537835
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -2939,7 +2939,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -3120,11 +3120,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 30316,
-          "detector_crop_wall_ns_median": 32600,
+          "detector_crop_cpu_ns_median": 29374,
+          "detector_crop_wall_ns_median": 31496,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1558278,
-          "original_crop_wall_ns_median": 1565605
+          "original_crop_cpu_ns_median": 1524193,
+          "original_crop_wall_ns_median": 1530593
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -3152,7 +3152,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -3333,11 +3333,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 29826,
-          "detector_crop_wall_ns_median": 32121,
+          "detector_crop_cpu_ns_median": 29716,
+          "detector_crop_wall_ns_median": 31698,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1560579,
-          "original_crop_wall_ns_median": 1566253
+          "original_crop_cpu_ns_median": 1515416,
+          "original_crop_wall_ns_median": 1521071
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -3365,7 +3365,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,
@@ -3546,11 +3546,11 @@
           },
           "byte_ratio_milli": 56250,
           "detector_crop_bytes_median": 13824,
-          "detector_crop_cpu_ns_median": 31512,
-          "detector_crop_wall_ns_median": 33836,
+          "detector_crop_cpu_ns_median": 32178,
+          "detector_crop_wall_ns_median": 35031,
           "original_crop_bytes_median": 777600,
-          "original_crop_cpu_ns_median": 1522036,
-          "original_crop_wall_ns_median": 1526585
+          "original_crop_cpu_ns_median": 1536853,
+          "original_crop_wall_ns_median": 1542549
         },
         "failed_item_count": 0,
         "failure_code": null,
@@ -3578,7 +3578,7 @@
             "tiny": 0
           },
           "peak_rss_bytes": {
-            "overall": 861851648
+            "overall": 957325312
           },
           "readable_detail_proxy_gain_basis_points": {
             "medium": 0,

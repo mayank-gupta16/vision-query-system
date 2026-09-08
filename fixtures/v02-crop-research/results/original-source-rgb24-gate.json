@@ -93,7 +93,7 @@
         "maximum": 2147483648,
         "minimum": null,
         "status": "pass",
-        "value": 861851648
+        "value": 957325312
       }
     },
     "readable_detail_proxy_gain_basis_points": {
@@ -170,7 +170,7 @@
     "waiver_valid": false
   },
   "dataset_manifest_sha256": "c087fc0e09b98bb6d5e5fe75516363b5415ae6e4642157bebca9deba31e9ba17",
-  "evaluated_on": "2026-09-07",
+  "evaluated_on": "2026-09-08",
   "evaluation_phase": "selection",
   "experiment": "crop_value",
   "failures": [],
@@ -178,20 +178,20 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-harness",
-      "revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03",
-      "sha256": "e150d8d431001a762447aa2f285ddcd27ac29a6f904db930f94627f3fa085deb",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/d9b4bdc305051a2e8cd91a17bc4b90115551ed03/scripts/run_v02_crop_benchmark.py"
+      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
+      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-metrics",
-      "revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03",
-      "sha256": "e150d8d431001a762447aa2f285ddcd27ac29a6f904db930f94627f3fa085deb",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/d9b4bdc305051a2e8cd91a17bc4b90115551ed03/scripts/run_v02_crop_benchmark.py"
+      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
+      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03"
+    "source_revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5"
   },
   "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
@@ -205,7 +205,7 @@
     "operating_system": "Linux",
     "vcpu": 4
   },
-  "receipt_sha256": "51e2d2ac6da1a99dcc5e5ff4e5d578baac13a9700fbd7aedc496da4801c7e4bb",
+  "receipt_sha256": "bca5b2ac9d8d5aa57d571be61935981a8bcd5ede729a607a42504a97d66f3dd5",
   "regression": {},
   "schema": "visualworld.v02-evaluation-result",
   "schema_version": 1,

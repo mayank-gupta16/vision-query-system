@@ -61,7 +61,7 @@
         "tiny": 0
       },
       "peak_rss_bytes": {
-        "overall": 861851648
+        "overall": 957325312
       },
       "readable_detail_proxy_gain_basis_points": {
         "medium": 0,
@@ -90,11 +90,11 @@
         "name": "visualworld-original-rgb24-crop",
         "redistribution_allowed": true,
         "review_status": "approved-for-evaluation",
-        "reviewed_on": "2026-09-07",
-        "revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03",
+        "reviewed_on": "2026-09-08",
+        "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
         "sha256": "1eee4ef653e03cf4e04425eb9b117861eaf80ef07574e9de17f20990d631f315",
-        "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/d9b4bdc305051a2e8cd91a17bc4b90115551ed03/src/visualworld/geometry.py",
-        "terms_url": "https://github.com/mayank-gupta16/vision-query-system/blob/d9b4bdc305051a2e8cd91a17bc4b90115551ed03/LICENSE",
+        "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/src/visualworld/geometry.py",
+        "terms_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/LICENSE",
         "trust_remote_code": false,
         "use": "exact detector-to-source mapping and packed RGB24 crop evaluation"
       },
@@ -109,7 +109,7 @@
         "name": "cpython-3.13.15-python-build-standalone-20260825",
         "redistribution_allowed": true,
         "review_status": "approved-for-evaluation",
-        "reviewed_on": "2026-09-07",
+        "reviewed_on": "2026-09-08",
         "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
         "sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
         "source_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
@@ -123,27 +123,27 @@
     "runtime_closure_sha256": "a9a88faf3d396da4f7264b2da51dafd5331c8c653a2143e9bbb59285c0ff0306"
   },
   "dataset_manifest_sha256": "c087fc0e09b98bb6d5e5fe75516363b5415ae6e4642157bebca9deba31e9ba17",
-  "evaluated_on": "2026-09-07",
+  "evaluated_on": "2026-09-08",
   "evaluation_phase": "selection",
   "experiment": "crop_value",
   "implementation": {
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-harness",
-      "revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03",
-      "sha256": "e150d8d431001a762447aa2f285ddcd27ac29a6f904db930f94627f3fa085deb",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/d9b4bdc305051a2e8cd91a17bc4b90115551ed03/scripts/run_v02_crop_benchmark.py"
+      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
+      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-metrics",
-      "revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03",
-      "sha256": "e150d8d431001a762447aa2f285ddcd27ac29a6f904db930f94627f3fa085deb",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/d9b4bdc305051a2e8cd91a17bc4b90115551ed03/scripts/run_v02_crop_benchmark.py"
+      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
+      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03"
+    "source_revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5"
   },
   "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
@@ -163,7 +163,7 @@
       "failure_code": null,
       "metrics": {
         "crop_wall_ms": {
-          "overall": 2
+          "overall": 3
         },
         "evidence_bytes_per_crop": {
           "overall": 777600
@@ -184,7 +184,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -229,7 +229,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -274,7 +274,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -319,7 +319,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -364,7 +364,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 861851648
+          "overall": 957325312
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
