@@ -1,0 +1,33 @@
+{
+  "calibration_results_sha256": "2fc2b293cc184df5d52ff4a95505d0a1927fe4e6d91faf478c1d617e00e607c0",
+  "candidate_manifest_sha256": "0aa29f0c9b07daf65721c7e5783f10629dd25f260d4a40b75a77542b4534d400",
+  "dataset_validator_sha256": "1b3f4e40eaeaac4cd071b8c5f7899e0ac7cfa0bc72d7cf16363d70adaebe4e4d",
+  "detection_dataset_helper_sha256": "547444820d8c4d6249a5d1ae7b6b096021d48f244114239ed6efcb0bddc1f94b",
+  "detection_worker_sha256": "61c0160087a39d1765b9bd988f7e7c7267a70c5af4461b35f67c3038a67d617f",
+  "evaluation_harness_sha256": "0c82d5d20d3656125213e44b5328d6262654dc11ac35169846b0aeb699aa214f",
+  "gate_evaluator_sha256": "311fc405451b4b862ec34a095e8882188433a0728330648a24a076e6273ef90d",
+  "metric_implementation_sha256": "2f3bdb3b207e83202f9bd2d1fb12cf19d19c2c8c60412201ac3ffaab6b7ee2a8",
+  "sampling_dataset_helper_sha256": "231b304c3d1ad10633e0a5d025ca70cc1e76a643b56d07ab7ef90ea93202c6e3",
+  "sampling_harness_sha256": "927fec031464f61cd21c5260f7c9e71b829de1ba379f3ae7dbe823395c12af33",
+  "schema": "visualworld.v02-tracking-calibration-selection",
+  "schema_version": 1,
+  "selected_configurations": [
+    {
+      "association": "global",
+      "cut_threshold_basis_points": 1500,
+      "iou_threshold_basis_points": 1000,
+      "max_missed_samples": 5,
+      "motion": "last",
+      "name": "global-last-iou"
+    },
+    {
+      "association": "global",
+      "cut_threshold_basis_points": 1500,
+      "iou_threshold_basis_points": 5000,
+      "max_missed_samples": 5,
+      "motion": "velocity",
+      "name": "global-velocity-iou"
+    }
+  ],
+  "source_revision": "4bf8154354dd89a6d34f59b9a90aa8a870c18b8c"
+}

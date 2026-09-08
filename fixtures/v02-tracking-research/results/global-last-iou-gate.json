@@ -1,0 +1,243 @@
+{
+  "absolute": {
+    "failure_rate_basis_points": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 0,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "false_continuations_across_cuts": {
+      "cuts": {
+        "kind": "gate",
+        "maximum": 0,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "fragmentations_per_1000_track_frames": {
+      "camera_motion": {
+        "kind": "gate",
+        "maximum": 125,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "cuts": {
+        "kind": "gate",
+        "maximum": 100,
+        "minimum": null,
+        "status": "pass",
+        "value": 6
+      },
+      "dense_crossing": {
+        "kind": "gate",
+        "maximum": 125,
+        "minimum": null,
+        "status": "pass",
+        "value": 38
+      },
+      "occlusion": {
+        "kind": "gate",
+        "maximum": 125,
+        "minimum": null,
+        "status": "pass",
+        "value": 44
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": 100,
+        "minimum": null,
+        "status": "pass",
+        "value": 24
+      }
+    },
+    "hota_basis_points": {
+      "camera_motion": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 4000,
+        "status": "pass",
+        "value": 9587
+      },
+      "cuts": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 4500,
+        "status": "pass",
+        "value": 8536
+      },
+      "dense_crossing": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 4000,
+        "status": "pass",
+        "value": 6869
+      },
+      "occlusion": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 4000,
+        "status": "pass",
+        "value": 8589
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 4500,
+        "status": "pass",
+        "value": 8217
+      }
+    },
+    "id_switches_per_1000_track_frames": {
+      "camera_motion": {
+        "kind": "gate",
+        "maximum": 75,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "cuts": {
+        "kind": "gate",
+        "maximum": 50,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "dense_crossing": {
+        "kind": "gate",
+        "maximum": 75,
+        "minimum": null,
+        "status": "pass",
+        "value": 20
+      },
+      "occlusion": {
+        "kind": "gate",
+        "maximum": 75,
+        "minimum": null,
+        "status": "pass",
+        "value": 3
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": 50,
+        "minimum": null,
+        "status": "pass",
+        "value": 8
+      }
+    },
+    "idf1_basis_points": {
+      "camera_motion": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 10000
+      },
+      "cuts": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 6000,
+        "status": "pass",
+        "value": 9107
+      },
+      "dense_crossing": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 7075
+      },
+      "occlusion": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 5000,
+        "status": "pass",
+        "value": 8996
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 6000,
+        "status": "pass",
+        "value": 8580
+      }
+    },
+    "peak_rss_bytes": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 2147483648,
+        "minimum": null,
+        "status": "pass",
+        "value": 589635584
+      }
+    },
+    "real_time_factor_milli": {
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 1000,
+        "status": "pass",
+        "value": 4251
+      }
+    }
+  },
+  "baseline_candidate": null,
+  "baseline_receipt_sha256": null,
+  "candidate": {
+    "configuration_sha256": "1830028788e517fac1f0ed66fbef9f5f458e4db9762828cde8261fd4f0655ba3",
+    "name": "global-last-iou"
+  },
+  "checks": {
+    "absolute_gates_pass": true,
+    "baseline_compatible": null,
+    "regression_gates_pass": true,
+    "waiver_valid": false
+  },
+  "dataset_manifest_sha256": "f2c8629029acd13b99e5560432664f16c4743d76330f811d729ca3467582e67e",
+  "evaluated_on": "2026-09-08",
+  "evaluation_phase": "selection",
+  "experiment": "tracking",
+  "failures": [],
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-tracking-harness",
+      "revision": "4bf8154354dd89a6d34f59b9a90aa8a870c18b8c",
+      "sha256": "0c82d5d20d3656125213e44b5328d6262654dc11ac35169846b0aeb699aa214f",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/4bf8154354dd89a6d34f59b9a90aa8a870c18b8c/scripts/run_v02_tracking_benchmark.py"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "MIT",
+      "name": "visualworld-trackeval-compatible-metrics",
+      "revision": "4bf8154354dd89a6d34f59b9a90aa8a870c18b8c",
+      "sha256": "2f3bdb3b207e83202f9bd2d1fb12cf19d19c2c8c60412201ac3ffaab6b7ee2a8",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/4bf8154354dd89a6d34f59b9a90aa8a870c18b8c/scripts/v02_tracking_metrics.py"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "4bf8154354dd89a6d34f59b9a90aa8a870c18b8c"
+  },
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
+  "policy_version": "v0.2-gates-2",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "gpu_present": false,
+    "kernel_release": "7.0.0-31-generic",
+    "memory_bytes": 16221585408,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "receipt_sha256": "734f5bd639a7db341aa670d1ee8af3cf133cb4a9160610baaf96d1c0bceb7dfe",
+  "regression": {},
+  "schema": "visualworld.v02-evaluation-result",
+  "schema_version": 1,
+  "split": "test",
+  "status": "pass",
+  "waiver": null
+}

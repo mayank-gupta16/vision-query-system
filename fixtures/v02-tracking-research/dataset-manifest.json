@@ -1,0 +1,67 @@
+{
+  "acquisition": {
+    "method": "deterministic 5 FPS rawvideo clips from ten locked plate-sanitized CC0 issue-21 derivatives; source identities, transforms, tracks, cut, frames, and pixels are bound by source-manifest.json and annotations.json",
+    "owner": "Wikimedia Commons source artists and VisualWorld derivative generator",
+    "revision": "v02-tracking-cc0-derived-3",
+    "sha256": "b15732e4a22e816c718cb1ea5a210660532b15fd31c72b9f24bd39c153427b5f",
+    "url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-tracking-research"
+  },
+  "experiment": "tracking",
+  "manifest_id": "tracking-cc0-derived-3",
+  "privacy": {
+    "classification": "licensed-no-personal-data",
+    "consent_status": "not-applicable-no-personal-data",
+    "contains_faces": false,
+    "contains_personal_data": false,
+    "contains_plates": false,
+    "contains_real_people": false,
+    "sensitive_derived_outputs_retained": false
+  },
+  "rights": {
+    "allowed_uses": [
+      "benchmarking",
+      "evaluation",
+      "modification",
+      "redistribution"
+    ],
+    "commercial_use_allowed": true,
+    "derivatives_allowed": true,
+    "license_expression": "CC0-1.0",
+    "redistribution_allowed": true
+  },
+  "schema": "visualworld.v02-evaluation-dataset-manifest",
+  "schema_version": 1,
+  "splits": {
+    "calibration": {
+      "annotation_sha256": "2ce83e036df64020258b5b3744049c9cfb3a0d894abcc01542757fcf12f4c87d",
+      "item_count": 24,
+      "item_ids_sha256": "6f176eaa36fe79f66a8382be818f59b32f17e3c25c6a482f725947a01415c0b3",
+      "stratum_item_counts": {
+        "camera_motion": 3,
+        "cuts": 9,
+        "dense_crossing": 6,
+        "occlusion": 3,
+        "overall": 24
+      }
+    },
+    "test": {
+      "annotation_sha256": "b29771e6301fdc877f86d6f21f825f6c280abf04cf0bc667df2421f9dd637049",
+      "item_count": 48,
+      "item_ids_sha256": "7b24246c3b309f129bf0086e97de55340ed8a3a28f780178d5ae7e40457d7549",
+      "stratum_item_counts": {
+        "camera_motion": 6,
+        "cuts": 18,
+        "dense_crossing": 12,
+        "occlusion": 6,
+        "overall": 48
+      }
+    }
+  },
+  "strata": [
+    "overall",
+    "camera_motion",
+    "cuts",
+    "occlusion",
+    "dense_crossing"
+  ]
+}
