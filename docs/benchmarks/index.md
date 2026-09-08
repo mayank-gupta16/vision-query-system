@@ -21,6 +21,12 @@
 - [v0.2 frame-sampling results](v0.2-sampling-results.md) selects fixed 5 FPS as
   the lowest-sample passing default, rejects the measured adaptive trigger, and
   records explicit 8-FPS override boundaries.
+- [v0.2 original-resolution crop methodology](v0.2-crop-methodology.md) locks
+  issue #23's exact source/detector comparison, paired resolvable/absent detail
+  charts, source-disjoint splits, privacy boundary, and decision rule.
+- [v0.2 original-resolution crop results](v0.2-crop-results.md) finds material
+  tiny-detail value and recommends transient on-demand source retrieval with
+  selective best-frame retention instead of eager crop storage.
 
 Version-specific measured implementation baselines are recorded with their
 validation reports: [local video](../research/local-video-source.md),

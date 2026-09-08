@@ -28,7 +28,10 @@
   which chooses `vehicle-detection-0201` at confidence 0.95 as an evaluation-only
   baseline, plus the [v0.2 sampling result](../benchmarks/v0.2-sampling-results.md),
   which chooses fixed nearest-PTS 5 FPS and keeps fixed 8 FPS as a bounded
-  expert override
+  expert override, plus the
+  [v0.2 crop-value result](../benchmarks/v0.2-crop-results.md), which finds
+  material tiny-detail value in exact original-resolution crops but rejects
+  eager retention because median crop bytes are 56.25x the detector crop.
 
 ## Established facts
 
@@ -57,6 +60,12 @@
   53.3% more samples without improving a gate metric. Fixed 8 FPS is reserved
   for explicit out-of-boundary requirements or a later measured tracking
   escalation; no production adapter has yet changed.
+- Original-resolution retrieval is justified on demand for source-resolvable
+  tiny detail: exact source crops improved the paired tiny readable-detail
+  metric by 1,601 basis points with zero source-absent gain. Preserve source
+  coordinates and retrieve transiently for a declared downstream need; do not
+  eagerly retain every crop because median source evidence was 56.25x the
+  detector-input crop. No production crop adapter has yet changed.
 - ADR-0003 accepts a source-built PyAV 18.1.0 worker linked to a minimal
   signature-verified FFmpeg 9.0.1 build for the first Linux ingestion slice.
   Hostile decode is isolated and fail-closed; native hostile decode on macOS is
@@ -130,8 +139,8 @@
 
 ## Next priorities
 
-1. Resolve crop-value and tracking research #23–#24 against the selected
-   detector and sampling baselines before selecting shipped adapters.
+1. Resolve tracking research #24 against the selected detector, sampling, and
+   crop-evidence baselines before selecting shipped adapters.
 2. Decompose roadmap epic #30 into focused implementation issues only after its
    research thresholds and license boundaries are ratified.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses

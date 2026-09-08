@@ -1,0 +1,3602 @@
+{
+  "calibration": {
+    "aggregate": {
+      "dispersion": {
+        "crop_wall_ms": {
+          "overall": 0
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 0
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 0
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        }
+      },
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 861851648
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 653,
+          "small": 424,
+          "tiny": 1536
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 278,
+          "small": 0,
+          "tiny": 833
+        }
+      }
+    },
+    "repetitions": [
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7552,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 6250
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6957,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7610,
+                "original_specialist_accuracy_basis_points": 6111
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8693,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1307,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 12
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7128,
+                "detector_specialist_accuracy_basis_points": 5000,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 5000
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9153,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 847,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6191,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7727,
+                "original_specialist_accuracy_basis_points": 7083
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6927,
+                    "specialist_accuracy_basis_points": 8333
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3073,
+                    "specialist_accuracy_basis_points": 1667
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 28322,
+          "detector_crop_wall_ns_median": 30113,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1499861,
+          "original_crop_wall_ns_median": 1504070
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "3a6878c8cf650c58caf321575b3a818e17aa7194ccca061c16dd4f20e1ce6dc7",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 653,
+            "small": 424,
+            "tiny": 1536
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 278,
+            "small": 0,
+            "tiny": 833
+          }
+        },
+        "processed_item_count": 12,
+        "representative_item_results": [
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-kit-buggy-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 99,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 99,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-kit-buggy-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 104,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 171,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 104,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-kit-buggy-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 116,
+                "absent_specialists_correct": 2,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 143,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 116,
+                "absent_specialists_correct": 2,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-li-l7-side-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 102,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 102,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-li-l7-side-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 94,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 178,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 94,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-li-l7-side-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 95,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 121,
+                "resolved_specialists_correct": 2,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 95,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-lime-van-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 92,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 92,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-lime-van-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 90,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 183,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 90,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-lime-van-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 111,
+                "absent_specialists_correct": 2,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 142,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 111,
+                "absent_specialists_correct": 2,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-vintage-green-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 99,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 99,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-vintage-green-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 104,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 171,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 104,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "calibration-vintage-green-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 97,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                },
+                "resolved_readable_cells": 126,
+                "resolved_specialists_correct": 2,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 97,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          }
+        ],
+        "seed": 1729,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7552,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 6250
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6957,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7610,
+                "original_specialist_accuracy_basis_points": 6111
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8693,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1307,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 12
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7128,
+                "detector_specialist_accuracy_basis_points": 5000,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 5000
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9153,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 847,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6191,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7727,
+                "original_specialist_accuracy_basis_points": 7083
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6927,
+                    "specialist_accuracy_basis_points": 8333
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3073,
+                    "specialist_accuracy_basis_points": 1667
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 27772,
+          "detector_crop_wall_ns_median": 29414,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1503592,
+          "original_crop_wall_ns_median": 1507812
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "3a6878c8cf650c58caf321575b3a818e17aa7194ccca061c16dd4f20e1ce6dc7",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 653,
+            "small": 424,
+            "tiny": 1536
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 278,
+            "small": 0,
+            "tiny": 833
+          }
+        },
+        "processed_item_count": 12,
+        "seed": 3253,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7552,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 6250
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6957,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7610,
+                "original_specialist_accuracy_basis_points": 6111
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8693,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1307,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 12
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7128,
+                "detector_specialist_accuracy_basis_points": 5000,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 5000
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9153,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 847,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6191,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7727,
+                "original_specialist_accuracy_basis_points": 7083
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6927,
+                    "specialist_accuracy_basis_points": 8333
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3073,
+                    "specialist_accuracy_basis_points": 1667
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 28403,
+          "detector_crop_wall_ns_median": 30601,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1518514,
+          "original_crop_wall_ns_median": 1523369
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "3a6878c8cf650c58caf321575b3a818e17aa7194ccca061c16dd4f20e1ce6dc7",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 653,
+            "small": 424,
+            "tiny": 1536
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 278,
+            "small": 0,
+            "tiny": 833
+          }
+        },
+        "processed_item_count": 12,
+        "seed": 5081,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7552,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 6250
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6957,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7610,
+                "original_specialist_accuracy_basis_points": 6111
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8693,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1307,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 12
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7128,
+                "detector_specialist_accuracy_basis_points": 5000,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 5000
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9153,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 847,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6191,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7727,
+                "original_specialist_accuracy_basis_points": 7083
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6927,
+                    "specialist_accuracy_basis_points": 8333
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3073,
+                    "specialist_accuracy_basis_points": 1667
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 28084,
+          "detector_crop_wall_ns_median": 29698,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1503071,
+          "original_crop_wall_ns_median": 1507616
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "3a6878c8cf650c58caf321575b3a818e17aa7194ccca061c16dd4f20e1ce6dc7",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 653,
+            "small": 424,
+            "tiny": 1536
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 278,
+            "small": 0,
+            "tiny": 833
+          }
+        },
+        "processed_item_count": 12,
+        "seed": 7919,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7552,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 6250
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 2500
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6957,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7610,
+                "original_specialist_accuracy_basis_points": 6111
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5221,
+                    "specialist_accuracy_basis_points": 2222
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8693,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1307,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 12
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7128,
+                "detector_specialist_accuracy_basis_points": 5000,
+                "original_readable_detail_basis_points": 7552,
+                "original_specialist_accuracy_basis_points": 5000
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5104,
+                    "specialist_accuracy_basis_points": 0
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9153,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 847,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6191,
+                "detector_specialist_accuracy_basis_points": 6250,
+                "original_readable_detail_basis_points": 7727,
+                "original_specialist_accuracy_basis_points": 7083
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5455,
+                    "specialist_accuracy_basis_points": 4166
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6927,
+                    "specialist_accuracy_basis_points": 8333
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3073,
+                    "specialist_accuracy_basis_points": 1667
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 4
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 27893,
+          "detector_crop_wall_ns_median": 30118,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1501885,
+          "original_crop_wall_ns_median": 1506544
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "3a6878c8cf650c58caf321575b3a818e17aa7194ccca061c16dd4f20e1ce6dc7",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 653,
+            "small": 424,
+            "tiny": 1536
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 278,
+            "small": 0,
+            "tiny": 833
+          }
+        },
+        "processed_item_count": 12,
+        "seed": 104729,
+        "status": "pass"
+      }
+    ]
+  },
+  "environment": {
+    "profile": {
+      "architecture": "x86_64",
+      "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+      "gpu_present": false,
+      "kernel_release": "7.0.0-31-generic",
+      "memory_bytes": 16221585408,
+      "name": "CPU-LITE",
+      "operating_system": "Linux",
+      "vcpu": 4
+    },
+    "python": {
+      "archive_sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6",
+      "executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+      "runtime_tree_sha256": "7bf650c9ac94c945b0ff154bdc96830bc1ad876d24b0cbe8deb5860fd3270a0c",
+      "version": "3.13.15"
+    },
+    "runtime_closure_sha256": "a9a88faf3d396da4f7264b2da51dafd5331c8c653a2143e9bbb59285c0ff0306"
+  },
+  "evaluated_on": "2026-09-07",
+  "outputs": {
+    "gate": "original-source-rgb24-gate.json",
+    "gate_sha256": "1e96a0d1833170df44001f8eb9cc699698f6cb67705298d83d148ef929369e5b",
+    "gate_status": "pass",
+    "receipt": "original-source-rgb24-receipt.json",
+    "receipt_sha256": "51e2d2ac6da1a99dcc5e5ff4e5d578baac13a9700fbd7aedc496da4801c7e4bb"
+  },
+  "provenance": {
+    "annotation_lock_sha256": "dd1c8baf4542c8a5f278dc08bb3eea08a049987ac9d6df08a6f7ec2977429b7e",
+    "candidate_manifest_sha256": "4bc92279567b1b90a5fb434f64af39bb51466deab55f4c4c5b5117e8515195c8",
+    "dataset_manifest_sha256": "c087fc0e09b98bb6d5e5fe75516363b5415ae6e4642157bebca9deba31e9ba17",
+    "detection_candidate_manifest_sha256": "38afb812c6681700c15b30874e91ac649f1dde521354a5ce5c27d1b4e7bafcee",
+    "detection_source_annotation_sha256": "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8",
+    "detection_source_manifest_sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66",
+    "evaluation_harness_sha256": "e150d8d431001a762447aa2f285ddcd27ac29a6f904db930f94627f3fa085deb",
+    "geometry_sha256": "1eee4ef653e03cf4e04425eb9b117861eaf80ef07574e9de17f20990d631f315",
+    "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
+    "source_manifest_sha256": "77f8d845dabed77b584a72681f9910de6392e324144638fa9730e0e5c59235a2",
+    "source_revision": "d9b4bdc305051a2e8cd91a17bc4b90115551ed03"
+  },
+  "schema": "visualworld.v02-crop-raw-results",
+  "schema_version": 1,
+  "test": {
+    "aggregate": {
+      "dispersion": {
+        "crop_wall_ms": {
+          "overall": 0
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 0
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 0
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        }
+      },
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 861851648
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 673,
+          "small": 416,
+          "tiny": 1601
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 93,
+          "small": 0,
+          "tiny": 278
+        }
+      }
+    },
+    "repetitions": [
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7539,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7539,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6902,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7575,
+                "original_specialist_accuracy_basis_points": 5648
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8654,
+                    "specialist_accuracy_basis_points": 9814
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1346,
+                    "specialist_accuracy_basis_points": 186
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 18
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7131,
+                "detector_specialist_accuracy_basis_points": 5277,
+                "original_readable_detail_basis_points": 7547,
+                "original_specialist_accuracy_basis_points": 5277
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9166,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 834,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6037,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7638,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6796,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3204,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 29398,
+          "detector_crop_wall_ns_median": 31237,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1523538,
+          "original_crop_wall_ns_median": 1527707
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "679a0fd1391c7b4a3ce795210274187581e040d5759c9e2d2dc7f4b2dcf46f09",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 673,
+            "small": 416,
+            "tiny": 1601
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 93,
+            "small": 0,
+            "tiny": 278
+          }
+        },
+        "processed_item_count": 18,
+        "representative_item_results": [
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "test-bmw-i3-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 105,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 105,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "test-bmw-i3-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 101,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 172,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 101,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "test-bmw-i3-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 91,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 133,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 91,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l7-white-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 94,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 94,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l7-white-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 93,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 171,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 93,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l7-white-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 93,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 120,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 93,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l9-rear-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 97,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 97,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l9-rear-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 107,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 176,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 107,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l9-rear-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 102,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 127,
+                "resolved_specialists_correct": 2,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                }
+              },
+              "original": {
+                "absent_readable_cells": 102,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l9-side-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 97,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 97,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l9-side-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 96,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 179,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 96,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "test-li-l9-side-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 96,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 126,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 96,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "test-pink-cadillac-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 89,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 89,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "test-pink-cadillac-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 92,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 182,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 92,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "test-pink-cadillac-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 116,
+                "absent_specialists_correct": 2,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 143,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 116,
+                "absent_specialists_correct": 2,
+                "absent_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          },
+          {
+            "detector_crop_bytes": 55296,
+            "exact_crop_byte_match": true,
+            "item_id": "test-red-opel-medium",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 3110400,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 103,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 103,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": true
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "medium"
+          },
+          {
+            "detector_crop_bytes": 13824,
+            "exact_crop_byte_match": true,
+            "item_id": "test-red-opel-small",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 777600,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 98,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 176,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 98,
+                "absent_specialists_correct": 0,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": false,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "small"
+          },
+          {
+            "detector_crop_bytes": 4608,
+            "exact_crop_byte_match": true,
+            "item_id": "test-red-opel-tiny",
+            "mapping_error_milli_pixels": 0,
+            "original_crop_bytes": 259200,
+            "scores": {
+              "detector": {
+                "absent_readable_cells": 110,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 134,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              },
+              "original": {
+                "absent_readable_cells": 110,
+                "absent_specialists_correct": 1,
+                "absent_tasks": {
+                  "face_visibility": false,
+                  "plate_ocr": true,
+                  "vehicle_detail": false
+                },
+                "resolved_readable_cells": 192,
+                "resolved_specialists_correct": 3,
+                "resolved_tasks": {
+                  "face_visibility": true,
+                  "plate_ocr": true,
+                  "vehicle_detail": true
+                }
+              }
+            },
+            "stratum": "tiny"
+          }
+        ],
+        "seed": 1729,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7539,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7539,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6902,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7575,
+                "original_specialist_accuracy_basis_points": 5648
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8654,
+                    "specialist_accuracy_basis_points": 9814
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1346,
+                    "specialist_accuracy_basis_points": 186
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 18
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7131,
+                "detector_specialist_accuracy_basis_points": 5277,
+                "original_readable_detail_basis_points": 7547,
+                "original_specialist_accuracy_basis_points": 5277
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9166,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 834,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6037,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7638,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6796,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3204,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 29282,
+          "detector_crop_wall_ns_median": 37184,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1524159,
+          "original_crop_wall_ns_median": 1529416
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "679a0fd1391c7b4a3ce795210274187581e040d5759c9e2d2dc7f4b2dcf46f09",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 673,
+            "small": 416,
+            "tiny": 1601
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 93,
+            "small": 0,
+            "tiny": 278
+          }
+        },
+        "processed_item_count": 18,
+        "seed": 3253,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7539,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7539,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6902,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7575,
+                "original_specialist_accuracy_basis_points": 5648
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8654,
+                    "specialist_accuracy_basis_points": 9814
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1346,
+                    "specialist_accuracy_basis_points": 186
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 18
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7131,
+                "detector_specialist_accuracy_basis_points": 5277,
+                "original_readable_detail_basis_points": 7547,
+                "original_specialist_accuracy_basis_points": 5277
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9166,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 834,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6037,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7638,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6796,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3204,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 30316,
+          "detector_crop_wall_ns_median": 32600,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1558278,
+          "original_crop_wall_ns_median": 1565605
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "679a0fd1391c7b4a3ce795210274187581e040d5759c9e2d2dc7f4b2dcf46f09",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 673,
+            "small": 416,
+            "tiny": 1601
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 93,
+            "small": 0,
+            "tiny": 278
+          }
+        },
+        "processed_item_count": 18,
+        "seed": 5081,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7539,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7539,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6902,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7575,
+                "original_specialist_accuracy_basis_points": 5648
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8654,
+                    "specialist_accuracy_basis_points": 9814
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1346,
+                    "specialist_accuracy_basis_points": 186
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 18
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7131,
+                "detector_specialist_accuracy_basis_points": 5277,
+                "original_readable_detail_basis_points": 7547,
+                "original_specialist_accuracy_basis_points": 5277
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9166,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 834,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6037,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7638,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6796,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3204,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 29826,
+          "detector_crop_wall_ns_median": 32121,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1560579,
+          "original_crop_wall_ns_median": 1566253
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "679a0fd1391c7b4a3ce795210274187581e040d5759c9e2d2dc7f4b2dcf46f09",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 673,
+            "small": 416,
+            "tiny": 1601
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 93,
+            "small": 0,
+            "tiny": 278
+          }
+        },
+        "processed_item_count": 18,
+        "seed": 7919,
+        "status": "pass"
+      },
+      {
+        "diagnostics": {
+          "by_stratum": {
+            "medium": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7539,
+                "detector_specialist_accuracy_basis_points": 5833,
+                "original_readable_detail_basis_points": 7539,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5078,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "overall": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6902,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7575,
+                "original_specialist_accuracy_basis_points": 5648
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5150,
+                    "specialist_accuracy_basis_points": 1296
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 8654,
+                    "specialist_accuracy_basis_points": 9814
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 1346,
+                    "specialist_accuracy_basis_points": 186
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 18
+            },
+            "small": {
+              "combined": {
+                "detector_readable_detail_basis_points": 7131,
+                "detector_specialist_accuracy_basis_points": 5277,
+                "original_readable_detail_basis_points": 7547,
+                "original_specialist_accuracy_basis_points": 5277
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5095,
+                    "specialist_accuracy_basis_points": 555
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 9166,
+                    "specialist_accuracy_basis_points": 10000
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 834,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            },
+            "tiny": {
+              "combined": {
+                "detector_readable_detail_basis_points": 6037,
+                "detector_specialist_accuracy_basis_points": 5555,
+                "original_readable_detail_basis_points": 7638,
+                "original_specialist_accuracy_basis_points": 5833
+              },
+              "conditions": {
+                "absent": {
+                  "detector": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 0,
+                    "specialist_accuracy_basis_points": 0
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 5277,
+                    "specialist_accuracy_basis_points": 1666
+                  }
+                },
+                "resolved": {
+                  "detector": {
+                    "readable_detail_basis_points": 6796,
+                    "specialist_accuracy_basis_points": 9444
+                  },
+                  "gain": {
+                    "readable_detail_basis_points": 3204,
+                    "specialist_accuracy_basis_points": 556
+                  },
+                  "original": {
+                    "readable_detail_basis_points": 10000,
+                    "specialist_accuracy_basis_points": 10000
+                  }
+                }
+              },
+              "item_count": 6
+            }
+          },
+          "byte_ratio_milli": 56250,
+          "detector_crop_bytes_median": 13824,
+          "detector_crop_cpu_ns_median": 31512,
+          "detector_crop_wall_ns_median": 33836,
+          "original_crop_bytes_median": 777600,
+          "original_crop_cpu_ns_median": 1522036,
+          "original_crop_wall_ns_median": 1526585
+        },
+        "failed_item_count": 0,
+        "failure_code": null,
+        "item_results_sha256": "679a0fd1391c7b4a3ce795210274187581e040d5759c9e2d2dc7f4b2dcf46f09",
+        "metrics": {
+          "crop_wall_ms": {
+            "overall": 2
+          },
+          "evidence_bytes_per_crop": {
+            "overall": 777600
+          },
+          "exact_crop_byte_match_basis_points": {
+            "medium": 10000,
+            "overall": 10000,
+            "small": 10000,
+            "tiny": 10000
+          },
+          "failure_rate_basis_points": {
+            "overall": 0
+          },
+          "mapping_error_milli_pixels": {
+            "medium": 0,
+            "overall": 0,
+            "small": 0,
+            "tiny": 0
+          },
+          "peak_rss_bytes": {
+            "overall": 861851648
+          },
+          "readable_detail_proxy_gain_basis_points": {
+            "medium": 0,
+            "overall": 673,
+            "small": 416,
+            "tiny": 1601
+          },
+          "specialist_accuracy_gain_basis_points": {
+            "medium": 0,
+            "overall": 93,
+            "small": 0,
+            "tiny": 278
+          }
+        },
+        "processed_item_count": 18,
+        "seed": 104729,
+        "status": "pass"
+      }
+    ]
+  }
+}

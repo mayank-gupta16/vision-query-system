@@ -322,6 +322,51 @@ def test_committed_crop_results_revalidate_when_present() -> None:
         pytest.skip("measured crop results are added after the harness lock commit")
     raw = _json(raw_path)
     outputs = cast(dict[str, object], raw["outputs"])
+    assert hashlib.sha256(raw_path.read_bytes()).hexdigest() == (
+        "3e36abc6ac437ca954898bdb37c8fe0a1cf1c4034a4ba509da16fbb39e43078b"
+    )
+    provenance = cast(dict[str, object], raw["provenance"])
+    assert provenance["source_revision"] == "d9b4bdc305051a2e8cd91a17bc4b90115551ed03"
+    test_result = cast(dict[str, object], raw["test"])
+    aggregate = cast(dict[str, object], test_result["aggregate"])
+    metrics = cast(dict[str, object], aggregate["metrics"])
+    assert metrics["mapping_error_milli_pixels"] == {
+        "overall": 0,
+        "tiny": 0,
+        "small": 0,
+        "medium": 0,
+    }
+    assert metrics["exact_crop_byte_match_basis_points"] == {
+        "overall": 10_000,
+        "tiny": 10_000,
+        "small": 10_000,
+        "medium": 10_000,
+    }
+    assert metrics["readable_detail_proxy_gain_basis_points"] == {
+        "overall": 673,
+        "tiny": 1601,
+        "small": 416,
+        "medium": 0,
+    }
+    assert metrics["specialist_accuracy_gain_basis_points"] == {
+        "overall": 93,
+        "tiny": 278,
+        "small": 0,
+        "medium": 0,
+    }
+    repetitions = cast(list[dict[str, object]], test_result["repetitions"])
+    diagnostics = cast(dict[str, object], repetitions[0]["diagnostics"])
+    assert diagnostics["byte_ratio_milli"] == 56_250
+    by_stratum = cast(dict[str, object], diagnostics["by_stratum"])
+    for stratum in ("overall", "tiny", "small", "medium"):
+        conditions = cast(
+            dict[str, object], cast(dict[str, object], by_stratum[stratum])["conditions"]
+        )
+        absent = cast(dict[str, object], conditions["absent"])
+        assert absent["gain"] == {
+            "readable_detail_basis_points": 0,
+            "specialist_accuracy_basis_points": 0,
+        }
     policy, policy_sha256 = evaluator.load_policy(
         ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
     )

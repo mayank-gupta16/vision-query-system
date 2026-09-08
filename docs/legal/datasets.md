@@ -28,6 +28,17 @@ duration, RGB hash, and object box are locked. The clips and inspection images
 remain ignored, contain no person, face, plate, or retained personal data, and
 are not product or release assets.
 
+Issue #23 additionally approves the
+[`v02-original-resolution-crop-value-1`](../../fixtures/v02-crop-research/dataset-manifest.json)
+set for original-resolution crop evaluation only. Ten deterministic three-frame
+4K rawvideo clips reuse issue #21's plate-sanitized CC0 vehicle derivatives
+across source-disjoint calibration and test splits. Backgrounds and paired
+fine-detail charts are project-generated; the charts contain no real face,
+plate, identifier, biometric, text, font, or personal data. Source and detector
+clips, frames, and crops remain ignored. Only rights/privacy manifests,
+annotations, and pixel-free results are committed; the set is not a product or
+release asset.
+
 For every artifact record source/owner, acquisition method, exact revision/hash,
 license or permission, redistribution and derivative rights, consent/privacy
 status, allowed uses, annotation provenance, retention requirements, and review
