@@ -25,6 +25,29 @@ def _json(path: Path) -> dict[str, object]:
     return cast(dict[str, object], json.loads(path.read_text(encoding="utf-8")))
 
 
+def _source_contract() -> tuple[
+    list[dict[str, object]], dict[str, dict[str, tuple[int, int, int, int]]]
+]:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    detection_annotations_path = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
+    detection_source_path = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
+    return preparation._validate_source_manifest(
+        source,
+        _json(detection_annotations_path),
+        hashlib.sha256(detection_annotations_path.read_bytes()).hexdigest(),
+        hashlib.sha256(detection_source_path.read_bytes()).hexdigest(),
+    )
+
+
+def _refresh_split_lock(
+    annotations: dict[str, object], dataset: dict[str, object], split: str
+) -> None:
+    _, _, payload, ids = benchmark._split_payload(annotations, split)
+    selected = cast(dict[str, object], cast(dict[str, object], dataset["splits"])[split])
+    selected["annotation_sha256"] = hashlib.sha256(payload).hexdigest()
+    selected["item_ids_sha256"] = hashlib.sha256(ids).hexdigest()
+
+
 def test_crop_dataset_lock_binds_sources_splits_and_gate_policy() -> None:
     source_path = FIXTURE_ROOT / "source-manifest.json"
     candidate_path = FIXTURE_ROOT / "candidates.json"
@@ -56,12 +79,15 @@ def test_crop_dataset_lock_binds_sources_splits_and_gate_policy() -> None:
         assert hashlib.sha256(payload).hexdigest() == contract["annotation_sha256"]
         assert hashlib.sha256(ids).hexdigest() == contract["item_ids_sha256"]
     assert split_sources["calibration"].isdisjoint(split_sources["test"])
+    source_clips, source_strata = _source_contract()
     benchmark._validate_annotations(
         annotations,
         annotation_sha256,
         source_sha256,
         candidate_sha256,
         dataset,
+        source_clips,
+        source_strata,
     )
     preparation._validate_candidates(candidates)
 
@@ -166,6 +192,66 @@ def test_crop_source_manifest_rejects_changed_derivation() -> None:
         )
 
 
+@pytest.mark.parametrize("schema_version", [True, 1.0])
+def test_crop_source_manifest_rejects_non_integer_schema_version(schema_version: object) -> None:
+    source_path = FIXTURE_ROOT / "source-manifest.json"
+    detection_annotations_path = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
+    detection_source_path = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
+    source = _json(source_path)
+    source["schema_version"] = schema_version
+    with pytest.raises(preparation.CropPreparationError, match="invalid_source_manifest"):
+        preparation._validate_source_manifest(
+            source,
+            _json(detection_annotations_path),
+            hashlib.sha256(detection_annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(detection_source_path.read_bytes()).hexdigest(),
+        )
+
+
+@pytest.mark.parametrize(
+    ("annotation_sha256", "source_sha256"),
+    [
+        ("0" * 64, preparation.DETECTION_SOURCE_MANIFEST_SHA256),
+        (preparation.DETECTION_ANNOTATION_SHA256, "0" * 64),
+    ],
+)
+def test_crop_source_manifest_pins_exact_issue21_inputs(
+    annotation_sha256: str, source_sha256: str
+) -> None:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    source["source_detection_annotation_sha256"] = annotation_sha256
+    source["source_detection_manifest_sha256"] = source_sha256
+    detection_annotations = _json(ROOT / "fixtures" / "v02-detection-research" / "annotations.json")
+    detection_annotations["source_manifest_sha256"] = source_sha256
+    with pytest.raises(preparation.CropPreparationError, match="source_manifest_mismatch"):
+        preparation._validate_source_manifest(
+            source,
+            detection_annotations,
+            annotation_sha256,
+            source_sha256,
+        )
+
+
+@pytest.mark.parametrize("schema_version", [True, 1.0])
+def test_crop_annotations_reject_non_integer_schema_version(schema_version: object) -> None:
+    source_path = FIXTURE_ROOT / "source-manifest.json"
+    candidate_path = FIXTURE_ROOT / "candidates.json"
+    annotations_path = FIXTURE_ROOT / "annotations.json"
+    annotations = _json(annotations_path)
+    annotations["schema_version"] = schema_version
+    source_clips, source_strata = _source_contract()
+    with pytest.raises(benchmark.CropBenchmarkError, match="invalid_annotations"):
+        benchmark._validate_annotations(
+            annotations,
+            hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(source_path.read_bytes()).hexdigest(),
+            hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
+            _json(FIXTURE_ROOT / "dataset-manifest.json"),
+            source_clips,
+            source_strata,
+        )
+
+
 def test_crop_annotation_source_binding_is_exact() -> None:
     source_path = FIXTURE_ROOT / "source-manifest.json"
     candidate_path = FIXTURE_ROOT / "candidates.json"
@@ -174,9 +260,8 @@ def test_crop_annotation_source_binding_is_exact() -> None:
     first = cast(list[dict[str, object]], annotations["items"])[0]
     first["source_id"] = "buggy"
     dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
-    _, _, payload, _ = benchmark._split_payload(annotations, "calibration")
-    calibration = cast(dict[str, object], cast(dict[str, object], dataset["splits"])["calibration"])
-    calibration["annotation_sha256"] = hashlib.sha256(payload).hexdigest()
+    _refresh_split_lock(annotations, dataset, "calibration")
+    source_clips, source_strata = _source_contract()
     with pytest.raises(benchmark.CropBenchmarkError, match="invalid_annotations"):
         benchmark._validate_annotations(
             annotations,
@@ -184,7 +269,87 @@ def test_crop_annotation_source_binding_is_exact() -> None:
             hashlib.sha256(source_path.read_bytes()).hexdigest(),
             hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
             dataset,
+            source_clips,
+            source_strata,
         )
+
+
+def test_crop_annotations_bind_clips_and_paths_to_source_manifest() -> None:
+    source_path = FIXTURE_ROOT / "source-manifest.json"
+    candidate_path = FIXTURE_ROOT / "candidates.json"
+    annotations_path = FIXTURE_ROOT / "annotations.json"
+    annotations = _json(annotations_path)
+    clips = cast(list[dict[str, object]], annotations["clips"])
+    selected_clip = clips[0]
+    original_source = selected_clip["source_id"]
+    selected_clip["source_id"] = "forged-source"
+    for item in cast(list[dict[str, object]], annotations["items"]):
+        if item["source_id"] == original_source:
+            item["source_id"] = "forged-source"
+            item["labels"] = preparation.assigned_labels(
+                "forged-source", cast(str, item["stratum"])
+            )
+    dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+    _refresh_split_lock(annotations, dataset, "calibration")
+    source_clips, source_strata = _source_contract()
+    with pytest.raises(benchmark.CropBenchmarkError, match="invalid_annotations"):
+        benchmark._validate_annotations(
+            annotations,
+            hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(source_path.read_bytes()).hexdigest(),
+            hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
+            dataset,
+            source_clips,
+            source_strata,
+        )
+
+    annotations = _json(annotations_path)
+    cast(list[dict[str, object]], annotations["clips"])[0]["source_relative_path"] = (
+        "calibration/another-source.mov"
+    )
+    dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+    _refresh_split_lock(annotations, dataset, "calibration")
+    with pytest.raises(benchmark.CropBenchmarkError, match="invalid_annotations"):
+        benchmark._validate_annotations(
+            annotations,
+            hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
+            hashlib.sha256(source_path.read_bytes()).hexdigest(),
+            hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
+            dataset,
+            source_clips,
+            source_strata,
+        )
+
+
+def test_crop_annotations_bind_geometry_and_integer_bytes_to_source_manifest() -> None:
+    source_path = FIXTURE_ROOT / "source-manifest.json"
+    candidate_path = FIXTURE_ROOT / "candidates.json"
+    annotations_path = FIXTURE_ROOT / "annotations.json"
+    source_clips, source_strata = _source_contract()
+    for mutation in ("geometry", "byte_type"):
+        annotations = _json(annotations_path)
+        item = cast(list[dict[str, object]], annotations["items"])[0]
+        if mutation == "geometry":
+            detector_box = cast(list[int], item["detector_box"])
+            shifted = tuple(
+                value + (1 if index % 2 == 0 else 0) for index, value in enumerate(detector_box)
+            )
+            item["detector_box"] = list(shifted)
+            item["source_box"] = list(preparation._source_box(shifted))
+        else:
+            item["original_crop_bytes"] = float(cast(int, item["original_crop_bytes"]))
+        dataset = _json(FIXTURE_ROOT / "dataset-manifest.json")
+        _refresh_split_lock(annotations, dataset, "calibration")
+        with pytest.raises(benchmark.CropBenchmarkError, match="invalid_annotations"):
+            benchmark._validate_annotations(
+                annotations,
+                hashlib.sha256(annotations_path.read_bytes()).hexdigest(),
+                hashlib.sha256(source_path.read_bytes()).hexdigest(),
+                hashlib.sha256(candidate_path.read_bytes()).hexdigest(),
+                dataset,
+                source_clips,
+                source_strata,
+            )
 
 
 def test_patterns_are_deterministic_distinct_and_round_trip() -> None:
@@ -297,7 +462,7 @@ def test_crop_tools_redact_invalid_arguments(script: str) -> None:
 
 
 def test_local_generated_crop_clips_match_locks_when_available() -> None:
-    dataset_root = ROOT / "artifacts" / "issue23" / "dataset-v4"
+    dataset_root = ROOT / "artifacts" / "issue23" / "dataset-v5"
     if not dataset_root.is_dir():
         pytest.skip("generated crop clips are optional research prerequisites")
     annotations = _json(FIXTURE_ROOT / "annotations.json")

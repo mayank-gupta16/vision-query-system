@@ -24,6 +24,10 @@ CANDIDATES = FIXTURE_ROOT / "candidates.json"
 ANNOTATION_LOCK = FIXTURE_ROOT / "annotations.json"
 DETECTION_ANNOTATIONS = ROOT / "fixtures" / "v02-detection-research" / "annotations.json"
 DETECTION_SOURCE_MANIFEST = ROOT / "fixtures" / "v02-detection-research" / "source-manifest.json"
+DETECTION_ANNOTATION_SHA256 = "6c35c9d961fa274d4cdf3682d927ac9c22cb8587832dd099a3f014662363bbe8"
+DETECTION_SOURCE_MANIFEST_SHA256 = (
+    "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66"
+)
 SOURCE_WIDTH = 3840
 SOURCE_HEIGHT = 2160
 DETECTOR_WIDTH = 384
@@ -433,12 +437,15 @@ def _validate_source_manifest(
     if (
         set(value) != expected_fields
         or value["schema"] != "visualworld.v02-crop-source-manifest"
+        or type(value["schema_version"]) is not int
         or value["schema_version"] != 1
     ):
         _fail("invalid_source_manifest")
     if (
         value["license_expression"] != "CC0-1.0"
         or value["terms_url"] != "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+        or detection_annotation_sha256 != DETECTION_ANNOTATION_SHA256
+        or detection_source_sha256 != DETECTION_SOURCE_MANIFEST_SHA256
         or value["source_detection_annotation_sha256"] != detection_annotation_sha256
         or value["source_detection_manifest_sha256"] != detection_source_sha256
         or detection_annotations.get("source_manifest_sha256") != detection_source_sha256

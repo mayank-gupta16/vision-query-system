@@ -214,6 +214,8 @@ def _validate_annotations(
     source_manifest_sha256: str,
     candidate_manifest_sha256: str,
     dataset_manifest: dict[str, object],
+    source_clips: list[dict[str, object]],
+    source_strata: dict[str, dict[str, tuple[int, int, int, int]]],
 ) -> None:
     if (
         set(annotations)
@@ -226,6 +228,7 @@ def _validate_annotations(
             "source_manifest_sha256",
         }
         or annotations.get("schema") != "visualworld.v02-crop-annotation-lock"
+        or type(annotations.get("schema_version")) is not int
         or annotations.get("schema_version") != 1
         or annotations.get("source_manifest_sha256") != source_manifest_sha256
         or annotations.get("candidate_manifest_sha256") != candidate_manifest_sha256
@@ -265,6 +268,13 @@ def _validate_annotations(
     }
     split_sources: dict[str, set[str]] = {}
     split_manifest = _mapping(dataset_manifest["splits"], "invalid_dataset")
+    expected_clips: dict[str, dict[str, object]] = {}
+    for raw_source_clip in source_clips:
+        source_clip = _mapping(raw_source_clip, "invalid_source_manifest")
+        clip_id = _text(source_clip.get("clip_id"), "invalid_source_manifest", 96)
+        if clip_id in expected_clips:
+            _fail("invalid_source_manifest")
+        expected_clips[clip_id] = source_clip
     all_clip_ids: set[str] = set()
     all_item_ids: set[str] = set()
     for split in ("calibration", "test"):
@@ -284,11 +294,17 @@ def _validate_annotations(
                 _fail("invalid_annotations")
             clip_id = _text(clip["clip_id"], "invalid_annotations", 96)
             source_id = _text(clip["source_id"], "invalid_annotations", 64)
+            source_clip = expected_clips.get(clip_id)
             if (
                 clip_id in all_clip_ids
                 or source_id in sources
                 or clip["split"] != split
                 or clip_id != f"{split}-{source_id}"
+                or source_clip is None
+                or source_clip.get("source_id") != source_id
+                or source_clip.get("split") != split
+                or clip["source_relative_path"] != f"{split}/{clip_id}-source.mov"
+                or clip["detector_relative_path"] != f"{split}/{clip_id}-detector.mov"
             ):
                 _fail("invalid_annotations")
             for key in ("source_relative_path", "detector_relative_path"):
@@ -305,6 +321,10 @@ def _validate_annotations(
             clip_sources[clip_id] = source_id
             all_clip_ids.add(clip_id)
             sources.add(source_id)
+        if clip_ids != {
+            clip_id for clip_id, clip in expected_clips.items() if clip.get("split") == split
+        }:
+            _fail("invalid_annotations")
         counts = {stratum: 0 for stratum in crop_prep.STRATA}
         per_clip: dict[str, set[int]] = {clip_id: set() for clip_id in clip_ids}
         for item in items:
@@ -329,6 +349,9 @@ def _validate_annotations(
             detector_box = _box(
                 item["detector_box"], DETECTOR_WIDTH, DETECTOR_HEIGHT, "invalid_annotations"
             )
+            expected_geometry = source_strata.get(stratum)
+            if expected_geometry is None or detector_box != expected_geometry["detector_box"]:
+                _fail("invalid_annotations")
             source_box = _box(
                 item["source_box"], SOURCE_WIDTH, SOURCE_HEIGHT, "invalid_annotations"
             )
@@ -341,6 +364,11 @@ def _validate_annotations(
                     DETECTOR_HEIGHT,
                     "invalid_annotations",
                 )
+                expected_panel = expected_geometry[
+                    "left_panel_box" if control == "resolved" else "right_panel_box"
+                ]
+                if detector_panel != expected_panel:
+                    _fail("invalid_annotations")
                 source_panel = _box(
                     item[f"{control}_source_panel_box"],
                     SOURCE_WIDTH,
@@ -360,8 +388,12 @@ def _validate_annotations(
             ):
                 _digest(item[key], "invalid_annotations")
             expected_bytes = (source_box[2] - source_box[0]) * (source_box[3] - source_box[1]) * 3
-            if item["original_crop_bytes"] != expected_bytes:
-                _fail("invalid_annotations")
+            _integer(
+                item["original_crop_bytes"],
+                "invalid_annotations",
+                expected_bytes,
+                expected_bytes,
+            )
             counts[stratum] += 1
             per_clip[clip_id].add(frame_index)
             all_item_ids.add(item_id)
@@ -875,7 +907,7 @@ def run_benchmark(
         DETECTION_SOURCE_MANIFEST_PATH, "invalid_source_manifest"
     )
     crop_prep._validate_candidates(candidates)
-    crop_prep._validate_source_manifest(
+    source_clips, source_strata = crop_prep._validate_source_manifest(
         source_manifest,
         detection_annotations,
         detection_annotation_sha256,
@@ -909,6 +941,8 @@ def run_benchmark(
         source_manifest_sha256,
         candidates_sha256,
         dataset_manifest,
+        source_clips,
+        source_strata,
     )
     calibration_clips, calibration_items, _, _ = _split_payload(annotations, "calibration")
     test_clips, test_items, _, _ = _split_payload(annotations, "test")
