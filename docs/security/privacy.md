@@ -26,11 +26,14 @@ sensitive artifacts remain and audit any independently retained source reference
 accepted local staged-write, recovery, reference-aware cascade deletion, and
 reduced deletion-receipt protocol.
 
-The version-1 local WorldStore keeps only canonical metadata, lookup
-projections, artifact descriptors/references, and reduced coordination state in
-a private mode-0600 SQLite/WAL set. It never stores source paths, video or
-artifact bytes, raw SQL, or backend exception text. Preparing runs and records
-under pending deletion closure are not returned by ordinary list operations.
+The local WorldStore keeps only canonical metadata, lookup projections, artifact
+descriptors/references, and reduced coordination state in a private mode-0600
+SQLite/WAL set. Schema version 2 adds pixel-free observations, completed
+tracklets and exact ordinal membership, and complete selected-evidence intent
+metadata; it adds no crops, model tensors, decoder output, source paths, video,
+or artifact bytes. Fixed SQL remains internal, and backend exception text is
+never surfaced. Preparing runs and every version-1 or version-2 record under a
+pending deletion closure are not returned by ordinary list operations.
 
 Best-frame selection is metadata-only. Its intent records exact source geometry,
 opaque record identifiers, integer scores, producer provenance,

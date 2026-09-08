@@ -178,9 +178,9 @@ def _canonical_perception_record(
             raise ValueError("unsupported perception record")
         encoded = dumps_perception_record(cast(PerceptionRecord, value))
         decoded = loads_perception_record(encoded)
-    except (AttributeError, RecordValidationError, TypeError, ValueError):
+    except BaseException:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
-    if type(decoded) is not type(value) or decoded != value:
+    if type(decoded) is not type(value) or dumps_perception_record(decoded) != encoded:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
     return decoded, encoded
 
@@ -194,9 +194,9 @@ def _canonical_evidence_intent(
             raise ValueError("unsupported evidence intent")
         encoded = dumps_evidence_intent(value)
         decoded = loads_evidence_intent(encoded)
-    except (AttributeError, RecordValidationError, TypeError, ValueError):
+    except BaseException:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
-    if decoded != value:
+    if dumps_evidence_intent(decoded) != encoded:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
     return decoded, encoded
 
@@ -897,8 +897,9 @@ class LocalWorldStore:
             connection.execute("BEGIN EXCLUSIVE")
             began = True
             for statement in self._migration_statements(2):
-                connection.execute(statement)
-            connection.execute(
+                self._execute_v2_migration_step(connection, statement)
+            self._execute_v2_migration_step(
+                connection,
                 """INSERT INTO schema_migrations(
                     schema_version, migration_name, code_sha256, applied_at_utc
                 ) VALUES (?, ?, ?, ?)""",
@@ -909,14 +910,22 @@ class LocalWorldStore:
                     datetime.now(UTC).isoformat(timespec="microseconds"),
                 ),
             )
-            connection.execute("PRAGMA user_version = 2")
-            connection.execute("COMMIT")
+            self._execute_v2_migration_step(connection, "PRAGMA user_version = 2")
+            self._execute_v2_migration_step(connection, "COMMIT")
             began = False
         except (PortError, sqlite3.Error):
             if began:
                 with suppress(sqlite3.Error):
                     connection.execute("ROLLBACK")
             raise
+
+    def _execute_v2_migration_step(
+        self,
+        connection: sqlite3.Connection,
+        statement: str,
+        parameters: tuple[object, ...] = (),
+    ) -> sqlite3.Cursor:
+        return connection.execute(statement, parameters)
 
     def _validate_schema(self, connection: sqlite3.Connection, operation: str) -> None:
         expected: dict[tuple[str, str], str] = {}
@@ -1652,6 +1661,8 @@ class LocalWorldStore:
         connection: sqlite3.Connection,
         record: Observation,
         operation: str,
+        *,
+        error_code: PortErrorCode = PortErrorCode.CONFLICT,
     ) -> None:
         row = connection.execute(
             """SELECT frame.source_id, frame.stream_index, frame.pts_value,
@@ -1665,7 +1676,7 @@ class LocalWorldStore:
             (record.frame_id,),
         ).fetchone()
         if row is None:
-            _fail(PortErrorCode.CONFLICT, operation)
+            _fail(error_code, operation)
         expected = (
             record.source_id,
             record.stream_index,
@@ -1676,7 +1687,7 @@ class LocalWorldStore:
             record.geometry.source_height,
         )
         if row != expected:
-            _fail(PortErrorCode.CONFLICT, operation)
+            _fail(error_code, operation)
 
     def _write_observation(
         self,
@@ -2074,6 +2085,13 @@ class LocalWorldStore:
                             or artifact_intent is None
                         ):
                             _fail(PortErrorCode.CONFLICT, operation)
+                        if evidence_session is None:
+                            _fail(PortErrorCode.INVALID_REQUEST, operation)
+                        artifact_check = evidence_session.inspect((evidence.artifact,))[0]
+                        if artifact_check.state is ArtifactState.CORRUPT:
+                            _fail(PortErrorCode.CORRUPT, operation)
+                        if artifact_check.state is not ArtifactState.VALID:
+                            _fail(PortErrorCode.CONFLICT, operation)
                         if selection[1] is None:
                             connection.execute(
                                 """UPDATE selected_evidence SET evidence_id = ?
@@ -2175,6 +2193,29 @@ class LocalWorldStore:
                         operation,
                         require_publication=True,
                     )
+                    linked_rows = connection.execute(
+                        """SELECT item.record_json FROM selected_evidence AS selected
+                        JOIN evidence AS item ON item.evidence_id = selected.evidence_id
+                        WHERE selected.run_id = ? AND selected.evidence_id IS NOT NULL
+                        ORDER BY selected.tracklet_id, selected.rank LIMIT ?""",
+                        (selected_manifest.run_id, self._max_audit_records + 1),
+                    ).fetchall()
+                    if len(linked_rows) > self._max_audit_records:
+                        _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                    if linked_rows and evidence_session is None:
+                        _fail(PortErrorCode.INVALID_REQUEST, operation)
+                    linked_artifacts: list[Artifact] = []
+                    for row in linked_rows:
+                        linked_record = self._decode_record(row[0], operation)
+                        if not isinstance(linked_record, EvidenceRef):
+                            _fail(PortErrorCode.CORRUPT, operation)
+                        linked_artifacts.append(linked_record.artifact)
+                    if evidence_session is not None and linked_artifacts:
+                        checks = evidence_session.inspect(tuple(linked_artifacts))
+                        if any(check.state is ArtifactState.CORRUPT for check in checks):
+                            _fail(PortErrorCode.CORRUPT, operation)
+                        if any(check.state is not ArtifactState.VALID for check in checks):
+                            _fail(PortErrorCode.CONFLICT, operation)
                     self._write_run(
                         connection,
                         selected_manifest,
@@ -3699,25 +3740,7 @@ class LocalWorldStore:
             try:
                 manifest = self._committed_run(connection, selected_run, operation)
                 rows = connection.execute(
-                    """SELECT observation.record_json FROM observations AS observation
-                    WHERE observation.source_id = ? AND observation.stream_index = ?
-                      AND (? IS NULL OR observation.category = ?)
-                      AND (
-                        observation.pts_order > ? OR (
-                            observation.pts_order = ? AND observation.observation_id > ?
-                        )
-                      )
-                      AND EXISTS (
-                        SELECT 1 FROM perception_run_records AS owned
-                        WHERE owned.run_id = ? AND owned.record_type = 'observation'
-                          AND owned.record_id = observation.observation_id
-                      )
-                      AND NOT EXISTS (
-                        SELECT 1 FROM perception_deletion_closure AS hidden
-                        WHERE hidden.record_id = observation.observation_id
-                          AND hidden.record_type = 'observation'
-                      )
-                    ORDER BY observation.pts_order, observation.observation_id LIMIT ?""",
+                    _v2_schema.LIST_RUN_OBSERVATIONS_SQL,
                     (
                         manifest.source_id,
                         stream_index,
@@ -3774,26 +3797,7 @@ class LocalWorldStore:
             try:
                 manifest = self._committed_run(connection, selected_run, operation)
                 rows = connection.execute(
-                    """SELECT tracklet.record_json FROM tracklets AS tracklet
-                    WHERE tracklet.source_id = ? AND tracklet.stream_index = ?
-                      AND (? IS NULL OR tracklet.category = ?)
-                      AND (? IS NULL OR tracklet.termination_reason = ?)
-                      AND (
-                        tracklet.start_pts_order > ? OR (
-                            tracklet.start_pts_order = ? AND tracklet.tracklet_id > ?
-                        )
-                      )
-                      AND EXISTS (
-                        SELECT 1 FROM perception_run_records AS owned
-                        WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
-                          AND owned.record_id = tracklet.tracklet_id
-                      )
-                      AND NOT EXISTS (
-                        SELECT 1 FROM perception_deletion_closure AS hidden
-                        WHERE hidden.record_id = tracklet.tracklet_id
-                          AND hidden.record_type = 'tracklet'
-                      )
-                    ORDER BY tracklet.start_pts_order, tracklet.tracklet_id LIMIT ?""",
+                    _v2_schema.LIST_RUN_TRACKLETS_SQL,
                     (
                         manifest.source_id,
                         stream_index,
@@ -3852,11 +3856,7 @@ class LocalWorldStore:
                 ):
                     _fail(PortErrorCode.NOT_FOUND, operation)
                 rows = connection.execute(
-                    """SELECT observation.record_json FROM tracklet_points AS point
-                    JOIN observations AS observation
-                      ON observation.observation_id = point.observation_id
-                    WHERE point.tracklet_id = ? AND point.ordinal > ?
-                    ORDER BY point.ordinal LIMIT ?""",
+                    _v2_schema.LIST_TRACKLET_OBSERVATIONS_SQL,
                     (selected_tracklet, after, selected_limit),
                 ).fetchall()
                 records = tuple(self._decode_perception_record(item[0], operation) for item in rows)
@@ -3892,11 +3892,23 @@ class LocalWorldStore:
             after = after_rank
         with self._read_connection(operation) as connection:
             try:
-                self._committed_run(connection, selected_run, operation)
+                manifest = self._committed_run(connection, selected_run, operation)
+                tracklet_row = connection.execute(
+                    """SELECT tracklet.record_json FROM tracklets AS tracklet
+                    JOIN perception_run_records AS owned
+                      ON owned.record_id = tracklet.tracklet_id
+                    WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                      AND tracklet.tracklet_id = ?""",
+                    (selected_run, selected_tracklet),
+                ).fetchone()
+                if tracklet_row is None:
+                    _fail(PortErrorCode.NOT_FOUND, operation)
+                tracklet = self._decode_perception_record(tracklet_row[0], operation)
+                if not isinstance(tracklet, Tracklet) or tracklet.source_id != manifest.source_id:
+                    _fail(PortErrorCode.CORRUPT, operation)
+                self._verify_perception_projection(connection, tracklet, operation)
                 rows = connection.execute(
-                    """SELECT rank FROM selected_evidence
-                    WHERE run_id = ? AND tracklet_id = ? AND rank > ?
-                    ORDER BY rank LIMIT ?""",
+                    _v2_schema.LIST_SELECTED_EVIDENCE_RANKS_SQL,
                     (selected_run, selected_tracklet, after, selected_limit),
                 ).fetchall()
                 result = tuple(
@@ -3972,7 +3984,12 @@ class LocalWorldStore:
             )
             if row != observation_expected:
                 _fail(PortErrorCode.CORRUPT, operation)
-            self._validate_observation_frame(connection, record, operation)
+            self._validate_observation_frame(
+                connection,
+                record,
+                operation,
+                error_code=PortErrorCode.CORRUPT,
+            )
             return
         row = connection.execute(
             """SELECT source_id, stream_index, category, termination_reason,

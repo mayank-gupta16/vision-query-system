@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Checksummed additive SQLite schema for private v0.2 perception metadata."""
+"""Checksummed schema and fixed ordered reads for private v0.2 metadata."""
 
 from __future__ import annotations
 
@@ -134,4 +134,65 @@ SCHEMA_V2: tuple[str, ...] = (
 MIGRATION_V2_NAME = "v2_perception_metadata"
 MIGRATION_V2_CHECKSUM = hashlib.sha256("\0".join(SCHEMA_V2).encode("utf-8")).hexdigest()
 
-__all__ = ["MIGRATION_V2_CHECKSUM", "MIGRATION_V2_NAME", "SCHEMA_V2"]
+LIST_RUN_OBSERVATIONS_SQL = """SELECT observation.record_json
+    FROM observations AS observation
+    WHERE observation.source_id = ? AND observation.stream_index = ?
+      AND (? IS NULL OR observation.category = ?)
+      AND (
+        observation.pts_order > ? OR (
+            observation.pts_order = ? AND observation.observation_id > ?
+        )
+      )
+      AND EXISTS (
+        SELECT 1 FROM perception_run_records AS owned
+        WHERE owned.run_id = ? AND owned.record_type = 'observation'
+          AND owned.record_id = observation.observation_id
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM perception_deletion_closure AS hidden
+        WHERE hidden.record_id = observation.observation_id
+          AND hidden.record_type = 'observation'
+      )
+    ORDER BY observation.pts_order, observation.observation_id LIMIT ?"""
+
+LIST_RUN_TRACKLETS_SQL = """SELECT tracklet.record_json FROM tracklets AS tracklet
+    WHERE tracklet.source_id = ? AND tracklet.stream_index = ?
+      AND (? IS NULL OR tracklet.category = ?)
+      AND (? IS NULL OR tracklet.termination_reason = ?)
+      AND (
+        tracklet.start_pts_order > ? OR (
+            tracklet.start_pts_order = ? AND tracklet.tracklet_id > ?
+        )
+      )
+      AND EXISTS (
+        SELECT 1 FROM perception_run_records AS owned
+        WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+          AND owned.record_id = tracklet.tracklet_id
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM perception_deletion_closure AS hidden
+        WHERE hidden.record_id = tracklet.tracklet_id
+          AND hidden.record_type = 'tracklet'
+      )
+    ORDER BY tracklet.start_pts_order, tracklet.tracklet_id LIMIT ?"""
+
+LIST_TRACKLET_OBSERVATIONS_SQL = """SELECT observation.record_json
+    FROM tracklet_points AS point
+    JOIN observations AS observation
+      ON observation.observation_id = point.observation_id
+    WHERE point.tracklet_id = ? AND point.ordinal > ?
+    ORDER BY point.ordinal LIMIT ?"""
+
+LIST_SELECTED_EVIDENCE_RANKS_SQL = """SELECT rank FROM selected_evidence
+    WHERE run_id = ? AND tracklet_id = ? AND rank > ?
+    ORDER BY rank LIMIT ?"""
+
+__all__ = [
+    "LIST_RUN_OBSERVATIONS_SQL",
+    "LIST_RUN_TRACKLETS_SQL",
+    "LIST_SELECTED_EVIDENCE_RANKS_SQL",
+    "LIST_TRACKLET_OBSERVATIONS_SQL",
+    "MIGRATION_V2_CHECKSUM",
+    "MIGRATION_V2_NAME",
+    "SCHEMA_V2",
+]

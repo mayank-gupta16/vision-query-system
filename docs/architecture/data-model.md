@@ -90,7 +90,9 @@ clip-local track ordinals. A continuous trajectory that would exceed 64 points
 fails with a structured limit error rather than being silently split.
 
 `EvidenceIntent` is the pixel-free bridge from one completed tracklet to a
-possible original-frame `EvidenceRef`. It is not a persisted artifact. It binds
+possible original-frame `EvidenceRef`. It is not an artifact and contains no
+artifact bytes. The v0.2 local store persists its complete canonical metadata so
+selection remains explainable before and after optional materialization. It binds
 the selected observation and source-coordinate geometry to an ordered rank,
 the complete deterministic score/tie-break breakdown, selector producer and
 configuration digest, `derived_private` retention, and coordinator-owned source
@@ -99,3 +101,10 @@ RGB24 crop and content-addressed reference. Materialization first recomputes the
 plan from the resupplied completed Tracklet and Observation set and requires the
 full intent to match. Unavailable or unresolvable detail remains `UNKNOWN`. The
 selector does not add OCR, identity, make/model, face, or plate fields.
+
+SQLite schema version 2 stores canonical `Observation` and `Tracklet` records,
+verified lookup projections, exact ordinal track-point membership, run ownership,
+and selected-evidence edges. The ordered points are the trajectory projection;
+there is no separate persistent trajectory or entity record. Categories and
+producer provenance remain generic domain values. Detector classes, thresholds,
+sampling policy, runtime names, and hardware choices remain adapter concerns.
