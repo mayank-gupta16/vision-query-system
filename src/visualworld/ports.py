@@ -12,19 +12,27 @@ from typing import Protocol, runtime_checkable
 from visualworld.ingestion import (
     Artifact,
     EvidenceRef,
+    Fingerprint,
     FrameRef,
+    MediaTime,
+    Producer,
     Record,
     RunManifest,
     Sampling,
     Source,
+    SourceStream,
+    TimeBase,
     dumps_record,
 )
+from visualworld.perception import Observation, Tracklet
 
 MAX_PORT_BATCH_ITEMS = 64
+MAX_PERCEPTION_OBSERVATIONS = MAX_PORT_BATCH_ITEMS * MAX_PORT_BATCH_ITEMS
 MAX_FAKE_ARTIFACT_BYTES = 1024 * 1024
 _MAX_STREAM_INDEX = 2**31 - 1
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}\Z")
+_REASON_RE = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
 _DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 _RECORD_ID_RE = re.compile(r"(?:src|frm|evi|run)_[0-9a-f]{64}\Z")
 _UNSIGNED_DECIMAL_RE = re.compile(r"(?:0|[1-9][0-9]*)\Z")
@@ -33,6 +41,9 @@ _UNSIGNED_DECIMAL_RE = re.compile(r"(?:0|[1-9][0-9]*)\Z")
 class PortKind(StrEnum):
     VIDEO_SOURCE = "video_source"
     FRAME_SAMPLER = "frame_sampler"
+    DETECTOR = "detector"
+    TRACKER = "tracker"
+    EVIDENCE_SELECTOR = "evidence_selector"
     EVIDENCE_STORE = "evidence_store"
     WORLD_STORE = "world_store"
 
@@ -59,6 +70,90 @@ class PortErrorCode(StrEnum):
     DECODE_FAILED = "decode_failed"
     CORRUPT = "corrupt"
     STORAGE_FAILED = "storage_failed"
+
+
+class PerceptionResultState(StrEnum):
+    COMPLETE = "complete"
+    UNKNOWN = "unknown"
+    UNSUPPORTED = "unsupported"
+
+
+def _validate_result(
+    state: PerceptionResultState,
+    reason: str | None,
+    output_count: int,
+) -> None:
+    if type(state) is not PerceptionResultState:
+        raise ValueError("state must use PerceptionResultState")
+    if state is PerceptionResultState.COMPLETE:
+        if reason is not None:
+            raise ValueError("complete result cannot have a reason")
+        return
+    if output_count:
+        raise ValueError("incomplete result cannot contain outputs")
+    if type(reason) is not str or not _REASON_RE.fullmatch(reason):
+        raise ValueError("incomplete result requires a bounded stable reason code")
+
+
+@dataclass(frozen=True, slots=True)
+class DetectionResult:
+    state: PerceptionResultState
+    observations: tuple[Observation, ...] = ()
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.observations) is not tuple
+            or len(self.observations) > MAX_PERCEPTION_OBSERVATIONS
+        ):
+            raise ValueError("observations exceed the port bound")
+        if not all(type(item) is Observation for item in self.observations):
+            raise ValueError("observations must contain Observation records")
+        for item in self.observations:
+            Observation.__post_init__(item)
+        if len({item.observation_id for item in self.observations}) != len(self.observations):
+            raise ValueError("observation identifiers must be unique")
+        _validate_result(self.state, self.reason, len(self.observations))
+
+
+@dataclass(frozen=True, slots=True)
+class TrackingResult:
+    state: PerceptionResultState
+    tracklets: tuple[Tracklet, ...] = ()
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if type(self.tracklets) is not tuple or len(self.tracklets) > MAX_PORT_BATCH_ITEMS:
+            raise ValueError("tracklets exceed the port bound")
+        if not all(type(item) is Tracklet for item in self.tracklets):
+            raise ValueError("tracklets must contain Tracklet records")
+        for item in self.tracklets:
+            Tracklet.__post_init__(item)
+        if len({item.tracklet_id for item in self.tracklets}) != len(self.tracklets):
+            raise ValueError("tracklet identifiers must be unique")
+        _validate_result(self.state, self.reason, len(self.tracklets))
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceSelectionResult:
+    state: PerceptionResultState
+    observation_ids: tuple[str, ...] = ()
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.observation_ids) is not tuple
+            or len(self.observation_ids) > MAX_PORT_BATCH_ITEMS
+        ):
+            raise ValueError("selected observations exceed the port bound")
+        if not all(
+            type(item) is str and re.fullmatch(r"obs_[0-9a-f]{64}", item)
+            for item in self.observation_ids
+        ):
+            raise ValueError("selected observation identifiers are invalid")
+        if len(set(self.observation_ids)) != len(self.observation_ids):
+            raise ValueError("selected observation identifiers must be unique")
+        _validate_result(self.state, self.reason, len(self.observation_ids))
 
 
 class PortError(RuntimeError):
@@ -175,6 +270,43 @@ class FrameSampler(Protocol):
         candidates: tuple[FrameRef, ...],
         sampling: Sampling,
     ) -> tuple[FrameRef, ...]: ...
+
+
+@runtime_checkable
+class Detector(Protocol):
+    @property
+    def descriptor(self) -> CapabilityDescriptor: ...
+
+    def detect(
+        self,
+        source: Source,
+        frames: tuple[FrameRef, ...],
+    ) -> DetectionResult: ...
+
+
+@runtime_checkable
+class Tracker(Protocol):
+    @property
+    def descriptor(self) -> CapabilityDescriptor: ...
+
+    def track(
+        self,
+        source: Source,
+        frames: tuple[FrameRef, ...],
+        observations: tuple[Observation, ...],
+    ) -> TrackingResult: ...
+
+
+@runtime_checkable
+class EvidenceSelector(Protocol):
+    @property
+    def descriptor(self) -> CapabilityDescriptor: ...
+
+    def select(
+        self,
+        tracklet: Tracklet,
+        observations: tuple[Observation, ...],
+    ) -> EvidenceSelectionResult: ...
 
 
 @runtime_checkable
@@ -395,6 +527,302 @@ class FakeFrameSampler(_InstrumentedFake):
         return result
 
 
+def _plain_port_time(value: object) -> bool:
+    if (
+        type(value) is not MediaTime
+        or type(value.value) is not str
+        or type(value.basis) is not str
+        or type(value.time_base) is not TimeBase
+        or type(value.time_base.numerator) is not str
+        or type(value.time_base.denominator) is not str
+    ):
+        return False
+    if value.estimate_method is not None and type(value.estimate_method) is not str:
+        return False
+    producer = value.estimate_producer
+    return producer is None or (
+        type(producer) is Producer
+        and type(producer.name) is str
+        and type(producer.version) is str
+        and type(producer.configuration_sha256) is str
+    )
+
+
+def _plain_perception_source(value: object) -> bool:
+    if (
+        type(value) is not Source
+        or type(value.source_id) is not str
+        or type(value.fingerprint) is not Fingerprint
+        or type(value.fingerprint.digest) is not str
+        or type(value.fingerprint.bytes) is not str
+        or type(value.fingerprint.algorithm) is not str
+        or type(value.streams) is not tuple
+        or not all(
+            type(stream) is SourceStream
+            and type(stream.stream_index) is int
+            and type(stream.width) is int
+            and type(stream.height) is int
+            and type(stream.rotation_degrees) is int
+            and type(stream.media_type) is str
+            and type(stream.time_base) is TimeBase
+            and type(stream.time_base.numerator) is str
+            and type(stream.time_base.denominator) is str
+            for stream in value.streams
+        )
+    ):
+        return False
+    try:
+        Fingerprint.__post_init__(value.fingerprint)
+        for stream in value.streams:
+            TimeBase.__post_init__(stream.time_base)
+            SourceStream.__post_init__(stream)
+        Source.__post_init__(value)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def _perception_frames(
+    source: Source,
+    frames: tuple[FrameRef, ...],
+    port: PortKind,
+    operation: str,
+) -> dict[str, FrameRef]:
+    if not _plain_perception_source(source):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    if type(frames) is not tuple or len(frames) > MAX_PORT_BATCH_ITEMS:
+        raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
+    if not all(
+        type(frame) is FrameRef
+        and type(frame.frame_id) is str
+        and type(frame.source_id) is str
+        and type(frame.stream_index) is int
+        and type(frame.decode_index) is str
+        and _plain_port_time(frame.pts)
+        and (frame.duration is None or _plain_port_time(frame.duration))
+        for frame in frames
+    ):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    by_id = {frame.frame_id: frame for frame in frames}
+    streams = {stream.stream_index: stream for stream in source.streams}
+    positions = {(frame.stream_index, frame.decode_index) for frame in frames}
+    if (
+        len(streams) != len(source.streams)
+        or len(by_id) != len(frames)
+        or len(positions) != len(frames)
+        or any(frame.source_id != source.source_id for frame in frames)
+        or any(frame.stream_index not in streams for frame in frames)
+        or any(frame.pts.time_base != streams[frame.stream_index].time_base for frame in frames)
+        or any(
+            frame.duration is not None
+            and frame.duration.time_base != streams[frame.stream_index].time_base
+            for frame in frames
+        )
+    ):
+        raise _port_error(PortErrorCode.CONFLICT, port, operation)
+    return by_id
+
+
+def _perception_observations(
+    source: Source,
+    frames: dict[str, FrameRef],
+    observations: tuple[Observation, ...],
+    port: PortKind,
+    operation: str,
+) -> dict[str, Observation]:
+    if type(observations) is not tuple or len(observations) > MAX_PERCEPTION_OBSERVATIONS:
+        raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
+    if not all(type(observation) is Observation for observation in observations):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    for observation in observations:
+        try:
+            Observation.__post_init__(observation)
+        except (TypeError, ValueError):
+            raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation) from None
+    by_id = {observation.observation_id: observation for observation in observations}
+    if len(by_id) != len(observations):
+        raise _port_error(PortErrorCode.CONFLICT, port, operation)
+    streams = {stream.stream_index: stream for stream in source.streams}
+    for observation in observations:
+        frame = frames.get(observation.frame_id)
+        stream = streams.get(observation.stream_index)
+        if (
+            observation.source_id != source.source_id
+            or frame is None
+            or stream is None
+            or observation.stream_index != frame.stream_index
+            or observation.pts != frame.pts
+            or observation.geometry.source_width != stream.width
+            or observation.geometry.source_height != stream.height
+        ):
+            raise _port_error(PortErrorCode.CONFLICT, port, operation)
+    return by_id
+
+
+class FakeDetector(_InstrumentedFake):
+    def __init__(self, result: DetectionResult) -> None:
+        if type(result) is not DetectionResult:
+            raise _port_error(PortErrorCode.INVALID_REQUEST, PortKind.DETECTOR, "init")
+        super().__init__(_fake_descriptor(PortKind.DETECTOR))
+        self._result = result
+
+    def detect(
+        self,
+        source: Source,
+        frames: tuple[FrameRef, ...],
+    ) -> DetectionResult:
+        by_frame = _perception_frames(source, frames, PortKind.DETECTOR, "detect")
+        _perception_observations(
+            source,
+            by_frame,
+            self._result.observations,
+            PortKind.DETECTOR,
+            "detect",
+        )
+        self._record_call("detect", len(frames))
+        return self._result
+
+
+class FakeTracker(_InstrumentedFake):
+    def __init__(self, result: TrackingResult) -> None:
+        if type(result) is not TrackingResult:
+            raise _port_error(PortErrorCode.INVALID_REQUEST, PortKind.TRACKER, "init")
+        super().__init__(_fake_descriptor(PortKind.TRACKER))
+        self._result = result
+
+    def track(
+        self,
+        source: Source,
+        frames: tuple[FrameRef, ...],
+        observations: tuple[Observation, ...],
+    ) -> TrackingResult:
+        by_frame = _perception_frames(source, frames, PortKind.TRACKER, "track")
+        by_observation = _perception_observations(
+            source,
+            by_frame,
+            observations,
+            PortKind.TRACKER,
+            "track",
+        )
+        tracked_observation_ids: list[str] = []
+        for tracklet in self._result.tracklets:
+            if tracklet.source_id != source.source_id:
+                raise _port_error(PortErrorCode.CONFLICT, PortKind.TRACKER, "track")
+            for point in tracklet.points:
+                observation = by_observation.get(point.observation_id)
+                if (
+                    observation is None
+                    or tracklet.stream_index != observation.stream_index
+                    or tracklet.category != observation.category
+                    or point.source_id != observation.source_id
+                    or point.stream_index != observation.stream_index
+                    or point.category != observation.category
+                    or point.frame_id != observation.frame_id
+                    or point.pts != observation.pts
+                    or point.geometry != observation.geometry
+                ):
+                    raise _port_error(PortErrorCode.CONFLICT, PortKind.TRACKER, "track")
+                tracked_observation_ids.append(point.observation_id)
+        if self._result.state is PerceptionResultState.COMPLETE and (
+            len(set(tracked_observation_ids)) != len(tracked_observation_ids)
+            or set(tracked_observation_ids) != set(by_observation)
+        ):
+            raise _port_error(PortErrorCode.CONFLICT, PortKind.TRACKER, "track")
+        self._record_call("track", len(frames))
+        return self._result
+
+
+class FakeEvidenceSelector(_InstrumentedFake):
+    def __init__(self, result: EvidenceSelectionResult) -> None:
+        if type(result) is not EvidenceSelectionResult:
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "init",
+            )
+        super().__init__(_fake_descriptor(PortKind.EVIDENCE_SELECTOR))
+        self._result = result
+
+    def select(
+        self,
+        tracklet: Tracklet,
+        observations: tuple[Observation, ...],
+    ) -> EvidenceSelectionResult:
+        if type(tracklet) is not Tracklet:
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            )
+        try:
+            Tracklet.__post_init__(tracklet)
+        except (TypeError, ValueError):
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            ) from None
+        if type(observations) is not tuple or len(observations) > MAX_PORT_BATCH_ITEMS:
+            raise _port_error(
+                PortErrorCode.LIMIT_EXCEEDED,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            )
+        if not all(type(observation) is Observation for observation in observations):
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            )
+        try:
+            for observation in observations:
+                Observation.__post_init__(observation)
+        except (TypeError, ValueError):
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            ) from None
+        by_id = {observation.observation_id: observation for observation in observations}
+        if len(by_id) != len(observations):
+            raise _port_error(
+                PortErrorCode.CONFLICT,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            )
+        point_ids = {point.observation_id for point in tracklet.points}
+        if set(by_id) != point_ids or not set(self._result.observation_ids).issubset(by_id):
+            raise _port_error(
+                PortErrorCode.CONFLICT,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            )
+        for observation in observations:
+            point = next(
+                item
+                for item in tracklet.points
+                if item.observation_id == observation.observation_id
+            )
+            if (
+                observation.source_id != tracklet.source_id
+                or observation.stream_index != tracklet.stream_index
+                or observation.category != tracklet.category
+                or point.source_id != observation.source_id
+                or point.stream_index != observation.stream_index
+                or point.category != observation.category
+                or point.frame_id != observation.frame_id
+                or point.pts != observation.pts
+                or point.geometry != observation.geometry
+            ):
+                raise _port_error(
+                    PortErrorCode.CONFLICT,
+                    PortKind.EVIDENCE_SELECTOR,
+                    "select",
+                )
+        self._record_call("select", len(observations))
+        return self._result
+
+
 class FakeEvidenceStore(_InstrumentedFake):
     def __init__(self, *, max_payload_bytes: int = MAX_FAKE_ARTIFACT_BYTES) -> None:
         if type(max_payload_bytes) is not int or max_payload_bytes < 0:
@@ -570,19 +998,30 @@ class FakeWorldStore(_InstrumentedFake):
 
 __all__ = [
     "MAX_FAKE_ARTIFACT_BYTES",
+    "MAX_PERCEPTION_OBSERVATIONS",
     "MAX_PORT_BATCH_ITEMS",
     "CapabilityDescriptor",
+    "DetectionResult",
+    "Detector",
     "Effect",
+    "EvidenceSelectionResult",
+    "EvidenceSelector",
     "EvidenceStore",
+    "FakeDetector",
+    "FakeEvidenceSelector",
     "FakeEvidenceStore",
     "FakeFrameSampler",
+    "FakeTracker",
     "FakeVideoSource",
     "FakeWorldStore",
     "FrameSampler",
+    "PerceptionResultState",
     "PortCall",
     "PortError",
     "PortErrorCode",
     "PortKind",
+    "Tracker",
+    "TrackingResult",
     "VideoSource",
     "WorldStore",
 ]

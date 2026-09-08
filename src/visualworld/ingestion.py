@@ -155,8 +155,8 @@ def _validate_shape(value: object, depth: int = 1, path: str = "$") -> None:
         if len(value) > MAX_OBJECT_MEMBERS:
             _fail("too_many_object_members", path)
         for key, item in value.items():
-            _general_string(key, path)
-            _validate_shape(item, depth + 1, f"{path}.{key}")
+            _general_string(key, f"{path}.<key>")
+            _validate_shape(item, depth + 1, f"{path}.<member>")
     elif isinstance(value, list):
         if len(value) > MAX_ARRAY_ITEMS:
             _fail("too_many_array_items", path)

@@ -46,3 +46,34 @@ resized, optionally letterboxed and display-rotated detector input back to
 encoded source pixels. It uses exact rational affine coefficients, outward
 rounding, source-bound clamping, and byte-preserving packed-RGB24 crops. Crop
 pixels are never included in object representations or errors.
+
+## Version-1 perception records
+
+Issue [#70](https://github.com/mayank-gupta16/vision-query-system/issues/70)
+adds the first framework-free perception records in `visualworld.perception`:
+
+- `Observation` is one detector-supported `vehicle` claim. Its content-derived
+  `obs_` identifier binds the source and frame identifiers, stream, exact source
+  PTS, original-pixel geometry and transform, integer-millionth confidence, and
+  exact producer version/configuration digest.
+- `Tracklet` is completed continuity within one source clip. Its content-derived
+  `trk_` identifier binds an ordered trajectory of observation/frame links,
+  exact PTS and geometry, tracker provenance, and the explicit `cut`,
+  `miss_timeout`, or `source_end` reason. Every trajectory point repeats its
+  source, stream, and category binding so a strict reader can verify the point
+  against its enclosing tracklet without resolving another record.
+
+Both schemas use the same bounded canonical-JSON profile and structured
+validation errors as the ingestion records. `visualworld.experimental` exposes
+the additive `ExperimentalRecord` union and strict combined dispatch across
+v0.1 ingestion and perception schemas; the narrower v0.1 `Record` union remains
+the WorldStore commit contract until the v0.2 storage migration is implemented.
+They contain no pixels, artifact bytes, vendor SDK values, source locators, or
+persistent entity identifier. `identity_scope=source_clip` and
+`continuity=inferred` are mandatory; a tracklet cannot be treated as proof that
+two observations belong to one persistent entity.
+
+The first contract bounds a completed tracklet to 64 strictly time-ordered
+points. Longer sources must be rejected or handled by a later reviewed paging
+extension; silently splitting continuity or manufacturing a page-boundary
+termination reason is not permitted.
