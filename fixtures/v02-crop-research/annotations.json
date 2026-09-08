@@ -1,0 +1,1740 @@
+{
+  "candidate_manifest_sha256": "4bc92279567b1b90a5fb434f64af39bb51466deab55f4c4c5b5117e8515195c8",
+  "clips": [
+    {
+      "clip_id": "calibration-kit-buggy",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "calibration/calibration-kit-buggy-detector.mov",
+      "detector_sha256": "ffb97d15835028a081f76bfab8f7d17a116b0cb1a6ed68b451b5c1707a62c1a1",
+      "source_byte_count": 74650188,
+      "source_id": "kit-buggy",
+      "source_relative_path": "calibration/calibration-kit-buggy-source.mov",
+      "source_sha256": "16e1c98fbd32cda120674b10341b08b067fde45f4f2e5699a8a859a0cde93b96",
+      "split": "calibration"
+    },
+    {
+      "clip_id": "calibration-vintage-green",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "calibration/calibration-vintage-green-detector.mov",
+      "detector_sha256": "9590922d183d21b1e8a0d36ee3b1f130c3bc1721eeab02acdd96723f82dd2dbd",
+      "source_byte_count": 74650188,
+      "source_id": "vintage-green",
+      "source_relative_path": "calibration/calibration-vintage-green-source.mov",
+      "source_sha256": "88000f656a24fb014c1cce87023aefd1e9caa2ab5396d400478d9aa18f4f3cff",
+      "split": "calibration"
+    },
+    {
+      "clip_id": "calibration-lime-van",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "calibration/calibration-lime-van-detector.mov",
+      "detector_sha256": "46f7b8e5ce1cc59a56d487f2192eb28cead7638e5c01ce92749ee1922851deb2",
+      "source_byte_count": 74650188,
+      "source_id": "lime-van",
+      "source_relative_path": "calibration/calibration-lime-van-source.mov",
+      "source_sha256": "5dc5ddc3f5ac9d3008fec9441b5dc8a93870ab56e0fac36f89dcde5d126c2bdc",
+      "split": "calibration"
+    },
+    {
+      "clip_id": "calibration-li-l7-side",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "calibration/calibration-li-l7-side-detector.mov",
+      "detector_sha256": "687965786aea8650a9fe828051c3b30977d7f30eb7f086c3a9373b6cf2a41ca0",
+      "source_byte_count": 74650188,
+      "source_id": "li-l7-side",
+      "source_relative_path": "calibration/calibration-li-l7-side-source.mov",
+      "source_sha256": "07d008fc72f499a0da604ac348e4a87db21c196f0eed2a644db0d30ce56a5169",
+      "split": "calibration"
+    },
+    {
+      "clip_id": "test-bmw-i3",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "test/test-bmw-i3-detector.mov",
+      "detector_sha256": "34daab5efd2b6ba35dbdbbb7151c59618d7fad21828795d6474570a6639478cf",
+      "source_byte_count": 74650188,
+      "source_id": "bmw-i3",
+      "source_relative_path": "test/test-bmw-i3-source.mov",
+      "source_sha256": "cf04fefec4c76a3860acfda01c95b65a257299880e7a44aace01ab0a85da2680",
+      "split": "test"
+    },
+    {
+      "clip_id": "test-pink-cadillac",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "test/test-pink-cadillac-detector.mov",
+      "detector_sha256": "e486eb8dad0a13d89a66a171dc9f06d96a5f56abc6a96956e08234bcb4f8b816",
+      "source_byte_count": 74650188,
+      "source_id": "pink-cadillac",
+      "source_relative_path": "test/test-pink-cadillac-source.mov",
+      "source_sha256": "499b0eeacc465604cf63cd427bb974a33a71b1fafbd001dd1438c341c07c55c1",
+      "split": "test"
+    },
+    {
+      "clip_id": "test-red-opel",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "test/test-red-opel-detector.mov",
+      "detector_sha256": "afa727b62c5ff8175905705805e3739ce96598ac82b135970788718893b5468f",
+      "source_byte_count": 74650188,
+      "source_id": "red-opel",
+      "source_relative_path": "test/test-red-opel-source.mov",
+      "source_sha256": "4cb1b8db12439b2ef6eafc36195efb8856c916ec85894a7c594562dd71a543fe",
+      "split": "test"
+    },
+    {
+      "clip_id": "test-li-l9-side",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "test/test-li-l9-side-detector.mov",
+      "detector_sha256": "4d0ffa8f4ad1c16c14689d714b2d4b59a71078565a769290f0e92e5af84e5aad",
+      "source_byte_count": 74650188,
+      "source_id": "li-l9-side",
+      "source_relative_path": "test/test-li-l9-side-source.mov",
+      "source_sha256": "8fdbd834bee2179ee7d293cc1ff1f32e2afec0201464780d5730e5d79200fa60",
+      "split": "test"
+    },
+    {
+      "clip_id": "test-li-l9-rear",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "test/test-li-l9-rear-detector.mov",
+      "detector_sha256": "c662fda733582727dadfc6946133e9ebfb05829ee57a1cc31cb5c09d61d66651",
+      "source_byte_count": 74650188,
+      "source_id": "li-l9-rear",
+      "source_relative_path": "test/test-li-l9-rear-source.mov",
+      "source_sha256": "1496e55aef4a876a13a2acf0cb442dca865914f4b08c5e6543dd082de9e2e244",
+      "split": "test"
+    },
+    {
+      "clip_id": "test-li-l7-white",
+      "detector_byte_count": 1327692,
+      "detector_relative_path": "test/test-li-l7-white-detector.mov",
+      "detector_sha256": "1a4a8f5a51530aa2ecec5e7a852f1da806e29dd35a56e211814a2131470aacfe",
+      "source_byte_count": 74650188,
+      "source_id": "li-l7-white",
+      "source_relative_path": "test/test-li-l7-white-source.mov",
+      "source_sha256": "97ba751e836be183f6e17a2b59b3286c900a1c4ae0078e2da7790a3e88b5e94a",
+      "split": "test"
+    }
+  ],
+  "items": [
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "calibration-kit-buggy",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "b33abbbe81569cfc4cb8d09b18f85bdd17ab5c31911841456c25951bd9b4b515",
+      "detector_frame_sha256": "ab47249e07afd8db838f6dbe5fcf1c0a42766881802536c59e1421a0b8e4b73a",
+      "frame_index": 0,
+      "item_id": "calibration-kit-buggy-tiny",
+      "labels": {
+        "face_visibility": 2,
+        "plate_ocr": 3,
+        "vehicle_detail": 1
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "d8670f3de394873bd9e580e1ff2f6362df9e6aeb9b67a2d4408098007d34fea9",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "46f2b0073b4db1b68f2d3efdf92be86c6900c62a82555c8070a9c0546a26a0d9",
+      "source_id": "kit-buggy",
+      "split": "calibration",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "calibration-kit-buggy",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "c4eeb15b21c7a47640523e96b79bc3b01d0aa51ddfc72d5ec1b2a7ef34cc0952",
+      "detector_frame_sha256": "3b5eb8ed69671317361a68d3557837dd8509a1f8dfaf0c23f3b0b4a7a23ce8ea",
+      "frame_index": 1,
+      "item_id": "calibration-kit-buggy-small",
+      "labels": {
+        "face_visibility": 5,
+        "plate_ocr": 6,
+        "vehicle_detail": 0
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "0531719ca0da01f7aab04b7dbb45634da627b181cae87534b5e65f521714d4c5",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "e27f65f0b2a14717175c10a8d29d12f33d3fe2d9f3defea920dc95efb6c1d55d",
+      "source_id": "kit-buggy",
+      "split": "calibration",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "calibration-kit-buggy",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "0a85d813be93b4b4e0be6953f3feabde6fc6d1b160a573aeb0528752c3c5eb92",
+      "detector_frame_sha256": "84f76cd65eddb0d9be6546b2f24c9a89b0264168793cdfc2a668e3e77d36c466",
+      "frame_index": 2,
+      "item_id": "calibration-kit-buggy-medium",
+      "labels": {
+        "face_visibility": 2,
+        "plate_ocr": 5,
+        "vehicle_detail": 4
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "d4b05ce64d8ef8cc1a5f9d8f4a4bc091dd667cee8ad459f65f599007352a8010",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "c9147c93de4a125d3e1a5f08e565a46e2d74f6cc2bfd061ee4d4d5ae1eed0e8c",
+      "source_id": "kit-buggy",
+      "split": "calibration",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "calibration-vintage-green",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "da073d92d837bdf81ba693b0e7e43ccf274a56fddf5c29d0cd1ad38fd7c48429",
+      "detector_frame_sha256": "603fb82ca9ee4b9234942778c772f6231000db57510a206af5683855690b0b8a",
+      "frame_index": 0,
+      "item_id": "calibration-vintage-green-tiny",
+      "labels": {
+        "face_visibility": 6,
+        "plate_ocr": 0,
+        "vehicle_detail": 6
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "13efc2eedb559976baf44a1fa44c41da6d5e18c7db6efc10942c5295da3fc7c9",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "7fa0f5f914b6f736970c2f398b9016fb52ee30472fbfedb85de4f2f3fe8a9718",
+      "source_id": "vintage-green",
+      "split": "calibration",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "calibration-vintage-green",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "7aa9b74baed9477ae5e9eae239acd63a46b654d2fe9544d2240913f0d837d3a5",
+      "detector_frame_sha256": "830d3432991b16ea009baa8b29d88b25c28a2f28d04abfab9c35a36d7f32ec32",
+      "frame_index": 1,
+      "item_id": "calibration-vintage-green-small",
+      "labels": {
+        "face_visibility": 5,
+        "plate_ocr": 6,
+        "vehicle_detail": 0
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "4bfc61e42e363e580ff1137f333ebdc691cd1419284611393a651b9f0ad33fe6",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "c5672b0cd43d4c493f9e323c7a7a477403d4a4ae3d155df9dee67092eb3d7c79",
+      "source_id": "vintage-green",
+      "split": "calibration",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "calibration-vintage-green",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "5ccad803dc2d50ef2afba8da82c0a121774f6592f02fc5de609e429e8cfefb4e",
+      "detector_frame_sha256": "f8ac6b1e79070aa0c1062d1b8ac126128de53fe8f8dc6b96bf798be000405ee3",
+      "frame_index": 2,
+      "item_id": "calibration-vintage-green-medium",
+      "labels": {
+        "face_visibility": 1,
+        "plate_ocr": 3,
+        "vehicle_detail": 2
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "0a600ff023c87a174d40b4f004f575bac8bdaa489d9d5d5ac894c665e64fa5f9",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "7846d7fda5b8fb4148a137c6dfe98050937a3cb3d43406a7417b3e6adfeb5109",
+      "source_id": "vintage-green",
+      "split": "calibration",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "calibration-lime-van",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "3e5e3f960aa1bc9f476d679423e296deceb69b05c80ee914c39c02b99e7787d8",
+      "detector_frame_sha256": "545d30bf2f606fadd8ab2269973c8b372f22e58326e1476e89f24c4fcf2597a7",
+      "frame_index": 0,
+      "item_id": "calibration-lime-van-tiny",
+      "labels": {
+        "face_visibility": 2,
+        "plate_ocr": 3,
+        "vehicle_detail": 4
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "71d17756ace2a475befe5106f84786cb64d8dc0a4b6188739d1e5139df716ff6",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "73ed8c1655a2f8d69774c0c373ee048d824cbcd5e2e4dc8833e2ecf63efec914",
+      "source_id": "lime-van",
+      "split": "calibration",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "calibration-lime-van",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "17344c0e2b85b85aaaa2d95143799a85ca6d370599545fa9f5b95fa71a7d1944",
+      "detector_frame_sha256": "d7f9ce7643289da0cc62899c171372bd0dd0f70cf04d15efab0ccf4799895611",
+      "frame_index": 1,
+      "item_id": "calibration-lime-van-small",
+      "labels": {
+        "face_visibility": 3,
+        "plate_ocr": 5,
+        "vehicle_detail": 4
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "42f8b2234a79411d35712431f85d43ed4d8facd2db25ac95b17a5b29ba2d5bf9",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "92ac83c0e81e2605343b32f9396e34e9931cbd08c6b571fcc48f8538dc17e930",
+      "source_id": "lime-van",
+      "split": "calibration",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "calibration-lime-van",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "4956cc32532eaf563dfa36b5de706b0f29f69288d6e48d52a2de3e279dc3dbd6",
+      "detector_frame_sha256": "80e292c44d9b21b494b35773867b5625ac5b9b2dc59c71d638dddf487e58ad05",
+      "frame_index": 2,
+      "item_id": "calibration-lime-van-medium",
+      "labels": {
+        "face_visibility": 5,
+        "plate_ocr": 5,
+        "vehicle_detail": 4
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "d8243b0f1020e826168620965707d08c4df392640d4f18d3e8b5c31e007493ab",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "59f9353232f447ca78e18fad20aaeeaebeb7f49817acb3d617d4839ecdf940c2",
+      "source_id": "lime-van",
+      "split": "calibration",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "calibration-li-l7-side",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "1146eb07985cd7acbe618911e2fc9274108acc6518602234809fa8958db58ab4",
+      "detector_frame_sha256": "eca90eb8a90a947630d882930f6095fe212d8585b142047ce81266f781c099f0",
+      "frame_index": 0,
+      "item_id": "calibration-li-l7-side-tiny",
+      "labels": {
+        "face_visibility": 4,
+        "plate_ocr": 7,
+        "vehicle_detail": 2
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "5cc6205aea18c6d6dac046fa7b49c168633a6e9cc731fca3b535704708b4542f",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "7d3507e7726e57cbea4a550bd093553a3849f197cc3ef87088878ccad26978df",
+      "source_id": "li-l7-side",
+      "split": "calibration",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "calibration-li-l7-side",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "39b4531e9f49fd88dc04493b8234fb33c57aba0aac1824e0bb9ac98d33c179a0",
+      "detector_frame_sha256": "f542e051e54dee2aa04ee0d46041de9f31db981855a9cae2ea3eabee2e49bd30",
+      "frame_index": 1,
+      "item_id": "calibration-li-l7-side-small",
+      "labels": {
+        "face_visibility": 6,
+        "plate_ocr": 2,
+        "vehicle_detail": 1
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "9ca95410c90c3b69693704057fb4be4382746c657978265396d7e2504c66b98c",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "b24816f65a03786c1a552ce75d0cfa94b1fafb93f174bdd12c273dc3d56e7568",
+      "source_id": "li-l7-side",
+      "split": "calibration",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "calibration-li-l7-side",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "f663634b4c63f0fb7d5f1c6584ca242e7a71c7b8326e2e7b5a86854456b2a242",
+      "detector_frame_sha256": "a688df74e8c32a19abf873b434d8c5b339fed3b8c11efcb399cadd759b103653",
+      "frame_index": 2,
+      "item_id": "calibration-li-l7-side-medium",
+      "labels": {
+        "face_visibility": 3,
+        "plate_ocr": 4,
+        "vehicle_detail": 6
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "f140429010d3588e19bccf5f2449cfc8ae22755888b69394c9976aa19fe20776",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "9d3588ab363e4db7a94de45abb02167efd0cc2cb8a99b49eac1f7aa425076251",
+      "source_id": "li-l7-side",
+      "split": "calibration",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "test-bmw-i3",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "3456933564c754b39ac5226663fb793b7ca83aa49932c22fbe45d3612e2b6350",
+      "detector_frame_sha256": "1020b172f72a8459241d42e2c516337e5a733dd53138d53633f8e0cb695195ec",
+      "frame_index": 0,
+      "item_id": "test-bmw-i3-tiny",
+      "labels": {
+        "face_visibility": 6,
+        "plate_ocr": 1,
+        "vehicle_detail": 0
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "194543ba4d5a2eba1b5aec679eb5ea1f8a6dc6d20da7eabb98379c7fc0d1d725",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "ba1e2a9e08048549a9579f76122ff0038f21116d1b564b39545fe778651b4b5e",
+      "source_id": "bmw-i3",
+      "split": "test",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "test-bmw-i3",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "13f69a2ed0e26b5875e111e0817a854b78960239457f56d9913ba6864320ad24",
+      "detector_frame_sha256": "dac696b0e1f26b99e3fe9820de19575f0657a639a6e0777dedae737b166672ff",
+      "frame_index": 1,
+      "item_id": "test-bmw-i3-small",
+      "labels": {
+        "face_visibility": 6,
+        "plate_ocr": 6,
+        "vehicle_detail": 5
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "8cf48cf91a6451e8014a372ac7da17c0f189c12a9a1c1656a1d737c7dc8ae852",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "1c1f3c17ad9f3dc2b3aa514576886011b0e974f52eca5ca17332f07003419894",
+      "source_id": "bmw-i3",
+      "split": "test",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "test-bmw-i3",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "b450390b537babf366695545ee6e9e94b61775f8ccf165138aac0bc1c87bea61",
+      "detector_frame_sha256": "8503da6ba86848b91e122efd5ac39623ef0040420c5a6b291c69f6b75ecbc11a",
+      "frame_index": 2,
+      "item_id": "test-bmw-i3-medium",
+      "labels": {
+        "face_visibility": 4,
+        "plate_ocr": 3,
+        "vehicle_detail": 4
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "841b1fb86ac64083f11de14e3caa4800c68f37d85521281e93b84adf539faa40",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "5b5adeaa2f8bc626cf8f4244cd52c2d4a92a10340627948d595e0edccc3907e9",
+      "source_id": "bmw-i3",
+      "split": "test",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "test-pink-cadillac",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "7fe8f669637d6a5cf0496f943ebb87dc9e705f85e6a368e6c732bb0d2209f0e5",
+      "detector_frame_sha256": "193c060fc730c233806e353503f89a75523f857e9f892e85a1dc956dc543e1c5",
+      "frame_index": 0,
+      "item_id": "test-pink-cadillac-tiny",
+      "labels": {
+        "face_visibility": 2,
+        "plate_ocr": 3,
+        "vehicle_detail": 1
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "48b50da654b4cdd51abc580e62fcf2a0586253c673fec7b635aed8fab6a0149b",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "ec56ee06a8ccbcbd5757ce2b0d69931c668191a67e4bcd9a5bf1b77d28207cf2",
+      "source_id": "pink-cadillac",
+      "split": "test",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "test-pink-cadillac",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "48e2e5bd7ff7e733f03cd145d288abb0a57ef6b8420dedddcab088898d75a3dd",
+      "detector_frame_sha256": "3b168b882ad523f06658ac3cff5a7b61cb2a150bd2fd8e6a19fa56cbb3a2f15a",
+      "frame_index": 1,
+      "item_id": "test-pink-cadillac-small",
+      "labels": {
+        "face_visibility": 0,
+        "plate_ocr": 2,
+        "vehicle_detail": 2
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "3da1b8c1715baea422265dacea4700192736c8e2e829efacb3d0357cc52a5039",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "8f741cf96f34882636a8a877d161dc23e81aa67ad8252a69551d213444218f7d",
+      "source_id": "pink-cadillac",
+      "split": "test",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "test-pink-cadillac",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "3952a12390647cbf1d5f284a34eaf2855923e9fb17739d3b624bf877bfa3bd65",
+      "detector_frame_sha256": "17dd04e24d80fa7b79d44f05479c240125282e688b80a7e06606dd8f6862ca91",
+      "frame_index": 2,
+      "item_id": "test-pink-cadillac-medium",
+      "labels": {
+        "face_visibility": 3,
+        "plate_ocr": 2,
+        "vehicle_detail": 7
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "6e4d39a9c5195a8adbd59ad9c3a82b14a1a553d2e38b539427166bb8404a0c09",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "80008ff46fe24d25b777e1dcab9e4e006a6df2d94a64334c792a2e21d6b2f303",
+      "source_id": "pink-cadillac",
+      "split": "test",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "test-red-opel",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "117953f061548b981d121e03383bb6b71881c75853e68f2ef024083f9ed65860",
+      "detector_frame_sha256": "2977d8b097fa5c6175223731e80441f9e39f15f8ad9b6179965761a10364f1cf",
+      "frame_index": 0,
+      "item_id": "test-red-opel-tiny",
+      "labels": {
+        "face_visibility": 4,
+        "plate_ocr": 3,
+        "vehicle_detail": 1
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "6e47578d0a112114c3456023c4131847344ea34e64a1f23b2daf2f4ce5b8227d",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "e7d5f8b46ab811ad32bcc57e46c71913587943cae0b66193e52988bf59b918c3",
+      "source_id": "red-opel",
+      "split": "test",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "test-red-opel",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "c295a12cd9efcfbd218540bffd74e1f988da6f251f4b1364e8798cb76a2c09e2",
+      "detector_frame_sha256": "d9e4a4624894f39f7cdccb944947491813e8eac1f40fd83ebf4583b805511cc7",
+      "frame_index": 1,
+      "item_id": "test-red-opel-small",
+      "labels": {
+        "face_visibility": 1,
+        "plate_ocr": 6,
+        "vehicle_detail": 2
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "006d8ef52e048a5fa8b2f7e76d8e542e5fbdcf6fbb12091d944c775d7ce9f295",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "1468d32a18c6a7e532894955456046e7b32725961b0b05ec32e9db9f216674f3",
+      "source_id": "red-opel",
+      "split": "test",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "test-red-opel",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "1486113fd059a34e4f573044270db79e68336d485d1a0acb1f643fb37f35cfdd",
+      "detector_frame_sha256": "8a2d888f71152801df4b769f25944eb15fcd2b6440a36b2c499542df7ff547a3",
+      "frame_index": 2,
+      "item_id": "test-red-opel-medium",
+      "labels": {
+        "face_visibility": 5,
+        "plate_ocr": 2,
+        "vehicle_detail": 6
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "26dedc9be01429bd552221e24d9d7ab89081bc46f7a4bb27e89a208dcb40235f",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "888884f682d0a9a47be1b35792655f4ade3ced80b43c56f440232defeda47d23",
+      "source_id": "red-opel",
+      "split": "test",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "test-li-l9-side",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "e06f43f5beecc0605e9565e5c43e05dc0e2f973d6cf78b218698393dad3ab3be",
+      "detector_frame_sha256": "87e781cd877bdffae47a59bf2fdb0359e5702ee1515fc41f9467e1bf135fc052",
+      "frame_index": 0,
+      "item_id": "test-li-l9-side-tiny",
+      "labels": {
+        "face_visibility": 6,
+        "plate_ocr": 7,
+        "vehicle_detail": 0
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "308259882ee8139170ad269ca1cf0cfa5b42de1a53a7b50a56060bcd9806ef64",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "6f6e8efe9cd9340d2650b8a19bf1c458506291afce2933fa34b91eaa1c092cb3",
+      "source_id": "li-l9-side",
+      "split": "test",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "test-li-l9-side",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "d445a4e192b99f84f3e7eef2197c0e934861c560891638d8978acb211343ac97",
+      "detector_frame_sha256": "5ecda088bd1477a3f8662575c7e018b6bdbcc004afe729af9f1766c98d98c5ae",
+      "frame_index": 1,
+      "item_id": "test-li-l9-side-small",
+      "labels": {
+        "face_visibility": 0,
+        "plate_ocr": 1,
+        "vehicle_detail": 3
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "b3326e7456837c2a2aeadcbaa0c190e6e8f42655b0e6a1ec421b4778c2c18df8",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "f01a1fe0ac598f990a9d08ebffe023cddfe1b31a0c63ce0f646d5fee09061540",
+      "source_id": "li-l9-side",
+      "split": "test",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "test-li-l9-side",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "11f7af6c67669c86a431409fb929f2fb814a5c170db3bf4f692e3a4b2a8dd030",
+      "detector_frame_sha256": "00e3d3bf0752d6e0571bac9b3b705207f36df61069c52225603a3a9fce3e1813",
+      "frame_index": 2,
+      "item_id": "test-li-l9-side-medium",
+      "labels": {
+        "face_visibility": 7,
+        "plate_ocr": 3,
+        "vehicle_detail": 7
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "0c9516df6726cf26c576e5afcbd44acafe42ec5da880b391db51c76040eba175",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "022cd56bef278ac460a68cb45e6f8cab4e62f738b786e9d0814d56f4230e88ef",
+      "source_id": "li-l9-side",
+      "split": "test",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "test-li-l9-rear",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "c7fa3df74b9fd5d85f656e1fff7823f07b8a989494e4e40e2549a700820b2b7b",
+      "detector_frame_sha256": "8bd89dc799aa5ae5bc94e994b5737c2ad0ac90c14ca7c1ad55cbcc040d7bae35",
+      "frame_index": 0,
+      "item_id": "test-li-l9-rear-tiny",
+      "labels": {
+        "face_visibility": 0,
+        "plate_ocr": 1,
+        "vehicle_detail": 5
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "a7061e3b062d97a66f5f3531ca6013d466277516a25526564a87745be9bf515c",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "97b804d4f9452bf94016e87d245f6d4594088bd9792571757ae0f98fa237767c",
+      "source_id": "li-l9-rear",
+      "split": "test",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "test-li-l9-rear",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "37bb394648837205ade56d5db3d1586e1c871040109fce3f244c521fab1795cc",
+      "detector_frame_sha256": "f3e3b7ceda9a9ec3124d8d3218dd64986eded6f13321a8e45ddaf52105ea6c24",
+      "frame_index": 1,
+      "item_id": "test-li-l9-rear-small",
+      "labels": {
+        "face_visibility": 2,
+        "plate_ocr": 6,
+        "vehicle_detail": 3
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "d0b91f8c763a60218c5556ff4fbc780ed77bd79224e3f305df7dab4063402356",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "87d93a132e5ddb918c02f56208b819fc752858862a5cd469bba0ff7e2b5526fd",
+      "source_id": "li-l9-rear",
+      "split": "test",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "test-li-l9-rear",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "0e524491f3564c350a60ed0eff8d19e7316c7fa372982727595b3030bea89224",
+      "detector_frame_sha256": "0716b18ba2fb6321ccee23f318989f5b339fd0c281ca1b4eca249c7337ce5f29",
+      "frame_index": 2,
+      "item_id": "test-li-l9-rear-medium",
+      "labels": {
+        "face_visibility": 7,
+        "plate_ocr": 7,
+        "vehicle_detail": 0
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "5d02eb69597999dbf68c07220e5c46d591b7d8c49d53295aa1e8c566d8ebbf67",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "baae817a7f569e75dd340578539b19008e25ffafc98aa83a982ed91be1dbef51",
+      "source_id": "li-l9-rear",
+      "split": "test",
+      "stratum": "medium"
+    },
+    {
+      "absent_detector_panel_box": [
+        206,
+        184,
+        214,
+        192
+      ],
+      "absent_source_panel_box": [
+        2060,
+        1035,
+        2140,
+        1080
+      ],
+      "clip_id": "test-li-l7-white",
+      "detector_box": [
+        168,
+        176,
+        216,
+        208
+      ],
+      "detector_crop_sha256": "7639759961124bc346c899eb4111bbb6f9494caa643616c32b68bced8e8c902b",
+      "detector_frame_sha256": "25a456f46f326cbbf03f03ce03a06c9add0ff05ddcb68c47fff21f1ae24cbd7a",
+      "frame_index": 0,
+      "item_id": "test-li-l7-white-tiny",
+      "labels": {
+        "face_visibility": 7,
+        "plate_ocr": 7,
+        "vehicle_detail": 3
+      },
+      "original_crop_bytes": 259200,
+      "original_crop_sha256": "b82a6464e7c16317eb0149bc0e71b0e25d08c3815d3641f93b9811de89237d71",
+      "resolved_detector_panel_box": [
+        170,
+        184,
+        178,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1700,
+        1035,
+        1780,
+        1080
+      ],
+      "source_box": [
+        1680,
+        990,
+        2160,
+        1170
+      ],
+      "source_frame_sha256": "d34885f31d83baf8d25942ca7d7cff555b5f1471dd93404eb4a7dc780436ca6f",
+      "source_id": "li-l7-white",
+      "split": "test",
+      "stratum": "tiny"
+    },
+    {
+      "absent_detector_panel_box": [
+        216,
+        176,
+        236,
+        192
+      ],
+      "absent_source_panel_box": [
+        2160,
+        990,
+        2360,
+        1080
+      ],
+      "clip_id": "test-li-l7-white",
+      "detector_box": [
+        144,
+        168,
+        240,
+        216
+      ],
+      "detector_crop_sha256": "6577f1a6668d20a64d17369cbc6ea22570a66b9cdbdfe532163030cd31a7cd18",
+      "detector_frame_sha256": "27276fdb451540f6e6ad38944fd719748e14f35aa0e5401dc8d8b9833b1d563e",
+      "frame_index": 1,
+      "item_id": "test-li-l7-white-small",
+      "labels": {
+        "face_visibility": 4,
+        "plate_ocr": 4,
+        "vehicle_detail": 7
+      },
+      "original_crop_bytes": 777600,
+      "original_crop_sha256": "7571b57660c7b480c7a08d6ca9269c6a7e0495019df8733a1e136107e72cf713",
+      "resolved_detector_panel_box": [
+        148,
+        176,
+        168,
+        192
+      ],
+      "resolved_source_panel_box": [
+        1480,
+        990,
+        1680,
+        1080
+      ],
+      "source_box": [
+        1440,
+        945,
+        2400,
+        1215
+      ],
+      "source_frame_sha256": "ee22e6482ac51a91e9cd038d7de7885c6aaf25a1e52fe255b19d31237e5849db",
+      "source_id": "li-l7-white",
+      "split": "test",
+      "stratum": "small"
+    },
+    {
+      "absent_detector_panel_box": [
+        240,
+        160,
+        280,
+        184
+      ],
+      "absent_source_panel_box": [
+        2400,
+        900,
+        2800,
+        1035
+      ],
+      "clip_id": "test-li-l7-white",
+      "detector_box": [
+        96,
+        144,
+        288,
+        240
+      ],
+      "detector_crop_sha256": "1247469d8d5e2ae64c838857678fc2a24524657e5f3c69f5c8319c9a8a30b38b",
+      "detector_frame_sha256": "e2a91225460d6e8a351933a95966082a31919d188b3408e6ddcc5e30eadccf77",
+      "frame_index": 2,
+      "item_id": "test-li-l7-white-medium",
+      "labels": {
+        "face_visibility": 1,
+        "plate_ocr": 5,
+        "vehicle_detail": 0
+      },
+      "original_crop_bytes": 3110400,
+      "original_crop_sha256": "7ab5d8e5c7d78ac5c447f17bc2afc3b89e3b740c728d1f02e2cf7539c7a93134",
+      "resolved_detector_panel_box": [
+        104,
+        160,
+        144,
+        184
+      ],
+      "resolved_source_panel_box": [
+        1040,
+        900,
+        1440,
+        1035
+      ],
+      "source_box": [
+        960,
+        810,
+        2880,
+        1350
+      ],
+      "source_frame_sha256": "aca10e8ae643ac63792f5e4af942e2a4f911bbe8e7a5baa003c4d25903325a3f",
+      "source_id": "li-l7-white",
+      "split": "test",
+      "stratum": "medium"
+    }
+  ],
+  "schema": "visualworld.v02-crop-annotation-lock",
+  "schema_version": 1,
+  "source_manifest_sha256": "77f8d845dabed77b584a72681f9910de6392e324144638fa9730e0e5c59235a2"
+}

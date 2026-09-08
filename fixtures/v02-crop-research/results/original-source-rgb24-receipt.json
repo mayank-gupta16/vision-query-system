@@ -1,0 +1,391 @@
+{
+  "aggregate": {
+    "dispersion": {
+      "crop_wall_ms": {
+        "overall": 0
+      },
+      "evidence_bytes_per_crop": {
+        "overall": 0
+      },
+      "exact_crop_byte_match_basis_points": {
+        "medium": 0,
+        "overall": 0,
+        "small": 0,
+        "tiny": 0
+      },
+      "failure_rate_basis_points": {
+        "overall": 0
+      },
+      "mapping_error_milli_pixels": {
+        "medium": 0,
+        "overall": 0,
+        "small": 0,
+        "tiny": 0
+      },
+      "peak_rss_bytes": {
+        "overall": 0
+      },
+      "readable_detail_proxy_gain_basis_points": {
+        "medium": 0,
+        "overall": 0,
+        "small": 0,
+        "tiny": 0
+      },
+      "specialist_accuracy_gain_basis_points": {
+        "medium": 0,
+        "overall": 0,
+        "small": 0,
+        "tiny": 0
+      }
+    },
+    "metrics": {
+      "crop_wall_ms": {
+        "overall": 2
+      },
+      "evidence_bytes_per_crop": {
+        "overall": 777600
+      },
+      "exact_crop_byte_match_basis_points": {
+        "medium": 10000,
+        "overall": 10000,
+        "small": 10000,
+        "tiny": 10000
+      },
+      "failure_rate_basis_points": {
+        "overall": 0
+      },
+      "mapping_error_milli_pixels": {
+        "medium": 0,
+        "overall": 0,
+        "small": 0,
+        "tiny": 0
+      },
+      "peak_rss_bytes": {
+        "overall": 964329472
+      },
+      "readable_detail_proxy_gain_basis_points": {
+        "medium": 0,
+        "overall": 673,
+        "small": 416,
+        "tiny": 1601
+      },
+      "specialist_accuracy_gain_basis_points": {
+        "medium": 0,
+        "overall": 93,
+        "small": 0,
+        "tiny": 278
+      }
+    }
+  },
+  "candidate": {
+    "artifacts": [
+      {
+        "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
+        "executable_serialization": false,
+        "format": "python-source",
+        "isolation": "in-process-reviewed",
+        "kind": "code",
+        "license_expression": "Apache-2.0",
+        "name": "visualworld-original-rgb24-crop",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-08",
+        "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+        "sha256": "1eee4ef653e03cf4e04425eb9b117861eaf80ef07574e9de17f20990d631f315",
+        "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/src/visualworld/geometry.py",
+        "terms_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/LICENSE",
+        "trust_remote_code": false,
+        "use": "exact detector-to-source mapping and packed RGB24 crop evaluation"
+      },
+      {
+        "commercial_use_allowed": true,
+        "distribution_review_status": "not-approved",
+        "executable_serialization": false,
+        "format": "native-library",
+        "isolation": "isolated-worker",
+        "kind": "runtime",
+        "license_expression": "LicenseRef-python-build-standalone-composite-20260825",
+        "name": "cpython-3.13.15-python-build-standalone-20260825",
+        "redistribution_allowed": true,
+        "review_status": "approved-for-evaluation",
+        "reviewed_on": "2026-09-08",
+        "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
+        "sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+        "source_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+        "terms_url": "https://github.com/astral-sh/python-build-standalone/blob/c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779/docs/running.rst",
+        "trust_remote_code": false,
+        "use": "pinned interpreter for isolated CPU inference"
+      }
+    ],
+    "configuration_sha256": "4bc92279567b1b90a5fb434f64af39bb51466deab55f4c4c5b5117e8515195c8",
+    "name": "original-source-rgb24",
+    "runtime_closure_sha256": "a9a88faf3d396da4f7264b2da51dafd5331c8c653a2143e9bbb59285c0ff0306"
+  },
+  "dataset_manifest_sha256": "c087fc0e09b98bb6d5e5fe75516363b5415ae6e4642157bebca9deba31e9ba17",
+  "evaluated_on": "2026-09-08",
+  "evaluation_phase": "selection",
+  "experiment": "crop_value",
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-crop-harness",
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-crop-metrics",
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485"
+  },
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
+  "policy_version": "v0.2-gates-2",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "gpu_present": false,
+    "kernel_release": "7.0.0-31-generic",
+    "memory_bytes": 16221585408,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "repetitions": [
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 964329472
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 673,
+          "small": 416,
+          "tiny": 1601
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 93,
+          "small": 0,
+          "tiny": 278
+        }
+      },
+      "processed_item_count": 18,
+      "seed": 1729,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 964329472
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 673,
+          "small": 416,
+          "tiny": 1601
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 93,
+          "small": 0,
+          "tiny": 278
+        }
+      },
+      "processed_item_count": 18,
+      "seed": 3253,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 964329472
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 673,
+          "small": 416,
+          "tiny": 1601
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 93,
+          "small": 0,
+          "tiny": 278
+        }
+      },
+      "processed_item_count": 18,
+      "seed": 5081,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 964329472
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 673,
+          "small": 416,
+          "tiny": 1601
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 93,
+          "small": 0,
+          "tiny": 278
+        }
+      },
+      "processed_item_count": 18,
+      "seed": 7919,
+      "status": "pass"
+    },
+    {
+      "failed_item_count": 0,
+      "failure_code": null,
+      "metrics": {
+        "crop_wall_ms": {
+          "overall": 2
+        },
+        "evidence_bytes_per_crop": {
+          "overall": 777600
+        },
+        "exact_crop_byte_match_basis_points": {
+          "medium": 10000,
+          "overall": 10000,
+          "small": 10000,
+          "tiny": 10000
+        },
+        "failure_rate_basis_points": {
+          "overall": 0
+        },
+        "mapping_error_milli_pixels": {
+          "medium": 0,
+          "overall": 0,
+          "small": 0,
+          "tiny": 0
+        },
+        "peak_rss_bytes": {
+          "overall": 964329472
+        },
+        "readable_detail_proxy_gain_basis_points": {
+          "medium": 0,
+          "overall": 673,
+          "small": 416,
+          "tiny": 1601
+        },
+        "specialist_accuracy_gain_basis_points": {
+          "medium": 0,
+          "overall": 93,
+          "small": 0,
+          "tiny": 278
+        }
+      },
+      "processed_item_count": 18,
+      "seed": 104729,
+      "status": "pass"
+    }
+  ],
+  "schema": "visualworld.v02-evaluation-receipt",
+  "schema_version": 1,
+  "split": "test",
+  "waiver": null
+}

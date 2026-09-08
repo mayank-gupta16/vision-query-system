@@ -1,0 +1,215 @@
+{
+  "absolute": {
+    "crop_wall_ms": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "pass",
+        "value": 2
+      }
+    },
+    "evidence_bytes_per_crop": {
+      "overall": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 777600
+      }
+    },
+    "exact_crop_byte_match_basis_points": {
+      "medium": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 10000,
+        "status": "pass",
+        "value": 10000
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 10000,
+        "status": "pass",
+        "value": 10000
+      },
+      "small": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 10000,
+        "status": "pass",
+        "value": 10000
+      },
+      "tiny": {
+        "kind": "gate",
+        "maximum": null,
+        "minimum": 10000,
+        "status": "pass",
+        "value": 10000
+      }
+    },
+    "failure_rate_basis_points": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 0,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "mapping_error_milli_pixels": {
+      "medium": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "overall": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "small": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      },
+      "tiny": {
+        "kind": "gate",
+        "maximum": 1000,
+        "minimum": null,
+        "status": "pass",
+        "value": 0
+      }
+    },
+    "peak_rss_bytes": {
+      "overall": {
+        "kind": "gate",
+        "maximum": 2147483648,
+        "minimum": null,
+        "status": "pass",
+        "value": 964329472
+      }
+    },
+    "readable_detail_proxy_gain_basis_points": {
+      "medium": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 0
+      },
+      "overall": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 673
+      },
+      "small": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 416
+      },
+      "tiny": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 1601
+      }
+    },
+    "specialist_accuracy_gain_basis_points": {
+      "medium": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 0
+      },
+      "overall": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 93
+      },
+      "small": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 0
+      },
+      "tiny": {
+        "kind": "diagnostic",
+        "maximum": null,
+        "minimum": null,
+        "status": "report",
+        "value": 278
+      }
+    }
+  },
+  "baseline_candidate": null,
+  "baseline_receipt_sha256": null,
+  "candidate": {
+    "configuration_sha256": "4bc92279567b1b90a5fb434f64af39bb51466deab55f4c4c5b5117e8515195c8",
+    "name": "original-source-rgb24"
+  },
+  "checks": {
+    "absolute_gates_pass": true,
+    "baseline_compatible": null,
+    "regression_gates_pass": true,
+    "waiver_valid": false
+  },
+  "dataset_manifest_sha256": "c087fc0e09b98bb6d5e5fe75516363b5415ae6e4642157bebca9deba31e9ba17",
+  "evaluated_on": "2026-09-08",
+  "evaluation_phase": "selection",
+  "experiment": "crop_value",
+  "failures": [],
+  "implementation": {
+    "evaluation_harness": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-crop-harness",
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
+    },
+    "executable_implementation": "cpython",
+    "metric_implementation": {
+      "license_expression": "Apache-2.0",
+      "name": "visualworld-v02-crop-metrics",
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
+    },
+    "python_version": "3.13.15",
+    "source_revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485"
+  },
+  "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
+  "policy_version": "v0.2-gates-2",
+  "profile": {
+    "architecture": "x86_64",
+    "cpu_model": "Intel Core Processor (Skylake, IBRS, no TSX)",
+    "gpu_present": false,
+    "kernel_release": "7.0.0-31-generic",
+    "memory_bytes": 16221585408,
+    "name": "CPU-LITE",
+    "operating_system": "Linux",
+    "vcpu": 4
+  },
+  "receipt_sha256": "9a2321dd7e9ce96b6cd63265afaf54a85e4dbff024bbe653bf97d95265762ca9",
+  "regression": {},
+  "schema": "visualworld.v02-evaluation-result",
+  "schema_version": 1,
+  "split": "test",
+  "status": "pass",
+  "waiver": null
+}
