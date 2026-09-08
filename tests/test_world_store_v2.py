@@ -279,6 +279,29 @@ def test_failed_v2_migration_leaves_exact_v1_and_retry_succeeds(tmp_path: Path) 
     assert LocalWorldStore(root).verify() == WorldStoreStats(0, 0, 0)
 
 
+@pytest.mark.parametrize(
+    "corruption",
+    [
+        "UPDATE schema_migrations SET code_sha256 = '" + "0" * 64 + "'",
+        "INSERT INTO schema_migrations VALUES "
+        "(2, 'unknown_v2', '" + "1" * 64 + "', '2026-09-08T00:00:00+00:00')",
+        "CREATE TABLE unexpected_v1_object (value INTEGER) STRICT",
+    ],
+)
+def test_v1_is_validated_before_the_v2_migration(
+    tmp_path: Path,
+    corruption: str,
+) -> None:
+    root = tmp_path / "store"
+    _create_v1_store(root)
+    with _database(root) as connection:
+        connection.execute(corruption)
+
+    with pytest.raises(PortError) as rejected:
+        LocalWorldStore(root)
+    assert rejected.value.code is PortErrorCode.CORRUPT
+
+
 @pytest.mark.parametrize("fail_after", range(len(SCHEMA_V2) + 3))
 def test_each_v2_migration_durable_step_reopens_as_exact_v1_or_v2(
     tmp_path: Path,
@@ -544,6 +567,59 @@ def test_incomplete_run_cleanup_removes_only_run_owned_v2_graph(tmp_path: Path) 
     assert store.verify() == WorldStoreStats(2, 0, 0)
 
 
+def test_incomplete_run_cleanup_preserves_v2_records_shared_by_another_run(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "store"
+    evidence_store = LocalEvidenceStore(root)
+    store = LocalWorldStore(root)
+    source, frames, observations, tracklet, first, _ = _values()
+    second_producer = Producer("visualworld.second-run", "1", "91" * 32)
+    second = RunManifest.create(
+        source.source_id,
+        (second_producer,),
+        first.sampling,
+        "preparing",
+    )
+    second_committed = RunManifest.create(
+        source.source_id,
+        (second_producer,),
+        first.sampling,
+        "committed",
+        RunOutputs(str(len(frames)), hashlib.sha256(b"second-index").hexdigest()),
+    )
+    intents = BestFrameEvidenceSelector().plan(tracklet, observations).intents
+    with evidence_store.writer_session() as session:
+        store.commit((source, first, second), evidence_session=session)
+        for run in (first, second):
+            store.commit_for_run(run.run_id, frames, evidence_session=session)
+            store.commit_perception_for_run(
+                run.run_id,
+                observations,
+                evidence_session=session,
+            )
+            store.commit_perception_for_run(
+                run.run_id,
+                (tracklet,),
+                intents,
+                evidence_session=session,
+            )
+        store.finish_run_cleanup(first.run_id, evidence_session=session)
+        store.finalize_run(second_committed, evidence_session=session)
+
+    assert store.get_perception(tracklet.tracklet_id) == tracklet
+    assert store.list_tracklet_observations(tracklet.tracklet_id, limit=64) == observations
+    with _database(root) as connection:
+        assert connection.execute("SELECT count(*) FROM observations").fetchone() == (
+            len(observations),
+        )
+        assert connection.execute("SELECT count(*) FROM tracklets").fetchone() == (1,)
+        assert connection.execute(
+            "SELECT count(*) FROM perception_run_records WHERE run_id = ?",
+            (first.run_id,),
+        ).fetchone() == (0,)
+
+
 def test_source_deletion_freezes_hides_and_cascades_v2_graph(tmp_path: Path) -> None:
     evidence_store, store, source, _, observations, tracklet, _, committed = _prepare(
         tmp_path / "store"
@@ -597,6 +673,32 @@ def test_v2_source_deletion_reopens_safely_at_each_durable_phase(tmp_path: Path)
         completed = after_purge.complete_deletion(deletion_id, evidence_session=session)
     assert completed.state is DeletionState.COMPLETE
     assert LocalWorldStore(root).deletion_status(deletion_id) == completed
+
+
+@pytest.mark.parametrize(
+    "tamper",
+    [
+        "DELETE FROM perception_deletion_closure WHERE rowid = "
+        "(SELECT rowid FROM perception_deletion_closure LIMIT 1)",
+        "UPDATE perception_deletion_closure SET record_type = 'tracklet' "
+        "WHERE record_type = 'observation'",
+        "UPDATE deletion_jobs SET record_count = record_count + 1",
+    ],
+)
+def test_v2_source_deletion_closure_tampering_fails_closed(
+    tmp_path: Path,
+    tamper: str,
+) -> None:
+    _, store, source, _, _, _, _, committed = _prepare(tmp_path / "store")
+    store.finalize_run(committed)
+    deletion_id = "del_" + hashlib.sha256(tamper.encode()).hexdigest()
+    store.begin_source_deletion(source.source_id, deletion_id)
+    with _database(store.root) as connection:
+        connection.execute(tamper)
+
+    with pytest.raises(PortError) as corrupt:
+        store.get_deletion_plan(deletion_id)
+    assert corrupt.value.code is PortErrorCode.CORRUPT
 
 
 @pytest.mark.parametrize(

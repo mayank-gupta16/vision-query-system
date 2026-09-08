@@ -729,7 +729,14 @@ class EvidenceIntent:
             },
             "$",
         )
-        if item["schema"] != "visualworld.evidence_intent" or item["schema_version"] != 1:
+        schema = item["schema"]
+        schema_version = item["schema_version"]
+        if (
+            type(schema) is not str
+            or schema != "visualworld.evidence_intent"
+            or type(schema_version) is not int
+            or schema_version != 1
+        ):
             raise ValueError("unsupported evidence intent schema")
         scalar_strings = (
             item["tracklet_id"],
@@ -783,6 +790,7 @@ def load_evidence_intent(reader: BinaryIO) -> EvidenceIntent:
 
     chunks: list[bytes] = []
     remaining = MAX_RECORD_BYTES + 1
+    read_failed = False
     try:
         while remaining > 0:
             chunk = reader.read(remaining)
@@ -793,7 +801,9 @@ def load_evidence_intent(reader: BinaryIO) -> EvidenceIntent:
             chunks.append(chunk)
             remaining -= len(chunk)
     except OSError:
-        raise ValueError("evidence intent read failed") from None
+        read_failed = True
+    if read_failed:
+        raise ValueError("evidence intent read failed")
     return loads_evidence_intent(b"".join(chunks))
 
 

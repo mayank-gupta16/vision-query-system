@@ -173,12 +173,17 @@ def _canonical_perception_record(
     value: object,
     operation: str,
 ) -> tuple[PerceptionRecord, bytes]:
+    failed = False
+    encoded: bytes | None = None
+    decoded: PerceptionRecord | None = None
     try:
         if type(value) not in {Observation, Tracklet}:
             raise ValueError("unsupported perception record")
         encoded = dumps_perception_record(cast(PerceptionRecord, value))
         decoded = loads_perception_record(encoded)
     except BaseException:
+        failed = True
+    if failed or encoded is None or decoded is None:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
     if type(decoded) is not type(value) or dumps_perception_record(decoded) != encoded:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
@@ -189,12 +194,17 @@ def _canonical_evidence_intent(
     value: object,
     operation: str,
 ) -> tuple[EvidenceIntent, bytes]:
+    failed = False
+    encoded: bytes | None = None
+    decoded: EvidenceIntent | None = None
     try:
         if type(value) is not EvidenceIntent:
             raise ValueError("unsupported evidence intent")
         encoded = dumps_evidence_intent(value)
         decoded = loads_evidence_intent(encoded)
     except BaseException:
+        failed = True
+    if failed or encoded is None or decoded is None:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
     if dumps_evidence_intent(decoded) != encoded:
         _fail(PortErrorCode.INVALID_REQUEST, operation)
@@ -851,6 +861,7 @@ class LocalWorldStore:
                 self._apply_v1_migration(connection, operation)
                 user_version = 1
             if user_version == 1:
+                self._validate_schema_version(connection, operation, version=1)
                 self._apply_v2_migration(connection, operation)
             elif user_version != WORLD_SCHEMA_VERSION:
                 _fail(PortErrorCode.CORRUPT, operation)
@@ -928,8 +939,28 @@ class LocalWorldStore:
         return connection.execute(statement, parameters)
 
     def _validate_schema(self, connection: sqlite3.Connection, operation: str) -> None:
+        self._validate_schema_version(connection, operation, version=WORLD_SCHEMA_VERSION)
+
+    def _validate_schema_version(
+        self,
+        connection: sqlite3.Connection,
+        operation: str,
+        *,
+        version: int,
+    ) -> None:
+        if version == 1:
+            statements = _SCHEMA_V1
+            expected_ledger = [(1, _MIGRATION_V1_NAME, _MIGRATION_V1_CHECKSUM)]
+        elif version == WORLD_SCHEMA_VERSION:
+            statements = (*_SCHEMA_V1, *_v2_schema.SCHEMA_V2)
+            expected_ledger = [
+                (1, _MIGRATION_V1_NAME, _MIGRATION_V1_CHECKSUM),
+                (2, _v2_schema.MIGRATION_V2_NAME, _v2_schema.MIGRATION_V2_CHECKSUM),
+            ]
+        else:
+            raise AssertionError("unsupported schema validation version")
         expected: dict[tuple[str, str], str] = {}
-        for statement in (*_SCHEMA_V1, *_v2_schema.SCHEMA_V2):
+        for statement in statements:
             match = re.match(r"CREATE (TABLE|INDEX) ([a-z_]+)", statement)
             if match is None:
                 raise AssertionError("unrecognized schema statement")
@@ -948,15 +979,12 @@ class LocalWorldStore:
                 """SELECT schema_version, migration_name, code_sha256
                 FROM schema_migrations ORDER BY schema_version"""
             ).fetchall()
-            if ledger != [
-                (1, _MIGRATION_V1_NAME, _MIGRATION_V1_CHECKSUM),
-                (2, _v2_schema.MIGRATION_V2_NAME, _v2_schema.MIGRATION_V2_CHECKSUM),
-            ]:
+            if ledger != expected_ledger:
                 _fail(PortErrorCode.CORRUPT, operation)
             user_version = connection.execute("PRAGMA user_version").fetchone()
             quick_check = connection.execute("PRAGMA quick_check").fetchone()
             foreign_keys = connection.execute("PRAGMA foreign_key_check").fetchall()
-            if user_version != (WORLD_SCHEMA_VERSION,) or quick_check != ("ok",) or foreign_keys:
+            if user_version != (version,) or quick_check != ("ok",) or foreign_keys:
                 _fail(PortErrorCode.CORRUPT, operation)
             connection.set_authorizer(self._authorizer)
         except PortError:
@@ -1752,7 +1780,6 @@ class LocalWorldStore:
         ).fetchone()
         if stream is None:
             _fail(PortErrorCode.CONFLICT, operation)
-        observations: list[Observation] = []
         for point in record.points:
             row = connection.execute(
                 "SELECT record_json FROM observations WHERE observation_id = ?",
@@ -1766,7 +1793,6 @@ class LocalWorldStore:
             self._verify_perception_projection(connection, observation, operation)
             if point != TrackPoint.from_observation(observation):
                 _fail(PortErrorCode.CONFLICT, operation)
-            observations.append(observation)
         connection.execute(
             """INSERT INTO tracklets(
                 tracklet_id, source_id, stream_index, category, termination_reason,
@@ -2026,13 +2052,17 @@ class LocalWorldStore:
         selected_run = _identifier(run_id, _RUN_ID, operation)
         if type(links) is not tuple or len(links) > MAX_PORT_BATCH_ITEMS:
             _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        failed = False
+        selected_links: tuple[EvidenceSelectionLink, ...] = ()
         try:
             selected_links = tuple(
                 EvidenceSelectionLink(link.tracklet_id, link.rank, link.evidence_id)
                 for link in links
                 if type(link) is EvidenceSelectionLink
             )
-        except (AttributeError, TypeError, ValueError):
+        except BaseException:
+            failed = True
+        if failed:
             _fail(PortErrorCode.INVALID_REQUEST, operation)
         if len(selected_links) != len(links):
             _fail(PortErrorCode.INVALID_REQUEST, operation)
@@ -2060,7 +2090,14 @@ class LocalWorldStore:
                         ).fetchone()
                         if selection is None or evidence_row is None:
                             _fail(PortErrorCode.CONFLICT, operation)
-                        intent = self._decode_evidence_intent(selection[0], operation)
+                        intent = self._verify_evidence_selection(
+                            connection,
+                            selected_run,
+                            link.tracklet_id,
+                            link.rank,
+                            operation,
+                            require_artifact_intent=True,
+                        ).intent
                         evidence = self._decode_record(evidence_row[0], operation)
                         if not isinstance(evidence, EvidenceRef):
                             _fail(PortErrorCode.CORRUPT, operation)
@@ -3932,20 +3969,22 @@ class LocalWorldStore:
     def _decode_perception_record(self, value: object, operation: str) -> PerceptionRecord:
         if type(value) is not bytes:
             _fail(PortErrorCode.CORRUPT, operation)
-        try:
-            return loads_perception_record(value)
-        except (RecordValidationError, TypeError, ValueError):
+        record: PerceptionRecord | None = None
+        with suppress(RecordValidationError, TypeError, ValueError):
+            record = loads_perception_record(value)
+        if record is None:
             _fail(PortErrorCode.CORRUPT, operation)
-        raise AssertionError("unreachable")
+        return record
 
     def _decode_evidence_intent(self, value: object, operation: str) -> EvidenceIntent:
         if type(value) is not bytes:
             _fail(PortErrorCode.CORRUPT, operation)
-        try:
-            return loads_evidence_intent(value)
-        except (RecordValidationError, TypeError, ValueError):
+        intent: EvidenceIntent | None = None
+        with suppress(RecordValidationError, TypeError, ValueError):
+            intent = loads_evidence_intent(value)
+        if intent is None:
             _fail(PortErrorCode.CORRUPT, operation)
-        raise AssertionError("unreachable")
+        return intent
 
     def _verify_perception_projection(
         self,
@@ -4110,6 +4149,8 @@ class LocalWorldStore:
         observation = self._decode_perception_record(observation_row[0], operation)
         if not isinstance(tracklet, Tracklet) or not isinstance(observation, Observation):
             _fail(PortErrorCode.CORRUPT, operation)
+        self._verify_perception_projection(connection, tracklet, operation)
+        self._verify_perception_projection(connection, observation, operation)
         point_index = intent.score.point_index
         if (
             point_index >= len(tracklet.points)
@@ -4189,6 +4230,21 @@ class LocalWorldStore:
             (run_id, self._max_audit_records + 1),
         ).fetchall()
         if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        point_count = connection.execute(
+            """SELECT count(*) FROM (
+                SELECT 1 FROM perception_run_records AS owned
+                JOIN tracklet_points AS point ON point.tracklet_id = owned.record_id
+                WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                LIMIT ?
+            )""",
+            (run_id, self._max_audit_records + 1),
+        ).fetchone()
+        if (
+            point_count is None
+            or type(point_count[0]) is not int
+            or point_count[0] > self._max_audit_records
+        ):
             _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
         for record_id, record_type in rows:
             if record_type == "observation":
@@ -4466,8 +4522,12 @@ class LocalWorldStore:
                 )),
                 (SELECT count(*) FROM (
                     SELECT 1 FROM selected_evidence LIMIT ?
+                )),
+                (SELECT count(*) FROM (
+                    SELECT 1 FROM tracklet_points LIMIT ?
                 ))""",
             (
+                self._max_audit_records + 1,
                 self._max_audit_records + 1,
                 self._max_audit_records + 1,
                 self._max_audit_records + 1,
