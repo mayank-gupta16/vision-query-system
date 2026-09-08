@@ -1553,8 +1553,6 @@ def test_runtime_file_tree_and_trust_helpers_bind_bytes_links_and_modes(
     root = tmp_path / "runtime"
     package = root / "package"
     package.mkdir(parents=True)
-    root.chmod(0o555)
-    package.chmod(0o555)
     payload = package / "payload"
     payload.write_bytes(b"approved")
     payload.chmod(0o444)
@@ -1563,6 +1561,8 @@ def test_runtime_file_tree_and_trust_helpers_bind_bytes_links_and_modes(
     sysconfig.chmod(0o444)
     link = package / "link"
     link.symlink_to("payload")
+    root.chmod(0o555)
+    package.chmod(0o555)
 
     assert detection._read_runtime_file(payload) == b"approved"
     assert detection._runtime_link_target(root, link) == b"package/payload"
@@ -1583,16 +1583,24 @@ def test_runtime_file_tree_and_trust_helpers_bind_bytes_links_and_modes(
     outside = tmp_path / "outside"
     outside.write_bytes(b"outside")
     escaping = package / "escaping"
+    package.chmod(0o755)
     escaping.symlink_to("../../outside")
+    package.chmod(0o555)
     with pytest.raises(PortError, match="isolation_unavailable"):
         detection._runtime_link_target(root, escaping)
+    package.chmod(0o755)
     escaping.unlink()
+    package.chmod(0o555)
 
     fifo = package / "fifo"
+    package.chmod(0o755)
     os.mkfifo(fifo)
+    package.chmod(0o555)
     with pytest.raises(PortError, match="isolation_unavailable"):
         detection._tree_sha256(root)
+    package.chmod(0o755)
     fifo.unlink()
+    package.chmod(0o555)
 
     with pytest.raises(PortError, match="isolation_unavailable"):
         detection._read_runtime_file(tmp_path / "missing")
