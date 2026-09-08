@@ -78,6 +78,22 @@ def _plain_media_time(value: object, path: str) -> MediaTime:
     return value
 
 
+def _plain_frame_ref(value: object, path: str) -> FrameRef:
+    if type(value) is not FrameRef:
+        _fail("invalid_frame", path)
+    _plain_string(value.frame_id, f"{path}.frame_id")
+    _plain_string(value.source_id, f"{path}.source_id")
+    _plain_string(value.decode_index, f"{path}.decode_index")
+    _bounded_int(value.stream_index, 0, MAX_I31, f"{path}.stream_index")
+    _plain_media_time(value.pts, f"{path}.pts")
+    if value.duration is not None:
+        _plain_media_time(value.duration, f"{path}.duration")
+    if value.key_frame is not None and type(value.key_frame) is not bool:
+        _fail("invalid_key_frame", f"{path}.key_frame")
+    FrameRef.__post_init__(value)
+    return value
+
+
 def _plain_rational(value: object, path: str) -> Rational:
     if type(value) is not Rational:
         _fail("invalid_affine_coefficient", path)
@@ -157,9 +173,7 @@ class FrameDiscontinuity:
 
     @classmethod
     def from_frame(cls, frame: FrameRef, score_basis_points: int) -> FrameDiscontinuity:
-        if type(frame) is not FrameRef:
-            _fail("invalid_frame", "frame")
-        FrameRef.__post_init__(frame)
+        _plain_frame_ref(frame, "frame")
         return cls(
             frame.source_id,
             frame.frame_id,

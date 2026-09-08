@@ -430,6 +430,21 @@ def test_hostile_records_pixels_and_mixed_scope_fail_closed_and_redacted() -> No
         tracker.track(source, (nested_hostile_frame,), ())
     assert raised.value.code is PortErrorCode.INVALID_REQUEST
 
+    class StatefulMediaTime(MediaTime):
+        calls = 0
+
+        def to_mapping(self) -> dict[str, object]:
+            type(self).calls += 1
+            if type(self).calls > 2:
+                raise OSError("/private/frame-source.mov")
+            return super().to_mapping()
+
+    stateful_pts = StatefulMediaTime("0", source.streams[0].time_base)
+    stateful_frame = FrameRef.create(source.source_id, 0, "0", stateful_pts)
+    with pytest.raises(ValueError) as frame_error:
+        FrameDiscontinuity.from_frame(stateful_frame, 0)
+    assert "/private/frame-source.mov" not in str(frame_error.value)
+
     other = _source(digest="bb" * 32)
     other_frame = _frames(other, 1)[0]
     with pytest.raises(PortError, match="conflict"):
@@ -464,6 +479,18 @@ def test_numeric_and_resource_bounds_reject_without_partial_progress() -> None:
     frames = _frames(source, 3)
     with pytest.raises(ValueError):
         TrackingLimits(max_page_frames=True)
+    hostile_limits = TrackingLimits()
+    object.__setattr__(hostile_limits, "max_page_observations", 1_000_000)
+    with pytest.raises(ValueError):
+        GlobalLastBoxTracker(limits=hostile_limits)
+    owned_limits = TrackingLimits()
+    owned_tracker = GlobalLastBoxTracker(limits=owned_limits)
+    object.__setattr__(owned_limits, "max_page_frames", 1)
+    assert owned_tracker.descriptor.max_batch_items == 64
+    assert (
+        owned_tracker.track(source, frames, (), discontinuities=_scores(frames)).state
+        is PerceptionResultState.COMPLETE
+    )
     with pytest.raises(ValueError):
         FrameDiscontinuity.from_frame(frames[0], cast(int, float("nan")))
     with pytest.raises(ValueError):
@@ -611,6 +638,7 @@ def test_cursor_factory_and_resume_scope_fail_closed() -> None:
             source_id=cursor.source_id,
             stream_index=cursor.stream_index,
             time_base=cursor.time_base,
+            source_stream=cursor.source_stream,
             limits=cursor.limits,
             first_pts=cursor.first_pts,
             last_frame=cursor.last_frame,
@@ -630,6 +658,38 @@ def test_cursor_factory_and_resume_scope_fail_closed() -> None:
             end_of_stream=True,
         )
     assert raised.value.code is PortErrorCode.CONFLICT
+
+    changed_stream_source = Source(
+        source.source_id,
+        source.fingerprint,
+        (SourceStream(0, 200, 160, 0, source.streams[0].time_base),),
+    )
+    with pytest.raises(PortError) as raised:
+        tracker.track_page(
+            changed_stream_source,
+            frames[1:],
+            (),
+            discontinuities=_scores(frames[1:]),
+            cursor=cursor,
+        )
+    assert raised.value.code is PortErrorCode.CONFLICT
+
+    changed_observation = _observation(
+        changed_stream_source,
+        frames[1],
+        (20, 20, 40, 40),
+    )
+    with pytest.raises(PortError) as raised:
+        tracker.track_page(
+            changed_stream_source,
+            frames[1:],
+            (changed_observation,),
+            discontinuities=_scores(frames[1:]),
+            cursor=cursor,
+            end_of_stream=True,
+        )
+    assert raised.value.code is PortErrorCode.CONFLICT
+    assert changed_stream_source.source_id not in str(raised.value)
 
     finished = tracker.track_page(
         source,
@@ -668,22 +728,85 @@ def test_cursor_factory_and_resume_scope_fail_closed() -> None:
     assert raised.value.code is PortErrorCode.LIMIT_EXCEEDED
 
 
-class _CancelDuringTracking(threading.Event):
-    def __init__(self, cancel_on_check: int) -> None:
-        super().__init__()
-        self._cancel_on_check = cancel_on_check
-        self._checks = 0
-
+class _HostileCancellation(threading.Event):
     def is_set(self) -> bool:
-        self._checks += 1
-        return self._checks >= self._cancel_on_check
+        raise OSError("/private/camera.mov")
 
 
-def test_cancellation_publishes_no_call_or_cursor_and_retry_is_identical() -> None:
+def test_cancellation_publishes_no_call_or_cursor_and_retry_is_identical(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     source = _source()
     frames = _frames(source, 4)
     observations = tuple(_observation(source, frame, BOX) for frame in frames)
+
+    for hostile in (cast(threading.Event, b"/private/raw.mov"), _HostileCancellation()):
+        tracker = GlobalLastBoxTracker()
+        with pytest.raises(PortError) as raised:
+            tracker.track_page(
+                source,
+                frames,
+                observations,
+                discontinuities=_scores(frames),
+                end_of_stream=True,
+                cancelled=hostile,
+            )
+        assert raised.value.code is PortErrorCode.INVALID_REQUEST
+        assert "/private/" not in str(raised.value)
+        assert tracker.calls == ()
+
+    overridden = threading.Event()
+    object.__setattr__(
+        overridden,
+        "is_set",
+        lambda: (_ for _ in ()).throw(OSError("/private/overridden.mov")),
+    )
+    assert (
+        GlobalLastBoxTracker()
+        .track_page(
+            source,
+            frames,
+            observations,
+            discontinuities=_scores(frames),
+            end_of_stream=True,
+            cancelled=overridden,
+        )
+        .finished
+        is True
+    )
+
+    corrupted = threading.Event()
+    object.__setattr__(corrupted, "_flag", "/private/corrupted.mov")
+    with pytest.raises(PortError) as raised:
+        GlobalLastBoxTracker().track_page(
+            source,
+            frames,
+            observations,
+            discontinuities=_scores(frames),
+            end_of_stream=True,
+            cancelled=corrupted,
+        )
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert "/private/" not in str(raised.value)
+
     tracker = GlobalLastBoxTracker()
+    cancelled = threading.Event()
+    original_check = GlobalLastBoxTracker._check_cancelled
+    check_count = 0
+
+    def cancel_during_second_frame(event: threading.Event | None, operation: str) -> None:
+        nonlocal check_count
+        check_count += 1
+        if check_count == 4:
+            assert event is not None
+            event.set()
+        original_check(event, operation)
+
+    monkeypatch.setattr(
+        GlobalLastBoxTracker,
+        "_check_cancelled",
+        staticmethod(cancel_during_second_frame),
+    )
 
     with pytest.raises(PortError) as raised:
         tracker.track_page(
@@ -692,7 +815,7 @@ def test_cancellation_publishes_no_call_or_cursor_and_retry_is_identical() -> No
             observations,
             discontinuities=_scores(frames),
             end_of_stream=True,
-            cancelled=_CancelDuringTracking(4),
+            cancelled=cancelled,
         )
     assert raised.value.code is PortErrorCode.CANCELLED
     assert tracker.calls == ()

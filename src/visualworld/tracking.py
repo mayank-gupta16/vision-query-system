@@ -120,6 +120,25 @@ def _validate_media_time(value: MediaTime) -> None:
     MediaTime.__post_init__(value)
 
 
+def _validate_source_stream(value: SourceStream) -> None:
+    if type(value) is not SourceStream or type(value.media_type) is not str:
+        raise ValueError("invalid source stream")
+    _validate_time_base(value.time_base)
+    SourceStream.__post_init__(value)
+
+
+def _copy_source_stream(value: SourceStream) -> SourceStream:
+    _validate_source_stream(value)
+    return SourceStream(
+        value.stream_index,
+        value.width,
+        value.height,
+        value.rotation_degrees,
+        TimeBase(value.time_base.numerator, value.time_base.denominator),
+        value.media_type,
+    )
+
+
 def _validate_source(value: Source) -> None:
     if (
         type(value) is not Source
@@ -134,10 +153,7 @@ def _validate_source(value: Source) -> None:
         raise ValueError("invalid source")
     Fingerprint.__post_init__(value.fingerprint)
     for stream in value.streams:
-        if type(stream.media_type) is not str:
-            raise ValueError("invalid source stream")
-        _validate_time_base(stream.time_base)
-        SourceStream.__post_init__(stream)
+        _validate_source_stream(stream)
     Source.__post_init__(value)
 
 
@@ -327,6 +343,21 @@ class TrackingLimits:
             raise ValueError("tracking limits are outside the v1 bounds")
 
 
+def _copy_tracking_limits(value: TrackingLimits) -> TrackingLimits:
+    if type(value) is not TrackingLimits:
+        raise ValueError("limits must use TrackingLimits")
+    return TrackingLimits(
+        max_page_frames=value.max_page_frames,
+        max_page_observations=value.max_page_observations,
+        max_total_frames=value.max_total_frames,
+        max_total_observations=value.max_total_observations,
+        max_active_tracks=value.max_active_tracks,
+        max_total_tracks=value.max_total_tracks,
+        max_track_points=value.max_track_points,
+        max_duration_seconds=value.max_duration_seconds,
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class TrackingDiagnostics:
     """Bounded pixel-free counters for a tracking prefix."""
@@ -384,6 +415,7 @@ class TrackingCursor:
     source_id: str
     stream_index: int
     time_base: TimeBase
+    source_stream: SourceStream
     limits: TrackingLimits
     first_pts: MediaTime
     last_frame: FrameRef
@@ -399,6 +431,7 @@ class TrackingCursor:
         source_id: str,
         stream_index: int,
         time_base: TimeBase,
+        source_stream: SourceStream,
         limits: TrackingLimits,
         first_pts: MediaTime,
         last_frame: FrameRef,
@@ -413,6 +446,7 @@ class TrackingCursor:
             ("source_id", source_id),
             ("stream_index", stream_index),
             ("time_base", time_base),
+            ("source_stream", source_stream),
             ("limits", limits),
             ("first_pts", first_pts),
             ("last_frame", last_frame),
@@ -431,6 +465,7 @@ class TrackingCursor:
             or type(self.stream_index) is not int
             or not 0 <= self.stream_index <= 2**31 - 1
             or type(self.time_base) is not TimeBase
+            or type(self.source_stream) is not SourceStream
             or type(self.limits) is not TrackingLimits
             or type(self.first_pts) is not MediaTime
             or type(self.last_frame) is not FrameRef
@@ -442,6 +477,7 @@ class TrackingCursor:
         ):
             raise ValueError("tracking cursor is invalid")
         _validate_time_base(self.time_base)
+        _validate_source_stream(self.source_stream)
         _validate_media_time(self.first_pts)
         _validate_frame(self.last_frame)
         self.limits.__post_init__()
@@ -458,6 +494,8 @@ class TrackingCursor:
             self.last_frame.source_id != self.source_id
             or self.last_frame.stream_index != self.stream_index
             or self.last_frame.pts.time_base != self.time_base
+            or self.source_stream.stream_index != self.stream_index
+            or self.source_stream.time_base != self.time_base
             or self.first_pts.time_base != self.time_base
             or len(ordinals) != len(set(ordinals))
             or len(self.active_tracks) > self.limits.max_active_tracks
@@ -507,6 +545,8 @@ class TrackingCursor:
                     point.source_id != self.source_id
                     or point.stream_index != self.stream_index
                     or point.pts.time_base != self.time_base
+                    or point.geometry.source_width != self.source_stream.width
+                    or point.geometry.source_height != self.source_stream.height
                     for point in track.points
                 )
             ):
@@ -592,9 +632,8 @@ class GlobalLastBoxTracker:
     ) -> None:
         if type(requested_category) is not str or not _CATEGORY_RE.fullmatch(requested_category):
             raise ValueError("requested category is invalid")
-        selected_limits = TrackingLimits() if limits is None else limits
-        if type(selected_limits) is not TrackingLimits:
-            raise ValueError("limits must use TrackingLimits")
+        supplied_limits = TrackingLimits() if limits is None else limits
+        selected_limits = _copy_tracking_limits(supplied_limits)
         self._requested_category = requested_category
         self._limits = selected_limits
         self._calls: list[PortCall] = []
@@ -621,7 +660,17 @@ class GlobalLastBoxTracker:
 
     @staticmethod
     def _check_cancelled(cancelled: threading.Event | None, operation: str) -> None:
-        if cancelled is not None and cancelled.is_set():
+        if cancelled is None:
+            return
+        if type(cancelled) is not threading.Event:
+            raise _error(PortErrorCode.INVALID_REQUEST, operation)
+        try:
+            state = threading.Event.is_set(cancelled)
+        except Exception:
+            raise _error(PortErrorCode.INVALID_REQUEST, operation) from None
+        if type(state) is not bool:
+            raise _error(PortErrorCode.INVALID_REQUEST, operation)
+        if state:
             raise _error(PortErrorCode.CANCELLED, operation)
 
     def track(
@@ -632,18 +681,22 @@ class GlobalLastBoxTracker:
         *,
         discontinuities: tuple[FrameDiscontinuity, ...] | None = None,
     ) -> TrackingResult:
-        page = self._track_page(
-            source,
-            frames,
-            observations,
-            discontinuities=discontinuities,
-            cursor=None,
-            end_of_stream=True,
-            cancelled=None,
-            operation="track",
-        )
+        try:
+            page = self._track_page(
+                source,
+                frames,
+                observations,
+                discontinuities=discontinuities,
+                cursor=None,
+                end_of_stream=True,
+                cancelled=None,
+                operation="track",
+            )
+            result = TrackingResult(page.state, page.tracklets, page.reason)
+        except (TypeError, ValueError):
+            raise _error(PortErrorCode.INVALID_REQUEST, "track") from None
         self._calls.append(PortCall(PortKind.TRACKER, "track", len(frames)))
-        return TrackingResult(page.state, page.tracklets, page.reason)
+        return result
 
     def track_page(
         self,
@@ -656,16 +709,19 @@ class GlobalLastBoxTracker:
         end_of_stream: bool = False,
         cancelled: threading.Event | None = None,
     ) -> TrackingPage:
-        page = self._track_page(
-            source,
-            frames,
-            observations,
-            discontinuities=discontinuities,
-            cursor=cursor,
-            end_of_stream=end_of_stream,
-            cancelled=cancelled,
-            operation="track_page",
-        )
+        try:
+            page = self._track_page(
+                source,
+                frames,
+                observations,
+                discontinuities=discontinuities,
+                cursor=cursor,
+                end_of_stream=end_of_stream,
+                cancelled=cancelled,
+                operation="track_page",
+            )
+        except (TypeError, ValueError):
+            raise _error(PortErrorCode.INVALID_REQUEST, "track_page") from None
         self._calls.append(PortCall(PortKind.TRACKER, "track_page", len(frames)))
         return page
 
@@ -692,7 +748,7 @@ class GlobalLastBoxTracker:
             cancelled,
             operation,
         )
-        by_frame, selected_discontinuities, rate_supported = validated
+        by_frame, selected_discontinuities, rate_supported, selected_stream = validated
         base_diagnostics = (
             cursor.diagnostics
             if cursor is not None
@@ -846,13 +902,17 @@ class GlobalLastBoxTracker:
             last_frame = cursor.last_frame
         else:
             raise AssertionError("validated tracking page has no position")
+        if selected_stream is None:
+            raise AssertionError("validated tracking page has no source stream")
         first_pts = frames[0].pts if cursor is None else cursor.first_pts
+        cursor_stream = _copy_source_stream(selected_stream)
         next_cursor = TrackingCursor(
             _factory=_CURSOR_FACTORY,
             source_id=source.source_id,
             stream_index=last_frame.stream_index,
-            time_base=last_frame.pts.time_base,
-            limits=self._limits,
+            time_base=cursor_stream.time_base,
+            source_stream=cursor_stream,
+            limits=_copy_tracking_limits(self._limits),
             first_pts=first_pts,
             last_frame=last_frame,
             active_tracks=tuple(active[ordinal] for ordinal in sorted(active)),
@@ -882,6 +942,7 @@ class GlobalLastBoxTracker:
         dict[str, tuple[Observation, ...]],
         tuple[FrameDiscontinuity, ...],
         bool,
+        SourceStream | None,
     ]:
         if (
             type(source) is not Source
@@ -890,7 +951,7 @@ class GlobalLastBoxTracker:
             or (discontinuities is not None and type(discontinuities) is not tuple)
             or (cursor is not None and type(cursor) is not TrackingCursor)
             or type(end_of_stream) is not bool
-            or (cancelled is not None and not isinstance(cancelled, threading.Event))
+            or (cancelled is not None and type(cancelled) is not threading.Event)
         ):
             raise _error(PortErrorCode.INVALID_REQUEST, operation)
         if (
@@ -946,13 +1007,13 @@ class GlobalLastBoxTracker:
             ):
                 raise _error(PortErrorCode.CONFLICT, operation)
             if cursor is not None and (
-                cursor.stream_index != stream_index or cursor.time_base != stream.time_base
+                cursor.stream_index != stream_index or cursor.source_stream != stream
             ):
                 raise _error(PortErrorCode.CONFLICT, operation)
         elif cursor is not None:
             stream_index = cursor.stream_index
             stream = streams.get(stream_index)
-            if stream is None or stream.time_base != cursor.time_base:
+            if stream is None or stream != cursor.source_stream:
                 raise _error(PortErrorCode.CONFLICT, operation)
         else:
             stream_index = 0
@@ -1021,6 +1082,7 @@ class GlobalLastBoxTracker:
             {frame_id: tuple(items) for frame_id, items in by_frame_lists.items()},
             selected_discontinuities,
             rate_supported,
+            stream,
         )
 
     @staticmethod
