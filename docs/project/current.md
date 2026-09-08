@@ -15,8 +15,10 @@
   probing the built-in fixture, ingesting a manual box, inspecting run-owned
   samples, and exporting exact RGB24 evidence, plus a release-gate end-to-end
   regression suite for locked goldens, interrupted recovery/deletion, and
-  hostile-input/no-egress boundaries, and a pinned combined CPU-LITE benchmark
-  harness with machine-readable comparison
+  hostile-input/no-egress boundaries, plus strict pixel-free v0.2 Observation
+  and clip-local Tracklet records and bounded Detector, Tracker, and
+  EvidenceSelector contracts with deterministic fakes, and a pinned combined
+  CPU-LITE benchmark harness with machine-readable comparison
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -91,7 +93,15 @@
   and reference-aware cascade deletion. Video blobs remain outside SQLite.
 - VideoSource, FrameSampler, EvidenceStore, and WorldStore now have framework-free
   version-1 protocols, capability descriptors, structured errors, bounded call
-  records, and deterministic in-memory fakes. Later ports remain conceptual.
+  records, and deterministic in-memory fakes. Ports outside the v0.1 set and
+  the three v0.2 perception contracts below remain conceptual.
+- Observation and completed clip-local Tracklet now have strict version-1
+  canonical records. Detector, Tracker, and EvidenceSelector have additive
+  experimental ports with bounded offline fakes and explicit complete,
+  `UNKNOWN`, or unsupported results. The first contracts exchange only source,
+  frame, geometry, time, confidence/provenance, tracklet, and observation-ID
+  values; native runtimes, pixels, persistence, and concrete policies remain in
+  later v0.2 issues.
 - PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
   exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
   cursor-based bounded-page resume.
@@ -149,10 +159,10 @@
 
 ## Next priorities
 
-1. Decompose roadmap epic #30 into focused, reviewable implementation issues
-   using the ratified detector, 5 FPS sampling, on-demand source-crop, and
-   global last-box tracklet boundaries.
-2. Build the smallest end-to-end v0.2 detector/tracklet vertical slice before
-   broadening model, platform, or persistent-identity support.
+1. Complete the isolated perception runtime/artifact decision in #71 and the
+   deterministic clip-local tracker in #72 against the new v0.2 contracts.
+2. Continue the #30 critical path through the bounded detector, evidence
+   selector, storage, coordinator, CLI, regressions, benchmark, and release
+   issues #73–#80 before broadening model, platform, or identity support.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

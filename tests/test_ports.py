@@ -86,7 +86,7 @@ def records() -> tuple[
     return source, frames, artifact, evidence, run, content
 
 
-def test_fakes_satisfy_only_the_four_v1_port_protocols() -> None:
+def test_fakes_satisfy_the_four_v1_ingestion_port_protocols() -> None:
     source, frames, _, _, _, _ = records()
     implementations: tuple[object, ...] = (
         FakeVideoSource(source, frames),
@@ -109,7 +109,12 @@ def test_capability_descriptors_are_bounded_offline_and_deny_ambient_effects() -
         FakeWorldStore().descriptor,
     )
 
-    assert {descriptor.port for descriptor in descriptors} == set(PortKind)
+    assert {descriptor.port for descriptor in descriptors} == {
+        PortKind.VIDEO_SOURCE,
+        PortKind.FRAME_SAMPLER,
+        PortKind.EVIDENCE_STORE,
+        PortKind.WORLD_STORE,
+    }
     for descriptor in descriptors:
         assert descriptor.contract_version == 1
         assert descriptor.deterministic is True

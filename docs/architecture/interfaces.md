@@ -97,3 +97,36 @@ owned evidence reference. Mutations normally acquire the shared `writer.lock`;
 the same APIs can instead consume an active `EvidenceWriterSession` so the
 future coordinator can keep filesystem and metadata steps under one exclusive
 kernel lock without receiving a raw SQLite connection.
+
+## Version-1 perception ports
+
+Issue [#70](https://github.com/mayank-gupta16/vision-query-system/issues/70)
+defines three additive, experimental ports without selecting a native runtime:
+
+| Port | Version-1 operation |
+| --- | --- |
+| `Detector` | Detect over one `Source` and a bounded tuple of its `FrameRef` values, returning pixel-free `Observation` records. |
+| `Tracker` | Form completed clip-local `Tracklet` records from a bounded source/frame/observation set. |
+| `EvidenceSelector` | Select a bounded ordered tuple of observation identifiers from one completed tracklet. |
+
+Each result is explicitly `complete`, `unknown`, or `unsupported`. A complete
+result may be empty; an incomplete result contains no partial records and must
+carry a bounded reason token. This keeps unavailable source pixels, an absent
+runtime, an unsupported platform, or a class outside the measured boundary
+distinct from a measured frame with no vehicle.
+
+The stable `Detector` operation passes source and frame references, not pixels,
+paths, model tensors, or vendor objects. A later production adapter owns its
+authorized decode/inference boundary internally. `Tracker` and
+`EvidenceSelector` receive only versioned pixel-free domain values. All three
+ports use the existing capability/error/instrumentation contract and have
+offline deterministic fakes for ordinary orchestration, recovery, security,
+and adapter-substitution tests.
+
+The initial operation is deliberately bounded to 64 frames and 64 points in
+one completed tracklet. A detector/tracker frame batch may carry at most 4,096
+observations so the bound still represents the frozen six-object tracking
+fixture. Longer clips, tracker continuation state, native artifact provisioning,
+concrete tracking and evidence ranking, persistence, and coordination belong to
+issues #71–#76; an adapter cannot hide those behaviors behind an implementation
+name.
