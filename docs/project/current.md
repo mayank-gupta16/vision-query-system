@@ -24,7 +24,9 @@
   plus a deterministic global-last-box IoU tracker with pixel-free hard-cut
   scores and opaque bounded-page continuation, plus the bounded offline
   OpenVINO `vehicle-detection-0201` adapter with a sealed composite
-  decode/inference worker and deterministic CI fixture seam
+  decode/inference worker and deterministic CI fixture seam, plus a concrete
+  integer-only best-frame selector with pixel-free source-coordinate intents
+  and explicit on-demand exact RGB24 materialization
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -78,7 +80,9 @@
   metric by 1,601 basis points with zero source-absent gain. Preserve source
   coordinates and retrieve transiently for a declared downstream need; do not
   eagerly retain every crop because median source evidence was 56.25x the
-  detector-input crop. No production crop adapter has yet changed.
+  detector-input crop. The evidence selector now plans at most three views by
+  default and reaches the exact crop/EvidenceRef boundary only after an explicit
+  inspection or resolvable downstream-detail request.
 - Global last-box IoU is the selected v0.2 short-term tracking policy. On the
   held-out vehicle fixture it passes every frozen gate at 8,217 HOTA, 8,580
   IDF1, 8 switches and 24 fragmentations per 1,000 visible track frames, zero
@@ -127,6 +131,13 @@
   that closure and a manifest-bound first-party worker before every launch,
   passes only a sealed source descriptor, and validates canonical pixel-free
   output before creating original-coordinate observations.
+- `BestFrameEvidenceSelector` implements the frozen metadata-only ordering from
+  boundary contact, detector confidence, normalized/raw visible area, and
+  source-time position. Its intents preserve every score component,
+  original-source geometry, selector provenance, private retention, and
+  coordinator deletion ownership. Missing pixels and unresolvable detail stay
+  `UNKNOWN`; selection never performs OCR, identity, make/model, face, or plate
+  inference and never stores pixels by default.
 - PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
   exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
   cursor-based bounded-page resume.
@@ -185,9 +196,8 @@
 
 ## Next priorities
 
-1. Continue the #30 critical path with the evidence selector in #74, then
-   perception storage, coordination, CLI, regressions, benchmark, and release
-   issues #75–#80.
+1. Continue the #30 critical path with perception storage in #75, then
+   coordination, CLI, regressions, benchmark, and release issues #76–#80.
 2. Preserve the accepted detector and tracker boundaries while completing the
    first real-video perception vertical slice; do not broaden model/platform or
    identity scope before its release gates pass.

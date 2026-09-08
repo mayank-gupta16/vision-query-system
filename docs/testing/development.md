@@ -356,6 +356,31 @@ gate values, stale/overbroad waivers, and output overwrite. See the
 [ADR-0006](../decisions/ADR-0006-v02-evaluation-gates.md) before producing a
 research receipt.
 
+The deterministic best-frame acceptance suite runs with no native runtime or
+media fixture:
+
+```sh
+uv run --frozen --offline pytest -q \
+  tests/test_evidence.py tests/test_perception_ports.py tests/test_geometry.py
+```
+
+It locks ordering and every integer score component, time/identifier tie-breaks,
+boundary contact, tiny/large boxes, all completed termination reasons, one-point
+and invalid-empty tracklets, configured selection bounds, repeated runs, adapter
+substitution, unavailable and unresolvable source detail, exact on-demand RGB24
+bytes and EvidenceRef values, EvidenceStore handoff, hostile inputs, alias
+mutation, and pixel/path redaction. Run the same focused command under the
+repository's CPython 3.13.15 and 3.14.7 toolchains before merge.
+
+Materialization coverage also substitutes every full-intent dimension (record
+links, rank, geometry, PTS, score, selector provenance, and lifecycle policy),
+uses exact nested hostile scalar types, bounds forged score integers before
+derived arithmetic, races nested context mutation during direct snapshotting,
+traces mutation between exact validation and reconstruction to prevent repeated
+caller-field reads or hostile method execution, and verifies BaseException
+sanitization at every selection/materialization boundary before output or a crop
+is published.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

@@ -45,6 +45,7 @@ def inspect_wheel(wheel: Path) -> tuple[str, str]:
             "visualworld/cli.py",
             "visualworld/coordinator.py",
             "visualworld/detection.py",
+            "visualworld/evidence.py",
             "visualworld/experimental.py",
             "visualworld/geometry.py",
             "visualworld/ingestion.py",
@@ -107,7 +108,7 @@ def check(wheel: Path, uv: Path) -> None:
         )
         probe = (
             "import importlib.metadata as m,json,visualworld,visualworld.detection,"
-            "visualworld.experimental,visualworld.tracking; "
+            "visualworld.evidence,visualworld.experimental,visualworld.tracking; "
             "print(json.dumps({'packages': sorted((d.metadata['Name'], d.version) "
             "for d in m.distributions()), 'version': visualworld.__version__, "
             "'file': visualworld.__file__}))"

@@ -88,3 +88,14 @@ that state before use. Only `cut`, `miss_timeout`, or an explicit `source_end`
 can complete a tracklet. Paging does not manufacture a termination or reuse
 clip-local track ordinals. A continuous trajectory that would exceed 64 points
 fails with a structured limit error rather than being silently split.
+
+`EvidenceIntent` is the pixel-free bridge from one completed tracklet to a
+possible original-frame `EvidenceRef`. It is not a persisted artifact. It binds
+the selected observation and source-coordinate geometry to an ordered rank,
+the complete deterministic score/tie-break breakdown, selector producer and
+configuration digest, `derived_private` retention, and coordinator-owned source
+cascade deletion. Only an explicit materialization request can add an exact
+RGB24 crop and content-addressed reference. Materialization first recomputes the
+plan from the resupplied completed Tracklet and Observation set and requires the
+full intent to match. Unavailable or unresolvable detail remains `UNKNOWN`. The
+selector does not add OCR, identity, make/model, face, or plate fields.
