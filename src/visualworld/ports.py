@@ -13,10 +13,14 @@ from visualworld.ingestion import (
     Artifact,
     EvidenceRef,
     FrameRef,
+    MediaTime,
+    Producer,
     Record,
     RunManifest,
     Sampling,
     Source,
+    SourceStream,
+    TimeBase,
     dumps_record,
 )
 from visualworld.perception import Observation, Tracklet
@@ -27,6 +31,7 @@ MAX_FAKE_ARTIFACT_BYTES = 1024 * 1024
 _MAX_STREAM_INDEX = 2**31 - 1
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+/-]{0,127}\Z")
+_REASON_RE = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
 _DIGEST_RE = re.compile(r"[0-9a-f]{64}\Z")
 _RECORD_ID_RE = re.compile(r"(?:src|frm|evi|run)_[0-9a-f]{64}\Z")
 _UNSIGNED_DECIMAL_RE = re.compile(r"(?:0|[1-9][0-9]*)\Z")
@@ -77,7 +82,7 @@ def _validate_result(
     reason: str | None,
     output_count: int,
 ) -> None:
-    if not isinstance(state, PerceptionResultState):
+    if type(state) is not PerceptionResultState:
         raise ValueError("state must use PerceptionResultState")
     if state is PerceptionResultState.COMPLETE:
         if reason is not None:
@@ -85,8 +90,8 @@ def _validate_result(
         return
     if output_count:
         raise ValueError("incomplete result cannot contain outputs")
-    if not isinstance(reason, str) or not _TOKEN_RE.fullmatch(reason):
-        raise ValueError("incomplete result requires a bounded reason token")
+    if type(reason) is not str or not _REASON_RE.fullmatch(reason):
+        raise ValueError("incomplete result requires a bounded stable reason code")
 
 
 @dataclass(frozen=True, slots=True)
@@ -97,12 +102,14 @@ class DetectionResult:
 
     def __post_init__(self) -> None:
         if (
-            not isinstance(self.observations, tuple)
+            type(self.observations) is not tuple
             or len(self.observations) > MAX_PERCEPTION_OBSERVATIONS
         ):
             raise ValueError("observations exceed the port bound")
-        if not all(isinstance(item, Observation) for item in self.observations):
+        if not all(type(item) is Observation for item in self.observations):
             raise ValueError("observations must contain Observation records")
+        for item in self.observations:
+            Observation.__post_init__(item)
         if len({item.observation_id for item in self.observations}) != len(self.observations):
             raise ValueError("observation identifiers must be unique")
         _validate_result(self.state, self.reason, len(self.observations))
@@ -115,10 +122,12 @@ class TrackingResult:
     reason: str | None = None
 
     def __post_init__(self) -> None:
-        if not isinstance(self.tracklets, tuple) or len(self.tracklets) > MAX_PORT_BATCH_ITEMS:
+        if type(self.tracklets) is not tuple or len(self.tracklets) > MAX_PORT_BATCH_ITEMS:
             raise ValueError("tracklets exceed the port bound")
-        if not all(isinstance(item, Tracklet) for item in self.tracklets):
+        if not all(type(item) is Tracklet for item in self.tracklets):
             raise ValueError("tracklets must contain Tracklet records")
+        for item in self.tracklets:
+            Tracklet.__post_init__(item)
         if len({item.tracklet_id for item in self.tracklets}) != len(self.tracklets):
             raise ValueError("tracklet identifiers must be unique")
         _validate_result(self.state, self.reason, len(self.tracklets))
@@ -132,12 +141,12 @@ class EvidenceSelectionResult:
 
     def __post_init__(self) -> None:
         if (
-            not isinstance(self.observation_ids, tuple)
+            type(self.observation_ids) is not tuple
             or len(self.observation_ids) > MAX_PORT_BATCH_ITEMS
         ):
             raise ValueError("selected observations exceed the port bound")
         if not all(
-            isinstance(item, str) and re.fullmatch(r"obs_[0-9a-f]{64}", item)
+            type(item) is str and re.fullmatch(r"obs_[0-9a-f]{64}", item)
             for item in self.observation_ids
         ):
             raise ValueError("selected observation identifiers are invalid")
@@ -517,24 +526,74 @@ class FakeFrameSampler(_InstrumentedFake):
         return result
 
 
+def _plain_port_time(value: object) -> bool:
+    if (
+        type(value) is not MediaTime
+        or type(value.value) is not str
+        or type(value.basis) is not str
+        or type(value.time_base) is not TimeBase
+        or type(value.time_base.numerator) is not str
+        or type(value.time_base.denominator) is not str
+    ):
+        return False
+    if value.estimate_method is not None and type(value.estimate_method) is not str:
+        return False
+    producer = value.estimate_producer
+    return producer is None or (
+        type(producer) is Producer
+        and type(producer.name) is str
+        and type(producer.version) is str
+        and type(producer.configuration_sha256) is str
+    )
+
+
 def _perception_frames(
     source: Source,
     frames: tuple[FrameRef, ...],
     port: PortKind,
     operation: str,
 ) -> dict[str, FrameRef]:
-    if not isinstance(source, Source):
+    if type(source) is not Source or type(source.source_id) is not str:
         raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
-    if not isinstance(frames, tuple) or len(frames) > MAX_PORT_BATCH_ITEMS:
+    if type(source.streams) is not tuple or not all(
+        type(stream) is SourceStream
+        and type(stream.stream_index) is int
+        and type(stream.width) is int
+        and type(stream.height) is int
+        and type(stream.time_base) is TimeBase
+        and type(stream.time_base.numerator) is str
+        and type(stream.time_base.denominator) is str
+        for stream in source.streams
+    ):
+        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    if type(frames) is not tuple or len(frames) > MAX_PORT_BATCH_ITEMS:
         raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
-    if not all(isinstance(frame, FrameRef) for frame in frames):
+    if not all(
+        type(frame) is FrameRef
+        and type(frame.frame_id) is str
+        and type(frame.source_id) is str
+        and type(frame.stream_index) is int
+        and type(frame.decode_index) is str
+        and _plain_port_time(frame.pts)
+        and (frame.duration is None or _plain_port_time(frame.duration))
+        for frame in frames
+    ):
         raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
     by_id = {frame.frame_id: frame for frame in frames}
-    stream_indexes = {stream.stream_index for stream in source.streams}
+    streams = {stream.stream_index: stream for stream in source.streams}
+    positions = {(frame.stream_index, frame.decode_index) for frame in frames}
     if (
-        len(by_id) != len(frames)
+        len(streams) != len(source.streams)
+        or len(by_id) != len(frames)
+        or len(positions) != len(frames)
         or any(frame.source_id != source.source_id for frame in frames)
-        or any(frame.stream_index not in stream_indexes for frame in frames)
+        or any(frame.stream_index not in streams for frame in frames)
+        or any(frame.pts.time_base != streams[frame.stream_index].time_base for frame in frames)
+        or any(
+            frame.duration is not None
+            and frame.duration.time_base != streams[frame.stream_index].time_base
+            for frame in frames
+        )
     ):
         raise _port_error(PortErrorCode.CONFLICT, port, operation)
     return by_id
@@ -547,20 +606,30 @@ def _perception_observations(
     port: PortKind,
     operation: str,
 ) -> dict[str, Observation]:
-    if not isinstance(observations, tuple) or len(observations) > MAX_PERCEPTION_OBSERVATIONS:
+    if type(observations) is not tuple or len(observations) > MAX_PERCEPTION_OBSERVATIONS:
         raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
-    if not all(isinstance(observation, Observation) for observation in observations):
+    if not all(type(observation) is Observation for observation in observations):
         raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
+    for observation in observations:
+        try:
+            Observation.__post_init__(observation)
+        except (TypeError, ValueError):
+            raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation) from None
     by_id = {observation.observation_id: observation for observation in observations}
     if len(by_id) != len(observations):
         raise _port_error(PortErrorCode.CONFLICT, port, operation)
+    streams = {stream.stream_index: stream for stream in source.streams}
     for observation in observations:
         frame = frames.get(observation.frame_id)
+        stream = streams.get(observation.stream_index)
         if (
             observation.source_id != source.source_id
             or frame is None
+            or stream is None
             or observation.stream_index != frame.stream_index
             or observation.pts != frame.pts
+            or observation.geometry.source_width != stream.width
+            or observation.geometry.source_height != stream.height
         ):
             raise _port_error(PortErrorCode.CONFLICT, port, operation)
     return by_id
@@ -568,7 +637,7 @@ def _perception_observations(
 
 class FakeDetector(_InstrumentedFake):
     def __init__(self, result: DetectionResult) -> None:
-        if not isinstance(result, DetectionResult):
+        if type(result) is not DetectionResult:
             raise _port_error(PortErrorCode.INVALID_REQUEST, PortKind.DETECTOR, "init")
         super().__init__(_fake_descriptor(PortKind.DETECTOR))
         self._result = result
@@ -592,7 +661,7 @@ class FakeDetector(_InstrumentedFake):
 
 class FakeTracker(_InstrumentedFake):
     def __init__(self, result: TrackingResult) -> None:
-        if not isinstance(result, TrackingResult):
+        if type(result) is not TrackingResult:
             raise _port_error(PortErrorCode.INVALID_REQUEST, PortKind.TRACKER, "init")
         super().__init__(_fake_descriptor(PortKind.TRACKER))
         self._result = result
@@ -621,6 +690,9 @@ class FakeTracker(_InstrumentedFake):
                     observation is None
                     or tracklet.stream_index != observation.stream_index
                     or tracklet.category != observation.category
+                    or point.source_id != observation.source_id
+                    or point.stream_index != observation.stream_index
+                    or point.category != observation.category
                     or point.frame_id != observation.frame_id
                     or point.pts != observation.pts
                     or point.geometry != observation.geometry
@@ -638,7 +710,7 @@ class FakeTracker(_InstrumentedFake):
 
 class FakeEvidenceSelector(_InstrumentedFake):
     def __init__(self, result: EvidenceSelectionResult) -> None:
-        if not isinstance(result, EvidenceSelectionResult):
+        if type(result) is not EvidenceSelectionResult:
             raise _port_error(
                 PortErrorCode.INVALID_REQUEST,
                 PortKind.EVIDENCE_SELECTOR,
@@ -652,24 +724,41 @@ class FakeEvidenceSelector(_InstrumentedFake):
         tracklet: Tracklet,
         observations: tuple[Observation, ...],
     ) -> EvidenceSelectionResult:
-        if not isinstance(tracklet, Tracklet):
+        if type(tracklet) is not Tracklet:
             raise _port_error(
                 PortErrorCode.INVALID_REQUEST,
                 PortKind.EVIDENCE_SELECTOR,
                 "select",
             )
-        if not isinstance(observations, tuple) or len(observations) > MAX_PORT_BATCH_ITEMS:
+        try:
+            Tracklet.__post_init__(tracklet)
+        except (TypeError, ValueError):
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            ) from None
+        if type(observations) is not tuple or len(observations) > MAX_PORT_BATCH_ITEMS:
             raise _port_error(
                 PortErrorCode.LIMIT_EXCEEDED,
                 PortKind.EVIDENCE_SELECTOR,
                 "select",
             )
-        if not all(isinstance(observation, Observation) for observation in observations):
+        if not all(type(observation) is Observation for observation in observations):
             raise _port_error(
                 PortErrorCode.INVALID_REQUEST,
                 PortKind.EVIDENCE_SELECTOR,
                 "select",
             )
+        try:
+            for observation in observations:
+                Observation.__post_init__(observation)
+        except (TypeError, ValueError):
+            raise _port_error(
+                PortErrorCode.INVALID_REQUEST,
+                PortKind.EVIDENCE_SELECTOR,
+                "select",
+            ) from None
         by_id = {observation.observation_id: observation for observation in observations}
         if len(by_id) != len(observations):
             raise _port_error(
@@ -694,6 +783,9 @@ class FakeEvidenceSelector(_InstrumentedFake):
                 observation.source_id != tracklet.source_id
                 or observation.stream_index != tracklet.stream_index
                 or observation.category != tracklet.category
+                or point.source_id != observation.source_id
+                or point.stream_index != observation.stream_index
+                or point.category != observation.category
                 or point.frame_id != observation.frame_id
                 or point.pts != observation.pts
                 or point.geometry != observation.geometry

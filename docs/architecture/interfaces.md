@@ -111,9 +111,9 @@ defines three additive, experimental ports without selecting a native runtime:
 
 Each result is explicitly `complete`, `unknown`, or `unsupported`. A complete
 result may be empty; an incomplete result contains no partial records and must
-carry a bounded reason token. This keeps unavailable source pixels, an absent
-runtime, an unsupported platform, or a class outside the measured boundary
-distinct from a measured frame with no vehicle.
+carry a bounded, path-inert stable reason code. This keeps unavailable source
+pixels, an absent runtime, an unsupported platform, or a class outside the
+measured boundary distinct from a measured frame with no vehicle.
 
 The stable `Detector` operation passes source and frame references, not pixels,
 paths, model tensors, or vendor objects. A later production adapter owns its
@@ -121,7 +121,9 @@ authorized decode/inference boundary internally. `Tracker` and
 `EvidenceSelector` receive only versioned pixel-free domain values. All three
 ports use the existing capability/error/instrumentation contract and have
 offline deterministic fakes for ordinary orchestration, recovery, security,
-and adapter-substitution tests.
+and adapter-substitution tests. Fake detector and tracker boundaries verify
+unique frame positions, frame PTS/duration time bases against the selected
+source stream, and observation geometry dimensions against that stream.
 
 The initial operation is deliberately bounded to 64 frames and 64 points in
 one completed tracklet. A detector/tracker frame batch may carry at most 4,096

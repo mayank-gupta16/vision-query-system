@@ -100,8 +100,9 @@
   experimental ports with bounded offline fakes and explicit complete,
   `UNKNOWN`, or unsupported results. The first contracts exchange only source,
   frame, geometry, time, confidence/provenance, tracklet, and observation-ID
-  values; native runtimes, pixels, persistence, and concrete policies remain in
-  later v0.2 issues.
+  values. A combined public experimental record dispatcher is additive while
+  the v0.1 WorldStore union remains unchanged; native runtimes, pixels,
+  persistence, and concrete policies remain in later v0.2 issues.
 - PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
   exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
   cursor-based bounded-page resume.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import traceback
 from collections.abc import Callable
 from io import BytesIO
 from typing import BinaryIO, cast
@@ -26,7 +27,7 @@ from visualworld.perception import (
 SOURCE_ID = "src_" + "11" * 32
 FRAME_IDS = ("frm_" + "22" * 32, "frm_" + "33" * 32)
 OBSERVATION_ID = "obs_70d5360054807dfa82ad25f62da132151a9298d85c19a5962de452ef085c28a9"
-TRACKLET_ID = "trk_43995bf600c5b11d536c243a8093ad5aef3ce78105183a611939fa9d69ab8871"
+TRACKLET_ID = "trk_1dfe350c6e7f7fdd9304d6ce8be5f72a8343651787492e892856f1dff64f8703"
 
 
 def encode(value: object) -> bytes:
@@ -229,16 +230,22 @@ def test_perception_nested_type_guards_raise_domain_errors() -> None:
             cast(Producer, object()),
         ),
         lambda: TrackPoint(
-            tracklet.points[0].observation_id,
-            tracklet.points[0].frame_id,
-            cast(MediaTime, object()),
-            tracklet.points[0].geometry,
+            observation_id=tracklet.points[0].observation_id,
+            source_id=tracklet.points[0].source_id,
+            frame_id=tracklet.points[0].frame_id,
+            stream_index=tracklet.points[0].stream_index,
+            pts=cast(MediaTime, object()),
+            geometry=tracklet.points[0].geometry,
+            category=tracklet.points[0].category,
         ),
         lambda: TrackPoint(
-            tracklet.points[0].observation_id,
-            tracklet.points[0].frame_id,
-            tracklet.points[0].pts,
-            cast(Geometry, object()),
+            observation_id=tracklet.points[0].observation_id,
+            source_id=tracklet.points[0].source_id,
+            frame_id=tracklet.points[0].frame_id,
+            stream_index=tracklet.points[0].stream_index,
+            pts=tracklet.points[0].pts,
+            geometry=cast(Geometry, object()),
+            category=tracklet.points[0].category,
         ),
         lambda: TrackPoint.from_observation(cast(Observation, object())),
         lambda: Tracklet.create(
@@ -277,22 +284,31 @@ def test_tracklet_rejects_duplicate_observations_frames_and_mixed_geometry() -> 
     producer = tracklet.producer
 
     duplicate_observation = TrackPoint(
-        first.observation_id,
-        second.frame_id,
-        second.pts,
-        second.geometry,
+        observation_id=first.observation_id,
+        source_id=second.source_id,
+        frame_id=second.frame_id,
+        stream_index=second.stream_index,
+        pts=second.pts,
+        geometry=second.geometry,
+        category=second.category,
     )
     duplicate_frame = TrackPoint(
-        second.observation_id,
-        first.frame_id,
-        second.pts,
-        second.geometry,
+        observation_id=second.observation_id,
+        source_id=second.source_id,
+        frame_id=first.frame_id,
+        stream_index=second.stream_index,
+        pts=second.pts,
+        geometry=second.geometry,
+        category=second.category,
     )
     mixed_geometry = TrackPoint(
-        second.observation_id,
-        second.frame_id,
-        second.pts,
-        Geometry(65, 48, (5, 5, 21, 30), "inferred"),
+        observation_id=second.observation_id,
+        source_id=second.source_id,
+        frame_id=second.frame_id,
+        stream_index=second.stream_index,
+        pts=second.pts,
+        geometry=Geometry(65, 48, (5, 5, 21, 30), "inferred"),
+        category=second.category,
     )
 
     point_sets = (
@@ -303,6 +319,94 @@ def test_tracklet_rejects_duplicate_observations_frames_and_mixed_geometry() -> 
     for points in point_sets:
         with pytest.raises(RecordValidationError):
             Tracklet.create(SOURCE_ID, 0, "vehicle", points, "source_end", producer)
+
+
+def test_tracklet_points_are_self_verifying_for_source_stream_and_category() -> None:
+    _, tracklet = records()
+    first = tracklet.points[0]
+    mismatches = (
+        TrackPoint(
+            first.observation_id,
+            "src_" + "99" * 32,
+            first.frame_id,
+            first.stream_index,
+            first.pts,
+            first.geometry,
+            first.category,
+        ),
+        TrackPoint(
+            first.observation_id,
+            first.source_id,
+            first.frame_id,
+            1,
+            first.pts,
+            first.geometry,
+            first.category,
+        ),
+    )
+
+    for point in mismatches:
+        with pytest.raises(RecordValidationError, match="track_point_scope_mismatch"):
+            Tracklet.create(
+                tracklet.source_id,
+                tracklet.stream_index,
+                tracklet.category,
+                (point,),
+                tracklet.termination_reason,
+                tracklet.producer,
+            )
+
+
+def test_perception_records_reject_hostile_subclasses_before_serialization() -> None:
+    observation, _ = records()
+
+    class PixelGeometry(Geometry):
+        def to_mapping(self) -> dict[str, object]:
+            return {**super().to_mapping(), "pixels": "private"}
+
+    class DerivedTimeBase(TimeBase):
+        pass
+
+    with pytest.raises(RecordValidationError, match="invalid_geometry"):
+        Observation.create(
+            observation.source_id,
+            observation.frame_id,
+            observation.stream_index,
+            observation.pts,
+            PixelGeometry(64, 48, (4, 5, 20, 30), "inferred"),
+            observation.category,
+            observation.confidence_millionths,
+            observation.producer,
+        )
+    with pytest.raises(RecordValidationError, match="invalid_time_base"):
+        Observation.create(
+            observation.source_id,
+            observation.frame_id,
+            observation.stream_index,
+            MediaTime("0", DerivedTimeBase("1", "1000")),
+            observation.geometry,
+            observation.category,
+            observation.confidence_millionths,
+            observation.producer,
+        )
+
+    class DerivedObservation(Observation):
+        pass
+
+    hostile = DerivedObservation(
+        observation.observation_id,
+        observation.source_id,
+        observation.frame_id,
+        observation.stream_index,
+        observation.pts,
+        observation.geometry,
+        observation.category,
+        observation.confidence_millionths,
+        observation.producer,
+    )
+    object.__setattr__(hostile, "vendor_payload", b"private pixels")
+    with pytest.raises(RecordValidationError, match="unsupported_perception_record"):
+        dumps_perception_record(cast(PerceptionRecord, hostile))
 
 
 @pytest.mark.parametrize(
@@ -364,6 +468,23 @@ def test_perception_json_dispatch_is_strict(payload: bytes, code: str) -> None:
     assert raised.value.code == code
 
 
+def test_perception_failures_do_not_echo_hostile_paths_or_exception_details() -> None:
+    hostile_path = "private/path/secret"
+    oversized = (f'{{"{hostile_path}":"' + "x" * 4_097 + '"}').encode()
+    unknown = encode({"schema": "private/path", "schema_version": 1})
+    with pytest.raises(RecordValidationError, match="string_too_long") as shape_error:
+        loads_perception_record(oversized)
+    with pytest.raises(RecordValidationError, match="unknown_schema") as schema_error:
+        loads_perception_record(unknown)
+
+    for raised in (shape_error.value, schema_error.value):
+        rendered = "".join(traceback.format_exception(raised))
+        assert hostile_path not in rendered
+        assert "private/path" not in rendered
+        assert raised.__cause__ is None
+        assert raised.__context__ is None
+
+
 def test_perception_reader_and_trajectory_are_bounded() -> None:
     observation, tracklet = records()
     one = tracklet.points[0]
@@ -375,10 +496,13 @@ def test_perception_reader_and_trajectory_are_bounded() -> None:
             "vehicle",
             tuple(
                 TrackPoint(
-                    "obs_" + f"{index:064x}",
-                    "frm_" + f"{index:064x}",
-                    MediaTime(str(index), TimeBase("1", "1000")),
-                    one.geometry,
+                    observation_id="obs_" + f"{index:064x}",
+                    source_id=one.source_id,
+                    frame_id="frm_" + f"{index:064x}",
+                    stream_index=one.stream_index,
+                    pts=MediaTime(str(index), TimeBase("1", "1000")),
+                    geometry=one.geometry,
+                    category=one.category,
                 )
                 for index in range(MAX_TRACK_POINTS + 1)
             ),
@@ -407,8 +531,11 @@ def test_perception_reader_and_trajectory_are_bounded() -> None:
 
     with pytest.raises(RecordValidationError, match="record_reader_must_be_binary"):
         load_perception_record(cast(BinaryIO, TextReader()))
-    with pytest.raises(RecordValidationError, match="record_read_failed"):
+    with pytest.raises(RecordValidationError, match="record_read_failed") as read_error:
         load_perception_record(cast(BinaryIO, BrokenReader()))
+    assert read_error.value.__cause__ is None
+    assert read_error.value.__context__ is None
+    assert "private detail" not in "".join(traceback.format_exception(read_error.value))
     with pytest.raises(RecordValidationError, match="unsupported_perception_record"):
         dumps_perception_record(cast(PerceptionRecord, object()))
     with pytest.raises(RecordValidationError, match="unsupported_perception_record"):

@@ -10,10 +10,13 @@ from typing import BinaryIO, ClassVar
 from visualworld.ingestion import (
     MAX_I31,
     MAX_RECORD_BYTES,
+    AffineCoefficients,
     Geometry,
     MediaTime,
     Producer,
-    RecordValidationError,
+    ProducerSpace,
+    Rational,
+    TimeBase,
     _array,
     _bounded_int,
     _canonical_bytes,
@@ -32,6 +35,81 @@ MAX_TRACK_POINTS = 64
 MAX_CONFIDENCE_MILLIONTHS = 1_000_000
 _CATEGORIES = frozenset({"vehicle"})
 _TERMINATION_REASONS = frozenset({"cut", "miss_timeout", "source_end"})
+
+
+def _plain_string(value: object, path: str) -> str:
+    if type(value) is not str:
+        _fail("expected_string", path)
+    return _general_string(value, path)
+
+
+def _plain_time_base(value: object, path: str) -> TimeBase:
+    if type(value) is not TimeBase:
+        _fail("invalid_time_base", path)
+    _plain_string(value.numerator, f"{path}.numerator")
+    _plain_string(value.denominator, f"{path}.denominator")
+    TimeBase.__post_init__(value)
+    return value
+
+
+def _plain_producer(value: object, path: str) -> Producer:
+    if type(value) is not Producer:
+        _fail("invalid_producer", path)
+    _plain_string(value.name, f"{path}.name")
+    _plain_string(value.version, f"{path}.version")
+    _plain_string(value.configuration_sha256, f"{path}.configuration_sha256")
+    Producer.__post_init__(value)
+    return value
+
+
+def _plain_media_time(value: object, path: str) -> MediaTime:
+    if type(value) is not MediaTime:
+        _fail("invalid_pts", path)
+    _plain_string(value.value, f"{path}.value")
+    _plain_string(value.basis, f"{path}.basis")
+    _plain_time_base(value.time_base, f"{path}.time_base")
+    if value.estimate_method is not None:
+        _plain_string(value.estimate_method, f"{path}.estimate.method")
+    if value.estimate_producer is not None:
+        _plain_producer(value.estimate_producer, f"{path}.estimate.producer")
+    MediaTime.__post_init__(value)
+    return value
+
+
+def _plain_rational(value: object, path: str) -> Rational:
+    if type(value) is not Rational:
+        _fail("invalid_affine_coefficient", path)
+    _plain_string(value.numerator, f"{path}.numerator")
+    _plain_string(value.denominator, f"{path}.denominator")
+    Rational.__post_init__(value)
+    return value
+
+
+def _plain_geometry(value: object, path: str) -> Geometry:
+    if type(value) is not Geometry:
+        _fail("invalid_geometry", path)
+    if type(value.box_xyxy) is not tuple:
+        _fail("invalid_box", f"{path}.box_xyxy")
+    _plain_string(value.measurement, f"{path}.measurement")
+    _plain_string(value.transform_kind, f"{path}.transform_to_source.kind")
+    _plain_string(value.space, f"{path}.space")
+    if value.producer_space is not None:
+        if type(value.producer_space) is not ProducerSpace:
+            _fail("invalid_producer_space", f"{path}.producer_space")
+        if type(value.producer_space.box_xyxy) is not tuple:
+            _fail("invalid_box", f"{path}.producer_space.box_xyxy")
+        ProducerSpace.__post_init__(value.producer_space)
+    if value.coefficients is not None:
+        if type(value.coefficients) is not AffineCoefficients:
+            _fail("invalid_affine_coefficients", f"{path}.transform_to_source.coefficients")
+        for name in ("a", "b", "c", "d", "e", "f"):
+            _plain_rational(
+                getattr(value.coefficients, name),
+                f"{path}.transform_to_source.coefficients.{name}",
+            )
+        AffineCoefficients.__post_init__(value.coefficients)
+    Geometry.__post_init__(value)
+    return value
 
 
 class _PerceptionRecord:
@@ -63,14 +141,16 @@ class Observation(_PerceptionRecord):
     schema: ClassVar[str] = "visualworld.observation"
 
     def __post_init__(self) -> None:
+        _plain_string(self.observation_id, "observation_id")
+        _plain_string(self.source_id, "source_id")
+        _plain_string(self.frame_id, "frame_id")
         _typed_id(self.observation_id, "obs", "observation_id")
         _typed_id(self.source_id, "src", "source_id")
         _typed_id(self.frame_id, "frm", "frame_id")
         _bounded_int(self.stream_index, 0, MAX_I31, "stream_index")
-        if not isinstance(self.pts, MediaTime):
-            _fail("invalid_pts", "pts")
-        if not isinstance(self.geometry, Geometry):
-            _fail("invalid_geometry", "geometry")
+        _plain_media_time(self.pts, "pts")
+        _plain_geometry(self.geometry, "geometry")
+        _plain_string(self.category, "category")
         _token(self.category, "category", _CATEGORIES)
         _bounded_int(
             self.confidence_millionths,
@@ -78,8 +158,7 @@ class Observation(_PerceptionRecord):
             MAX_CONFIDENCE_MILLIONTHS,
             "confidence_millionths",
         )
-        if not isinstance(self.producer, Producer):
-            _fail("invalid_producer", "producer")
+        _plain_producer(self.producer, "producer")
         if self.observation_id != _identifier("obs", self.identity_projection()):
             _fail("identifier_mismatch", "observation_id")
 
@@ -95,12 +174,12 @@ class Observation(_PerceptionRecord):
         confidence_millionths: int,
         producer: Producer,
     ) -> Observation:
-        if not isinstance(pts, MediaTime):
-            _fail("invalid_pts", "pts")
-        if not isinstance(geometry, Geometry):
-            _fail("invalid_geometry", "geometry")
-        if not isinstance(producer, Producer):
-            _fail("invalid_producer", "producer")
+        _plain_string(source_id, "source_id")
+        _plain_string(frame_id, "frame_id")
+        _plain_string(category, "category")
+        _plain_media_time(pts, "pts")
+        _plain_geometry(geometry, "geometry")
+        _plain_producer(producer, "producer")
         projection: dict[str, object] = {
             "category": category,
             "confidence_millionths": confidence_millionths,
@@ -185,45 +264,75 @@ class TrackPoint:
     """A pixel-free trajectory point bound to one observation and frame."""
 
     observation_id: str
+    source_id: str
     frame_id: str
+    stream_index: int
     pts: MediaTime
     geometry: Geometry
+    category: str
 
     def __post_init__(self) -> None:
+        _plain_string(self.observation_id, "track_point.observation_id")
+        _plain_string(self.source_id, "track_point.source_id")
+        _plain_string(self.frame_id, "track_point.frame_id")
         _typed_id(self.observation_id, "obs", "track_point.observation_id")
+        _typed_id(self.source_id, "src", "track_point.source_id")
         _typed_id(self.frame_id, "frm", "track_point.frame_id")
-        if not isinstance(self.pts, MediaTime):
-            _fail("invalid_pts", "track_point.pts")
-        if not isinstance(self.geometry, Geometry):
-            _fail("invalid_geometry", "track_point.geometry")
+        _bounded_int(self.stream_index, 0, MAX_I31, "track_point.stream_index")
+        _plain_media_time(self.pts, "track_point.pts")
+        _plain_geometry(self.geometry, "track_point.geometry")
+        _plain_string(self.category, "track_point.category")
+        _token(self.category, "track_point.category", _CATEGORIES)
 
     @classmethod
     def from_observation(cls, observation: Observation) -> TrackPoint:
-        if not isinstance(observation, Observation):
+        if type(observation) is not Observation:
             _fail("invalid_observation", "observation")
+        Observation.__post_init__(observation)
         return cls(
             observation.observation_id,
+            observation.source_id,
             observation.frame_id,
+            observation.stream_index,
             observation.pts,
             observation.geometry,
+            observation.category,
         )
 
     def to_mapping(self) -> dict[str, object]:
         return {
+            "category": self.category,
             "frame_id": self.frame_id,
             "geometry": self.geometry.to_mapping(),
             "observation_id": self.observation_id,
             "pts": self.pts.to_mapping(),
+            "source_id": self.source_id,
+            "stream_index": self.stream_index,
         }
 
     @classmethod
     def from_mapping(cls, value: object, path: str = "point") -> TrackPoint:
-        item = _exact_fields(value, {"frame_id", "geometry", "observation_id", "pts"}, path)
+        item = _exact_fields(
+            value,
+            {
+                "category",
+                "frame_id",
+                "geometry",
+                "observation_id",
+                "pts",
+                "source_id",
+                "stream_index",
+            },
+            path,
+        )
         return cls(
             observation_id=_general_string(item["observation_id"], f"{path}.observation_id"),
+            source_id=_general_string(item["source_id"], f"{path}.source_id"),
             frame_id=_general_string(item["frame_id"], f"{path}.frame_id"),
+            stream_index=_bounded_int(item["stream_index"], 0, MAX_I31, f"{path}.stream_index"),
             pts=MediaTime.from_mapping(item["pts"], f"{path}.pts"),
             geometry=Geometry.from_mapping(item["geometry"], f"{path}.geometry"),
+            category=_token(item["category"], f"{path}.category"),
         )
 
 
@@ -244,18 +353,29 @@ class Tracklet(_PerceptionRecord):
     schema: ClassVar[str] = "visualworld.tracklet"
 
     def __post_init__(self) -> None:
+        _plain_string(self.tracklet_id, "tracklet_id")
+        _plain_string(self.source_id, "source_id")
         _typed_id(self.tracklet_id, "trk", "tracklet_id")
         _typed_id(self.source_id, "src", "source_id")
         _bounded_int(self.stream_index, 0, MAX_I31, "stream_index")
+        _plain_string(self.category, "category")
         _token(self.category, "category", _CATEGORIES)
-        if not isinstance(self.points, tuple):
+        if type(self.points) is not tuple:
             _fail("track_points_must_be_tuple", "points")
         if not self.points:
             _fail("track_points_required", "points")
         if len(self.points) > MAX_TRACK_POINTS:
             _fail("too_many_track_points", "points")
-        if not all(isinstance(point, TrackPoint) for point in self.points):
+        if not all(type(point) is TrackPoint for point in self.points):
             _fail("invalid_track_point", "points")
+        for point in self.points:
+            TrackPoint.__post_init__(point)
+            if (
+                point.source_id != self.source_id
+                or point.stream_index != self.stream_index
+                or point.category != self.category
+            ):
+                _fail("track_point_scope_mismatch", "points")
         observation_ids = [point.observation_id for point in self.points]
         frame_ids = [point.frame_id for point in self.points]
         if len(set(observation_ids)) != len(observation_ids):
@@ -272,10 +392,12 @@ class Tracklet(_PerceptionRecord):
         }
         if len(dimensions) != 1:
             _fail("mixed_source_geometry", "points")
+        _plain_string(self.termination_reason, "termination.reason")
         _token(self.termination_reason, "termination.reason", _TERMINATION_REASONS)
-        if not isinstance(self.producer, Producer):
-            _fail("invalid_producer", "producer")
+        _plain_producer(self.producer, "producer")
+        _plain_string(self.identity_scope, "identity_scope")
         _token(self.identity_scope, "identity_scope", frozenset({"source_clip"}))
+        _plain_string(self.continuity, "continuity")
         _token(self.continuity, "continuity", frozenset({"inferred"}))
         if self.tracklet_id != _identifier("trk", self.identity_projection()):
             _fail("identifier_mismatch", "tracklet_id")
@@ -298,14 +420,18 @@ class Tracklet(_PerceptionRecord):
         termination_reason: str,
         producer: Producer,
     ) -> Tracklet:
-        if not isinstance(points, tuple):
+        _plain_string(source_id, "source_id")
+        _plain_string(category, "category")
+        _plain_string(termination_reason, "termination.reason")
+        if type(points) is not tuple:
             _fail("track_points_must_be_tuple", "points")
         if len(points) > MAX_TRACK_POINTS:
             _fail("too_many_track_points", "points")
-        if not all(isinstance(point, TrackPoint) for point in points):
+        if not all(type(point) is TrackPoint for point in points):
             _fail("invalid_track_point", "points")
-        if not isinstance(producer, Producer):
-            _fail("invalid_producer", "producer")
+        for point in points:
+            TrackPoint.__post_init__(point)
+        _plain_producer(producer, "producer")
         projection: dict[str, object] = {
             "category": category,
             "continuity": "inferred",
@@ -403,21 +529,23 @@ PerceptionRecord = Observation | Tracklet
 
 def dumps_perception_record(record: PerceptionRecord) -> bytes:
     """Serialize one validated perception record as bounded canonical JSON."""
-    if not isinstance(record, (Observation, Tracklet)):
+    if type(record) not in {Observation, Tracklet}:
         _fail("unsupported_perception_record")
+    record.__post_init__()
     return _canonical_bytes(record.to_mapping())
 
 
 def identity_perception_bytes(record: PerceptionRecord) -> bytes:
     """Return the canonical identity projection used for a perception ID."""
-    if not isinstance(record, (Observation, Tracklet)):
+    if type(record) not in {Observation, Tracklet}:
         _fail("unsupported_perception_record")
+    record.__post_init__()
     return _canonical_bytes(record.identity_projection())
 
 
 def loads_perception_record(data: bytes) -> PerceptionRecord:
     """Parse one bounded strict-JSON v1 perception record."""
-    if not isinstance(data, bytes):
+    if type(data) is not bytes:
         _fail("record_must_be_bytes")
     value = _parse_json(data)
     schema = _token(value.get("schema"), "schema")
@@ -428,10 +556,9 @@ def loads_perception_record(data: bytes) -> PerceptionRecord:
         Observation.schema: Observation.from_mapping,
         Tracklet.schema: Tracklet.from_mapping,
     }
-    try:
-        reader = readers[schema]
-    except KeyError as error:
-        raise RecordValidationError("unknown_schema", "schema") from error
+    reader = readers.get(schema)
+    if reader is None:
+        _fail("unknown_schema", "schema")
     return reader(value)
 
 
@@ -439,17 +566,20 @@ def load_perception_record(reader: BinaryIO) -> PerceptionRecord:
     """Read at most 256 KiB plus one byte before parsing a perception record."""
     chunks: list[bytes] = []
     remaining = MAX_RECORD_BYTES + 1
+    read_failed = False
     try:
         while remaining > 0:
             chunk = reader.read(remaining)
-            if not isinstance(chunk, bytes):
+            if type(chunk) is not bytes:
                 _fail("record_reader_must_be_binary")
             if not chunk:
                 break
             chunks.append(chunk)
             remaining -= len(chunk)
-    except OSError as error:
-        raise RecordValidationError("record_read_failed") from error
+    except OSError:
+        read_failed = True
+    if read_failed:
+        _fail("record_read_failed")
     return loads_perception_record(b"".join(chunks))
 
 

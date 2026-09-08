@@ -59,11 +59,15 @@ adds the first framework-free perception records in `visualworld.perception`:
 - `Tracklet` is completed continuity within one source clip. Its content-derived
   `trk_` identifier binds an ordered trajectory of observation/frame links,
   exact PTS and geometry, tracker provenance, and the explicit `cut`,
-  `miss_timeout`, or `source_end` reason.
+  `miss_timeout`, or `source_end` reason. Every trajectory point repeats its
+  source, stream, and category binding so a strict reader can verify the point
+  against its enclosing tracklet without resolving another record.
 
 Both schemas use the same bounded canonical-JSON profile and structured
-validation errors as the ingestion records, but remain a separate
-`PerceptionRecord` union until the v0.2 WorldStore migration is implemented.
+validation errors as the ingestion records. `visualworld.experimental` exposes
+the additive `ExperimentalRecord` union and strict combined dispatch across
+v0.1 ingestion and perception schemas; the narrower v0.1 `Record` union remains
+the WorldStore commit contract until the v0.2 storage migration is implemented.
 They contain no pixels, artifact bytes, vendor SDK values, source locators, or
 persistent entity identifier. `identity_scope=source_clip` and
 `continuity=inferred` are mandatory; a tracklet cannot be treated as proof that

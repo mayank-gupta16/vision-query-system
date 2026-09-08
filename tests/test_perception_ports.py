@@ -181,6 +181,7 @@ def test_perception_results_represent_complete_unknown_and_unsupported_explicitl
         ),
         lambda: EvidenceSelectionResult(PerceptionResultState.COMPLETE, ("bad",)),
         lambda: DetectionResult(PerceptionResultState.UNKNOWN, reason="bad reason"),
+        lambda: DetectionResult(PerceptionResultState.UNKNOWN, reason="private/path"),
         lambda: DetectionResult(
             PerceptionResultState.COMPLETE,
             (values()[2][0],) * (MAX_PERCEPTION_OBSERVATIONS + 1),
@@ -271,6 +272,139 @@ def test_perception_fakes_reject_mismatched_sources_frames_and_outputs() -> None
     with pytest.raises(PortError, match="limit_exceeded"):
         FakeEvidenceSelector(EvidenceSelectionResult(PerceptionResultState.COMPLETE)).select(
             tracklet, cast(tuple[Observation, ...], list(observations))
+        )
+
+
+def test_perception_fakes_reject_stream_geometry_timebase_and_position_conflicts() -> None:
+    source, frames, observations, _ = values()
+    stream = source.streams[0]
+    wrong_time_base = TimeBase("1", "90000")
+    wrong_pts_frame = FrameRef.create(
+        source.source_id,
+        stream.stream_index,
+        "10",
+        MediaTime("0", wrong_time_base),
+    )
+    wrong_pts_observation = Observation.create(
+        source.source_id,
+        wrong_pts_frame.frame_id,
+        stream.stream_index,
+        wrong_pts_frame.pts,
+        Geometry(stream.width, stream.height, (4, 5, 20, 30), "inferred"),
+        "vehicle",
+        900_000,
+        observations[0].producer,
+    )
+    wrong_duration_frame = FrameRef.create(
+        source.source_id,
+        stream.stream_index,
+        "11",
+        MediaTime("1", stream.time_base),
+        MediaTime("1", wrong_time_base),
+    )
+    wrong_geometry_observation = Observation.create(
+        source.source_id,
+        frames[0].frame_id,
+        stream.stream_index,
+        frames[0].pts,
+        Geometry(stream.width + 1, stream.height, (4, 5, 20, 30), "inferred"),
+        "vehicle",
+        900_000,
+        observations[0].producer,
+    )
+    duplicate_position = FrameRef.create(
+        source.source_id,
+        stream.stream_index,
+        frames[0].decode_index,
+        MediaTime("1", stream.time_base),
+    )
+
+    conflicts = (
+        ((wrong_pts_frame,), (wrong_pts_observation,)),
+        ((wrong_duration_frame,), ()),
+        ((frames[0],), (wrong_geometry_observation,)),
+        ((frames[0], duplicate_position), ()),
+    )
+    for conflicting_frames, conflicting_observations in conflicts:
+        with pytest.raises(PortError, match="conflict"):
+            FakeDetector(
+                DetectionResult(
+                    PerceptionResultState.COMPLETE,
+                    conflicting_observations,
+                )
+            ).detect(source, conflicting_frames)
+        with pytest.raises(PortError, match="conflict"):
+            FakeTracker(
+                TrackingResult(
+                    PerceptionResultState.UNKNOWN,
+                    reason="input_conflict",
+                )
+            ).track(source, conflicting_frames, conflicting_observations)
+
+
+def test_perception_results_and_fakes_reject_hostile_subclasses() -> None:
+    source, frames, observations, tracklet = values()
+
+    class DerivedObservation(Observation):
+        pass
+
+    class DerivedTracklet(Tracklet):
+        pass
+
+    class DerivedDetectionResult(DetectionResult):
+        pass
+
+    observation = observations[0]
+    hostile_observation = DerivedObservation(
+        observation.observation_id,
+        observation.source_id,
+        observation.frame_id,
+        observation.stream_index,
+        observation.pts,
+        observation.geometry,
+        observation.category,
+        observation.confidence_millionths,
+        observation.producer,
+    )
+    object.__setattr__(hostile_observation, "vendor_payload", b"private pixels")
+    hostile_tracklet = DerivedTracklet(
+        tracklet.tracklet_id,
+        tracklet.source_id,
+        tracklet.stream_index,
+        tracklet.category,
+        tracklet.points,
+        tracklet.termination_reason,
+        tracklet.producer,
+    )
+
+    with pytest.raises(ValueError, match="Observation records"):
+        DetectionResult(
+            PerceptionResultState.COMPLETE,
+            (cast(Observation, hostile_observation),),
+        )
+    with pytest.raises(ValueError, match="Tracklet records"):
+        TrackingResult(
+            PerceptionResultState.COMPLETE,
+            (cast(Tracklet, hostile_tracklet),),
+        )
+    with pytest.raises(PortError, match="invalid_request"):
+        FakeDetector(
+            cast(
+                DetectionResult,
+                DerivedDetectionResult(PerceptionResultState.COMPLETE, observations),
+            )
+        )
+    with pytest.raises(PortError, match="invalid_request"):
+        FakeDetector(DetectionResult(PerceptionResultState.COMPLETE)).detect(
+            cast(
+                Source,
+                type("DerivedSource", (Source,), {})(
+                    source.source_id,
+                    source.fingerprint,
+                    source.streams,
+                ),
+            ),
+            frames,
         )
 
 
