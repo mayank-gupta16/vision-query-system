@@ -22,7 +22,9 @@
   separately provisioned Linux x86_64/GNU-libc-2.28+ perception boundary with a
   frozen artifact/runtime manifest and standard-library fail-closed provisioner,
   plus a deterministic global-last-box IoU tracker with pixel-free hard-cut
-  scores and opaque bounded-page continuation
+  scores and opaque bounded-page continuation, plus the bounded offline
+  OpenVINO `vehicle-detection-0201` adapter with a sealed composite
+  decode/inference worker and deterministic CI fixture seam
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -113,13 +115,18 @@
   frame, geometry, time, confidence/provenance, tracklet, and observation-ID
   values. A combined public experimental record dispatcher is additive while
   the v0.1 WorldStore union remains unchanged; native runtimes, pixels,
-  persistence, and concrete policies remain in later v0.2 issues.
+  persistence and coordination remain in later v0.2 issues. The first concrete
+  detector now implements the selected vehicle-only 384×384 OpenVINO CPU policy
+  behind the accepted isolated worker; ordinary CI substitutes its deterministic
+  pixel-free fixture seam without provisioning native artifacts.
 - ADR-0007 freezes the exact selected model, CPython/OpenVINO/NumPy/telemetry
   closure, notices, media-runtime linkage, worker limits, platform, and
   no-redistribution status. Its explicit provisioner is the only acquisition
   path; it hash-verifies and atomically publishes a root-owned read-only closure.
-  Normal application execution remains offline. The bounded detector worker and
-  adapter remain assigned to issue #73.
+  Normal application execution remains offline. The bounded detector revalidates
+  that closure and a manifest-bound first-party worker before every launch,
+  passes only a sealed source descriptor, and validates canonical pixel-free
+  output before creating original-coordinate observations.
 - PtsFrameSampler implements the accepted first-PTS-anchored 5-FPS policy with
   exact rational comparison, deterministic CFR/VFR gap behavior, and atomic
   cursor-based bounded-page resume.
@@ -166,7 +173,8 @@
   maintainer retains recovery access.
 - The first end-to-end library path requires caller-supplied RGB24 pixels and
   manual/fake regions; the CLI deliberately supplies only a built-in 2×2 fixture.
-  No query engine, real perception model adapter, or real-video CLI input exists.
+  A real detector library adapter now exists, but it is not yet wired into the
+  coordinator or CLI. No query engine or real-video CLI input exists.
   The combined benchmark therefore measures generated exact-PTS records,
   full-resolution crop/hash work, and the local stores without claiming decode
   or perception throughput. The local-video adapter is Linux x86_64 only and
@@ -177,10 +185,11 @@
 
 ## Next priorities
 
-1. Complete the bounded detector in #73 against the v0.2 contracts and accepted
-   perception boundary.
-2. Continue the #30 critical path through evidence
-   selector, storage, coordinator, CLI, regressions, benchmark, and release
-   issues #74–#80 before broadening model, platform, or identity support.
+1. Continue the #30 critical path with the evidence selector in #74, then
+   perception storage, coordination, CLI, regressions, benchmark, and release
+   issues #75–#80.
+2. Preserve the accepted detector and tracker boundaries while completing the
+   first real-video perception vertical slice; do not broaden model/platform or
+   identity scope before its release gates pass.
 3. Keep model, dataset, media, runtime, codec, service, and third-party licenses
    in their separate release-gate inventories.

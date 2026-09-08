@@ -333,6 +333,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
         "visualworld/__main__.py": b"",
         "visualworld/cli.py": b"",
         "visualworld/coordinator.py": b"",
+        "visualworld/detection.py": b"",
         "visualworld/experimental.py": b"",
         "visualworld/geometry.py": b"",
         "visualworld/ingestion.py": b"",

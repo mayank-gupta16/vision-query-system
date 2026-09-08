@@ -119,6 +119,26 @@ The accepted media root is the sanitized
 `visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2` closure; `v1` is retired because it
 contained an interpreter symlink to an unbound host toolchain.
 
+The production adapter remains an experimental library surface rather than a
+CLI command. Construct `PerceptionRuntime` from the two verified roots, then
+wrap an `IsolatedPerceptionWorker` in `OpenVinoVehicleDetector`. The worker's
+configured source root and relative path must identify the same authorized local
+file used to create the supplied `Source` and `FrameRef` records; the sealed
+snapshot digest/size is checked before native execution. Ordinary contract and
+hostile-boundary coverage needs no native closure:
+
+```sh
+uv run --frozen --no-sync --offline pytest -q \
+  tests/test_detection.py \
+  tests/test_perception_provisioning.py
+```
+
+Native acceptance additionally requires `verify-runtime` to pass immediately
+before executing the adapter. A successful run must report the exact OpenVINO
+build, model, worker, runtime and source hashes from the accepted worker protocol;
+do not treat an import-only probe or a fixture-worker result as native inference
+evidence.
+
 Build output goes to fresh ignored `artifacts/build-*` directories with exact
 sizes/hashes printed. Runtime-only CycloneDX 1.6 inventory comes from the newly
 installed wheel, excluding dev tools and the external interpreter. The runtime

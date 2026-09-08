@@ -151,6 +151,20 @@ tracklet. A detector/tracker frame batch may carry at most 4,096 observations so
 the bound still represents the frozen six-object tracking fixture. The concrete
 tracker extension can resume longer clips across bounded pages, but it still
 fails closed if one uninterrupted trajectory exceeds the record's 64-point
-limit. Native detector execution, evidence ranking, perception persistence, and
-coordination remain assigned to issues #73–#76; an adapter cannot hide those
-behaviors behind an implementation name.
+limit. Evidence ranking, perception persistence, and coordination remain
+assigned to issues #74–#76; an adapter cannot hide those behaviors behind an
+implementation name.
+
+`visualworld.detection.OpenVinoVehicleDetector` is the first concrete
+`Detector`. Its fixture-worker seam implements the same record contract in
+ordinary Linux/macOS CI. Its production `IsolatedPerceptionWorker` supports only
+the exact ADR-0007 Linux x86_64 closure: the parent opens and seals one authorized
+local source, the composite worker decodes requested indices and runs the frozen
+384×384 RGB-to-BGR/NHWC-to-NCHW OpenVINO CPU pipeline, and only strict canonical
+pixel-free detections return. The adapter maps those display-oriented detector
+boxes through `DetectorTransform` to outward-rounded encoded-source pixels and
+emits category `vehicle` only at confidence 950,000 millionths or higher. Its
+producer configuration and separate provenance bind the threshold, preprocessing,
+model XML/BIN, runtime closure, worker, perception manifest, media runtime, and
+source digest/size. Unsupported platforms and missing or drifted isolation return
+stable fail-closed outcomes; no native fallback or download path exists.

@@ -84,6 +84,12 @@ def test_approved_manifest_is_canonical_complete_and_not_redistributed() -> None
     manifest_path = Path(__file__).resolve().parents[1] / "workers/perception-runtime-v1.json"
 
     assert raw_sha256 == hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    worker_path = Path(__file__).resolve().parents[1] / "workers/perception_worker.py"
+    assert manifest["application_worker"] == {
+        "install_path": "worker/perception_worker.py",
+        "license_expression": "Apache-2.0",
+        "sha256": hashlib.sha256(worker_path.read_bytes()).hexdigest(),
+    }
     assert tuple(artifact["name"] for artifact in manifest["artifacts"]) == (
         "cpython",
         "numpy",
@@ -227,6 +233,8 @@ def test_manifest_artifacts_match_reviewed_research_and_media_locks() -> None:
         lambda value: value["distribution"].update({"application_wheel": "approved"}),
         lambda value: value["policy"].update({"remote_code": True}),
         lambda value: value["worker"].update({"clear_environment": False}),
+        lambda value: value["application_worker"].update({"install_path": "../worker.py"}),
+        lambda value: value["application_worker"].update({"sha256": "0" * 64}),
         lambda value: value["artifacts"][1].update({"license_expression": "MIT"}),
         lambda value: value["artifacts"][1].pop("notices"),
         lambda value: value["artifacts"][1].update({"filename": "../numpy.whl"}),
@@ -649,6 +657,10 @@ def _synthetic_install_manifest(tmp_path: Path) -> tuple[dict[str, Any], Path, s
         expected / "model",
     )
     manifest: dict[str, Any] = {
+        "application_worker": {
+            "install_path": "worker/perception_worker.py",
+            "sha256": hashlib.sha256(provision.DEFAULT_APPLICATION_WORKER.read_bytes()).hexdigest(),
+        },
         "artifacts": artifacts,
         "closure": {
             "site_packages_logical_bytes": provision._logical_size(expected / "site-packages"),
@@ -830,6 +842,25 @@ def test_installed_runtime_rejects_bytecode_drift(
     else:
         approved.unlink()
     pycache.chmod(0o555)
+
+    with pytest.raises(provision.ProvisioningError, match="installed_runtime_invalid"):
+        provision.verify_installed_runtime(destination, manifest, manifest_sha256)
+
+
+def test_installed_runtime_rejects_application_worker_drift(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest, cache, manifest_sha256 = _synthetic_install_manifest(tmp_path)
+    _allow_synthetic_install(monkeypatch, tmp_path)
+    destination = tmp_path / "runtime"
+    provision.install_runtime(cache, destination, manifest, manifest_sha256)
+    worker = destination / "worker/perception_worker.py"
+
+    worker.parent.chmod(0o755)
+    worker.chmod(0o644)
+    worker.write_bytes(b"tampered-worker")
+    worker.chmod(0o444)
+    worker.parent.chmod(0o555)
 
     with pytest.raises(provision.ProvisioningError, match="installed_runtime_invalid"):
         provision.verify_installed_runtime(destination, manifest, manifest_sha256)

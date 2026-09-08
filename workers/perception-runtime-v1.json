@@ -1,4 +1,9 @@
 {
+  "application_worker": {
+    "install_path": "worker/perception_worker.py",
+    "license_expression": "Apache-2.0",
+    "sha256": "6188e2960985bf983f829222bf0f4c8d174275077b46605e7b451c44780c66aa"
+  },
   "artifacts": [
     {
       "bundled_components": [
