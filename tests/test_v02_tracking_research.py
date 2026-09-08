@@ -789,6 +789,59 @@ def test_calibration_results_are_deeply_validated_and_winners_recomputed() -> No
         )
 
 
+def test_committed_calibration_result_and_selection_validate_exactly() -> None:
+    calibration_path = FIXTURE_ROOT / "results" / "calibration-results.json"
+    selection_path = FIXTURE_ROOT / "calibration-selection.json"
+    calibration_sha256 = hashlib.sha256(calibration_path.read_bytes()).hexdigest()
+    selection_sha256 = hashlib.sha256(selection_path.read_bytes()).hexdigest()
+    assert calibration_sha256 == "2fc2b293cc184df5d52ff4a95505d0a1927fe4e6d91faf478c1d617e00e607c0"
+    assert selection_sha256 == "82094975e973650dcb4ea3f6152f4b9bbb4c98295d446822ebfb5013c8b8568d"
+
+    policy, policy_sha256 = evaluator.load_policy(
+        ROOT / "fixtures" / "v02-evaluation" / "policy-v0.2-gates-2.json"
+    )
+    trusted = benchmark._trusted_code_digests()
+    selected = benchmark._validate_calibration_results(
+        _json(calibration_path),
+        candidates_sha256=hashlib.sha256(
+            (FIXTURE_ROOT / "candidates.json").read_bytes()
+        ).hexdigest(),
+        annotations_sha256=hashlib.sha256(
+            (FIXTURE_ROOT / "annotations.json").read_bytes()
+        ).hexdigest(),
+        dataset_sha256=hashlib.sha256(
+            (FIXTURE_ROOT / "dataset-manifest.json").read_bytes()
+        ).hexdigest(),
+        harness_sha256=hashlib.sha256(Path(benchmark.__file__).read_bytes()).hexdigest(),
+        metric_sha256=hashlib.sha256(Path(metrics.__file__).read_bytes()).hexdigest(),
+        policy=policy,
+        policy_sha256=policy_sha256,
+        source_manifest_sha256=hashlib.sha256(
+            (FIXTURE_ROOT / "source-manifest.json").read_bytes()
+        ).hexdigest(),
+        source_revision="4bf8154354dd89a6d34f59b9a90aa8a870c18b8c",
+        trusted_code_digests=trusted,
+    )
+    configurations = cast(list[dict[str, object]], _json(calibration_path)["configurations"])
+    assert sum(result["passes_gates"] is True for result in configurations) == 5
+    assert (
+        benchmark._validate_selection(
+            _json(selection_path),
+            selection_sha256=selection_sha256,
+            candidates_sha256=hashlib.sha256(
+                (FIXTURE_ROOT / "candidates.json").read_bytes()
+            ).hexdigest(),
+            calibration_results_sha256=calibration_sha256,
+            calibration_selected_configurations=selected,
+            harness_sha256=hashlib.sha256(Path(benchmark.__file__).read_bytes()).hexdigest(),
+            metric_sha256=hashlib.sha256(Path(metrics.__file__).read_bytes()).hexdigest(),
+            source_revision="4bf8154354dd89a6d34f59b9a90aa8a870c18b8c",
+            trusted_code_digests=trusted,
+        )
+        == selected
+    )
+
+
 @pytest.mark.parametrize(
     ("mutation", "value"),
     [
