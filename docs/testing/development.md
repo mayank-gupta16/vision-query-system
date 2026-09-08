@@ -376,8 +376,10 @@ Materialization coverage also substitutes every full-intent dimension (record
 links, rank, geometry, PTS, score, selector provenance, and lifecycle policy),
 uses exact nested hostile scalar types, bounds forged score integers before
 derived arithmetic, races nested context mutation during direct snapshotting,
-and verifies BaseException sanitization at every selection/materialization
-boundary before output or a crop is published.
+traces mutation between exact validation and reconstruction to prevent repeated
+caller-field reads or hostile method execution, and verifies BaseException
+sanitization at every selection/materialization boundary before output or a crop
+is published.
 
 ## Updates
 

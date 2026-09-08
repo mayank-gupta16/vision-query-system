@@ -77,9 +77,10 @@ Original RGB24 pixels enter only the explicit `materialize` extension after a
 caller supplies both an `inspection` or `downstream_detail` need and a detail
 resolution state. The caller must also resupply the completed Tracklet and its
 exact Observation set. Before inspecting any supplied pixels, the selector
-directly reconstructs exact recursively owned Tracklet and Observation snapshots
-without invoking caller-owned serialization, validates their identifiers and
-cross-record consistency, recomputes the deterministic plan, and requires the
+captures every caller-owned field once and directly reconstructs exact recursively
+owned Tracklet and Observation snapshots without invoking caller-owned
+serialization. It validates the captured identifiers and cross-record
+consistency, recomputes the deterministic plan, and requires the
 entire intent (links, rank, geometry, PTS, score, selector provenance, and
 lifecycle policy) to match one freshly selected intent. The public `select`,
 `plan`, and `materialize` boundaries sanitize unexpected failures into static,

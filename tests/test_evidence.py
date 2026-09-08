@@ -6,10 +6,12 @@ from __future__ import annotations
 import builtins
 import hashlib
 import json
+import sys
 import threading
 from collections.abc import Callable
 from dataclasses import replace
-from typing import NoReturn, cast
+from types import FrameType
+from typing import TYPE_CHECKING, NoReturn, cast
 
 import pytest
 
@@ -50,6 +52,9 @@ from visualworld.ports import (
     PortErrorCode,
     PortKind,
 )
+
+if TYPE_CHECKING:
+    from _typeshed import TraceFunction
 
 
 def _values(
@@ -968,4 +973,55 @@ def test_selection_operations_sanitize_hostile_base_exception(
     assert raised.value.code is PortErrorCode.INVALID_REQUEST
     assert raised.value.__context__ is None
     assert "private" not in str(raised.value)
+    assert selector.calls == ()
+
+
+def test_time_snapshot_never_rereads_a_field_after_exact_validation() -> None:
+    hostile_methods: list[str] = []
+
+    class HostileString(str):
+        def encode(self, *_: object, **__: object) -> bytes:
+            hostile_methods.append("encode")
+            raise RuntimeError("private/path\nsecret")
+
+        def isascii(self) -> bool:
+            hostile_methods.append("isascii")
+            raise RuntimeError("private/path\nsecret")
+
+        def __eq__(self, other: object) -> bool:
+            hostile_methods.append("equality")
+            raise RuntimeError("private/path\nsecret")
+
+        __hash__ = str.__hash__
+
+    _, _, observations, tracklet = _golden_values()
+    target = tracklet.points[0].pts
+    mutated = False
+
+    def trace(frame: FrameType, event: str, _: object) -> TraceFunction:
+        nonlocal mutated
+        if (
+            not mutated
+            and event == "line"
+            and frame.f_code is evidence_module._copy_time.__code__
+            and frame.f_locals.get("value") is target
+            and "owned_estimate_producer" in frame.f_locals
+        ):
+            mutated = True
+            object.__setattr__(target, "basis", HostileString("measured"))
+        return trace
+
+    selector = BestFrameEvidenceSelector()
+    previous_trace = sys.gettrace()
+    sys.settrace(trace)
+    try:
+        with pytest.raises(PortError) as raised:
+            selector.plan(tracklet, observations)
+    finally:
+        sys.settrace(previous_trace)
+
+    assert mutated
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert raised.value.__context__ is None
+    assert hostile_methods == []
     assert selector.calls == ()

@@ -65,232 +65,324 @@ def _error(code: PortErrorCode, operation: str) -> PortError:
 
 
 def _copy_producer(value: Producer) -> Producer:
-    if type(value) is not Producer or any(
-        type(item) is not str for item in (value.name, value.version, value.configuration_sha256)
-    ):
+    if type(value) is not Producer:
         raise ValueError("invalid producer")
-    return Producer(value.name, value.version, value.configuration_sha256)
+    fields = (value.name, value.version, value.configuration_sha256)
+    if any(type(item) is not str for item in fields):
+        raise ValueError("invalid producer")
+    name, version, configuration_sha256 = fields
+    return Producer(name, version, configuration_sha256)
 
 
 def _copy_time(value: MediaTime) -> MediaTime:
     if type(value) is not MediaTime:
         raise ValueError("invalid time")
-    time_base = value.time_base
-    if (
-        type(value.value) is not str
-        or type(value.basis) is not str
-        or type(time_base) is not TimeBase
-        or type(time_base.numerator) is not str
-        or type(time_base.denominator) is not str
-        or (value.estimate_method is not None and type(value.estimate_method) is not str)
-        or (value.estimate_producer is not None and type(value.estimate_producer) is not Producer)
-    ):
-        raise ValueError("invalid time")
-    estimate_producer = (
-        None if value.estimate_producer is None else _copy_producer(value.estimate_producer)
-    )
-    return MediaTime(
+    fields = (
         value.value,
-        TimeBase(time_base.numerator, time_base.denominator),
+        value.time_base,
         value.basis,
         value.estimate_method,
-        estimate_producer,
+        value.estimate_producer,
+    )
+    time_value, time_base, basis, estimate_method, estimate_producer = fields
+    if (
+        type(time_value) is not str
+        or type(basis) is not str
+        or type(time_base) is not TimeBase
+        or (estimate_method is not None and type(estimate_method) is not str)
+        or (estimate_producer is not None and type(estimate_producer) is not Producer)
+    ):
+        raise ValueError("invalid time")
+    time_base_fields = (time_base.numerator, time_base.denominator)
+    if any(type(item) is not str for item in time_base_fields):
+        raise ValueError("invalid time")
+    time_base_numerator, time_base_denominator = time_base_fields
+    owned_estimate_producer = (
+        None if estimate_producer is None else _copy_producer(estimate_producer)
+    )
+    return MediaTime(
+        time_value,
+        TimeBase(time_base_numerator, time_base_denominator),
+        basis,
+        estimate_method,
+        owned_estimate_producer,
     )
 
 
 def _copy_rational(value: Rational) -> Rational:
-    if (
-        type(value) is not Rational
-        or type(value.numerator) is not str
-        or type(value.denominator) is not str
-    ):
+    if type(value) is not Rational:
         raise ValueError("invalid rational")
-    return Rational(value.numerator, value.denominator)
+    fields = (value.numerator, value.denominator)
+    if any(type(item) is not str for item in fields):
+        raise ValueError("invalid rational")
+    numerator, denominator = fields
+    return Rational(numerator, denominator)
 
 
 def _copy_geometry(value: Geometry) -> Geometry:
     if type(value) is not Geometry:
         raise ValueError("invalid geometry")
-    if (
-        type(value.source_width) is not int
-        or type(value.source_height) is not int
-        or type(value.box_xyxy) is not tuple
-        or len(value.box_xyxy) != 4
-        or any(type(coordinate) is not int for coordinate in value.box_xyxy)
-        or type(value.measurement) is not str
-        or type(value.transform_kind) is not str
-        or type(value.space) is not str
-    ):
-        raise ValueError("invalid geometry")
-    producer_space: ProducerSpace | None = None
-    if value.producer_space is not None:
-        supplied_space = value.producer_space
-        if (
-            type(supplied_space) is not ProducerSpace
-            or type(supplied_space.width) is not int
-            or type(supplied_space.height) is not int
-            or type(supplied_space.box_xyxy) is not tuple
-            or len(supplied_space.box_xyxy) != 4
-            or any(type(coordinate) is not int for coordinate in supplied_space.box_xyxy)
-        ):
-            raise ValueError("invalid geometry")
-        producer_space = ProducerSpace(
-            supplied_space.width,
-            supplied_space.height,
-            supplied_space.box_xyxy,
-        )
-    coefficients: AffineCoefficients | None = None
-    if value.coefficients is not None:
-        supplied_coefficients = value.coefficients
-        if type(supplied_coefficients) is not AffineCoefficients:
-            raise ValueError("invalid geometry")
-        coefficients = AffineCoefficients(
-            *(
-                _copy_rational(getattr(supplied_coefficients, name))
-                for name in ("a", "b", "c", "d", "e", "f")
-            )
-        )
-    return Geometry(
+    fields = (
         value.source_width,
         value.source_height,
         value.box_xyxy,
         value.measurement,
         value.transform_kind,
+        value.producer_space,
+        value.coefficients,
+        value.space,
+    )
+    (
+        source_width,
+        source_height,
+        box_xyxy,
+        measurement,
+        transform_kind,
+        supplied_space,
+        supplied_coefficients,
+        space,
+    ) = fields
+    if (
+        type(source_width) is not int
+        or type(source_height) is not int
+        or type(box_xyxy) is not tuple
+        or len(box_xyxy) != 4
+        or any(type(coordinate) is not int for coordinate in box_xyxy)
+        or type(measurement) is not str
+        or type(transform_kind) is not str
+        or type(space) is not str
+    ):
+        raise ValueError("invalid geometry")
+    producer_space: ProducerSpace | None = None
+    if supplied_space is not None:
+        if type(supplied_space) is not ProducerSpace:
+            raise ValueError("invalid geometry")
+        space_fields = (
+            supplied_space.width,
+            supplied_space.height,
+            supplied_space.box_xyxy,
+        )
+        producer_width, producer_height, producer_box = space_fields
+        if (
+            type(producer_width) is not int
+            or type(producer_height) is not int
+            or type(producer_box) is not tuple
+            or len(producer_box) != 4
+            or any(type(coordinate) is not int for coordinate in producer_box)
+        ):
+            raise ValueError("invalid geometry")
+        producer_space = ProducerSpace(
+            producer_width,
+            producer_height,
+            producer_box,
+        )
+    coefficients: AffineCoefficients | None = None
+    if supplied_coefficients is not None:
+        if type(supplied_coefficients) is not AffineCoefficients:
+            raise ValueError("invalid geometry")
+        coefficient_values = (
+            supplied_coefficients.a,
+            supplied_coefficients.b,
+            supplied_coefficients.c,
+            supplied_coefficients.d,
+            supplied_coefficients.e,
+            supplied_coefficients.f,
+        )
+        coefficients = AffineCoefficients(
+            *(_copy_rational(coefficient) for coefficient in coefficient_values)
+        )
+    return Geometry(
+        source_width,
+        source_height,
+        box_xyxy,
+        measurement,
+        transform_kind,
         producer_space,
         coefficients,
-        value.space,
+        space,
     )
 
 
 def _copy_observation(value: Observation) -> Observation:
     if type(value) is not Observation:
         raise ValueError("invalid observation")
-    if (
-        type(value.stream_index) is not int
-        or type(value.confidence_millionths) is not int
-        or any(
-            type(item) is not str
-            for item in (
-                value.observation_id,
-                value.source_id,
-                value.frame_id,
-                value.category,
-            )
-        )
-    ):
-        raise ValueError("invalid observation")
-    return Observation(
+    fields = (
         value.observation_id,
         value.source_id,
         value.frame_id,
         value.stream_index,
-        _copy_time(value.pts),
-        _copy_geometry(value.geometry),
+        value.pts,
+        value.geometry,
         value.category,
         value.confidence_millionths,
-        _copy_producer(value.producer),
+        value.producer,
+    )
+    (
+        observation_id,
+        source_id,
+        frame_id,
+        stream_index,
+        pts,
+        geometry,
+        category,
+        confidence_millionths,
+        producer,
+    ) = fields
+    if (
+        type(stream_index) is not int
+        or type(confidence_millionths) is not int
+        or any(type(item) is not str for item in (observation_id, source_id, frame_id, category))
+    ):
+        raise ValueError("invalid observation")
+    return Observation(
+        observation_id,
+        source_id,
+        frame_id,
+        stream_index,
+        _copy_time(pts),
+        _copy_geometry(geometry),
+        category,
+        confidence_millionths,
+        _copy_producer(producer),
     )
 
 
 def _copy_track_point(value: TrackPoint) -> TrackPoint:
     if type(value) is not TrackPoint:
         raise ValueError("invalid track point")
-    if type(value.stream_index) is not int or any(
-        type(item) is not str
-        for item in (
-            value.observation_id,
-            value.source_id,
-            value.frame_id,
-            value.category,
-        )
-    ):
-        raise ValueError("invalid track point")
-    return TrackPoint(
+    fields = (
         value.observation_id,
         value.source_id,
         value.frame_id,
         value.stream_index,
-        _copy_time(value.pts),
-        _copy_geometry(value.geometry),
+        value.pts,
+        value.geometry,
         value.category,
+    )
+    observation_id, source_id, frame_id, stream_index, pts, geometry, category = fields
+    if type(stream_index) is not int or any(
+        type(item) is not str for item in (observation_id, source_id, frame_id, category)
+    ):
+        raise ValueError("invalid track point")
+    return TrackPoint(
+        observation_id,
+        source_id,
+        frame_id,
+        stream_index,
+        _copy_time(pts),
+        _copy_geometry(geometry),
+        category,
     )
 
 
 def _copy_tracklet(value: Tracklet) -> Tracklet:
     if type(value) is not Tracklet:
         raise ValueError("invalid tracklet")
-    points = value.points
+    fields = (
+        value.tracklet_id,
+        value.source_id,
+        value.stream_index,
+        value.category,
+        value.points,
+        value.termination_reason,
+        value.producer,
+        value.identity_scope,
+        value.continuity,
+    )
+    (
+        tracklet_id,
+        source_id,
+        stream_index,
+        category,
+        points,
+        termination_reason,
+        producer,
+        identity_scope,
+        continuity,
+    ) = fields
     if (
-        type(value.stream_index) is not int
+        type(stream_index) is not int
         or type(points) is not tuple
         or not 1 <= len(points) <= MAX_PORT_BATCH_ITEMS
         or not all(type(point) is TrackPoint for point in points)
         or any(
             type(item) is not str
             for item in (
-                value.tracklet_id,
-                value.source_id,
-                value.category,
-                value.termination_reason,
-                value.identity_scope,
-                value.continuity,
+                tracklet_id,
+                source_id,
+                category,
+                termination_reason,
+                identity_scope,
+                continuity,
             )
         )
     ):
         raise ValueError("invalid tracklet")
     return Tracklet(
-        value.tracklet_id,
-        value.source_id,
-        value.stream_index,
-        value.category,
+        tracklet_id,
+        source_id,
+        stream_index,
+        category,
         tuple(_copy_track_point(point) for point in points),
-        value.termination_reason,
-        _copy_producer(value.producer),
-        value.identity_scope,
-        value.continuity,
+        termination_reason,
+        _copy_producer(producer),
+        identity_scope,
+        continuity,
     )
 
 
 def _copy_artifact(value: Artifact) -> Artifact:
-    if type(value) is not Artifact or any(
-        type(item) is not str for item in (value.sha256, value.bytes, value.media_type)
-    ):
+    if type(value) is not Artifact:
         raise ValueError("invalid artifact")
-    return Artifact(value.sha256, value.bytes, value.media_type)
+    fields = (value.sha256, value.bytes, value.media_type)
+    if any(type(item) is not str for item in fields):
+        raise ValueError("invalid artifact")
+    sha256, byte_count, media_type = fields
+    return Artifact(sha256, byte_count, media_type)
 
 
 def _copy_evidence_ref(value: EvidenceRef) -> EvidenceRef:
-    if type(value) is not EvidenceRef or any(
+    if type(value) is not EvidenceRef:
+        raise ValueError("invalid evidence reference")
+    fields = (
+        value.evidence_id,
+        value.frame_id,
+        value.artifact,
+        value.geometry,
+        value.kind,
+        value.retention,
+    )
+    evidence_id, frame_id, artifact, geometry, kind, retention = fields
+    if any(
         type(item) is not str
         for item in (
-            value.evidence_id,
-            value.frame_id,
-            value.kind,
-            value.retention,
+            evidence_id,
+            frame_id,
+            kind,
+            retention,
         )
     ):
         raise ValueError("invalid evidence reference")
-    if value.geometry is not None and type(value.geometry) is not Geometry:
+    if geometry is not None and type(geometry) is not Geometry:
         raise ValueError("invalid evidence reference")
     return EvidenceRef(
-        value.evidence_id,
-        value.frame_id,
-        _copy_artifact(value.artifact),
-        None if value.geometry is None else _copy_geometry(value.geometry),
-        value.kind,
-        value.retention,
+        evidence_id,
+        frame_id,
+        _copy_artifact(artifact),
+        None if geometry is None else _copy_geometry(geometry),
+        kind,
+        retention,
     )
 
 
 def _copy_crop(value: Rgb24Crop) -> Rgb24Crop:
-    if (
-        type(value) is not Rgb24Crop
-        or type(value.width) is not int
-        or type(value.height) is not int
-        or type(value.pixels) is not bytes
-    ):
+    if type(value) is not Rgb24Crop:
         raise ValueError("invalid evidence crop")
-    return Rgb24Crop(value.width, value.height, value.pixels)
+    fields = (value.width, value.height, value.pixels)
+    width, height, pixels = fields
+    if type(width) is not int or type(height) is not int or type(pixels) is not bytes:
+        raise ValueError("invalid evidence crop")
+    return Rgb24Crop(width, height, pixels)
 
 
 @dataclass(frozen=True, slots=True)
@@ -735,7 +827,7 @@ def _score(
 def _copy_score(value: EvidenceScore) -> EvidenceScore:
     if type(value) is not EvidenceScore:
         raise ValueError("invalid evidence score")
-    integers = (
+    fields = (
         value.boundary_touch_count,
         value.confidence_millionths,
         value.visible_area_pixels,
@@ -745,50 +837,106 @@ def _copy_score(value: EvidenceScore) -> EvidenceScore:
         value.midpoint_distance_seconds_x2_denominator,
         value.point_index,
         value.point_count,
+        value.pts,
+        value.observation_id,
     )
-    if any(type(item) is not int for item in integers) or type(value.observation_id) is not str:
+    (
+        boundary_touch_count,
+        confidence_millionths,
+        visible_area_pixels,
+        source_area_pixels,
+        visible_area_millionths,
+        midpoint_numerator,
+        midpoint_denominator,
+        point_index,
+        point_count,
+        pts,
+        observation_id,
+    ) = fields
+    integers = (
+        boundary_touch_count,
+        confidence_millionths,
+        visible_area_pixels,
+        source_area_pixels,
+        visible_area_millionths,
+        midpoint_numerator,
+        midpoint_denominator,
+        point_index,
+        point_count,
+    )
+    if any(type(item) is not int for item in integers) or type(observation_id) is not str:
         raise ValueError("invalid evidence score")
     return EvidenceScore(
         *integers,
-        _copy_time(value.pts),
-        value.observation_id,
+        _copy_time(pts),
+        observation_id,
     )
 
 
 def _copy_intent(value: EvidenceIntent) -> EvidenceIntent:
     if type(value) is not EvidenceIntent:
         raise ValueError("invalid evidence intent")
-    if (
-        type(value.rank) is not int
-        or type(value.stream_index) is not int
-        or any(
-            type(item) is not str
-            for item in (
-                value.tracklet_id,
-                value.observation_id,
-                value.source_id,
-                value.frame_id,
-                value.kind,
-                value.retention,
-                value.deletion_owner,
-            )
-        )
-    ):
-        raise ValueError("invalid evidence intent")
-    return EvidenceIntent(
+    fields = (
         value.rank,
         value.tracklet_id,
         value.observation_id,
         value.source_id,
         value.frame_id,
         value.stream_index,
-        _copy_time(value.pts),
-        _copy_geometry(value.geometry),
-        _copy_score(value.score),
-        _copy_producer(value.selector),
+        value.pts,
+        value.geometry,
+        value.score,
+        value.selector,
         value.kind,
         value.retention,
         value.deletion_owner,
+    )
+    (
+        rank,
+        tracklet_id,
+        observation_id,
+        source_id,
+        frame_id,
+        stream_index,
+        pts,
+        geometry,
+        score,
+        selector,
+        kind,
+        retention,
+        deletion_owner,
+    ) = fields
+    if (
+        type(rank) is not int
+        or type(stream_index) is not int
+        or any(
+            type(item) is not str
+            for item in (
+                tracklet_id,
+                observation_id,
+                source_id,
+                frame_id,
+                kind,
+                retention,
+                deletion_owner,
+            )
+        )
+    ):
+        raise ValueError("invalid evidence intent")
+    return EvidenceIntent(
+        rank,
+        tracklet_id,
+        observation_id,
+        source_id,
+        frame_id,
+        stream_index,
+        _copy_time(pts),
+        _copy_geometry(geometry),
+        _copy_score(score),
+        _copy_producer(selector),
+        kind,
+        retention,
+        deletion_owner,
     )
 
 
