@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Private local SQLite metadata store for version-1 ingestion records."""
+"""Private local SQLite metadata store for ingestion and perception records."""
 
 from __future__ import annotations
 
@@ -16,6 +16,12 @@ from pathlib import Path
 from typing import NoReturn, cast
 
 from visualworld import storage as _filesystem
+from visualworld import world_store_v2 as _v2_schema
+from visualworld.evidence import (
+    EvidenceIntent,
+    dumps_evidence_intent,
+    loads_evidence_intent,
+)
 from visualworld.ingestion import (
     Artifact,
     EvidenceRef,
@@ -26,6 +32,14 @@ from visualworld.ingestion import (
     Source,
     dumps_record,
     loads_record,
+)
+from visualworld.perception import (
+    Observation,
+    PerceptionRecord,
+    Tracklet,
+    TrackPoint,
+    dumps_perception_record,
+    loads_perception_record,
 )
 from visualworld.ports import (
     MAX_PORT_BATCH_ITEMS,
@@ -44,7 +58,7 @@ from visualworld.storage import (
 
 DEFAULT_BUSY_TIMEOUT_MS = 5_000
 DEFAULT_MAX_AUDIT_RECORDS = 4_096
-WORLD_SCHEMA_VERSION = 1
+WORLD_SCHEMA_VERSION = 2
 WORLD_PROTOCOL_VERSION = 1
 
 _DATABASE_NAME = "world.sqlite3"
@@ -55,9 +69,13 @@ _SOURCE_ID = re.compile(r"src_[0-9a-f]{64}\Z")
 _FRAME_ID = re.compile(r"frm_[0-9a-f]{64}\Z")
 _EVIDENCE_ID = re.compile(r"evi_[0-9a-f]{64}\Z")
 _RUN_ID = re.compile(r"run_[0-9a-f]{64}\Z")
+_OBSERVATION_ID = re.compile(r"obs_[0-9a-f]{64}\Z")
+_TRACKLET_ID = re.compile(r"trk_[0-9a-f]{64}\Z")
 _DELETION_ID = re.compile(r"del_[0-9a-f]{64}\Z")
 _STAGING_NAME = re.compile(r"[0-9a-f]{32}\.part\Z")
 _UNSIGNED_DECIMAL = re.compile(r"(?:0|[1-9][0-9]*)\Z")
+_SIGNED_DECIMAL = re.compile(r"(?:0|-?[1-9][0-9]*)\Z")
+_CATEGORY = re.compile(r"[a-z][a-z0-9_]{0,127}\Z")
 
 
 def _error(
@@ -112,6 +130,15 @@ def _deletion_id(value: object, operation: str) -> str:
     return _identifier(value, _DELETION_ID, operation)
 
 
+def _signed_i64(value: object, operation: str) -> tuple[str, int]:
+    if type(value) is not str or not _SIGNED_DECIMAL.fullmatch(value):
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    parsed = int(value)
+    if not -(2**63) <= parsed <= 2**63 - 1:
+        _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+    return value, parsed
+
+
 def _record_identifier(record: Record) -> str:
     if isinstance(record, Source):
         return record.source_id
@@ -140,6 +167,38 @@ def _canonical_stage(value: object, operation: str) -> StageHandle:
         return StageHandle.from_mapping(value.to_mapping())
     except (AttributeError, TypeError, ValueError):
         _fail(PortErrorCode.INVALID_REQUEST, operation)
+
+
+def _canonical_perception_record(
+    value: object,
+    operation: str,
+) -> tuple[PerceptionRecord, bytes]:
+    try:
+        if type(value) not in {Observation, Tracklet}:
+            raise ValueError("unsupported perception record")
+        encoded = dumps_perception_record(cast(PerceptionRecord, value))
+        decoded = loads_perception_record(encoded)
+    except (AttributeError, RecordValidationError, TypeError, ValueError):
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    if type(decoded) is not type(value) or decoded != value:
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    return decoded, encoded
+
+
+def _canonical_evidence_intent(
+    value: object,
+    operation: str,
+) -> tuple[EvidenceIntent, bytes]:
+    try:
+        if type(value) is not EvidenceIntent:
+            raise ValueError("unsupported evidence intent")
+        encoded = dumps_evidence_intent(value)
+        decoded = loads_evidence_intent(encoded)
+    except (AttributeError, RecordValidationError, TypeError, ValueError):
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    if decoded != value:
+        _fail(PortErrorCode.INVALID_REQUEST, operation)
+    return decoded, encoded
 
 
 _SCHEMA_V1: tuple[str, ...] = (
@@ -278,8 +337,10 @@ _SCHEMA_V1: tuple[str, ...] = (
     "CREATE INDEX deletion_closure_record ON deletion_closure(record_id, deletion_id)",
 )
 
-_MIGRATION_NAME = "v1_ingestion_metadata"
-_MIGRATION_CHECKSUM = hashlib.sha256("\0".join(_SCHEMA_V1).encode("utf-8")).hexdigest()
+_MIGRATION_V1_NAME = "v1_ingestion_metadata"
+_MIGRATION_V1_CHECKSUM = hashlib.sha256("\0".join(_SCHEMA_V1).encode("utf-8")).hexdigest()
+# Compatibility alias retained for v0.1 tests and external diagnostics.
+_MIGRATION_CHECKSUM = _MIGRATION_V1_CHECKSUM
 
 
 @dataclass(frozen=True, slots=True)
@@ -288,6 +349,9 @@ class WorldStoreStats:
     artifact_count: int
     intent_count: int
     schema_version: int = WORLD_SCHEMA_VERSION
+    observation_count: int = 0
+    tracklet_count: int = 0
+    selection_count: int = 0
 
     def __post_init__(self) -> None:
         if (
@@ -299,8 +363,77 @@ class WorldStoreStats:
             or self.intent_count < 0
             or type(self.schema_version) is not int
             or self.schema_version != WORLD_SCHEMA_VERSION
+            or type(self.observation_count) is not int
+            or self.observation_count < 0
+            or type(self.tracklet_count) is not int
+            or self.tracklet_count < 0
+            or type(self.selection_count) is not int
+            or self.selection_count < 0
         ):
             raise ValueError("invalid world store statistics")
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceSelectionLink:
+    """Bind one persisted evidence intent rank to an existing EvidenceRef."""
+
+    tracklet_id: str
+    rank: int
+    evidence_id: str
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.tracklet_id) is not str
+            or not _TRACKLET_ID.fullmatch(self.tracklet_id)
+            or type(self.rank) is not int
+            or not 1 <= self.rank <= 8
+            or type(self.evidence_id) is not str
+            or not _EVIDENCE_ID.fullmatch(self.evidence_id)
+        ):
+            raise ValueError("invalid evidence selection link")
+
+
+@dataclass(frozen=True, slots=True, repr=False)
+class PersistedEvidenceSelection:
+    """One metadata-only selected view and its optional materialized reference."""
+
+    run_id: str
+    intent: EvidenceIntent
+    evidence: EvidenceRef | None = None
+
+    def __post_init__(self) -> None:
+        if (
+            type(self.run_id) is not str
+            or not _RUN_ID.fullmatch(self.run_id)
+            or type(self.intent) is not EvidenceIntent
+            or (self.evidence is not None and type(self.evidence) is not EvidenceRef)
+        ):
+            raise ValueError("invalid persisted evidence selection")
+        intent = loads_evidence_intent(dumps_evidence_intent(self.intent))
+        evidence = self.evidence
+        if evidence is not None:
+            try:
+                owned_evidence = loads_record(dumps_record(evidence))
+            except (RecordValidationError, TypeError, ValueError):
+                raise ValueError("invalid persisted evidence selection") from None
+            if not isinstance(owned_evidence, EvidenceRef):
+                raise ValueError("invalid persisted evidence selection")
+            evidence = owned_evidence
+            if (
+                evidence.frame_id != intent.frame_id
+                or evidence.geometry != intent.geometry
+                or evidence.kind != intent.kind
+                or evidence.retention != intent.retention
+            ):
+                raise ValueError("inconsistent persisted evidence selection")
+        object.__setattr__(self, "intent", intent)
+        object.__setattr__(self, "evidence", evidence)
+
+    def __repr__(self) -> str:
+        return (
+            f"PersistedEvidenceSelection(run_id={self.run_id!r}, "
+            f"rank={self.intent.rank}, materialized={self.evidence is not None})"
+        )
 
 
 class DeletionState(StrEnum):
@@ -465,7 +598,7 @@ class LocalWorldStore:
         self._descriptor = CapabilityDescriptor(
             PortKind.WORLD_STORE,
             "local-sqlite",
-            "1",
+            "2",
             True,
             True,
         )
@@ -480,9 +613,11 @@ class LocalWorldStore:
         return self._descriptor
 
     def _migration_statements(self, version: int) -> tuple[str, ...]:
-        if version != WORLD_SCHEMA_VERSION:
-            raise ValueError("unsupported migration")
-        return _SCHEMA_V1
+        if version == 1:
+            return _SCHEMA_V1
+        if version == 2:
+            return _v2_schema.SCHEMA_V2
+        raise ValueError("unsupported migration")
 
     @contextmanager
     def _root_descriptor(self, operation: str, *, create: bool) -> Iterator[int]:
@@ -714,6 +849,9 @@ class LocalWorldStore:
                 if objects[0] != 0:
                     _fail(PortErrorCode.CORRUPT, operation)
                 self._apply_v1_migration(connection, operation)
+                user_version = 1
+            if user_version == 1:
+                self._apply_v2_migration(connection, operation)
             elif user_version != WORLD_SCHEMA_VERSION:
                 _fail(PortErrorCode.CORRUPT, operation)
             self._validate_schema(connection, operation)
@@ -729,16 +867,16 @@ class LocalWorldStore:
         try:
             connection.execute("BEGIN EXCLUSIVE")
             began = True
-            for statement in self._migration_statements(WORLD_SCHEMA_VERSION):
+            for statement in self._migration_statements(1):
                 connection.execute(statement)
             connection.execute(
                 """INSERT INTO schema_migrations(
                     schema_version, migration_name, code_sha256, applied_at_utc
                 ) VALUES (?, ?, ?, ?)""",
                 (
-                    WORLD_SCHEMA_VERSION,
-                    _MIGRATION_NAME,
-                    _MIGRATION_CHECKSUM,
+                    1,
+                    _MIGRATION_V1_NAME,
+                    _MIGRATION_V1_CHECKSUM,
                     datetime.now(UTC).isoformat(timespec="microseconds"),
                 ),
             )
@@ -751,9 +889,38 @@ class LocalWorldStore:
                     connection.execute("ROLLBACK")
             raise
 
+    def _apply_v2_migration(self, connection: sqlite3.Connection, operation: str) -> None:
+        """Apply the additive v2 graph without rewriting v1 rows or pending markers."""
+
+        began = False
+        try:
+            connection.execute("BEGIN EXCLUSIVE")
+            began = True
+            for statement in self._migration_statements(2):
+                connection.execute(statement)
+            connection.execute(
+                """INSERT INTO schema_migrations(
+                    schema_version, migration_name, code_sha256, applied_at_utc
+                ) VALUES (?, ?, ?, ?)""",
+                (
+                    2,
+                    _v2_schema.MIGRATION_V2_NAME,
+                    _v2_schema.MIGRATION_V2_CHECKSUM,
+                    datetime.now(UTC).isoformat(timespec="microseconds"),
+                ),
+            )
+            connection.execute("PRAGMA user_version = 2")
+            connection.execute("COMMIT")
+            began = False
+        except (PortError, sqlite3.Error):
+            if began:
+                with suppress(sqlite3.Error):
+                    connection.execute("ROLLBACK")
+            raise
+
     def _validate_schema(self, connection: sqlite3.Connection, operation: str) -> None:
         expected: dict[tuple[str, str], str] = {}
-        for statement in _SCHEMA_V1:
+        for statement in (*_SCHEMA_V1, *_v2_schema.SCHEMA_V2):
             match = re.match(r"CREATE (TABLE|INDEX) ([a-z_]+)", statement)
             if match is None:
                 raise AssertionError("unrecognized schema statement")
@@ -772,7 +939,10 @@ class LocalWorldStore:
                 """SELECT schema_version, migration_name, code_sha256
                 FROM schema_migrations ORDER BY schema_version"""
             ).fetchall()
-            if ledger != [(WORLD_SCHEMA_VERSION, _MIGRATION_NAME, _MIGRATION_CHECKSUM)]:
+            if ledger != [
+                (1, _MIGRATION_V1_NAME, _MIGRATION_V1_CHECKSUM),
+                (2, _v2_schema.MIGRATION_V2_NAME, _v2_schema.MIGRATION_V2_CHECKSUM),
+            ]:
                 _fail(PortErrorCode.CORRUPT, operation)
             user_version = connection.execute("PRAGMA user_version").fetchone()
             quick_check = connection.execute("PRAGMA quick_check").fetchone()
@@ -1439,6 +1609,489 @@ class LocalWorldStore:
                 _sqlite_error(error, operation)
         raise AssertionError("unreachable")
 
+    def _select_perception_records(
+        self,
+        records: object,
+        operation: str,
+    ) -> tuple[tuple[PerceptionRecord, bytes], ...]:
+        if type(records) is not tuple or len(records) > MAX_PORT_BATCH_ITEMS:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        selected = tuple(_canonical_perception_record(record, operation) for record in records)
+        by_identifier: dict[str, bytes] = {}
+        for record, encoded in selected:
+            identifier = (
+                record.observation_id if isinstance(record, Observation) else record.tracklet_id
+            )
+            existing = by_identifier.get(identifier)
+            if existing is not None and existing != encoded:
+                _fail(PortErrorCode.CONFLICT, operation)
+            by_identifier[identifier] = encoded
+        return selected
+
+    @staticmethod
+    def _existing_perception_json(
+        connection: sqlite3.Connection,
+        record: PerceptionRecord,
+    ) -> bytes | None:
+        if isinstance(record, Observation):
+            row = connection.execute(
+                "SELECT record_json FROM observations WHERE observation_id = ?",
+                (record.observation_id,),
+            ).fetchone()
+        else:
+            row = connection.execute(
+                "SELECT record_json FROM tracklets WHERE tracklet_id = ?",
+                (record.tracklet_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return row[0] if type(row[0]) is bytes else b""
+
+    def _validate_observation_frame(
+        self,
+        connection: sqlite3.Connection,
+        record: Observation,
+        operation: str,
+    ) -> None:
+        row = connection.execute(
+            """SELECT frame.source_id, frame.stream_index, frame.pts_value,
+            frame.pts_time_base_numerator, frame.pts_time_base_denominator,
+            stream.width, stream.height
+            FROM frames AS frame
+            JOIN source_streams AS stream
+              ON stream.source_id = frame.source_id
+             AND stream.stream_index = frame.stream_index
+            WHERE frame.frame_id = ?""",
+            (record.frame_id,),
+        ).fetchone()
+        if row is None:
+            _fail(PortErrorCode.CONFLICT, operation)
+        expected = (
+            record.source_id,
+            record.stream_index,
+            record.pts.value,
+            record.pts.time_base.numerator,
+            record.pts.time_base.denominator,
+            record.geometry.source_width,
+            record.geometry.source_height,
+        )
+        if row != expected:
+            _fail(PortErrorCode.CONFLICT, operation)
+
+    def _write_observation(
+        self,
+        connection: sqlite3.Connection,
+        record: Observation,
+        encoded: bytes,
+        operation: str,
+    ) -> None:
+        self._validate_observation_frame(connection, record, operation)
+        existing = self._existing_perception_json(connection, record)
+        if existing is not None:
+            if existing != encoded:
+                _fail(PortErrorCode.CONFLICT, operation)
+            self._verify_perception_projection(connection, record, operation)
+            return
+        connection.execute(
+            """INSERT INTO observations(
+                observation_id, source_id, frame_id, stream_index, pts_value,
+                pts_order, pts_time_base_numerator, pts_time_base_denominator,
+                category, confidence_millionths, producer_name, producer_version,
+                producer_configuration_sha256, schema_version, identity_version,
+                record_json, record_sha256
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                record.observation_id,
+                record.source_id,
+                record.frame_id,
+                record.stream_index,
+                record.pts.value,
+                int(record.pts.value),
+                record.pts.time_base.numerator,
+                record.pts.time_base.denominator,
+                record.category,
+                record.confidence_millionths,
+                record.producer.name,
+                record.producer.version,
+                record.producer.configuration_sha256,
+                record.schema_version,
+                record.identity_version,
+                encoded,
+                hashlib.sha256(encoded).hexdigest(),
+            ),
+        )
+
+    def _write_tracklet(
+        self,
+        connection: sqlite3.Connection,
+        record: Tracklet,
+        encoded: bytes,
+        operation: str,
+    ) -> None:
+        existing = self._existing_perception_json(connection, record)
+        if existing is not None:
+            if existing != encoded:
+                _fail(PortErrorCode.CONFLICT, operation)
+            self._verify_perception_projection(connection, record, operation)
+            return
+        stream = connection.execute(
+            """SELECT 1 FROM source_streams
+            WHERE source_id = ? AND stream_index = ?""",
+            (record.source_id, record.stream_index),
+        ).fetchone()
+        if stream is None:
+            _fail(PortErrorCode.CONFLICT, operation)
+        observations: list[Observation] = []
+        for point in record.points:
+            row = connection.execute(
+                "SELECT record_json FROM observations WHERE observation_id = ?",
+                (point.observation_id,),
+            ).fetchone()
+            if row is None:
+                _fail(PortErrorCode.CONFLICT, operation)
+            observation = self._decode_perception_record(row[0], operation)
+            if not isinstance(observation, Observation):
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._verify_perception_projection(connection, observation, operation)
+            if point != TrackPoint.from_observation(observation):
+                _fail(PortErrorCode.CONFLICT, operation)
+            observations.append(observation)
+        connection.execute(
+            """INSERT INTO tracklets(
+                tracklet_id, source_id, stream_index, category, termination_reason,
+                producer_name, producer_version, producer_configuration_sha256,
+                start_pts_value, start_pts_order, start_pts_time_base_numerator,
+                start_pts_time_base_denominator, end_pts_value, end_pts_order,
+                end_pts_time_base_numerator, end_pts_time_base_denominator,
+                point_count, schema_version, identity_version, record_json, record_sha256
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                record.tracklet_id,
+                record.source_id,
+                record.stream_index,
+                record.category,
+                record.termination_reason,
+                record.producer.name,
+                record.producer.version,
+                record.producer.configuration_sha256,
+                record.start_pts.value,
+                int(record.start_pts.value),
+                record.start_pts.time_base.numerator,
+                record.start_pts.time_base.denominator,
+                record.end_pts.value,
+                int(record.end_pts.value),
+                record.end_pts.time_base.numerator,
+                record.end_pts.time_base.denominator,
+                len(record.points),
+                record.schema_version,
+                record.identity_version,
+                encoded,
+                hashlib.sha256(encoded).hexdigest(),
+            ),
+        )
+        connection.executemany(
+            """INSERT INTO tracklet_points(
+                tracklet_id, ordinal, observation_id, frame_id, pts_value, pts_order
+            ) VALUES (?, ?, ?, ?, ?, ?)""",
+            tuple(
+                (
+                    record.tracklet_id,
+                    ordinal,
+                    point.observation_id,
+                    point.frame_id,
+                    point.pts.value,
+                    int(point.pts.value),
+                )
+                for ordinal, point in enumerate(record.points)
+            ),
+        )
+
+    def _associate_perception_records(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        records: tuple[tuple[PerceptionRecord, bytes], ...],
+        operation: str,
+    ) -> None:
+        run = connection.execute(
+            "SELECT source_id FROM runs WHERE run_id = ?", (run_id,)
+        ).fetchone()
+        if run is None or type(run[0]) is not str:
+            _fail(PortErrorCode.CORRUPT, operation)
+        run_source_id = run[0]
+        for record, _ in records:
+            if isinstance(record, Observation):
+                if record.source_id != run_source_id:
+                    _fail(PortErrorCode.CONFLICT, operation)
+                frame_owned = connection.execute(
+                    """SELECT 1 FROM run_records WHERE run_id = ?
+                    AND record_id = ? AND record_type = 'frame'""",
+                    (run_id, record.frame_id),
+                ).fetchone()
+                if frame_owned is None:
+                    _fail(PortErrorCode.CONFLICT, operation)
+                identifier = record.observation_id
+                record_type = "observation"
+            else:
+                if record.source_id != run_source_id:
+                    _fail(PortErrorCode.CONFLICT, operation)
+                for point in record.points:
+                    owned = connection.execute(
+                        """SELECT 1 FROM perception_run_records
+                        WHERE run_id = ? AND record_id = ?
+                          AND record_type = 'observation'""",
+                        (run_id, point.observation_id),
+                    ).fetchone()
+                    reused = connection.execute(
+                        """SELECT 1 FROM perception_run_records AS owned
+                        JOIN tracklet_points AS point
+                          ON point.tracklet_id = owned.record_id
+                        WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                          AND owned.record_id != ? AND point.observation_id = ? LIMIT 1""",
+                        (run_id, record.tracklet_id, point.observation_id),
+                    ).fetchone()
+                    if owned is None or reused is not None:
+                        _fail(PortErrorCode.CONFLICT, operation)
+                identifier = record.tracklet_id
+                record_type = "tracklet"
+            existing = connection.execute(
+                """SELECT record_type FROM perception_run_records
+                WHERE run_id = ? AND record_id = ?""",
+                (run_id, identifier),
+            ).fetchone()
+            if existing is None:
+                connection.execute(
+                    """INSERT INTO perception_run_records(run_id, record_id, record_type)
+                    VALUES (?, ?, ?)""",
+                    (run_id, identifier, record_type),
+                )
+            elif existing != (record_type,):
+                _fail(PortErrorCode.CORRUPT, operation)
+
+    def _write_evidence_intents(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        intents: tuple[tuple[EvidenceIntent, bytes], ...],
+        operation: str,
+    ) -> None:
+        for intent, encoded in intents:
+            tracklet_row = connection.execute(
+                """SELECT record_json FROM tracklets AS tracklet
+                JOIN perception_run_records AS owned
+                  ON owned.record_id = tracklet.tracklet_id
+                WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                  AND tracklet.tracklet_id = ?""",
+                (run_id, intent.tracklet_id),
+            ).fetchone()
+            observation_row = connection.execute(
+                """SELECT observation.record_json FROM observations AS observation
+                JOIN perception_run_records AS owned
+                  ON owned.record_id = observation.observation_id
+                WHERE owned.run_id = ? AND owned.record_type = 'observation'
+                  AND observation.observation_id = ?""",
+                (run_id, intent.observation_id),
+            ).fetchone()
+            if tracklet_row is None or observation_row is None:
+                _fail(PortErrorCode.CONFLICT, operation)
+            tracklet = self._decode_perception_record(tracklet_row[0], operation)
+            observation = self._decode_perception_record(observation_row[0], operation)
+            if not isinstance(tracklet, Tracklet) or not isinstance(observation, Observation):
+                _fail(PortErrorCode.CORRUPT, operation)
+            point_index = intent.score.point_index
+            if (
+                point_index >= len(tracklet.points)
+                or tracklet.points[point_index].observation_id != intent.observation_id
+                or intent.score.point_count != len(tracklet.points)
+                or intent.source_id != observation.source_id
+                or intent.frame_id != observation.frame_id
+                or intent.stream_index != observation.stream_index
+                or intent.pts != observation.pts
+                or intent.geometry != observation.geometry
+                or intent.score.confidence_millionths != observation.confidence_millionths
+            ):
+                _fail(PortErrorCode.CONFLICT, operation)
+            expected: tuple[object, ...] = (
+                intent.observation_id,
+                intent.source_id,
+                intent.frame_id,
+                intent.stream_index,
+                intent.selector.name,
+                intent.selector.version,
+                intent.selector.configuration_sha256,
+                encoded,
+                hashlib.sha256(encoded).hexdigest(),
+            )
+            existing = connection.execute(
+                """SELECT observation_id, source_id, frame_id, stream_index,
+                selector_name, selector_version, selector_configuration_sha256,
+                intent_json, intent_sha256 FROM selected_evidence
+                WHERE run_id = ? AND tracklet_id = ? AND rank = ?""",
+                (run_id, intent.tracklet_id, intent.rank),
+            ).fetchone()
+            if existing is None:
+                connection.execute(
+                    """INSERT INTO selected_evidence(
+                        run_id, tracklet_id, rank, observation_id, source_id, frame_id,
+                        stream_index, selector_name, selector_version,
+                        selector_configuration_sha256, intent_json, intent_sha256, evidence_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)""",
+                    (run_id, intent.tracklet_id, intent.rank, *expected),
+                )
+            elif existing != expected:
+                _fail(PortErrorCode.CONFLICT, operation)
+
+    def commit_perception_for_run(
+        self,
+        run_id: str,
+        records: tuple[PerceptionRecord, ...] = (),
+        evidence_intents: tuple[EvidenceIntent, ...] = (),
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> None:
+        """Commit one hidden v2 metadata batch for a preparing run."""
+
+        operation = "commit_perception_for_run"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        selected_records = self._select_perception_records(records, operation)
+        if type(evidence_intents) is not tuple or len(evidence_intents) > MAX_PORT_BATCH_ITEMS:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        selected_intents = tuple(
+            _canonical_evidence_intent(intent, operation) for intent in evidence_intents
+        )
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                with self._transaction(connection, operation):
+                    self._guard_run_writable(connection, selected_run, operation)
+                    state = connection.execute(
+                        "SELECT state FROM runs WHERE run_id = ?", (selected_run,)
+                    ).fetchone()
+                    if state != ("preparing",):
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    source_ids = {record.source_id for record, _ in selected_records}
+                    source_ids.update(intent.source_id for intent, _ in selected_intents)
+                    self._guard_sources_writable(connection, source_ids, operation)
+                    for record, encoded in selected_records:
+                        if isinstance(record, Observation):
+                            self._write_observation(connection, record, encoded, operation)
+                    self._associate_perception_records(
+                        connection,
+                        selected_run,
+                        tuple(
+                            item for item in selected_records if isinstance(item[0], Observation)
+                        ),
+                        operation,
+                    )
+                    for record, encoded in selected_records:
+                        if isinstance(record, Tracklet):
+                            self._write_tracklet(connection, record, encoded, operation)
+                    self._associate_perception_records(
+                        connection,
+                        selected_run,
+                        tuple(item for item in selected_records if isinstance(item[0], Tracklet)),
+                        operation,
+                    )
+                    self._write_evidence_intents(
+                        connection,
+                        selected_run,
+                        selected_intents,
+                        operation,
+                    )
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+
+    def link_selected_evidence(
+        self,
+        run_id: str,
+        links: tuple[EvidenceSelectionLink, ...],
+        *,
+        evidence_session: EvidenceWriterSession | None = None,
+    ) -> None:
+        """Link selected intents to already persisted run-owned evidence."""
+
+        operation = "link_selected_evidence"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        if type(links) is not tuple or len(links) > MAX_PORT_BATCH_ITEMS:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        try:
+            selected_links = tuple(
+                EvidenceSelectionLink(link.tracklet_id, link.rank, link.evidence_id)
+                for link in links
+                if type(link) is EvidenceSelectionLink
+            )
+        except (AttributeError, TypeError, ValueError):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        if len(selected_links) != len(links):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        with self._coordinated_write_connection(operation, evidence_session) as connection:
+            try:
+                with self._transaction(connection, operation):
+                    self._guard_run_writable(connection, selected_run, operation)
+                    state = connection.execute(
+                        "SELECT state FROM runs WHERE run_id = ?", (selected_run,)
+                    ).fetchone()
+                    if state != ("preparing",):
+                        _fail(PortErrorCode.CONFLICT, operation)
+                    for link in selected_links:
+                        selection = connection.execute(
+                            """SELECT intent_json, evidence_id FROM selected_evidence
+                            WHERE run_id = ? AND tracklet_id = ? AND rank = ?""",
+                            (selected_run, link.tracklet_id, link.rank),
+                        ).fetchone()
+                        evidence_row = connection.execute(
+                            """SELECT item.record_json FROM evidence AS item
+                            JOIN run_records AS owned ON owned.record_id = item.evidence_id
+                            WHERE owned.run_id = ? AND owned.record_type = 'evidence'
+                              AND item.evidence_id = ?""",
+                            (selected_run, link.evidence_id),
+                        ).fetchone()
+                        if selection is None or evidence_row is None:
+                            _fail(PortErrorCode.CONFLICT, operation)
+                        intent = self._decode_evidence_intent(selection[0], operation)
+                        evidence = self._decode_record(evidence_row[0], operation)
+                        if not isinstance(evidence, EvidenceRef):
+                            _fail(PortErrorCode.CORRUPT, operation)
+                        self._verify_projection(connection, evidence, operation)
+                        artifact_intent = connection.execute(
+                            """SELECT 1 FROM artifact_intents WHERE run_id = ?
+                            AND artifact_digest = ? AND byte_count = ? AND media_type = ?
+                            AND protocol_version = ?""",
+                            (
+                                selected_run,
+                                evidence.artifact.sha256,
+                                evidence.artifact.bytes,
+                                evidence.artifact.media_type,
+                                WORLD_PROTOCOL_VERSION,
+                            ),
+                        ).fetchone()
+                        if (
+                            evidence.frame_id != intent.frame_id
+                            or evidence.geometry != intent.geometry
+                            or evidence.kind != intent.kind
+                            or evidence.retention != intent.retention
+                            or artifact_intent is None
+                        ):
+                            _fail(PortErrorCode.CONFLICT, operation)
+                        if selection[1] is None:
+                            connection.execute(
+                                """UPDATE selected_evidence SET evidence_id = ?
+                                WHERE run_id = ? AND tracklet_id = ? AND rank = ?""",
+                                (
+                                    link.evidence_id,
+                                    selected_run,
+                                    link.tracklet_id,
+                                    link.rank,
+                                ),
+                            )
+                        elif selection[1] != link.evidence_id:
+                            _fail(PortErrorCode.CONFLICT, operation)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+
     def finalize_run(
         self,
         manifest: RunManifest,
@@ -1516,6 +2169,12 @@ class LocalWorldStore:
                         or frame_count[0] != int(selected_manifest.outputs.sample_count)
                     ):
                         _fail(PortErrorCode.CONFLICT, operation)
+                    self._verify_perception_run(
+                        connection,
+                        selected_manifest.run_id,
+                        operation,
+                        require_publication=True,
+                    )
                     self._write_run(
                         connection,
                         selected_manifest,
@@ -1563,6 +2222,14 @@ class LocalWorldStore:
                                     OR EXISTS (
                                         SELECT 1 FROM run_records AS owned
                                         WHERE owned.run_id = runs.run_id
+                                    )
+                                    OR EXISTS (
+                                        SELECT 1 FROM perception_run_records AS owned
+                                        WHERE owned.run_id = runs.run_id
+                                    )
+                                    OR EXISTS (
+                                        SELECT 1 FROM selected_evidence AS selected
+                                        WHERE selected.run_id = runs.run_id
                                     )
                                 )
                             )
@@ -1808,6 +2475,54 @@ class LocalWorldStore:
                         WHERE owned.run_id = ? AND owned.record_type = 'evidence'""",
                         (selected_run, selected_run),
                     ).fetchall()
+                    tracklet_rows = connection.execute(
+                        """SELECT owned.record_id FROM perception_run_records AS owned
+                        WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                          AND NOT EXISTS (
+                            SELECT 1 FROM perception_run_records AS other
+                            WHERE other.run_id != owned.run_id
+                              AND other.record_id = owned.record_id
+                          ) LIMIT ?""",
+                        (selected_run, self._max_audit_records + 1),
+                    ).fetchall()
+                    observation_rows = connection.execute(
+                        """SELECT owned.record_id FROM perception_run_records AS owned
+                        WHERE owned.run_id = ? AND owned.record_type = 'observation'
+                          AND NOT EXISTS (
+                            SELECT 1 FROM perception_run_records AS other
+                            WHERE other.run_id != owned.run_id
+                              AND other.record_id = owned.record_id
+                          ) LIMIT ?""",
+                        (selected_run, self._max_audit_records + 1),
+                    ).fetchall()
+                    if (
+                        len(tracklet_rows) > self._max_audit_records
+                        or len(observation_rows) > self._max_audit_records
+                    ):
+                        _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                    tracklet_ids = tuple(row[0] for row in tracklet_rows)
+                    observation_ids = tuple(row[0] for row in observation_rows)
+                    if not all(type(value) is str for value in (*tracklet_ids, *observation_ids)):
+                        _fail(PortErrorCode.CORRUPT, operation)
+                    connection.execute(
+                        "DELETE FROM selected_evidence WHERE run_id = ?", (selected_run,)
+                    )
+                    connection.execute(
+                        "DELETE FROM perception_run_records WHERE run_id = ?", (selected_run,)
+                    )
+                    connection.executemany(
+                        "DELETE FROM tracklets WHERE tracklet_id = ?",
+                        ((value,) for value in tracklet_ids),
+                    )
+                    for observation_id in observation_ids:
+                        connection.execute(
+                            """DELETE FROM observations WHERE observation_id = ?
+                            AND NOT EXISTS (
+                                SELECT 1 FROM tracklet_points
+                                WHERE observation_id = ?
+                            )""",
+                            (observation_id, observation_id),
+                        )
                     connection.execute("DELETE FROM run_records WHERE run_id = ?", (selected_run,))
                     connection.executemany(
                         "DELETE FROM evidence WHERE evidence_id = ?",
@@ -1968,6 +2683,33 @@ class LocalWorldStore:
             _fail(PortErrorCode.CORRUPT, operation)
         return cast(tuple[tuple[str, str], ...], tuple(rows))
 
+    def _perception_source_closure(
+        self,
+        connection: sqlite3.Connection,
+        source_id: str,
+        operation: str,
+    ) -> tuple[tuple[str, str], ...]:
+        rows = connection.execute(
+            """SELECT record_id, record_type FROM (
+                SELECT observation_id AS record_id, 'observation' AS record_type
+                FROM observations WHERE source_id = ?
+                UNION ALL
+                SELECT tracklet_id, 'tracklet' FROM tracklets WHERE source_id = ?
+            ) ORDER BY record_type, record_id LIMIT ?""",
+            (source_id, source_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        patterns = {"observation": _OBSERVATION_ID, "tracklet": _TRACKLET_ID}
+        if any(
+            type(record_id) is not str
+            or record_type not in patterns
+            or not patterns[record_type].fullmatch(record_id)
+            for record_id, record_type in rows
+        ):
+            _fail(PortErrorCode.CORRUPT, operation)
+        return cast(tuple[tuple[str, str], ...], tuple(rows))
+
     def _load_deletion_plan(
         self,
         connection: sqlite3.Connection,
@@ -1995,10 +2737,26 @@ class LocalWorldStore:
             WHERE deletion_id = ? ORDER BY record_type, record_id LIMIT ?""",
             (deletion_id, self._max_audit_records + 1),
         ).fetchall()
-        if len(closure_rows) > self._max_audit_records:
+        perception_closure_rows = connection.execute(
+            """SELECT record_id, record_type FROM perception_deletion_closure
+            WHERE deletion_id = ? ORDER BY record_type, record_id LIMIT ?""",
+            (deletion_id, self._max_audit_records + 1),
+        ).fetchall()
+        if (
+            len(closure_rows) > self._max_audit_records
+            or len(perception_closure_rows) > self._max_audit_records
+            or len(closure_rows) + len(perception_closure_rows) > self._max_audit_records
+        ):
             _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
         expected_closure = set(self._source_closure(connection, source_id, operation))
-        if len(closure_rows) != status.record_count or set(closure_rows) != expected_closure:
+        expected_perception_closure = set(
+            self._perception_source_closure(connection, source_id, operation)
+        )
+        if (
+            len(closure_rows) + len(perception_closure_rows) != status.record_count
+            or set(closure_rows) != expected_closure
+            or set(perception_closure_rows) != expected_perception_closure
+        ):
             _fail(PortErrorCode.CORRUPT, operation)
         rows = connection.execute(
             """SELECT artifact_digest, delete_required FROM deletion_artifacts
@@ -2153,6 +2911,20 @@ class LocalWorldStore:
                         ) VALUES (?, ?, ?)""",
                         closure,
                     )
+                    perception_closure = tuple(
+                        (selected_deletion, record_id, record_type)
+                        for record_id, record_type in self._perception_source_closure(
+                            connection,
+                            selected_source,
+                            operation,
+                        )
+                    )
+                    connection.executemany(
+                        """INSERT INTO perception_deletion_closure(
+                            deletion_id, record_id, record_type
+                        ) VALUES (?, ?, ?)""",
+                        perception_closure,
+                    )
                     digest_rows = connection.execute(
                         """SELECT reference.artifact_digest
                         FROM artifact_references AS reference
@@ -2198,7 +2970,12 @@ class LocalWorldStore:
                     connection.execute(
                         """UPDATE deletion_jobs SET record_count = ?, artifact_count = ?,
                         shared_retention_count = ? WHERE deletion_id = ?""",
-                        (len(closure), delete_count, shared_count, selected_deletion),
+                        (
+                            len(closure) + len(perception_closure),
+                            delete_count,
+                            shared_count,
+                            selected_deletion,
+                        ),
                     )
                     return self._load_deletion_plan(connection, selected_deletion, operation)
             except PortError:
@@ -2303,6 +3080,10 @@ class LocalWorldStore:
                         )
                     connection.execute(
                         "DELETE FROM deletion_closure WHERE deletion_id = ?", (selected,)
+                    )
+                    connection.execute(
+                        "DELETE FROM perception_deletion_closure WHERE deletion_id = ?",
+                        (selected,),
                     )
                     connection.execute(
                         "DELETE FROM deletion_artifacts WHERE deletion_id = ?", (selected,)
@@ -2810,6 +3591,662 @@ class LocalWorldStore:
                 _sqlite_error(error, operation)
         raise AssertionError("unreachable")
 
+    def _perception_record_visible(
+        self,
+        connection: sqlite3.Connection,
+        record_id: str,
+        record_type: str,
+        source_id: str,
+        operation: str,
+    ) -> bool:
+        row = connection.execute(
+            """SELECT (
+                EXISTS (
+                    SELECT 1 FROM perception_run_records AS owned
+                    JOIN runs AS run ON run.run_id = owned.run_id
+                    WHERE owned.record_id = ? AND owned.record_type = ?
+                      AND run.state = 'committed'
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM deletion_jobs AS job
+                    WHERE job.root_kind = 'source' AND job.root_id = ?
+                      AND job.state = 'pending'
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM perception_deletion_closure AS hidden
+                    WHERE hidden.record_id = ? AND hidden.record_type = ?
+                )
+            )""",
+            (record_id, record_type, source_id, record_id, record_type),
+        ).fetchone()
+        value: object = None if row is None else row[0]
+        if type(value) is not int or value not in {0, 1}:
+            _fail(PortErrorCode.CORRUPT, operation)
+        return value == 1
+
+    def get_perception(self, record_id: str) -> PerceptionRecord:
+        """Get one visible committed Observation or Tracklet by typed identifier."""
+
+        operation = "get_perception"
+        if type(record_id) is not str:
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        if _OBSERVATION_ID.fullmatch(record_id):
+            table, column, record_type = "observations", "observation_id", "observation"
+        elif _TRACKLET_ID.fullmatch(record_id):
+            table, column, record_type = "tracklets", "tracklet_id", "tracklet"
+        else:
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        statements = {
+            ("observations", "observation_id"): (
+                "SELECT record_json, source_id FROM observations WHERE observation_id = ?"
+            ),
+            ("tracklets", "tracklet_id"): (
+                "SELECT record_json, source_id FROM tracklets WHERE tracklet_id = ?"
+            ),
+        }
+        with self._read_connection(operation) as connection:
+            try:
+                row = connection.execute(statements[(table, column)], (record_id,)).fetchone()
+                if row is None or type(row[1]) is not str:
+                    _fail(PortErrorCode.NOT_FOUND, operation)
+                if not self._perception_record_visible(
+                    connection, record_id, record_type, row[1], operation
+                ):
+                    _fail(PortErrorCode.NOT_FOUND, operation)
+                record = self._decode_perception_record(row[0], operation)
+                identifier = (
+                    record.observation_id if isinstance(record, Observation) else record.tracklet_id
+                )
+                if identifier != record_id:
+                    _fail(PortErrorCode.CORRUPT, operation)
+                self._verify_perception_projection(connection, record, operation)
+                return record
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def list_run_observations(
+        self,
+        run_id: str,
+        *,
+        stream_index: int,
+        after_pts_value: str | None = None,
+        after_observation_id: str | None = None,
+        category: str | None = None,
+        limit: int,
+    ) -> tuple[Observation, ...]:
+        """Page run-owned observations by exact source PTS and typed identity."""
+
+        operation = "list_run_observations"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        if type(stream_index) is not int or not 0 <= stream_index <= 2**31 - 1:
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        selected_limit = _bounded_limit(limit, operation)
+        after_order = -(2**63)
+        after_id = ""
+        if (after_pts_value is None) != (after_observation_id is None):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        if after_pts_value is not None and after_observation_id is not None:
+            _, after_order = _signed_i64(after_pts_value, operation)
+            after_id = _identifier(after_observation_id, _OBSERVATION_ID, operation)
+        if category is not None and (
+            type(category) is not str or not _CATEGORY.fullmatch(category)
+        ):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                manifest = self._committed_run(connection, selected_run, operation)
+                rows = connection.execute(
+                    """SELECT observation.record_json FROM observations AS observation
+                    WHERE observation.source_id = ? AND observation.stream_index = ?
+                      AND (? IS NULL OR observation.category = ?)
+                      AND (
+                        observation.pts_order > ? OR (
+                            observation.pts_order = ? AND observation.observation_id > ?
+                        )
+                      )
+                      AND EXISTS (
+                        SELECT 1 FROM perception_run_records AS owned
+                        WHERE owned.run_id = ? AND owned.record_type = 'observation'
+                          AND owned.record_id = observation.observation_id
+                      )
+                      AND NOT EXISTS (
+                        SELECT 1 FROM perception_deletion_closure AS hidden
+                        WHERE hidden.record_id = observation.observation_id
+                          AND hidden.record_type = 'observation'
+                      )
+                    ORDER BY observation.pts_order, observation.observation_id LIMIT ?""",
+                    (
+                        manifest.source_id,
+                        stream_index,
+                        category,
+                        category,
+                        after_order,
+                        after_order,
+                        after_id,
+                        selected_run,
+                        selected_limit,
+                    ),
+                ).fetchall()
+                records = tuple(self._decode_perception_record(row[0], operation) for row in rows)
+                if not all(isinstance(record, Observation) for record in records):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                for record in records:
+                    self._verify_perception_projection(connection, record, operation)
+                return cast(tuple[Observation, ...], records)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def list_run_tracklets(
+        self,
+        run_id: str,
+        *,
+        stream_index: int,
+        after_start_pts_value: str | None = None,
+        after_tracklet_id: str | None = None,
+        category: str | None = None,
+        termination_reason: str | None = None,
+        limit: int,
+    ) -> tuple[Tracklet, ...]:
+        """Page run-owned completed tracklets by exact start PTS and identity."""
+
+        operation = "list_run_tracklets"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        if type(stream_index) is not int or not 0 <= stream_index <= 2**31 - 1:
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        selected_limit = _bounded_limit(limit, operation)
+        after_order = -(2**63)
+        after_id = ""
+        if (after_start_pts_value is None) != (after_tracklet_id is None):
+            _fail(PortErrorCode.INVALID_REQUEST, operation)
+        if after_start_pts_value is not None and after_tracklet_id is not None:
+            _, after_order = _signed_i64(after_start_pts_value, operation)
+            after_id = _identifier(after_tracklet_id, _TRACKLET_ID, operation)
+        for token in (category, termination_reason):
+            if token is not None and (type(token) is not str or not _CATEGORY.fullmatch(token)):
+                _fail(PortErrorCode.INVALID_REQUEST, operation)
+        with self._read_connection(operation) as connection:
+            try:
+                manifest = self._committed_run(connection, selected_run, operation)
+                rows = connection.execute(
+                    """SELECT tracklet.record_json FROM tracklets AS tracklet
+                    WHERE tracklet.source_id = ? AND tracklet.stream_index = ?
+                      AND (? IS NULL OR tracklet.category = ?)
+                      AND (? IS NULL OR tracklet.termination_reason = ?)
+                      AND (
+                        tracklet.start_pts_order > ? OR (
+                            tracklet.start_pts_order = ? AND tracklet.tracklet_id > ?
+                        )
+                      )
+                      AND EXISTS (
+                        SELECT 1 FROM perception_run_records AS owned
+                        WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+                          AND owned.record_id = tracklet.tracklet_id
+                      )
+                      AND NOT EXISTS (
+                        SELECT 1 FROM perception_deletion_closure AS hidden
+                        WHERE hidden.record_id = tracklet.tracklet_id
+                          AND hidden.record_type = 'tracklet'
+                      )
+                    ORDER BY tracklet.start_pts_order, tracklet.tracklet_id LIMIT ?""",
+                    (
+                        manifest.source_id,
+                        stream_index,
+                        category,
+                        category,
+                        termination_reason,
+                        termination_reason,
+                        after_order,
+                        after_order,
+                        after_id,
+                        selected_run,
+                        selected_limit,
+                    ),
+                ).fetchall()
+                records = tuple(self._decode_perception_record(row[0], operation) for row in rows)
+                if not all(isinstance(record, Tracklet) for record in records):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                for record in records:
+                    self._verify_perception_projection(connection, record, operation)
+                return cast(tuple[Tracklet, ...], records)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def list_tracklet_observations(
+        self,
+        tracklet_id: str,
+        *,
+        after_ordinal: int | None = None,
+        limit: int,
+    ) -> tuple[Observation, ...]:
+        """Page a visible tracklet's exact ordered Observation membership."""
+
+        operation = "list_tracklet_observations"
+        selected_tracklet = _identifier(tracklet_id, _TRACKLET_ID, operation)
+        selected_limit = _bounded_limit(limit, operation)
+        after = -1
+        if after_ordinal is not None:
+            if type(after_ordinal) is not int or not 0 <= after_ordinal < 64:
+                _fail(PortErrorCode.INVALID_REQUEST, operation)
+            after = after_ordinal
+        with self._read_connection(operation) as connection:
+            try:
+                row = connection.execute(
+                    "SELECT source_id FROM tracklets WHERE tracklet_id = ?",
+                    (selected_tracklet,),
+                ).fetchone()
+                if (
+                    row is None
+                    or type(row[0]) is not str
+                    or not self._perception_record_visible(
+                        connection, selected_tracklet, "tracklet", row[0], operation
+                    )
+                ):
+                    _fail(PortErrorCode.NOT_FOUND, operation)
+                rows = connection.execute(
+                    """SELECT observation.record_json FROM tracklet_points AS point
+                    JOIN observations AS observation
+                      ON observation.observation_id = point.observation_id
+                    WHERE point.tracklet_id = ? AND point.ordinal > ?
+                    ORDER BY point.ordinal LIMIT ?""",
+                    (selected_tracklet, after, selected_limit),
+                ).fetchall()
+                records = tuple(self._decode_perception_record(item[0], operation) for item in rows)
+                if not all(isinstance(record, Observation) for record in records):
+                    _fail(PortErrorCode.CORRUPT, operation)
+                for record in records:
+                    self._verify_perception_projection(connection, record, operation)
+                return cast(tuple[Observation, ...], records)
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def list_selected_evidence(
+        self,
+        run_id: str,
+        tracklet_id: str,
+        *,
+        after_rank: int | None = None,
+        limit: int,
+    ) -> tuple[PersistedEvidenceSelection, ...]:
+        """Page one committed run's selected views in deterministic rank order."""
+
+        operation = "list_selected_evidence"
+        selected_run = _identifier(run_id, _RUN_ID, operation)
+        selected_tracklet = _identifier(tracklet_id, _TRACKLET_ID, operation)
+        selected_limit = _bounded_limit(limit, operation)
+        after = 0
+        if after_rank is not None:
+            if type(after_rank) is not int or not 1 <= after_rank <= 8:
+                _fail(PortErrorCode.INVALID_REQUEST, operation)
+            after = after_rank
+        with self._read_connection(operation) as connection:
+            try:
+                self._committed_run(connection, selected_run, operation)
+                rows = connection.execute(
+                    """SELECT rank FROM selected_evidence
+                    WHERE run_id = ? AND tracklet_id = ? AND rank > ?
+                    ORDER BY rank LIMIT ?""",
+                    (selected_run, selected_tracklet, after, selected_limit),
+                ).fetchall()
+                result = tuple(
+                    self._verify_evidence_selection(
+                        connection,
+                        selected_run,
+                        selected_tracklet,
+                        row[0],
+                        operation,
+                        require_artifact_intent=False,
+                    )
+                    for row in rows
+                )
+                return result
+            except PortError:
+                raise
+            except sqlite3.Error as error:
+                _sqlite_error(error, operation)
+        raise AssertionError("unreachable")
+
+    def _decode_perception_record(self, value: object, operation: str) -> PerceptionRecord:
+        if type(value) is not bytes:
+            _fail(PortErrorCode.CORRUPT, operation)
+        try:
+            return loads_perception_record(value)
+        except (RecordValidationError, TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        raise AssertionError("unreachable")
+
+    def _decode_evidence_intent(self, value: object, operation: str) -> EvidenceIntent:
+        if type(value) is not bytes:
+            _fail(PortErrorCode.CORRUPT, operation)
+        try:
+            return loads_evidence_intent(value)
+        except (RecordValidationError, TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        raise AssertionError("unreachable")
+
+    def _verify_perception_projection(
+        self,
+        connection: sqlite3.Connection,
+        record: PerceptionRecord,
+        operation: str,
+    ) -> None:
+        encoded = dumps_perception_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        if isinstance(record, Observation):
+            row = connection.execute(
+                """SELECT source_id, frame_id, stream_index, pts_value, pts_order,
+                pts_time_base_numerator, pts_time_base_denominator, category,
+                confidence_millionths, producer_name, producer_version,
+                producer_configuration_sha256, schema_version, identity_version,
+                record_json, record_sha256 FROM observations WHERE observation_id = ?""",
+                (record.observation_id,),
+            ).fetchone()
+            observation_expected = (
+                record.source_id,
+                record.frame_id,
+                record.stream_index,
+                record.pts.value,
+                int(record.pts.value),
+                record.pts.time_base.numerator,
+                record.pts.time_base.denominator,
+                record.category,
+                record.confidence_millionths,
+                record.producer.name,
+                record.producer.version,
+                record.producer.configuration_sha256,
+                record.schema_version,
+                record.identity_version,
+                encoded,
+                digest,
+            )
+            if row != observation_expected:
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._validate_observation_frame(connection, record, operation)
+            return
+        row = connection.execute(
+            """SELECT source_id, stream_index, category, termination_reason,
+            producer_name, producer_version, producer_configuration_sha256,
+            start_pts_value, start_pts_order, start_pts_time_base_numerator,
+            start_pts_time_base_denominator, end_pts_value, end_pts_order,
+            end_pts_time_base_numerator, end_pts_time_base_denominator,
+            point_count, schema_version, identity_version, record_json, record_sha256
+            FROM tracklets WHERE tracklet_id = ?""",
+            (record.tracklet_id,),
+        ).fetchone()
+        tracklet_expected = (
+            record.source_id,
+            record.stream_index,
+            record.category,
+            record.termination_reason,
+            record.producer.name,
+            record.producer.version,
+            record.producer.configuration_sha256,
+            record.start_pts.value,
+            int(record.start_pts.value),
+            record.start_pts.time_base.numerator,
+            record.start_pts.time_base.denominator,
+            record.end_pts.value,
+            int(record.end_pts.value),
+            record.end_pts.time_base.numerator,
+            record.end_pts.time_base.denominator,
+            len(record.points),
+            record.schema_version,
+            record.identity_version,
+            encoded,
+            digest,
+        )
+        points = connection.execute(
+            """SELECT ordinal, observation_id, frame_id, pts_value, pts_order
+            FROM tracklet_points WHERE tracklet_id = ? ORDER BY ordinal LIMIT 65""",
+            (record.tracklet_id,),
+        ).fetchall()
+        expected_points = [
+            (
+                ordinal,
+                point.observation_id,
+                point.frame_id,
+                point.pts.value,
+                int(point.pts.value),
+            )
+            for ordinal, point in enumerate(record.points)
+        ]
+        if row != tracklet_expected or points != expected_points:
+            _fail(PortErrorCode.CORRUPT, operation)
+        for point in record.points:
+            observation_row = connection.execute(
+                "SELECT record_json FROM observations WHERE observation_id = ?",
+                (point.observation_id,),
+            ).fetchone()
+            if observation_row is None:
+                _fail(PortErrorCode.CORRUPT, operation)
+            observation = self._decode_perception_record(observation_row[0], operation)
+            if not isinstance(observation, Observation):
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._verify_perception_projection(connection, observation, operation)
+            if point != TrackPoint.from_observation(observation):
+                _fail(PortErrorCode.CORRUPT, operation)
+
+    def _verify_evidence_selection(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        tracklet_id: str,
+        rank: object,
+        operation: str,
+        *,
+        require_artifact_intent: bool,
+    ) -> PersistedEvidenceSelection:
+        if type(rank) is not int:
+            _fail(PortErrorCode.CORRUPT, operation)
+        row = connection.execute(
+            """SELECT observation_id, source_id, frame_id, stream_index,
+            selector_name, selector_version, selector_configuration_sha256,
+            intent_json, intent_sha256, evidence_id FROM selected_evidence
+            WHERE run_id = ? AND tracklet_id = ? AND rank = ?""",
+            (run_id, tracklet_id, rank),
+        ).fetchone()
+        if row is None:
+            _fail(PortErrorCode.CORRUPT, operation)
+        intent = self._decode_evidence_intent(row[7], operation)
+        expected_prefix = (
+            intent.observation_id,
+            intent.source_id,
+            intent.frame_id,
+            intent.stream_index,
+            intent.selector.name,
+            intent.selector.version,
+            intent.selector.configuration_sha256,
+            dumps_evidence_intent(intent),
+            hashlib.sha256(dumps_evidence_intent(intent)).hexdigest(),
+        )
+        if row[:9] != expected_prefix or intent.tracklet_id != tracklet_id or intent.rank != rank:
+            _fail(PortErrorCode.CORRUPT, operation)
+        tracklet_row = connection.execute(
+            "SELECT record_json FROM tracklets WHERE tracklet_id = ?",
+            (tracklet_id,),
+        ).fetchone()
+        observation_row = connection.execute(
+            "SELECT record_json FROM observations WHERE observation_id = ?",
+            (intent.observation_id,),
+        ).fetchone()
+        ownership = connection.execute(
+            """SELECT count(*) FROM perception_run_records WHERE run_id = ? AND (
+                (record_id = ? AND record_type = 'tracklet') OR
+                (record_id = ? AND record_type = 'observation')
+            )""",
+            (run_id, tracklet_id, intent.observation_id),
+        ).fetchone()
+        if tracklet_row is None or observation_row is None or ownership != (2,):
+            _fail(PortErrorCode.CORRUPT, operation)
+        tracklet = self._decode_perception_record(tracklet_row[0], operation)
+        observation = self._decode_perception_record(observation_row[0], operation)
+        if not isinstance(tracklet, Tracklet) or not isinstance(observation, Observation):
+            _fail(PortErrorCode.CORRUPT, operation)
+        point_index = intent.score.point_index
+        if (
+            point_index >= len(tracklet.points)
+            or tracklet.points[point_index].observation_id != intent.observation_id
+            or intent.score.point_count != len(tracklet.points)
+            or intent.source_id != observation.source_id
+            or intent.frame_id != observation.frame_id
+            or intent.stream_index != observation.stream_index
+            or intent.pts != observation.pts
+            or intent.geometry != observation.geometry
+            or intent.score.confidence_millionths != observation.confidence_millionths
+        ):
+            _fail(PortErrorCode.CORRUPT, operation)
+        evidence: EvidenceRef | None = None
+        evidence_id = row[9]
+        if evidence_id is not None:
+            if type(evidence_id) is not str or not _EVIDENCE_ID.fullmatch(evidence_id):
+                _fail(PortErrorCode.CORRUPT, operation)
+            evidence_row = connection.execute(
+                """SELECT item.record_json FROM evidence AS item
+                JOIN run_records AS owned ON owned.record_id = item.evidence_id
+                WHERE owned.run_id = ? AND owned.record_type = 'evidence'
+                  AND item.evidence_id = ?""",
+                (run_id, evidence_id),
+            ).fetchone()
+            if evidence_row is None:
+                _fail(PortErrorCode.CORRUPT, operation)
+            decoded = self._decode_record(evidence_row[0], operation)
+            if not isinstance(decoded, EvidenceRef):
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._verify_projection(connection, decoded, operation)
+            evidence = decoded
+            if (
+                evidence.frame_id != intent.frame_id
+                or evidence.geometry != intent.geometry
+                or evidence.kind != intent.kind
+                or evidence.retention != intent.retention
+            ):
+                _fail(PortErrorCode.CORRUPT, operation)
+            if require_artifact_intent:
+                artifact_intent = connection.execute(
+                    """SELECT 1 FROM artifact_intents WHERE run_id = ?
+                    AND artifact_digest = ? AND byte_count = ? AND media_type = ?
+                    AND protocol_version = ?""",
+                    (
+                        run_id,
+                        evidence.artifact.sha256,
+                        evidence.artifact.bytes,
+                        evidence.artifact.media_type,
+                        WORLD_PROTOCOL_VERSION,
+                    ),
+                ).fetchone()
+                if artifact_intent is None:
+                    _fail(PortErrorCode.CONFLICT, operation)
+        try:
+            return PersistedEvidenceSelection(run_id, intent, evidence)
+        except (RecordValidationError, TypeError, ValueError):
+            _fail(PortErrorCode.CORRUPT, operation)
+        raise AssertionError("unreachable")
+
+    def _verify_perception_run(
+        self,
+        connection: sqlite3.Connection,
+        run_id: str,
+        operation: str,
+        *,
+        require_publication: bool,
+    ) -> None:
+        run = connection.execute(
+            "SELECT source_id FROM runs WHERE run_id = ?", (run_id,)
+        ).fetchone()
+        if run is None or type(run[0]) is not str:
+            _fail(PortErrorCode.CORRUPT, operation)
+        rows = connection.execute(
+            """SELECT record_id, record_type FROM perception_run_records
+            WHERE run_id = ? ORDER BY record_type, record_id LIMIT ?""",
+            (run_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        for record_id, record_type in rows:
+            if record_type == "observation":
+                row = connection.execute(
+                    "SELECT record_json FROM observations WHERE observation_id = ?",
+                    (record_id,),
+                ).fetchone()
+            elif record_type == "tracklet":
+                row = connection.execute(
+                    "SELECT record_json FROM tracklets WHERE tracklet_id = ?", (record_id,)
+                ).fetchone()
+            else:
+                _fail(PortErrorCode.CORRUPT, operation)
+            if row is None:
+                _fail(PortErrorCode.CORRUPT, operation)
+            record = self._decode_perception_record(row[0], operation)
+            if record.source_id != run[0]:
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._verify_perception_projection(connection, record, operation)
+            if isinstance(record, Tracklet):
+                for point in record.points:
+                    owned = connection.execute(
+                        """SELECT 1 FROM perception_run_records WHERE run_id = ?
+                        AND record_id = ? AND record_type = 'observation'""",
+                        (run_id, point.observation_id),
+                    ).fetchone()
+                    if owned is None:
+                        _fail(PortErrorCode.CORRUPT, operation)
+        reused = connection.execute(
+            """SELECT point.observation_id FROM perception_run_records AS owned
+            JOIN tracklet_points AS point ON point.tracklet_id = owned.record_id
+            WHERE owned.run_id = ? AND owned.record_type = 'tracklet'
+            GROUP BY point.observation_id HAVING count(*) > 1 LIMIT 1""",
+            (run_id,),
+        ).fetchone()
+        if reused is not None:
+            _fail(PortErrorCode.CORRUPT, operation)
+        selection_rows = connection.execute(
+            """SELECT tracklet_id, rank FROM selected_evidence WHERE run_id = ?
+            ORDER BY tracklet_id, rank LIMIT ?""",
+            (run_id, self._max_audit_records + 1),
+        ).fetchall()
+        if len(selection_rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        grouped: dict[str, list[int]] = {}
+        selectors: dict[str, tuple[str, str, str]] = {}
+        for tracklet_id, rank in selection_rows:
+            selection = self._verify_evidence_selection(
+                connection,
+                run_id,
+                tracklet_id,
+                rank,
+                operation,
+                require_artifact_intent=require_publication,
+            )
+            grouped.setdefault(tracklet_id, []).append(rank)
+            selector = selection.intent.selector
+            selected_producer = (
+                selector.name,
+                selector.version,
+                selector.configuration_sha256,
+            )
+            previous = selectors.setdefault(tracklet_id, selected_producer)
+            if previous != selected_producer:
+                _fail(
+                    PortErrorCode.CONFLICT if require_publication else PortErrorCode.CORRUPT,
+                    operation,
+                )
+        for ranks in grouped.values():
+            if ranks != list(range(1, len(ranks) + 1)):
+                _fail(
+                    PortErrorCode.CONFLICT if require_publication else PortErrorCode.CORRUPT,
+                    operation,
+                )
+
     def _decode_record(self, value: object, operation: str) -> Record:
         if type(value) is not bytes:
             _fail(PortErrorCode.CORRUPT, operation)
@@ -2933,6 +4370,20 @@ class LocalWorldStore:
                 for row in rows:
                     record = self._decode_record(row[0], operation)
                     self._verify_projection(connection, record, operation)
+                perception_rows: list[tuple[object, ...]] = []
+                for query in (
+                    "SELECT record_json FROM observations ORDER BY observation_id LIMIT ?",
+                    "SELECT record_json FROM tracklets ORDER BY tracklet_id LIMIT ?",
+                ):
+                    remaining = self._max_audit_records + 1 - len(rows) - len(perception_rows)
+                    if remaining <= 0:
+                        break
+                    perception_rows.extend(connection.execute(query, (remaining,)).fetchall())
+                if len(rows) + len(perception_rows) > self._max_audit_records:
+                    _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+                for row in perception_rows:
+                    perception_record = self._decode_perception_record(row[0], operation)
+                    self._verify_perception_projection(connection, perception_record, operation)
                 self._verify_coordination(connection, operation)
                 artifacts = connection.execute(
                     """SELECT count(*) FROM (
@@ -2946,16 +4397,34 @@ class LocalWorldStore:
                     )""",
                     (self._max_audit_records + 1,),
                 ).fetchone()
+                perception_counts = connection.execute(
+                    """SELECT
+                    (SELECT count(*) FROM observations),
+                    (SELECT count(*) FROM tracklets),
+                    (SELECT count(*) FROM selected_evidence)"""
+                ).fetchone()
                 if (
                     artifacts is None
                     or intents is None
+                    or perception_counts is None
                     or artifacts[0] > self._max_audit_records
                     or intents[0] > self._max_audit_records
+                    or any(
+                        type(value) is not int or value > self._max_audit_records
+                        for value in perception_counts
+                    )
                 ):
                     _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
                 if type(artifacts[0]) is not int or type(intents[0]) is not int:
                     _fail(PortErrorCode.CORRUPT, operation)
-                return WorldStoreStats(len(rows), artifacts[0], intents[0])
+                return WorldStoreStats(
+                    len(rows) + len(perception_rows),
+                    artifacts[0],
+                    intents[0],
+                    observation_count=perception_counts[0],
+                    tracklet_count=perception_counts[1],
+                    selection_count=perception_counts[2],
+                )
             except PortError:
                 raise
             except sqlite3.Error as error:
@@ -2974,8 +4443,19 @@ class LocalWorldStore:
                 )),
                 (SELECT count(*) FROM (
                     SELECT 1 FROM artifact_intents LIMIT ?
+                )),
+                (SELECT count(*) FROM (
+                    SELECT 1 FROM perception_run_records LIMIT ?
+                )),
+                (SELECT count(*) FROM (
+                    SELECT 1 FROM selected_evidence LIMIT ?
                 ))""",
-            (self._max_audit_records + 1, self._max_audit_records + 1),
+            (
+                self._max_audit_records + 1,
+                self._max_audit_records + 1,
+                self._max_audit_records + 1,
+                self._max_audit_records + 1,
+            ),
         ).fetchone()
         if counts is None or any(
             type(value) is not int or value > self._max_audit_records for value in counts
@@ -3008,6 +4488,42 @@ class LocalWorldStore:
         ).fetchone()
         if invalid_ownership is None or invalid_ownership[0] != 0:
             _fail(PortErrorCode.CORRUPT, operation)
+        orphaned_perception = connection.execute(
+            """SELECT 1 WHERE
+                EXISTS (
+                    SELECT 1 FROM observations AS observation
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM perception_run_records AS owned
+                        WHERE owned.record_id = observation.observation_id
+                          AND owned.record_type = 'observation'
+                    )
+                )
+                OR EXISTS (
+                    SELECT 1 FROM tracklets AS tracklet
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM perception_run_records AS owned
+                        WHERE owned.record_id = tracklet.tracklet_id
+                          AND owned.record_type = 'tracklet'
+                    )
+                )"""
+        ).fetchone()
+        if orphaned_perception is not None:
+            _fail(PortErrorCode.CORRUPT, operation)
+        run_rows = connection.execute(
+            "SELECT run_id FROM runs ORDER BY run_id LIMIT ?",
+            (self._max_audit_records + 1,),
+        ).fetchall()
+        if len(run_rows) > self._max_audit_records:
+            _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
+        for (run_id,) in run_rows:
+            if type(run_id) is not str or not _RUN_ID.fullmatch(run_id):
+                _fail(PortErrorCode.CORRUPT, operation)
+            self._verify_perception_run(
+                connection,
+                run_id,
+                operation,
+                require_publication=False,
+            )
         rows = connection.execute(
             """SELECT intent.run_id, intent.staging_name, intent.artifact_digest,
             intent.byte_count, intent.media_type, intent.protocol_version, run.state
@@ -3036,8 +4552,13 @@ class LocalWorldStore:
         if len(deletion_rows) > self._max_audit_records:
             _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
         overlap = connection.execute(
-            """SELECT 1 FROM deletion_closure GROUP BY record_id
-            HAVING count(*) > 1 LIMIT 1"""
+            """SELECT 1 WHERE EXISTS (
+                SELECT 1 FROM deletion_closure GROUP BY record_id
+                HAVING count(*) > 1
+            ) OR EXISTS (
+                SELECT 1 FROM perception_deletion_closure GROUP BY record_id
+                HAVING count(*) > 1
+            )"""
         ).fetchone()
         if overlap is not None:
             _fail(PortErrorCode.CORRUPT, operation)
@@ -3046,6 +4567,8 @@ class LocalWorldStore:
             "frame": "SELECT 1 FROM frames WHERE frame_id = ?",
             "evidence": "SELECT 1 FROM evidence WHERE evidence_id = ?",
             "run": "SELECT 1 FROM runs WHERE run_id = ?",
+            "observation": "SELECT 1 FROM observations WHERE observation_id = ?",
+            "tracklet": "SELECT 1 FROM tracklets WHERE tracklet_id = ?",
         }
         for row in deletion_rows:
             status = self._deletion_status_row(row[:7], operation)
@@ -3055,12 +4578,22 @@ class LocalWorldStore:
                 WHERE deletion_id = ? ORDER BY record_id LIMIT ?""",
                 (status.deletion_id, self._max_audit_records + 1),
             ).fetchall()
+            perception_closure = connection.execute(
+                """SELECT record_id, record_type FROM perception_deletion_closure
+                WHERE deletion_id = ? ORDER BY record_id LIMIT ?""",
+                (status.deletion_id, self._max_audit_records + 1),
+            ).fetchall()
             artifacts = connection.execute(
                 """SELECT artifact_digest, delete_required FROM deletion_artifacts
                 WHERE deletion_id = ? ORDER BY artifact_digest LIMIT ?""",
                 (status.deletion_id, self._max_audit_records + 1),
             ).fetchall()
-            if len(closure) > self._max_audit_records or len(artifacts) > self._max_audit_records:
+            if (
+                len(closure) > self._max_audit_records
+                or len(perception_closure) > self._max_audit_records
+                or len(closure) + len(perception_closure) > self._max_audit_records
+                or len(artifacts) > self._max_audit_records
+            ):
                 _fail(PortErrorCode.LIMIT_EXCEEDED, operation)
             if status.state is DeletionState.PENDING:
                 self._load_deletion_plan(connection, status.deletion_id, operation)
@@ -3069,14 +4602,14 @@ class LocalWorldStore:
                     or type(root_id) is not str
                     or not _SOURCE_ID.fullmatch(root_id)
                     or (root_id, "source") not in closure
-                    or status.record_count != len(closure)
+                    or status.record_count != len(closure) + len(perception_closure)
                     or status.artifact_count
                     != sum(delete_required == 1 for _, delete_required in artifacts)
                     or status.shared_retention_count
                     != sum(delete_required == 0 for _, delete_required in artifacts)
                 ):
                     _fail(PortErrorCode.CORRUPT, operation)
-                for record_id, record_type in closure:
+                for record_id, record_type in (*closure, *perception_closure):
                     if type(record_id) is not str or record_type not in record_queries:
                         _fail(PortErrorCode.CORRUPT, operation)
                     if (
@@ -3095,7 +4628,13 @@ class LocalWorldStore:
                     ):
                         _fail(PortErrorCode.CORRUPT, operation)
                     self._artifact_spec(connection, digest, operation)
-            elif root_kind is not None or root_id is not None or closure or artifacts:
+            elif (
+                root_kind is not None
+                or root_id is not None
+                or closure
+                or perception_closure
+                or artifacts
+            ):
                 _fail(PortErrorCode.CORRUPT, operation)
 
 
@@ -3108,7 +4647,9 @@ __all__ = [
     "DeletionPlan",
     "DeletionState",
     "DeletionStatus",
+    "EvidenceSelectionLink",
     "LocalWorldStore",
+    "PersistedEvidenceSelection",
     "RunCleanupPlan",
     "WorldStoreStats",
 ]
