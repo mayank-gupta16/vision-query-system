@@ -77,11 +77,14 @@ Original RGB24 pixels enter only the explicit `materialize` extension after a
 caller supplies both an `inspection` or `downstream_detail` need and a detail
 resolution state. The caller must also resupply the completed Tracklet and its
 exact Observation set. Before inspecting any supplied pixels, the selector
-validates that context, recomputes the deterministic plan, and requires the
+directly reconstructs exact recursively owned Tracklet and Observation snapshots
+without invoking caller-owned serialization, validates their identifiers and
+cross-record consistency, recomputes the deterministic plan, and requires the
 entire intent (links, rank, geometry, PTS, score, selector provenance, and
-lifecycle policy) to match one freshly selected intent. A public configuration
-digest alone does not authorize materialization. Missing source pixels return
-`unknown/source_pixels_unavailable`.
+lifecycle policy) to match one freshly selected intent. The public `select`,
+`plan`, and `materialize` boundaries sanitize unexpected failures into static,
+context-free port errors. A public configuration digest alone does not authorize
+materialization. Missing source pixels return `unknown/source_pixels_unavailable`.
 Declared unresolvable detail returns `unknown/detail_unresolvable`; an unassessed
 downstream-detail request returns `unknown/detail_resolution_unknown`. Inspection
 may materialize an unassessed crop because inspection can be the act that resolves

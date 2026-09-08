@@ -6,6 +6,7 @@ from __future__ import annotations
 import builtins
 import hashlib
 import json
+import threading
 from collections.abc import Callable
 from dataclasses import replace
 from typing import NoReturn, cast
@@ -885,3 +886,86 @@ def test_hostile_lifecycle_string_subclasses_are_rejected_before_equality() -> N
     for construct in invalid_intents:
         with pytest.raises(ValueError):
             construct()
+
+
+@pytest.mark.parametrize("operation", ("plan", "select"))
+def test_selection_operations_sanitize_concurrent_nested_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+    operation: str,
+) -> None:
+    dynamic_access: list[str] = []
+
+    class ExplodingGeometry:
+        def to_mapping(self) -> object:
+            dynamic_access.append("to_mapping")
+            raise RuntimeError("private/path\nsecret")
+
+    _, _, observations, tracklet = _golden_values()
+    target = observations[0]
+    entered_snapshot = threading.Event()
+    mutation_finished = threading.Event()
+    failures: list[str] = []
+    first_copy = True
+    original_copy_time = evidence_module._copy_time
+
+    def pause_first_time_copy(value: MediaTime) -> MediaTime:
+        nonlocal first_copy
+        if first_copy:
+            first_copy = False
+            entered_snapshot.set()
+            if not mutation_finished.wait(timeout=2):
+                failures.append("mutation timed out")
+        return original_copy_time(value)
+
+    def mutate_during_snapshot() -> None:
+        if not entered_snapshot.wait(timeout=2):
+            failures.append("snapshot timed out")
+            mutation_finished.set()
+            return
+        object.__setattr__(target, "geometry", ExplodingGeometry())
+        mutation_finished.set()
+
+    monkeypatch.setattr(evidence_module, "_copy_time", pause_first_time_copy)
+    mutator = threading.Thread(target=mutate_during_snapshot)
+    mutator.start()
+    selector = BestFrameEvidenceSelector()
+
+    try:
+        with pytest.raises(PortError) as raised:
+            getattr(selector, operation)(tracklet, observations)
+    finally:
+        mutation_finished.set()
+        mutator.join(timeout=2)
+
+    assert not mutator.is_alive()
+    assert failures == []
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert raised.value.__context__ is None
+    assert "private" not in str(raised.value)
+    assert dynamic_access == []
+    assert selector.calls == ()
+
+
+@pytest.mark.parametrize("operation", ("plan", "select"))
+def test_selection_operations_sanitize_hostile_base_exception(
+    monkeypatch: pytest.MonkeyPatch,
+    operation: str,
+) -> None:
+    class HostileFailure(BaseException):
+        pass
+
+    _, _, observations, tracklet = _golden_values()
+
+    def fail(*_: object, **__: object) -> NoReturn:
+        raise HostileFailure("private/path\nsecret")
+
+    monkeypatch.setattr(evidence_module, "_score", fail)
+    selector = BestFrameEvidenceSelector()
+
+    with pytest.raises(PortError) as raised:
+        getattr(selector, operation)(tracklet, observations)
+
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert raised.value.__context__ is None
+    assert "private" not in str(raised.value)
+    assert selector.calls == ()

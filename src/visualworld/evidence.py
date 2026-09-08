@@ -23,7 +23,12 @@ from visualworld.ingestion import (
     Rational,
     TimeBase,
 )
-from visualworld.perception import MAX_CONFIDENCE_MILLIONTHS, Observation, Tracklet
+from visualworld.perception import (
+    MAX_CONFIDENCE_MILLIONTHS,
+    Observation,
+    Tracklet,
+    TrackPoint,
+)
 from visualworld.ports import (
     MAX_PORT_BATCH_ITEMS,
     CapabilityDescriptor,
@@ -154,6 +159,95 @@ def _copy_geometry(value: Geometry) -> Geometry:
         producer_space,
         coefficients,
         value.space,
+    )
+
+
+def _copy_observation(value: Observation) -> Observation:
+    if type(value) is not Observation:
+        raise ValueError("invalid observation")
+    if (
+        type(value.stream_index) is not int
+        or type(value.confidence_millionths) is not int
+        or any(
+            type(item) is not str
+            for item in (
+                value.observation_id,
+                value.source_id,
+                value.frame_id,
+                value.category,
+            )
+        )
+    ):
+        raise ValueError("invalid observation")
+    return Observation(
+        value.observation_id,
+        value.source_id,
+        value.frame_id,
+        value.stream_index,
+        _copy_time(value.pts),
+        _copy_geometry(value.geometry),
+        value.category,
+        value.confidence_millionths,
+        _copy_producer(value.producer),
+    )
+
+
+def _copy_track_point(value: TrackPoint) -> TrackPoint:
+    if type(value) is not TrackPoint:
+        raise ValueError("invalid track point")
+    if type(value.stream_index) is not int or any(
+        type(item) is not str
+        for item in (
+            value.observation_id,
+            value.source_id,
+            value.frame_id,
+            value.category,
+        )
+    ):
+        raise ValueError("invalid track point")
+    return TrackPoint(
+        value.observation_id,
+        value.source_id,
+        value.frame_id,
+        value.stream_index,
+        _copy_time(value.pts),
+        _copy_geometry(value.geometry),
+        value.category,
+    )
+
+
+def _copy_tracklet(value: Tracklet) -> Tracklet:
+    if type(value) is not Tracklet:
+        raise ValueError("invalid tracklet")
+    points = value.points
+    if (
+        type(value.stream_index) is not int
+        or type(points) is not tuple
+        or not 1 <= len(points) <= MAX_PORT_BATCH_ITEMS
+        or not all(type(point) is TrackPoint for point in points)
+        or any(
+            type(item) is not str
+            for item in (
+                value.tracklet_id,
+                value.source_id,
+                value.category,
+                value.termination_reason,
+                value.identity_scope,
+                value.continuity,
+            )
+        )
+    ):
+        raise ValueError("invalid tracklet")
+    return Tracklet(
+        value.tracklet_id,
+        value.source_id,
+        value.stream_index,
+        value.category,
+        tuple(_copy_track_point(point) for point in points),
+        value.termination_reason,
+        _copy_producer(value.producer),
+        value.identity_scope,
+        value.continuity,
     )
 
 
@@ -747,12 +841,9 @@ class BestFrameEvidenceSelector:
         owned_tracklet: Tracklet | None = None
         owned_observations: tuple[Observation, ...] = ()
         try:
-            Tracklet.__post_init__(tracklet)
-            for observation in observations:
-                Observation.__post_init__(observation)
-            owned_tracklet = Tracklet.from_mapping(tracklet.to_mapping())
+            owned_tracklet = _copy_tracklet(tracklet)
             owned_observations = tuple(
-                Observation.from_mapping(observation.to_mapping()) for observation in observations
+                _copy_observation(observation) for observation in observations
             )
         except (TypeError, ValueError):
             invalid = True
@@ -826,8 +917,17 @@ class BestFrameEvidenceSelector:
     ) -> EvidenceSelectionResult:
         """Implement the stable metadata-only ``EvidenceSelector`` port."""
 
-        plan = self._plan(tracklet, observations, "select")
-        result = EvidenceSelectionResult(plan.state, plan.observation_ids, plan.reason)
+        failed = False
+        result: EvidenceSelectionResult | None = None
+        try:
+            plan = self._plan(tracklet, observations, "select")
+            result = EvidenceSelectionResult(plan.state, plan.observation_ids, plan.reason)
+        except PortError:
+            raise
+        except BaseException:
+            failed = True
+        if failed or result is None:
+            raise _error(PortErrorCode.INVALID_REQUEST, "select")
         self._calls.append(PortCall(PortKind.EVIDENCE_SELECTOR, "select", len(observations)))
         return result
 
@@ -838,7 +938,16 @@ class BestFrameEvidenceSelector:
     ) -> EvidencePlanResult:
         """Return the selected source-coordinate intents and frozen score details."""
 
-        result = self._plan(tracklet, observations, "plan")
+        failed = False
+        result: EvidencePlanResult | None = None
+        try:
+            result = self._plan(tracklet, observations, "plan")
+        except PortError:
+            raise
+        except BaseException:
+            failed = True
+        if failed or result is None:
+            raise _error(PortErrorCode.INVALID_REQUEST, "plan")
         self._calls.append(PortCall(PortKind.EVIDENCE_SELECTOR, "plan", len(observations)))
         return result
 
