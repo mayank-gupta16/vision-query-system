@@ -294,15 +294,15 @@ def _validate_annotations(
                 _fail("invalid_annotations")
             clip_id = _text(clip["clip_id"], "invalid_annotations", 96)
             source_id = _text(clip["source_id"], "invalid_annotations", 64)
-            source_clip = expected_clips.get(clip_id)
+            expected_source_clip = expected_clips.get(clip_id)
             if (
                 clip_id in all_clip_ids
                 or source_id in sources
                 or clip["split"] != split
                 or clip_id != f"{split}-{source_id}"
-                or source_clip is None
-                or source_clip.get("source_id") != source_id
-                or source_clip.get("split") != split
+                or expected_source_clip is None
+                or expected_source_clip.get("source_id") != source_id
+                or expected_source_clip.get("split") != split
                 or clip["source_relative_path"] != f"{split}/{clip_id}-source.mov"
                 or clip["detector_relative_path"] != f"{split}/{clip_id}-detector.mov"
             ):

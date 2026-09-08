@@ -331,8 +331,11 @@ def test_crop_annotations_bind_geometry_and_integer_bytes_to_source_manifest() -
         item = cast(list[dict[str, object]], annotations["items"])[0]
         if mutation == "geometry":
             detector_box = cast(list[int], item["detector_box"])
-            shifted = tuple(
-                value + (1 if index % 2 == 0 else 0) for index, value in enumerate(detector_box)
+            shifted = cast(
+                tuple[int, int, int, int],
+                tuple(
+                    value + (1 if index % 2 == 0 else 0) for index, value in enumerate(detector_box)
+                ),
             )
             item["detector_box"] = list(shifted)
             item["source_box"] = list(preparation._source_box(shifted))
