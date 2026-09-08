@@ -2,12 +2,12 @@
   "acquisition": {
     "method": "deterministic 5 FPS rawvideo clips from ten locked plate-sanitized CC0 issue-21 derivatives; source identities, transforms, tracks, cut, frames, and pixels are bound by source-manifest.json and annotations.json",
     "owner": "Wikimedia Commons source artists and VisualWorld derivative generator",
-    "revision": "v02-tracking-cc0-derived-1",
-    "sha256": "07a02287ea612a5baf28245f1be98867cff270604c4e4e21aa78b6ffa10a005b",
+    "revision": "v02-tracking-cc0-derived-2",
+    "sha256": "c037b1c0888e5b8c2819ab299e950480c76c94811f460b5c8c89e1fe4865a7be",
     "url": "https://github.com/mayank-gupta16/vision-query-system/tree/main/fixtures/v02-tracking-research"
   },
   "experiment": "tracking",
-  "manifest_id": "tracking-cc0-derived-1",
+  "manifest_id": "tracking-cc0-derived-2",
   "privacy": {
     "classification": "licensed-no-personal-data",
     "consent_status": "not-applicable-no-personal-data",
@@ -33,7 +33,7 @@
   "schema_version": 1,
   "splits": {
     "calibration": {
-      "annotation_sha256": "1a4b7b1b2db98335778eb381f433b9e5e65aa5af419bcb1a215b94a488654e37",
+      "annotation_sha256": "9e4049382428c936b2c95c6386bf7fb98ab7e474d705e02be37602326e865922",
       "item_count": 24,
       "item_ids_sha256": "6f176eaa36fe79f66a8382be818f59b32f17e3c25c6a482f725947a01415c0b3",
       "stratum_item_counts": {
@@ -45,7 +45,7 @@
       }
     },
     "test": {
-      "annotation_sha256": "f8d7e5663bc01b778194db02822200284e106bdd925570ecf392ce84edddebd7",
+      "annotation_sha256": "576b5f1578ca74d4006f0ee898c447573e335bdf19831444f26691e82f0afe16",
       "item_count": 48,
       "item_ids_sha256": "7b24246c3b309f129bf0086e97de55340ed8a3a28f780178d5ae7e40457d7549",
       "stratum_item_counts": {

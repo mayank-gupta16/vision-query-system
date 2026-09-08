@@ -31,6 +31,9 @@
     "frame_count": 60,
     "interpolation": "visualworld-fixed-point-bilinear-v1",
     "object_target_width": 170,
+    "occlusion_layout": "three disjoint x lanes with deterministic plus-or-minus four pixel drift",
+    "occlusion_mask_frames": {"a": [20], "b": [20, 21, 22], "c": [20, 21, 22, 23, 24]},
+    "occlusion_partial_mask_frames": {"a": [19, 21], "b": [19, 23], "c": [19, 25]},
     "sample_fps": 5,
     "scenario_clip_counts": {
       "calibration": {"camera_motion": 1, "cuts": 1, "dense_crossing": 1, "occlusion": 1, "stationary_camera": 1},

@@ -322,6 +322,33 @@ def test_tracking_annotation_payloads_match_dataset_contract() -> None:
         assert hashlib.sha256(ids).hexdigest() == contract["item_ids_sha256"]
 
 
+def test_occlusion_stratum_isolates_locked_mask_gaps_in_disjoint_lanes() -> None:
+    annotations = _json(FIXTURE_ROOT / "annotations.json")
+    missing = {"a": {20}, "b": {20, 21, 22}, "c": {20, 21, 22, 23, 24}}
+    partial = {"a": {19, 21}, "b": {19, 23}, "c": {19, 25}}
+    for clip in cast(list[dict[str, object]], annotations["clips"]):
+        if clip["primary_stratum"] != "occlusion":
+            continue
+        for frame_index, frame in enumerate(cast(list[dict[str, object]], clip["frames"])):
+            objects = cast(list[dict[str, object]], frame["objects"])
+            by_role = {cast(str, item["track_id"])[-1]: item for item in objects}
+            for role in ("a", "b", "c"):
+                assert (role not in by_role) is (frame_index in missing[role])
+                if role in by_role:
+                    assert by_role[role]["visibility_millionths"] == (
+                        650_000 if frame_index in partial[role] else 1_000_000
+                    )
+            boxes = [
+                cast(tuple[int, int, int, int], tuple(cast(list[int], item["box"])))
+                for item in objects
+            ]
+            assert all(
+                metrics.iou(first, second) == 0.0
+                for index, first in enumerate(boxes)
+                for second in boxes[index + 1 :]
+            )
+
+
 def test_tracking_dataset_lock_rejects_coherent_source_or_oracle_substitution() -> None:
     candidates = _json(FIXTURE_ROOT / "candidates.json")
     source = _json(FIXTURE_ROOT / "source-manifest.json")
@@ -379,7 +406,7 @@ def test_tracking_annotation_boxes_require_bounded_exact_integers(value: object)
 
 
 def test_cut_score_separates_locked_calibration_cuts_without_oracle_labels() -> None:
-    dataset_root = ROOT / "artifacts" / "issue24" / "dataset-v12"
+    dataset_root = ROOT / "artifacts" / "issue24" / "dataset-v14"
     if not dataset_root.exists():
         pytest.skip("ignored research clips are not present")
     annotations = _json(FIXTURE_ROOT / "annotations.json")

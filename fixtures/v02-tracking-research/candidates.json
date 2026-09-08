@@ -29,9 +29,9 @@
     "source_manifest_sha256": "d85631980f31fb2bec6b5a9ec098b35c336365ed263efed5cd17e01d1fa12f66"
   },
   "dataset": {
-    "annotation_sha256": "531132855a677b97bf76545a07eb10626b8c5b4187c21e047c338df459e5eb3c",
-    "dataset_manifest_sha256": "38debc4c0b6e4ec15e84170c56ff1b896f74e39743be9b6dfb2a154db88c25f9",
-    "source_manifest_sha256": "07a02287ea612a5baf28245f1be98867cff270604c4e4e21aa78b6ffa10a005b"
+    "annotation_sha256": "eb9ff4363fc75a1898f6b6f364970aba72d33f8eb038657decbb27519bf8c54f",
+    "dataset_manifest_sha256": "6dfe6c0d9e16d73ad7e15525624b58dd014aef73ea061fd3f48715856ec4aad0",
+    "source_manifest_sha256": "c037b1c0888e5b8c2819ab299e950480c76c94811f460b5c8c89e1fe4865a7be"
   },
   "metric_reference": {
     "hota_sha256": "c582255c3d36bdb49c3ceeb2a5bd912cee009190dfcfe465b4173d03aaa97d6a",

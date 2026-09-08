@@ -154,6 +154,11 @@ def _expected_derivation() -> dict[str, object]:
         "frame_count": FRAME_COUNT,
         "interpolation": "visualworld-fixed-point-bilinear-v1",
         "object_target_width": TARGET_WIDTH,
+        "occlusion_layout": (
+            "three disjoint x lanes with deterministic plus-or-minus four pixel drift"
+        ),
+        "occlusion_mask_frames": {"a": [20], "b": [20, 21, 22], "c": [20, 21, 22, 23, 24]},
+        "occlusion_partial_mask_frames": {"a": [19, 21], "b": [19, 23], "c": [19, 25]},
         "sample_fps": 5,
         "scenario_clip_counts": {
             "calibration": {
@@ -512,13 +517,8 @@ def _left(scenario: str, role: str, frame_index: int, variant: int, object_width
         velocities = (3, -3, 2)
         value = bases[role_index] + velocities[role_index] * step
     elif scenario == "occlusion":
-        progress = frame_index if frame_index <= 30 else 60 - frame_index
-        if role == "a":
-            value = 15 + 7 * progress
-        elif role == "b":
-            value = 235 + ((frame_index % 12) - 6) * 2
-        else:
-            value = 455 - 7 * progress
+        bases = (15, 235, 455)
+        value = bases[role_index] + (frame_index + role_index * 3 + variant) % 9 - 4
     else:
         progress = frame_index if frame_index < 30 else 59 - frame_index
         travel = WIDTH - 16 - object_width
@@ -705,7 +705,7 @@ def _dataset_manifest(
                 "and pixels are bound by source-manifest.json and annotations.json"
             ),
             "owner": "Wikimedia Commons source artists and VisualWorld derivative generator",
-            "revision": "v02-tracking-cc0-derived-1",
+            "revision": "v02-tracking-cc0-derived-2",
             "sha256": source_sha256,
             "url": (
                 "https://github.com/mayank-gupta16/vision-query-system/tree/main/"
@@ -713,7 +713,7 @@ def _dataset_manifest(
             ),
         },
         "experiment": "tracking",
-        "manifest_id": "tracking-cc0-derived-1",
+        "manifest_id": "tracking-cc0-derived-2",
         "privacy": {
             "classification": "licensed-no-personal-data",
             "consent_status": "not-applicable-no-personal-data",
