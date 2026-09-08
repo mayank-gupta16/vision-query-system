@@ -95,6 +95,7 @@ the selected observation and source-coordinate geometry to an ordered rank,
 the complete deterministic score/tie-break breakdown, selector producer and
 configuration digest, `derived_private` retention, and coordinator-owned source
 cascade deletion. Only an explicit materialization request can add an exact
-RGB24 crop and content-addressed reference; unavailable or unresolvable detail
-remains `UNKNOWN`. The selector does not add OCR, identity, make/model, face, or
-plate fields.
+RGB24 crop and content-addressed reference. Materialization first recomputes the
+plan from the resupplied completed Tracklet and Observation set and requires the
+full intent to match. Unavailable or unresolvable detail remains `UNKNOWN`. The
+selector does not add OCR, identity, make/model, face, or plate fields.

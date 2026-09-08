@@ -372,6 +372,12 @@ bytes and EvidenceRef values, EvidenceStore handoff, hostile inputs, alias
 mutation, and pixel/path redaction. Run the same focused command under the
 repository's CPython 3.13.15 and 3.14.7 toolchains before merge.
 
+Materialization coverage also substitutes every full-intent dimension (record
+links, rank, geometry, PTS, score, selector provenance, and lifecycle policy),
+uses exact nested hostile scalar types, bounds forged score integers before
+derived arithmetic, and verifies BaseException sanitization before any crop is
+published.
+
 ## Updates
 
 Follow [ADR-0002](../decisions/ADR-0002-application-toolchain.md): one direct

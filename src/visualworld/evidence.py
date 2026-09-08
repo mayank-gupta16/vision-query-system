@@ -11,7 +11,18 @@ from enum import StrEnum
 from fractions import Fraction
 
 from visualworld.geometry import CropError, Rgb24Crop, extract_rgb24_crop
-from visualworld.ingestion import EvidenceRef, Geometry, MediaTime, Producer
+from visualworld.ingestion import (
+    MAX_I31,
+    AffineCoefficients,
+    Artifact,
+    EvidenceRef,
+    Geometry,
+    MediaTime,
+    Producer,
+    ProducerSpace,
+    Rational,
+    TimeBase,
+)
 from visualworld.perception import MAX_CONFIDENCE_MILLIONTHS, Observation, Tracklet
 from visualworld.ports import (
     MAX_PORT_BATCH_ITEMS,
@@ -36,28 +47,156 @@ _REASON_RE = re.compile(r"[a-z][a-z0-9_]{0,63}\Z")
 _KIND = "original_frame"
 _RETENTION = "derived_private"
 _DELETION_OWNER = "coordinator_source_cascade"
+# Geometry dimensions are ingestion-bounded signed-31-bit positive integers.
+_MAX_SOURCE_AREA_PIXELS = MAX_I31 * MAX_I31
+# ``abs(2*t - start - end)`` combines three i64*u32/u32 media times. A common
+# denominator is below 2**96 and the resulting absolute numerator below 2**161.
+_MAX_MIDPOINT_DISTANCE_NUMERATOR_BITS = 161
+_MAX_MIDPOINT_DISTANCE_DENOMINATOR_BITS = 96
 
 
 def _error(code: PortErrorCode, operation: str) -> PortError:
     return PortError(code, PortKind.EVIDENCE_SELECTOR, operation)
 
 
+def _copy_producer(value: Producer) -> Producer:
+    if type(value) is not Producer or any(
+        type(item) is not str for item in (value.name, value.version, value.configuration_sha256)
+    ):
+        raise ValueError("invalid producer")
+    return Producer(value.name, value.version, value.configuration_sha256)
+
+
 def _copy_time(value: MediaTime) -> MediaTime:
     if type(value) is not MediaTime:
         raise ValueError("invalid time")
-    return MediaTime.from_mapping(value.to_mapping(), "pts")
+    time_base = value.time_base
+    if (
+        type(value.value) is not str
+        or type(value.basis) is not str
+        or type(time_base) is not TimeBase
+        or type(time_base.numerator) is not str
+        or type(time_base.denominator) is not str
+        or (value.estimate_method is not None and type(value.estimate_method) is not str)
+        or (value.estimate_producer is not None and type(value.estimate_producer) is not Producer)
+    ):
+        raise ValueError("invalid time")
+    estimate_producer = (
+        None if value.estimate_producer is None else _copy_producer(value.estimate_producer)
+    )
+    return MediaTime(
+        value.value,
+        TimeBase(time_base.numerator, time_base.denominator),
+        value.basis,
+        value.estimate_method,
+        estimate_producer,
+    )
+
+
+def _copy_rational(value: Rational) -> Rational:
+    if (
+        type(value) is not Rational
+        or type(value.numerator) is not str
+        or type(value.denominator) is not str
+    ):
+        raise ValueError("invalid rational")
+    return Rational(value.numerator, value.denominator)
 
 
 def _copy_geometry(value: Geometry) -> Geometry:
     if type(value) is not Geometry:
         raise ValueError("invalid geometry")
-    return Geometry.from_mapping(value.to_mapping())
+    if (
+        type(value.source_width) is not int
+        or type(value.source_height) is not int
+        or type(value.box_xyxy) is not tuple
+        or len(value.box_xyxy) != 4
+        or any(type(coordinate) is not int for coordinate in value.box_xyxy)
+        or type(value.measurement) is not str
+        or type(value.transform_kind) is not str
+        or type(value.space) is not str
+    ):
+        raise ValueError("invalid geometry")
+    producer_space: ProducerSpace | None = None
+    if value.producer_space is not None:
+        supplied_space = value.producer_space
+        if (
+            type(supplied_space) is not ProducerSpace
+            or type(supplied_space.width) is not int
+            or type(supplied_space.height) is not int
+            or type(supplied_space.box_xyxy) is not tuple
+            or len(supplied_space.box_xyxy) != 4
+            or any(type(coordinate) is not int for coordinate in supplied_space.box_xyxy)
+        ):
+            raise ValueError("invalid geometry")
+        producer_space = ProducerSpace(
+            supplied_space.width,
+            supplied_space.height,
+            supplied_space.box_xyxy,
+        )
+    coefficients: AffineCoefficients | None = None
+    if value.coefficients is not None:
+        supplied_coefficients = value.coefficients
+        if type(supplied_coefficients) is not AffineCoefficients:
+            raise ValueError("invalid geometry")
+        coefficients = AffineCoefficients(
+            *(
+                _copy_rational(getattr(supplied_coefficients, name))
+                for name in ("a", "b", "c", "d", "e", "f")
+            )
+        )
+    return Geometry(
+        value.source_width,
+        value.source_height,
+        value.box_xyxy,
+        value.measurement,
+        value.transform_kind,
+        producer_space,
+        coefficients,
+        value.space,
+    )
 
 
-def _copy_producer(value: Producer) -> Producer:
-    if type(value) is not Producer:
-        raise ValueError("invalid producer")
-    return Producer.from_mapping(value.to_mapping())
+def _copy_artifact(value: Artifact) -> Artifact:
+    if type(value) is not Artifact or any(
+        type(item) is not str for item in (value.sha256, value.bytes, value.media_type)
+    ):
+        raise ValueError("invalid artifact")
+    return Artifact(value.sha256, value.bytes, value.media_type)
+
+
+def _copy_evidence_ref(value: EvidenceRef) -> EvidenceRef:
+    if type(value) is not EvidenceRef or any(
+        type(item) is not str
+        for item in (
+            value.evidence_id,
+            value.frame_id,
+            value.kind,
+            value.retention,
+        )
+    ):
+        raise ValueError("invalid evidence reference")
+    if value.geometry is not None and type(value.geometry) is not Geometry:
+        raise ValueError("invalid evidence reference")
+    return EvidenceRef(
+        value.evidence_id,
+        value.frame_id,
+        _copy_artifact(value.artifact),
+        None if value.geometry is None else _copy_geometry(value.geometry),
+        value.kind,
+        value.retention,
+    )
+
+
+def _copy_crop(value: Rgb24Crop) -> Rgb24Crop:
+    if (
+        type(value) is not Rgb24Crop
+        or type(value.width) is not int
+        or type(value.height) is not int
+        or type(value.pixels) is not bytes
+    ):
+        raise ValueError("invalid evidence crop")
+    return Rgb24Crop(value.width, value.height, value.pixels)
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,8 +286,12 @@ class EvidenceScore:
             raise ValueError("boundary touch count is invalid")
         if not 0 <= self.confidence_millionths <= MAX_CONFIDENCE_MILLIONTHS:
             raise ValueError("confidence is invalid")
-        if not 1 <= self.visible_area_pixels <= self.source_area_pixels:
+        if not (
+            1 <= self.visible_area_pixels <= self.source_area_pixels <= _MAX_SOURCE_AREA_PIXELS
+        ):
             raise ValueError("visible area is invalid")
+        if not 0 <= self.visible_area_millionths <= _MILLION:
+            raise ValueError("visible area ratio is invalid")
         if self.visible_area_millionths != (
             self.visible_area_pixels * _MILLION // self.source_area_pixels
         ):
@@ -160,6 +303,10 @@ class EvidenceScore:
         if (
             self.midpoint_distance_seconds_x2_numerator < 0
             or self.midpoint_distance_seconds_x2_denominator <= 0
+            or self.midpoint_distance_seconds_x2_numerator.bit_length()
+            > _MAX_MIDPOINT_DISTANCE_NUMERATOR_BITS
+            or self.midpoint_distance_seconds_x2_denominator.bit_length()
+            > _MAX_MIDPOINT_DISTANCE_DENOMINATOR_BITS
         ):
             raise ValueError("midpoint distance is invalid")
         midpoint_distance = Fraction(
@@ -171,11 +318,12 @@ class EvidenceScore:
             or midpoint_distance.denominator != self.midpoint_distance_seconds_x2_denominator
         ):
             raise ValueError("midpoint distance is not normalized")
-        _copy_time(self.pts)
+        owned_pts = _copy_time(self.pts)
         if type(self.observation_id) is not str or not _OBSERVATION_ID_RE.fullmatch(
             self.observation_id
         ):
             raise ValueError("observation identifier is invalid")
+        object.__setattr__(self, "pts", owned_pts)
 
     def rank_key(self) -> tuple[int, int, int, int, Fraction, int, str]:
         """Return the frozen lexicographic ranking key; lower is better."""
@@ -250,29 +398,33 @@ class EvidenceIntent:
             raise ValueError("evidence intent identifier is invalid")
         if type(self.stream_index) is not int or not 0 <= self.stream_index <= 2**31 - 1:
             raise ValueError("stream index is invalid")
-        _copy_time(self.pts)
-        _copy_geometry(self.geometry)
+        if any(
+            type(value) is not str for value in (self.kind, self.retention, self.deletion_owner)
+        ):
+            raise ValueError("evidence lifecycle policy is invalid")
+        owned_pts = _copy_time(self.pts)
+        owned_geometry = _copy_geometry(self.geometry)
         if type(self.score) is not EvidenceScore:
             raise ValueError("evidence score is invalid")
-        self.score.__post_init__()
-        _copy_producer(self.selector)
-        if self.score.observation_id != self.observation_id or self.score.pts != self.pts:
+        owned_score = _copy_score(self.score)
+        owned_selector = _copy_producer(self.selector)
+        if owned_score.observation_id != self.observation_id or owned_score.pts != owned_pts:
             raise ValueError("evidence score scope is inconsistent")
-        x_min, y_min, x_max, y_max = self.geometry.box_xyxy
+        x_min, y_min, x_max, y_max = owned_geometry.box_xyxy
         visible_area = (x_max - x_min) * (y_max - y_min)
-        source_area = self.geometry.source_width * self.geometry.source_height
+        source_area = owned_geometry.source_width * owned_geometry.source_height
         boundary_touches = sum(
             (
                 x_min == 0,
                 y_min == 0,
-                x_max == self.geometry.source_width,
-                y_max == self.geometry.source_height,
+                x_max == owned_geometry.source_width,
+                y_max == owned_geometry.source_height,
             )
         )
         if (
-            self.score.boundary_touch_count != boundary_touches
-            or self.score.visible_area_pixels != visible_area
-            or self.score.source_area_pixels != source_area
+            owned_score.boundary_touch_count != boundary_touches
+            or owned_score.visible_area_pixels != visible_area
+            or owned_score.source_area_pixels != source_area
         ):
             raise ValueError("evidence score geometry is inconsistent")
         if (
@@ -281,6 +433,10 @@ class EvidenceIntent:
             or self.deletion_owner != _DELETION_OWNER
         ):
             raise ValueError("evidence lifecycle policy is invalid")
+        object.__setattr__(self, "pts", owned_pts)
+        object.__setattr__(self, "geometry", owned_geometry)
+        object.__setattr__(self, "score", owned_score)
+        object.__setattr__(self, "selector", owned_selector)
 
     def to_mapping(self) -> dict[str, object]:
         """Return complete metadata without retrieving or embedding pixels."""
@@ -371,25 +527,28 @@ class MaterializedEvidence:
     def __post_init__(self) -> None:
         if type(self.intent) is not EvidenceIntent:
             raise ValueError("evidence intent is invalid")
-        self.intent.__post_init__()
         if type(self.need) is not EvidenceNeed:
             raise ValueError("evidence need is invalid")
         if type(self.detail_resolution) is not DetailResolution:
             raise ValueError("detail resolution is invalid")
         if type(self.reference) is not EvidenceRef:
             raise ValueError("evidence reference is invalid")
-        EvidenceRef.__post_init__(self.reference)
         if type(self.crop) is not Rgb24Crop:
             raise ValueError("evidence crop is invalid")
-        self.crop.__post_init__()
+        owned_intent = _copy_intent(self.intent)
+        owned_reference = _copy_evidence_ref(self.reference)
+        owned_crop = _copy_crop(self.crop)
         if (
-            self.reference.frame_id != self.intent.frame_id
-            or self.reference.geometry != self.intent.geometry
-            or self.reference.kind != self.intent.kind
-            or self.reference.retention != self.intent.retention
-            or self.reference.artifact != self.crop.artifact()
+            owned_reference.frame_id != owned_intent.frame_id
+            or owned_reference.geometry != owned_intent.geometry
+            or owned_reference.kind != owned_intent.kind
+            or owned_reference.retention != owned_intent.retention
+            or owned_reference.artifact != owned_crop.artifact()
         ):
             raise ValueError("materialized evidence is inconsistent")
+        object.__setattr__(self, "intent", owned_intent)
+        object.__setattr__(self, "reference", owned_reference)
+        object.__setattr__(self, "crop", owned_crop)
 
     def to_mapping(self) -> dict[str, object]:
         """Return the reference and request metadata, never the crop bytes."""
@@ -479,11 +638,49 @@ def _score(
     )
 
 
+def _copy_score(value: EvidenceScore) -> EvidenceScore:
+    if type(value) is not EvidenceScore:
+        raise ValueError("invalid evidence score")
+    integers = (
+        value.boundary_touch_count,
+        value.confidence_millionths,
+        value.visible_area_pixels,
+        value.source_area_pixels,
+        value.visible_area_millionths,
+        value.midpoint_distance_seconds_x2_numerator,
+        value.midpoint_distance_seconds_x2_denominator,
+        value.point_index,
+        value.point_count,
+    )
+    if any(type(item) is not int for item in integers) or type(value.observation_id) is not str:
+        raise ValueError("invalid evidence score")
+    return EvidenceScore(
+        *integers,
+        _copy_time(value.pts),
+        value.observation_id,
+    )
+
+
 def _copy_intent(value: EvidenceIntent) -> EvidenceIntent:
     if type(value) is not EvidenceIntent:
         raise ValueError("invalid evidence intent")
-    value.__post_init__()
-    score = value.score
+    if (
+        type(value.rank) is not int
+        or type(value.stream_index) is not int
+        or any(
+            type(item) is not str
+            for item in (
+                value.tracklet_id,
+                value.observation_id,
+                value.source_id,
+                value.frame_id,
+                value.kind,
+                value.retention,
+                value.deletion_owner,
+            )
+        )
+    ):
+        raise ValueError("invalid evidence intent")
     return EvidenceIntent(
         value.rank,
         value.tracklet_id,
@@ -493,19 +690,7 @@ def _copy_intent(value: EvidenceIntent) -> EvidenceIntent:
         value.stream_index,
         _copy_time(value.pts),
         _copy_geometry(value.geometry),
-        EvidenceScore(
-            score.boundary_touch_count,
-            score.confidence_millionths,
-            score.visible_area_pixels,
-            score.source_area_pixels,
-            score.visible_area_millionths,
-            score.midpoint_distance_seconds_x2_numerator,
-            score.midpoint_distance_seconds_x2_denominator,
-            score.point_index,
-            score.point_count,
-            _copy_time(score.pts),
-            score.observation_id,
-        ),
+        _copy_score(value.score),
         _copy_producer(value.selector),
         value.kind,
         value.retention,
@@ -660,12 +845,46 @@ class BestFrameEvidenceSelector:
     def materialize(
         self,
         intent: EvidenceIntent,
+        tracklet: Tracklet,
+        observations: tuple[Observation, ...],
         frame_rgb24: bytes | None,
         *,
         need: EvidenceNeed,
         detail_resolution: DetailResolution,
     ) -> EvidenceCropResult:
-        """Crop exact source RGB24 only after a caller declares an evidence need."""
+        """Validate selection context, then crop caller-supplied source RGB24."""
+
+        failed = False
+        result: EvidenceCropResult | None = None
+        try:
+            result = self._materialize(
+                intent,
+                tracklet,
+                observations,
+                frame_rgb24,
+                need=need,
+                detail_resolution=detail_resolution,
+            )
+        except PortError:
+            raise
+        except BaseException:
+            failed = True
+        if failed or result is None:
+            raise _error(PortErrorCode.INVALID_REQUEST, "materialize")
+        self._calls.append(PortCall(PortKind.EVIDENCE_SELECTOR, "materialize", 1))
+        return result
+
+    def _materialize(
+        self,
+        intent: EvidenceIntent,
+        tracklet: Tracklet,
+        observations: tuple[Observation, ...],
+        frame_rgb24: bytes | None,
+        *,
+        need: EvidenceNeed,
+        detail_resolution: DetailResolution,
+    ) -> EvidenceCropResult:
+        """Implement the sanitized public materialization operation."""
 
         operation = "materialize"
         if type(need) is not EvidenceNeed or type(detail_resolution) is not DetailResolution:
@@ -678,7 +897,8 @@ class BestFrameEvidenceSelector:
             invalid_intent = True
         if invalid_intent or owned_intent is None:
             raise _error(PortErrorCode.INVALID_REQUEST, operation)
-        if owned_intent.selector != self._producer:
+        expected = self._plan(tracklet, observations, operation)
+        if owned_intent not in expected.intents:
             raise _error(PortErrorCode.CONFLICT, operation)
         if frame_rgb24 is None:
             result = EvidenceCropResult(
@@ -730,7 +950,6 @@ class BestFrameEvidenceSelector:
                 PerceptionResultState.COMPLETE,
                 MaterializedEvidence(owned_intent, need, detail_resolution, reference, crop),
             )
-        self._calls.append(PortCall(PortKind.EVIDENCE_SELECTOR, operation, 1))
         return result
 
 

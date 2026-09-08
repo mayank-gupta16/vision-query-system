@@ -37,6 +37,9 @@ opaque record identifiers, integer scores, producer provenance,
 `derived_private` retention, and `coordinator_source_cascade` deletion ownership,
 but no pixel bytes or source locator. Original RGB24 data may enter only the
 explicit materialization call for a declared inspection or downstream-detail
-need. Crop representations, diagnostics, structured failures, and metadata
-mappings omit those bytes; durable custody still requires the accepted
-EvidenceStore/coordinator path.
+need after the selector validates a freshly recomputed full-intent match against
+the resupplied Tracklet and Observations. Crop representations, diagnostics,
+structured failures, and metadata mappings omit those bytes. The caller remains
+responsible for supplying bytes from the intended frame; no decoder attestation
+is claimed. Durable custody still requires the accepted EvidenceStore/coordinator
+path.

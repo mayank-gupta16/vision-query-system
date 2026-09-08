@@ -41,6 +41,7 @@ from visualworld.ingestion import (
 from visualworld.perception import Observation, Tracklet, TrackPoint
 from visualworld.ports import (
     EvidenceSelector,
+    FakeEvidenceSelector,
     FakeEvidenceStore,
     PerceptionResultState,
     PortCall,
@@ -201,9 +202,13 @@ def test_repetition_and_adapter_substitution_preserve_selection_and_components()
 
     first_runs = tuple(first.plan(tracklet, tuple(reversed(observations))) for _ in range(3))
     substitute_plan = substitute.plan(tracklet, observations)
+    concrete_result = substitute.select(tracklet, observations)
+    fake_result = FakeEvidenceSelector(concrete_result).select(tracklet, observations)
 
     assert all(result.observation_ids == substitute_plan.observation_ids for result in first_runs)
     assert all(result.to_mapping() == substitute_plan.to_mapping() for result in first_runs)
+    assert fake_result == concrete_result
+    assert fake_result.observation_ids == substitute_plan.observation_ids
     assert first.producer == substitute.producer
 
 
@@ -323,6 +328,8 @@ def test_explicit_original_crop_is_byte_exact_and_ready_for_existing_cas() -> No
 
     result = selector.materialize(
         intent,
+        tracklet,
+        observations,
         frame,
         need=EvidenceNeed.INSPECTION,
         detail_resolution=DetailResolution.UNKNOWN,
@@ -370,18 +377,24 @@ def test_unavailable_unresolvable_and_unassessed_detail_return_unknown_without_c
 
     unavailable = selector.materialize(
         intent,
+        tracklet,
+        observations,
         None,
         need=EvidenceNeed.INSPECTION,
         detail_resolution=DetailResolution.UNKNOWN,
     )
     unresolvable = selector.materialize(
         intent,
+        tracklet,
+        observations,
         b"private pixels that must not be inspected",
         need=EvidenceNeed.DOWNSTREAM_DETAIL,
         detail_resolution=DetailResolution.UNRESOLVABLE,
     )
     unassessed = selector.materialize(
         intent,
+        tracklet,
+        observations,
         b"private pixels that must not be inspected",
         need=EvidenceNeed.DOWNSTREAM_DETAIL,
         detail_resolution=DetailResolution.UNKNOWN,
@@ -419,6 +432,8 @@ def test_pixels_and_sensitive_content_never_enter_repr_metadata_or_errors() -> N
     frame = (marker * 2)[: 4 * 3 * 3]
     result = selector.materialize(
         plan.intents[0],
+        tracklet,
+        observations,
         frame,
         need=EvidenceNeed.INSPECTION,
         detail_resolution=DetailResolution.RESOLVABLE,
@@ -433,6 +448,8 @@ def test_pixels_and_sensitive_content_never_enter_repr_metadata_or_errors() -> N
     with pytest.raises(PortError) as raised:
         selector.materialize(
             plan.intents[0],
+            tracklet,
+            observations,
             marker,
             need=EvidenceNeed.INSPECTION,
             detail_resolution=DetailResolution.RESOLVABLE,
@@ -451,6 +468,8 @@ def test_foreign_or_mutated_intent_and_hostile_types_fail_closed() -> None:
     with pytest.raises(PortError) as foreign:
         second.materialize(
             intent,
+            tracklet,
+            observations,
             None,
             need=EvidenceNeed.INSPECTION,
             detail_resolution=DetailResolution.UNKNOWN,
@@ -461,6 +480,8 @@ def test_foreign_or_mutated_intent_and_hostile_types_fail_closed() -> None:
     with pytest.raises(PortError) as mutated:
         first.materialize(
             intent,
+            tracklet,
+            observations,
             None,
             need=EvidenceNeed.INSPECTION,
             detail_resolution=DetailResolution.UNKNOWN,
@@ -480,6 +501,8 @@ def test_foreign_or_mutated_intent_and_hostile_types_fail_closed() -> None:
     with pytest.raises(PortError, match="invalid_request"):
         first.materialize(
             cast(EvidenceIntent, object()),
+            tracklet,
+            observations,
             None,
             need=EvidenceNeed.INSPECTION,
             detail_resolution=DetailResolution.UNKNOWN,
@@ -487,6 +510,8 @@ def test_foreign_or_mutated_intent_and_hostile_types_fail_closed() -> None:
     with pytest.raises(PortError, match="invalid_request"):
         first.materialize(
             first.plan(tracklet, observations).intents[0],
+            tracklet,
+            observations,
             None,
             need=cast(EvidenceNeed, "inspection"),
             detail_resolution=DetailResolution.UNKNOWN,
@@ -494,6 +519,8 @@ def test_foreign_or_mutated_intent_and_hostile_types_fail_closed() -> None:
     with pytest.raises(PortError, match="invalid_request"):
         first.materialize(
             first.plan(tracklet, observations).intents[0],
+            tracklet,
+            observations,
             cast(bytes, bytearray(b"private pixels")),
             need=EvidenceNeed.INSPECTION,
             detail_resolution=DetailResolution.RESOLVABLE,
@@ -513,6 +540,8 @@ def test_materialization_rejects_a_frame_beyond_the_declared_byte_bound() -> Non
     with pytest.raises(PortError) as raised:
         selector.materialize(
             intent,
+            tracklet,
+            observations,
             b"x",
             need=EvidenceNeed.INSPECTION,
             detail_resolution=DetailResolution.RESOLVABLE,
@@ -618,6 +647,240 @@ def test_score_and_intent_values_reject_hostile_nested_fields() -> None:
         lambda: replace(intent, selector=cast(Producer, object())),
         lambda: replace(intent, score=valid_other_id),
         lambda: replace(intent, score=valid_other_area),
+    )
+    for construct in invalid_intents:
+        with pytest.raises(ValueError):
+            construct()
+
+
+def test_hostile_nested_producer_strings_cannot_forge_selector_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class EqualToEverything(str):
+        def __eq__(self, other: object) -> bool:
+            return True
+
+        def __ne__(self, other: object) -> bool:
+            return False
+
+        __hash__ = str.__hash__
+
+    _, _, observations, tracklet = _values(
+        ((1, 1, 4, 3),),
+        (950_000,),
+        width=4,
+        height=3,
+    )
+    issuer = BestFrameEvidenceSelector(limits=EvidenceSelectionLimits(1))
+    receiver = BestFrameEvidenceSelector(limits=EvidenceSelectionLimits(2))
+    intent = issuer.plan(tracklet, observations).intents[0]
+    object.__setattr__(
+        intent,
+        "selector",
+        Producer(
+            EqualToEverything("private.producer"),
+            EqualToEverything("private"),
+            EqualToEverything("00" * 32),
+        ),
+    )
+    attempts: list[str] = []
+
+    def denied(*_: object, **__: object) -> NoReturn:
+        attempts.append("materialized")
+        raise AssertionError("forged intent reached materialization")
+
+    monkeypatch.setattr(evidence_module, "extract_rgb24_crop", denied)
+
+    with pytest.raises(PortError) as raised:
+        receiver.materialize(
+            intent,
+            tracklet,
+            observations,
+            bytes(range(4 * 3 * 3)),
+            need=EvidenceNeed.INSPECTION,
+            detail_resolution=DetailResolution.RESOLVABLE,
+        )
+
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert raised.value.__context__ is None
+    assert "private" not in str(raised.value)
+    assert attempts == []
+
+
+def test_valid_shaped_intent_and_rank_substitutions_cannot_materialize() -> None:
+    _, _, observations, tracklet = _golden_values()
+    selector = BestFrameEvidenceSelector()
+    intent = selector.plan(tracklet, observations).intents[0]
+    score = intent.score
+    altered_pts = MediaTime("123", intent.pts.time_base)
+    altered_observation_id = "obs_" + "44" * 32
+    forged = (
+        replace(intent, frame_id="frm_" + "11" * 32),
+        replace(intent, source_id="src_" + "22" * 32),
+        replace(intent, tracklet_id="trk_" + "33" * 32),
+        replace(
+            intent,
+            observation_id=altered_observation_id,
+            score=replace(score, observation_id=altered_observation_id),
+        ),
+        replace(intent, stream_index=1),
+        replace(intent, rank=2),
+        replace(
+            intent,
+            geometry=Geometry(100, 100, (20, 20, 80, 80), "inferred"),
+        ),
+        replace(intent, pts=altered_pts, score=replace(score, pts=altered_pts)),
+        replace(intent, score=replace(score, confidence_millionths=1)),
+        replace(
+            intent,
+            score=replace(
+                score,
+                midpoint_distance_seconds_x2_numerator=1,
+                midpoint_distance_seconds_x2_denominator=2,
+            ),
+        ),
+        replace(intent, score=replace(score, point_index=2)),
+        replace(
+            intent,
+            selector=Producer(
+                "visualworld.best-frame-evidence-selector",
+                "1",
+                "55" * 32,
+            ),
+        ),
+    )
+
+    for altered in forged:
+        with pytest.raises(PortError) as raised:
+            selector.materialize(
+                altered,
+                tracklet,
+                observations,
+                bytes(100 * 100 * 3),
+                need=EvidenceNeed.INSPECTION,
+                detail_resolution=DetailResolution.RESOLVABLE,
+            )
+        assert raised.value.code is PortErrorCode.CONFLICT
+        assert raised.value.__context__ is None
+
+
+def test_hostile_nested_exception_is_sanitized_before_dynamic_access() -> None:
+    attempts: list[str] = []
+
+    class ExplodingTimeBase:
+        def to_mapping(self) -> object:
+            attempts.append("dynamic-access")
+            raise RuntimeError("private/path\nsecret")
+
+    _, _, observations, tracklet = _values(
+        ((1, 1, 4, 3),),
+        (950_000,),
+        width=4,
+        height=3,
+    )
+    selector = BestFrameEvidenceSelector()
+    intent = selector.plan(tracklet, observations).intents[0]
+    object.__setattr__(intent.pts, "time_base", ExplodingTimeBase())
+
+    with pytest.raises(PortError) as raised:
+        selector.materialize(
+            intent,
+            tracklet,
+            observations,
+            bytes(range(4 * 3 * 3)),
+            need=EvidenceNeed.INSPECTION,
+            detail_resolution=DetailResolution.RESOLVABLE,
+        )
+
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert raised.value.__context__ is None
+    assert "private" not in str(raised.value)
+    assert attempts == []
+
+
+def test_materialize_sanitizes_hostile_base_exception_from_crop_boundary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class HostileFailure(BaseException):
+        pass
+
+    _, _, observations, tracklet = _values(
+        ((1, 1, 4, 3),),
+        (950_000,),
+        width=4,
+        height=3,
+    )
+    selector = BestFrameEvidenceSelector()
+    intent = selector.plan(tracklet, observations).intents[0]
+
+    def fail(*_: object, **__: object) -> NoReturn:
+        raise HostileFailure("private/path\nsecret")
+
+    monkeypatch.setattr(evidence_module, "extract_rgb24_crop", fail)
+
+    with pytest.raises(PortError) as raised:
+        selector.materialize(
+            intent,
+            tracklet,
+            observations,
+            bytes(range(4 * 3 * 3)),
+            need=EvidenceNeed.INSPECTION,
+            detail_resolution=DetailResolution.RESOLVABLE,
+        )
+
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+    assert raised.value.__context__ is None
+    assert "private" not in str(raised.value)
+
+
+def test_forged_score_integers_are_bounded_before_derived_arithmetic() -> None:
+    _, _, observations, tracklet = _values(
+        ((1, 1, 4, 3),),
+        (950_000,),
+        width=4,
+        height=3,
+    )
+    score = BestFrameEvidenceSelector().plan(tracklet, observations).intents[0].score
+
+    invalid_scores: tuple[Callable[[], EvidenceScore], ...] = (
+        lambda: replace(
+            score,
+            source_area_pixels=2**63,
+            visible_area_pixels=2**63,
+            visible_area_millionths=1_000_000,
+        ),
+        lambda: replace(
+            score,
+            midpoint_distance_seconds_x2_numerator=2**200,
+            midpoint_distance_seconds_x2_denominator=1,
+        ),
+    )
+    for construct in invalid_scores:
+        with pytest.raises(ValueError):
+            construct()
+
+
+def test_hostile_lifecycle_string_subclasses_are_rejected_before_equality() -> None:
+    class EqualToEverything(str):
+        def __eq__(self, other: object) -> bool:
+            return True
+
+        def __ne__(self, other: object) -> bool:
+            return False
+
+    _, _, observations, tracklet = _values(
+        ((1, 1, 4, 3),),
+        (950_000,),
+        width=4,
+        height=3,
+    )
+    intent = BestFrameEvidenceSelector().plan(tracklet, observations).intents[0]
+
+    hostile = EqualToEverything("private")
+    invalid_intents: tuple[Callable[[], EvidenceIntent], ...] = (
+        lambda: replace(intent, kind=hostile),
+        lambda: replace(intent, retention=hostile),
+        lambda: replace(intent, deletion_owner=hostile),
     )
     for construct in invalid_intents:
         with pytest.raises(ValueError):

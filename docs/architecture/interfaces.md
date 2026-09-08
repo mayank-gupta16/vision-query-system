@@ -165,12 +165,17 @@ The ranking and default configuration digest are frozen by
 [ADR-0008](../decisions/ADR-0008-deterministic-best-frame-evidence.md).
 
 The selector's separate `materialize` extension accepts RGB24 bytes only after
-an explicit inspection or downstream-detail request. It uses the existing exact
-crop utility and produces a matching `EvidenceRef`; missing pixels or declared
-unresolvable detail remain `unknown`. Planning does not decode, crop, write, or
-retain anything. The caller may pass a completed crop through `EvidenceStore`,
-while later coordination remains responsible for staging, reference publication,
-and deletion.
+an explicit inspection or downstream-detail request. The caller resupplies the
+completed Tracklet and its exact Observation set; the selector validates that
+context, replans, and requires an exact match for the full issued intent before
+touching pixels. It then uses the existing exact crop utility and produces a
+matching `EvidenceRef`; missing pixels or declared unresolvable detail remain
+`unknown`. Planning does not decode, crop, write, or retain anything. The caller
+must supply RGB24 for the intent's exact frame: this extension has no decoder
+attestation, and the Artifact hash covers the supplied crop rather than proving
+source-frame identity. The caller may pass a completed crop through
+`EvidenceStore`, while later coordination remains responsible for staging,
+reference publication, and deletion.
 
 `visualworld.detection.OpenVinoVehicleDetector` is the first concrete
 `Detector`. Its fixture-worker seam implements the same record contract in

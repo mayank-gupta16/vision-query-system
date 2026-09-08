@@ -75,7 +75,13 @@ contains no pixels.
 
 Original RGB24 pixels enter only the explicit `materialize` extension after a
 caller supplies both an `inspection` or `downstream_detail` need and a detail
-resolution state. Missing source pixels return `unknown/source_pixels_unavailable`.
+resolution state. The caller must also resupply the completed Tracklet and its
+exact Observation set. Before inspecting any supplied pixels, the selector
+validates that context, recomputes the deterministic plan, and requires the
+entire intent (links, rank, geometry, PTS, score, selector provenance, and
+lifecycle policy) to match one freshly selected intent. A public configuration
+digest alone does not authorize materialization. Missing source pixels return
+`unknown/source_pixels_unavailable`.
 Declared unresolvable detail returns `unknown/detail_unresolvable`; an unassessed
 downstream-detail request returns `unknown/detail_resolution_unknown`. Inspection
 may materialize an unassessed crop because inspection can be the act that resolves
@@ -89,6 +95,12 @@ state without treating either as model evidence.
 The caller passes the returned artifact descriptor and bytes to `EvidenceStore`
 only when persistence is justified. The coordinator remains the sole owner of
 CAS staging, publication, retention, and source-cascade deletion.
+
+The caller or orchestrator is responsible for supplying packed RGB24 bytes from
+the intent's exact `frame_id`. This issue adds no decoder attestation and cannot
+prove that the supplied frame bytes came from that frame. The returned Artifact
+hash covers only the exact cropped bytes supplied to this operation; it is not a
+hash or attestation of the source frame.
 
 The default producer configuration SHA-256 is
 `98cca604cf1880af26173fb2210eedb5b9a5734dd7970e9024e734d0531a1de5`.
