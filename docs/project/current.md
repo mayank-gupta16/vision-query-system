@@ -20,7 +20,9 @@
   EvidenceSelector contracts with deterministic fakes, and a pinned combined
   CPU-LITE benchmark harness with machine-readable comparison, plus an accepted
   separately provisioned Linux x86_64/GNU-libc-2.28+ perception boundary with a
-  frozen artifact/runtime manifest and standard-library fail-closed provisioner
+  frozen artifact/runtime manifest and standard-library fail-closed provisioner,
+  plus a deterministic global-last-box IoU tracker with pixel-free hard-cut
+  scores and opaque bounded-page continuation
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -80,8 +82,10 @@
   IDF1, 8 switches and 24 fragmentations per 1,000 visible track frames, zero
   false cut continuations, 4.251x real time, and 562.32 MiB peak RSS. Keep
   identities clip-local, terminate before post-cut association, allow five
-  missed 5 FPS samples, and do not infer persistent ReID. No production tracker
-  adapter has yet changed.
+  missed 5 FPS samples, and do not infer persistent ReID. `GlobalLastBoxTracker`
+  implements that exact boundary with deterministic global assignment, bounded
+  resumable state, explicit unknown/unsupported outcomes, and no pixel or path
+  values in the port.
 - ADR-0003 accepts the source-built
   `visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2` worker closure for the first Linux
   ingestion slice. The minimal signature-verified FFmpeg build, CPython, PyAV,
@@ -173,8 +177,8 @@
 
 ## Next priorities
 
-1. Complete the deterministic clip-local tracker in #72 and bounded detector in
-   #73 against the v0.2 contracts and accepted perception boundary.
+1. Complete the bounded detector in #73 against the v0.2 contracts and accepted
+   perception boundary.
 2. Continue the #30 critical path through evidence
    selector, storage, coordinator, CLI, regressions, benchmark, and release
    issues #74–#80 before broadening model, platform, or identity support.

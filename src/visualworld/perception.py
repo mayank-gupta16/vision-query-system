@@ -11,6 +11,7 @@ from visualworld.ingestion import (
     MAX_I31,
     MAX_RECORD_BYTES,
     AffineCoefficients,
+    FrameRef,
     Geometry,
     MediaTime,
     Producer,
@@ -33,6 +34,7 @@ from visualworld.ingestion import (
 
 MAX_TRACK_POINTS = 64
 MAX_CONFIDENCE_MILLIONTHS = 1_000_000
+MAX_DISCONTINUITY_BASIS_POINTS = 10_000
 _CATEGORIES = frozenset({"vehicle"})
 _TERMINATION_REASONS = frozenset({"cut", "miss_timeout", "source_end"})
 
@@ -122,6 +124,58 @@ class _PerceptionRecord:
 
     def identity_projection(self) -> dict[str, object]:
         raise NotImplementedError
+
+
+@dataclass(frozen=True, slots=True)
+class FrameDiscontinuity:
+    """Pixel-free image-change score bound to one exact sampled frame."""
+
+    source_id: str
+    frame_id: str
+    stream_index: int
+    pts: MediaTime
+    score_basis_points: int
+
+    def __post_init__(self) -> None:
+        _plain_string(self.source_id, "frame_discontinuity.source_id")
+        _plain_string(self.frame_id, "frame_discontinuity.frame_id")
+        _typed_id(self.source_id, "src", "frame_discontinuity.source_id")
+        _typed_id(self.frame_id, "frm", "frame_discontinuity.frame_id")
+        _bounded_int(
+            self.stream_index,
+            0,
+            MAX_I31,
+            "frame_discontinuity.stream_index",
+        )
+        _plain_media_time(self.pts, "frame_discontinuity.pts")
+        _bounded_int(
+            self.score_basis_points,
+            0,
+            MAX_DISCONTINUITY_BASIS_POINTS,
+            "frame_discontinuity.score_basis_points",
+        )
+
+    @classmethod
+    def from_frame(cls, frame: FrameRef, score_basis_points: int) -> FrameDiscontinuity:
+        if type(frame) is not FrameRef:
+            _fail("invalid_frame", "frame")
+        FrameRef.__post_init__(frame)
+        return cls(
+            frame.source_id,
+            frame.frame_id,
+            frame.stream_index,
+            frame.pts,
+            score_basis_points,
+        )
+
+    def to_mapping(self) -> dict[str, object]:
+        return {
+            "frame_id": self.frame_id,
+            "pts": self.pts.to_mapping(),
+            "score_basis_points": self.score_basis_points,
+            "source_id": self.source_id,
+            "stream_index": self.stream_index,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -585,7 +639,9 @@ def load_perception_record(reader: BinaryIO) -> PerceptionRecord:
 
 __all__ = [
     "MAX_CONFIDENCE_MILLIONTHS",
+    "MAX_DISCONTINUITY_BASIS_POINTS",
     "MAX_TRACK_POINTS",
+    "FrameDiscontinuity",
     "Observation",
     "PerceptionRecord",
     "TrackPoint",

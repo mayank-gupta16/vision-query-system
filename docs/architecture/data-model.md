@@ -62,18 +62,28 @@ adds the first framework-free perception records in `visualworld.perception`:
   `miss_timeout`, or `source_end` reason. Every trajectory point repeats its
   source, stream, and category binding so a strict reader can verify the point
   against its enclosing tracklet without resolving another record.
+- `FrameDiscontinuity` is an ephemeral, pixel-free value binding one frame's
+  exact source/stream/PTS identity to an integer mean-absolute-RGB change score
+  from 0 to 10,000 basis points. It has no independent content identifier and is
+  not a persisted world record. RGB bytes are consumed only by the transient
+  scoring utility and never enter a tracker request, cursor, diagnostic, error,
+  or serialized perception record.
 
-Both schemas use the same bounded canonical-JSON profile and structured
-validation errors as the ingestion records. `visualworld.experimental` exposes
-the additive `ExperimentalRecord` union and strict combined dispatch across
-v0.1 ingestion and perception schemas; the narrower v0.1 `Record` union remains
-the WorldStore commit contract until the v0.2 storage migration is implemented.
-They contain no pixels, artifact bytes, vendor SDK values, source locators, or
-persistent entity identifier. `identity_scope=source_clip` and
-`continuity=inferred` are mandatory; a tracklet cannot be treated as proof that
-two observations belong to one persistent entity.
+The `Observation` and `Tracklet` schemas use the same bounded canonical-JSON
+profile and structured validation errors as the ingestion records.
+`visualworld.experimental` exposes the additive `ExperimentalRecord` union and
+strict combined dispatch across v0.1 ingestion and perception schemas; the
+narrower v0.1 `Record` union remains the WorldStore commit contract until the
+v0.2 storage migration is implemented. They contain no pixels, artifact bytes,
+vendor SDK values, source locators, or persistent entity identifier.
+`identity_scope=source_clip` and `continuity=inferred` are mandatory; a tracklet
+cannot be treated as proof that two observations belong to one persistent
+entity.
 
-The first contract bounds a completed tracklet to 64 strictly time-ordered
-points. Longer sources must be rejected or handled by a later reviewed paging
-extension; silently splitting continuity or manufacturing a page-boundary
-termination reason is not permitted.
+The first contract bounds a completed tracklet to 64 strictly time-ordered,
+detector-supported points. `GlobalLastBoxTracker.track_page` now provides the
+reviewed paging extension: an opaque immutable cursor carries active tracklets
+and miss counts across pages, and only `cut`, `miss_timeout`, or an explicit
+`source_end` can complete them. Paging does not manufacture a termination or
+reuse clip-local track ordinals. A continuous trajectory that would exceed 64
+points fails with a structured limit error rather than being silently split.
