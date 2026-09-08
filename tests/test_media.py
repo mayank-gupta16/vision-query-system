@@ -165,9 +165,13 @@ def test_trusted_path_checks_require_root_owned_nonwritable_nodes(
     assert media._trusted_directory(missing) is False
     assert media._source_directory(missing) is False
 
-    metadata = SimpleNamespace(st_mode=stat.S_IFREG | 0o755, st_uid=0)
+    metadata = SimpleNamespace(st_mode=stat.S_IFREG | 0o755, st_nlink=1, st_uid=0)
     monkeypatch.setattr(Path, "lstat", lambda _path: metadata)
     assert media._trusted_regular(tmp_path) is True
+    assert media._trusted_single_link_regular(tmp_path) is True
+    metadata.st_nlink = 2
+    assert media._trusted_single_link_regular(tmp_path) is False
+    metadata.st_nlink = 1
     assert media._trusted_directory(tmp_path) is False
     metadata.st_mode = stat.S_IFDIR | 0o755
     assert media._trusted_directory(tmp_path) is True
@@ -262,7 +266,12 @@ def test_runtime_tree_digest_binds_contents_and_permissions(
 
     def root_owned(path: Path) -> SimpleNamespace:
         metadata = actual_lstat(path)
-        return SimpleNamespace(st_mode=metadata.st_mode, st_uid=0, st_size=metadata.st_size)
+        return SimpleNamespace(
+            st_mode=metadata.st_mode,
+            st_nlink=metadata.st_nlink,
+            st_size=metadata.st_size,
+            st_uid=0,
+        )
 
     monkeypatch.setattr(Path, "lstat", root_owned)
     approved = media._runtime_tree_digest(runtime)
@@ -275,6 +284,53 @@ def test_runtime_tree_digest_binds_contents_and_permissions(
     assert media._runtime_tree_digest(runtime) is None
 
 
+def test_runtime_tree_digest_rejects_unbound_links_and_hardlinks(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    runtime = tmp_path / "runtime"
+    package = runtime / "package"
+    package.mkdir(parents=True)
+    runtime.chmod(0o755)
+    package.chmod(0o755)
+    payload = package / "payload"
+    payload.write_bytes(b"approved")
+    payload.chmod(0o644)
+    actual_lstat = Path.lstat
+
+    def root_owned(path: Path) -> SimpleNamespace:
+        metadata = actual_lstat(path)
+        return SimpleNamespace(
+            st_mode=metadata.st_mode,
+            st_nlink=metadata.st_nlink,
+            st_size=metadata.st_size,
+            st_uid=0,
+        )
+
+    monkeypatch.setattr(Path, "lstat", root_owned)
+    internal = package / "internal"
+    internal.symlink_to("payload")
+    assert media._runtime_tree_digest(runtime) is not None
+
+    internal.unlink()
+    internal.symlink_to(tmp_path / "outside")
+    assert media._runtime_tree_digest(runtime) is None
+    internal.unlink()
+    internal.symlink_to("../../outside")
+    assert media._runtime_tree_digest(runtime) is None
+    internal.unlink()
+    internal.symlink_to("missing")
+    assert media._runtime_tree_digest(runtime) is None
+    internal.unlink()
+    internal.symlink_to(".")
+    assert media._runtime_tree_digest(runtime) is None
+    internal.unlink()
+
+    hardlink = package / "hardlink"
+    hardlink.hardlink_to(payload)
+    assert media._runtime_tree_digest(runtime) is None
+
+
 def test_runtime_manifest_rejects_worker_or_tree_drift(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -282,7 +338,7 @@ def test_runtime_manifest_rejects_worker_or_tree_drift(
         Path("/runtime"),
         Path("/runtime/worker/media_worker.py"),
     )
-    monkeypatch.setattr(media, "_trusted_regular", lambda _path: True)
+    monkeypatch.setattr(media, "_trusted_single_link_regular", lambda _path: True)
     monkeypatch.setattr(
         media,
         "_file_sha256",

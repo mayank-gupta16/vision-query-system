@@ -37,3 +37,23 @@ root-owned worker from inside the immutable runtime. Landlock permits read/execu
 only on that runtime and its fixed library mounts; a mounted `/proc` path remains
 denied. The worker also verifies non-root execution, no-new-privileges, and network
 denial before its output is accepted. Missing capabilities fail closed.
+
+## Perception composition
+
+[ADR-0007](../decisions/ADR-0007-isolated-perception-runtime.md) extends this
+boundary with a separately provisioned, root-owned perception closure. Decode
+and inference run in one composite worker so RGB24 frames remain transient and
+never traverse the application IPC boundary. The trusted parent still passes
+only the sealed source descriptor. The worker returns bounded canonical JSON
+containing pixel-free observations; worker stdout/stderr are untrusted and never
+become log or exception text.
+
+Both media and perception manifests and trees must validate before launch. A
+missing notice, partial install, symlink/special file, permission or ownership
+drift, malformed/oversized output, crash, timeout, or cancellation fails closed
+and triggers whole-cgroup termination and descendant cleanup. The worker has a
+clear environment, no network, no ambient shell, forced telemetry opt-out,
+read-only mounts, non-root/no-new-privileges execution, seccomp, Landlock, and
+bounded CPU/RSS/task/output/time limits. Linux x86_64 with GNU libc 2.28 or newer
+and CPU inference is the only supported path; there is no native or ordinary-
+subprocess fallback elsewhere.

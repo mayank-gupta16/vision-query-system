@@ -1,10 +1,11 @@
 # Dependency inventory
 
-The application scaffold has no third-party runtime package. ADR-0002
+The application package has no third-party runtime dependency. ADR-0002
 approves the following developer/build tools and interpreter range; the root
 `uv.lock` and [development-tool artifact inventory](development-tool-inventory.json)
-record the exact reviewed transitive graph. Media,
-storage, model, codec, and service dependencies remain unapproved.
+record the exact reviewed transitive graph. Media and perception components are
+adapter-local and separately provisioned under their ADRs; release redistribution,
+additional models/codecs, and services remain unapproved.
 
 | Component | Immutable version | Purpose | License | Obligations/isolation | Status | Verified |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -20,9 +21,9 @@ storage, model, codec, and service dependencies remain unapproved.
 | FFmpeg | 9.0.1, official signed source SHA-256 `cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635` | Adapter-local media libraries | LGPL-2.1-or-later for the minimal issue #4 build plus the issue #7 built-in `rawvideo` decoder | Source-build only; V1 surface is `mov,h264` demuxers, `h264,rawvideo` decoders, and `h264` parser; no external/GPL/version3/nonfree components; no binary redistribution approved; patent review remains separate | Approved design/fixture input for isolated Linux worker | 2026-09-06 |
 | PyAV | 18.1.0 sdist SHA-256 `47bfc286e1bc9de7ab4681fc2b575cd2460a66919d31ffe1bd5aa54fae531a28` | Adapter-local libav binding | BSD-3-Clause; linked FFmpeg remains separately licensed | Build from reviewed source against the minimal FFmpeg build; official wheels are not approved; no binary redistribution approved | Approved design/experiment input for isolated Linux worker | 2026-09-06 |
 | bubblewrap | 0.11.1 Ubuntu package in measured host | Linux worker namespaces | LGPL-2.0-or-later | OS capability, not bundled; exact platform package and policy must be probed; fail closed if unavailable | Approved Linux isolation direction | 2026-09-06 |
-| OpenVINO | 2026.3.1 wheel; source `759c5a6ab8c066af5f4bc5ebd04643706012a37d`; wheel SHA-256 `bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4` | Issue #21 CPU inference candidate runtime | Apache-2.0; bundled runtime/oneTBB/oneDNN notices retained in wheel | Official CPython 3.13 Linux wheel, local hash-verified install, no network, CPU-only isolated worker; no redistribution reviewed | Approved for issue #21 evaluation only | 2026-09-07 |
-| NumPy | 2.5.3; source `dd88c0c19b54ad9ed3533224221285bf0873249a`; wheel SHA-256 `a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321` | OpenVINO Python tensor boundary in issue #21 | Wheel metadata expression `BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0`; bundled binaries include OpenBLAS (BSD-3-Clause), LAPACK (BSD-3-Clause-Open-MPI), libgfortran (`GPL-3.0-or-later WITH GCC-exception-3.1`), and libquadmath (LGPL-2.1-or-later) | Evaluation environment only; retain complete wheel notices; no application or environment redistribution approved | Approved for issue #21 evaluation only | 2026-09-07 |
-| openvino-telemetry | 2025.2.0 wheel SHA-256 `bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599` | Required OpenVINO Python dependency | Apache-2.0 | Consent forced off and worker network namespace unshared; the harness requests no telemetry events | Approved for issue #21 evaluation only | 2026-09-07 |
+| OpenVINO | 2026.3.1 wheel; source `759c5a6ab8c066af5f4bc5ebd04643706012a37d`; wheel SHA-256 `bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4` | v0.2 CPU inference runtime | Metadata Apache-2.0; the exact 31-entry manifest inventory covers bundled oneDNN, oneTBB, hwloc, native libraries, frontends, and all three retained third-party-program files, including the oneTBB GCC-runtime-exception notice | Official CPython 3.13 Linux wheel, explicit local hash-verified install, no network, CPU-only isolated worker; no redistribution approved | Approved only for user-provisioned ADR-0007 worker | 2026-09-08 |
+| NumPy | 2.5.3; source `dd88c0c19b54ad9ed3533224221285bf0873249a`; wheel SHA-256 `a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321` | OpenVINO Python tensor boundary | Wheel metadata expression `BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0`; bundled binaries include OpenBLAS (BSD-3-Clause), LAPACK (BSD-3-Clause-Open-MPI), libgfortran (`GPL-3.0-or-later WITH GCC-exception-3.1`), and libquadmath (LGPL-2.1-or-later) | Retain and verify the complete wheel notices; no application or environment redistribution approved | Approved only for user-provisioned ADR-0007 worker | 2026-09-08 |
+| openvino-telemetry | 2025.2.0 wheel SHA-256 `bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599` | Required OpenVINO Python dependency | Apache-2.0 | Consent forced to `NO` and worker network namespace unshared; no telemetry events requested | Approved only for user-provisioned ADR-0007 worker | 2026-09-08 |
 
 For every future Python/native/container dependency record source URL, exact
 version/revision and digest/lock, SPDX identifier or `LicenseRef-*`, use,
@@ -42,14 +43,16 @@ closure and remain denied. Any wheel, installer, container, VM image, or other
 redistributed media runtime needs a new complete notice, corresponding-source,
 relinking, component, vulnerability, and codec-patent review.
 
-Likewise, the issue #21 entries do not alter `pyproject.toml`, `uv.lock`, or the
+Likewise, the ADR-0007 entries do not alter `pyproject.toml`, `uv.lock`, or the
 application SBOM. Their three exact wheels are RECORD-verified and extracted
-without dependency resolution into a fresh ignored research environment.
-OpenVINO's wheel carries its
-runtime, oneTBB, and oneDNN third-party-program files; NumPy's wheel carries its
-complete license set. Any selected adapter still requires a separate decision
-on source-built versus wheel distribution, notices, vulnerability state,
-platform support, and whether telemetry remains in the shipped closure.
+without dependency resolution into a fresh private root-owned runtime.
+OpenVINO's wheel carries its runtime, oneTBB, and oneDNN third-party-program
+files; NumPy's wheel carries its complete license set. The telemetry dependency
+is retained because OpenVINO requires it, but consent is forced off inside a
+network-unshared worker. The selected python-build-standalone interpreter has an
+incomplete composite redistribution notice set. No part of this closure may be
+bundled or mirrored without a new decision covering notices, corresponding
+source/relinking, vulnerability state, patents/policy, platform, and jurisdiction.
 
 The measured development graph also includes MPL-2.0 `pathspec` 1.1.1 and
 `certifi` 2026.7.22. They are approved only as transitive dev/CI tools and are
@@ -168,9 +171,14 @@ corresponding `pgo+lto` full archives' `PYTHON.json` and license directory:
 
 Relevant bundled components include OpenSSL 3.5.8 (Apache-2.0), permissive
 compression/ffi/Tcl/Tk/X11 libraries, SQLite's public-domain dedication, and, on
-Linux, Berkeley DB 6.0.19 (Sleepycat). The Linux 3.14 build also includes zstd
-(BSD-3-Clause). The raw manifest conservatively lists the older OpenSSL license
-alongside Apache-2.0; exact target configuration identifies OpenSSL 3.5.8.
+Linux, Berkeley DB 6.0.19 (Sleepycat). ADR-0007's exact 19-entry interpreter
+inventory names each component family evidenced by the corresponding 3.13.15
+full-archive license directory: CPython, Berkeley DB, bzip2, Expat, libX11,
+libXau, libedit, libffi, liblzma, libuuid, libxcb, mpdecimal, ncurses, OpenSSL,
+SQLite, Tcl/Tk, Tix, zlib, and pip's consolidated vendored composite. The Linux
+3.14 build also includes zstd (BSD-3-Clause). The raw manifest conservatively
+lists the older OpenSSL license alongside Apache-2.0; exact target configuration
+identifies OpenSSL 3.5.8.
 
 The fourth CI lane's macOS 3.14.7
 [`pgo+lto` full archive](https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.14.7%2B20260825-aarch64-apple-darwin-pgo%2Blto-full.tar.zst)

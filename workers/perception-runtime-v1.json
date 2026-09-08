@@ -1,0 +1,504 @@
+{
+  "artifacts": [
+    {
+      "bundled_components": [
+        {
+          "license_expression": "Python-2.0 AND CNRI-Python",
+          "name": "CPython"
+        },
+        {
+          "license_expression": "Apache-2.0",
+          "name": "OpenSSL 3.5.8"
+        },
+        {
+          "license_expression": "Sleepycat",
+          "name": "Berkeley DB 6.0.19"
+        },
+        {
+          "license_expression": "bzip2-1.0.6",
+          "name": "bzip2/libbzip2"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "Expat"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "libX11"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "libXau"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "libedit"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "libffi"
+        },
+        {
+          "license_expression": "0BSD",
+          "name": "liblzma/XZ Utils"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "libuuid"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "libxcb"
+        },
+        {
+          "license_expression": "BSD-2-Clause",
+          "name": "mpdecimal"
+        },
+        {
+          "license_expression": "X11",
+          "name": "ncurses"
+        },
+        {
+          "license_expression": "blessing",
+          "name": "SQLite"
+        },
+        {
+          "license_expression": "TCL",
+          "name": "Tcl/Tk 9.0"
+        },
+        {
+          "license_expression": "TCL",
+          "name": "Tix"
+        },
+        {
+          "license_expression": "Zlib",
+          "name": "zlib"
+        },
+        {
+          "license_expression": "MIT AND LicenseRef-pip-vendored-composite-26.2.1",
+          "name": "pip 26.2.1"
+        }
+      ],
+      "distribution_status": "user-provisioned-only",
+      "filename": "cpython-3.13.15+20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "format": "tar-gzip",
+      "kind": "interpreter",
+      "license_expression": "LicenseRef-python-build-standalone-composite-20260825",
+      "name": "cpython",
+      "notice_status": "incomplete-for-redistribution",
+      "notices": [
+        {
+          "path": "python/lib/python3.13/LICENSE.txt",
+          "sha256": "78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb"
+        }
+      ],
+      "revision": "20260825+c0aa3bbdc2fff56a77ad1ecec68b1e47794d8779",
+      "sha256": "8af9a8214c71b2dd698005e39fab87aad02a994330508857da4e6d1ba7e6ddb6",
+      "size": 34813635,
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260825/cpython-3.13.15%2B20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "version": "3.13.15"
+    },
+    {
+      "bundled_components": [
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "OpenBLAS"
+        },
+        {
+          "license_expression": "BSD-3-Clause-Open-MPI",
+          "name": "LAPACK"
+        },
+        {
+          "license_expression": "GPL-3.0-or-later WITH GCC-exception-3.1",
+          "name": "libgfortran"
+        },
+        {
+          "license_expression": "LGPL-2.1-or-later",
+          "name": "libquadmath"
+        }
+      ],
+      "distribution_status": "user-provisioned-only",
+      "filename": "numpy-2.5.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "format": "wheel",
+      "kind": "runtime",
+      "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "name": "numpy",
+      "notice_status": "complete-in-wheel-for-private-use",
+      "notices": [
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/LICENSE.txt",
+          "sha256": "4860083caa0de2ac3292ca98bd074bd8f45d8b32624e37b1e70a240bff61e488"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+          "sha256": "fbc539f47d0cf83bc61378080fb873d5c14630126cacbfe754035c3926daa5ec"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+          "sha256": "3f2c1ffa76383a55ae0aac01c9737cd70050dff63e1f026694fbe9d662573c98"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+          "sha256": "e340270d4f64384569a91d546acb5b094d69ce47f0c015db77abb74dc6f815af"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/multiarray/dragon4_LICENSE.txt",
+          "sha256": "f7b14309e5f54e5022b26448eefd419988ada2aec01d3c1162d84a0ea8f21f2c"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+          "sha256": "211e7d737d6179a08f791ebb0a99897ce7cd2457410c542876d125576edfe910"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+          "sha256": "c17011467b4fe6e20fbfbeda4df09e58c2bca5480a063e55735a4000a379aad9"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+          "sha256": "a85ca13fdf90160b64a0698215868c13b74d835ad0a4e2ba44713b8c5058a056"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+          "sha256": "a14cc25e10d40a3aa705b7de2fb764a6535d8ee9b2db4e1724900585457dfd55"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/ma/LICENSE",
+          "sha256": "05f3b88351988ecfad10abe92c0c50e5875c6452d5009a0084cc291551ffcca6"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/LICENSE.md",
+          "sha256": "103166b62b80443afb9eb3488e052ea06be0cff566b908f199e561fde49af19f"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+          "sha256": "469778be8f33d54e1bcaab28c281cc472916d2d273f835e55bc487d30503face"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+          "sha256": "0e111337b25494a773106695f0e799f642b8567aaacca4f116a74a8177179156"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+          "sha256": "e7d4f4fb20358f314210a892ae17351e04993813646f697ec387385ca2a36918"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+          "sha256": "6f5828a57223d4cc7f8ea505a2623e7b978b242752c1515e355f46ba2cec1800"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+          "sha256": "9d4098846018319cd68e228ee6220361787f73bccbf00237a85e4fc9621b998f"
+        },
+        {
+          "path": "numpy-2.5.3.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+          "sha256": "268b0ca06759d31ea3ca68dd35f20e877916e927b1c2a835e4592a3c4354b1f9"
+        }
+      ],
+      "revision": "dd88c0c19b54ad9ed3533224221285bf0873249a",
+      "sha256": "a5fa86b80fd24bcd1aff83ad23be44ea323de3f787be8f8b15d4a65621e25321",
+      "size": 16708577,
+      "url": "https://files.pythonhosted.org/packages/3a/1b/3b16a9bc514a440a7a0883684111dcb1ef1aee960af2ca95da8fc775f124/numpy-2.5.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "version": "2.5.3"
+    },
+    {
+      "bundled_components": [
+        {
+          "license_expression": "Apache-2.0 AND BSD-3-Clause AND BSL-1.0 AND MIT",
+          "name": "oneDNN"
+        },
+        {
+          "license_expression": "Apache-2.0 AND BSD-3-Clause AND (GPL-3.0-or-later WITH GCC-exception-3.1) AND MIT",
+          "name": "oneTBB"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "hwloc"
+        },
+        {
+          "license_expression": "Apache-2.0",
+          "name": "OpenCL ICD Loader, headers, and C++ bindings"
+        },
+        {
+          "license_expression": "Apache-2.0",
+          "name": "OpenCV and FlatBuffers"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "Intel Level Zero"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "Intel Graphics Compute Runtime"
+        },
+        {
+          "license_expression": "BSD-3-Clause AND Apache-2.0",
+          "name": "XByak and Xbyak_aarch64"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "Intel ITT and JIT APIs"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "pugixml"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "RapidJSON"
+        },
+        {
+          "license_expression": "Zlib",
+          "name": "zlib"
+        },
+        {
+          "license_expression": "Apache-2.0",
+          "name": "ONNX"
+        },
+        {
+          "license_expression": "Apache-2.0",
+          "name": "PaddlePaddle"
+        },
+        {
+          "license_expression": "Apache-2.0 AND MIT AND BSD-3-Clause",
+          "name": "TensorFlow notice closure"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "Faster and Mask R-CNN in PyTorch"
+        },
+        {
+          "license_expression": "BSD-2-Clause",
+          "name": "Caffe and intel/caffe"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "gflags"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "Intel Safe String Library"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "Deformable Convolutional Networks"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "cnpy"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "JSON for Modern C++"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "JSON Schema Validator for Modern C++"
+        },
+        {
+          "license_expression": "MIT AND BSD-3-Clause",
+          "name": "Arm Compute Library notice closure"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "CMake"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "ONNX Runtime"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "libxsmm"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "gperftools"
+        },
+        {
+          "license_expression": "MIT",
+          "name": "doctest"
+        },
+        {
+          "license_expression": "BSL-1.0",
+          "name": "Boost"
+        },
+        {
+          "license_expression": "BSD-3-Clause",
+          "name": "GoogleTest"
+        }
+      ],
+      "distribution_status": "user-provisioned-only",
+      "filename": "openvino-2026.3.1-22476-cp313-cp313-manylinux_2_28_x86_64.whl",
+      "format": "wheel",
+      "kind": "runtime",
+      "license_expression": "Apache-2.0",
+      "name": "openvino",
+      "notice_status": "complete-in-wheel-for-private-use",
+      "notices": [
+        {
+          "path": "openvino-2026.3.1.dist-info/licenses/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        },
+        {
+          "path": "openvino-2026.3.1.dist-info/licenses/licensing/onednn_third-party-programs.txt",
+          "sha256": "f1b16991dfe8488f3f5f07cccba575c31c91175a9f2c8d9e1569665f86e0b2f6"
+        },
+        {
+          "path": "openvino-2026.3.1.dist-info/licenses/licensing/onetbb_third-party-programs.txt",
+          "sha256": "b10997cc50652ba6ab365e3bc43e13057681cd4a56533b46171529bd249749f3"
+        },
+        {
+          "path": "openvino-2026.3.1.dist-info/licenses/licensing/runtime-third-party-programs.txt",
+          "sha256": "85481d0f8a01308fb8c837e0007897ab5f35c90b6ee6333e6e6dfeff4ca3f46c"
+        }
+      ],
+      "revision": "759c5a6ab8c066af5f4bc5ebd04643706012a37d",
+      "sha256": "bb39ba741cea93277cc6c80cf7f70d1c19dea9a0f2a37f07543e0b4a7e00e0c4",
+      "size": 57510484,
+      "url": "https://files.pythonhosted.org/packages/73/f9/b40f5c5921cac3906f74911ca038d28e6a2905b632e37a51289137ae1817/openvino-2026.3.1-22476-cp313-cp313-manylinux_2_28_x86_64.whl",
+      "version": "2026.3.1"
+    },
+    {
+      "bundled_components": [],
+      "distribution_status": "user-provisioned-only",
+      "filename": "openvino_telemetry-2025.2.0-py3-none-any.whl",
+      "format": "wheel",
+      "kind": "runtime",
+      "license_expression": "Apache-2.0",
+      "name": "openvino-telemetry",
+      "notice_status": "complete-in-wheel-for-private-use",
+      "notices": [
+        {
+          "path": "openvino_telemetry-2025.2.0.dist-info/LICENSE",
+          "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+        }
+      ],
+      "revision": "2025.2.0+sha256.bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+      "sha256": "bcb667e83a44f202ecf4cfa49281715c6d7e21499daec04ff853b7f964833599",
+      "size": 25227,
+      "url": "https://files.pythonhosted.org/packages/3b/ac/5ab0ca0aa269ad3c73f7bfc3801b10e5f56f75a31bf68c1ae8bd51cf70a4/openvino_telemetry-2025.2.0-py3-none-any.whl",
+      "version": "2025.2.0"
+    },
+    {
+      "bundled_components": [],
+      "distribution_status": "user-provisioned-only",
+      "filename": "vehicle-detection-0201.xml",
+      "format": "openvino-ir-xml",
+      "kind": "model-graph",
+      "license_expression": "Apache-2.0",
+      "name": "vehicle-detection-0201-xml",
+      "notice_status": "external-license-evidence-only",
+      "notices": [],
+      "revision": "86ba23e80b27eb9149da911e5c023b108cb06e80",
+      "sha256": "ae39ec7c4cc5c1ab5ef3db71c8fa307500f07a87f17d95bdb0d1c84762751d1a",
+      "size": 185386,
+      "terms_url": "https://github.com/openvinotoolkit/open_model_zoo/blob/86ba23e80b27eb9149da911e5c023b108cb06e80/LICENSE",
+      "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0201/FP32/vehicle-detection-0201.xml",
+      "version": "FP32-2023.0"
+    },
+    {
+      "bundled_components": [],
+      "distribution_status": "user-provisioned-only",
+      "filename": "vehicle-detection-0201.bin",
+      "format": "openvino-ir-bin",
+      "kind": "model-weights",
+      "license_expression": "Apache-2.0",
+      "name": "vehicle-detection-0201-bin",
+      "notice_status": "external-license-evidence-only",
+      "notices": [],
+      "revision": "86ba23e80b27eb9149da911e5c023b108cb06e80",
+      "sha256": "612df843314c179460e754316d67e6eedd0e778f96ad1129fc0c34c8e935cb0b",
+      "size": 7269196,
+      "terms_url": "https://github.com/openvinotoolkit/open_model_zoo/blob/86ba23e80b27eb9149da911e5c023b108cb06e80/LICENSE",
+      "url": "https://storage.openvinotoolkit.org/repositories/open_model_zoo/2023.0/models_bin/1/vehicle-detection-0201/FP32/vehicle-detection-0201.bin",
+      "version": "FP32-2023.0"
+    }
+  ],
+  "closure": {
+    "evaluation_python_runtime_tree_sha256": "7bf650c9ac94c945b0ff154bdc96830bc1ad876d24b0cbe8deb5860fd3270a0c",
+    "evaluation_runtime_closure_sha256": "a01b42bc19b7d4eeef98edae539f95df8422dc184306cad4f97c562bdc802d18",
+    "model_tree_sha256": "2ea6492e581586920ee6c41aa8c16b694637984331369f8b37657ba9e8da19b2",
+    "python_executable_sha256": "8a9082ea4d03f7bed8b8802934fb4f7c13ebcc182cf8e939946f52058968175f",
+    "python_runtime_tree_sha256": "7a39aea7cdb142c0c39fdbde871aded02c6c35549a76ca30d30a07eda0125b46",
+    "runtime_closure_sha256": "5859db2175bcf154586052d891f7e4f06cfb6b38cea5c62ac625c7d7aa961530",
+    "site_packages_logical_bytes": 235889859,
+    "site_packages_tree_sha256": "345dfb0ec081283a609389cdd48090db8d74245ed32ade3574d4872a5801e253"
+  },
+  "distribution": {
+    "application_wheel": "denied",
+    "container_or_installer": "denied",
+    "model_and_runtime": "user-provisioned-only",
+    "reason": "composite notices, corresponding-source, patent, policy, and jurisdiction review incomplete",
+    "release_sbom_membership": "excluded-unless-separately-approved"
+  },
+  "inference": {
+    "color_conversion": "RGB-to-BGR",
+    "confidence_floor_millionths": 950000,
+    "device": "CPU",
+    "input_height": 384,
+    "input_layout": "NHWC-u8",
+    "input_width": 384,
+    "model_layout": "NCHW",
+    "num_streams": 1,
+    "performance_hint": "LATENCY",
+    "resize": "OpenVINO RESIZE_LINEAR",
+    "threads": 4
+  },
+  "media_runtime": {
+    "manifest_sha256": "58cf6f64280888ecc01c647044c38b9b56f197389b6bfc7ead7fbbe93a52ba32",
+    "runtime_id": "visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2",
+    "tree_sha256": "7015262cd5dfdfd976d6ee092f0f93541597ea35e0331c3abb9ce6d4c54daeaf"
+  },
+  "policy": {
+    "ambient_network": false,
+    "ambient_shell": false,
+    "arbitrary_paths": false,
+    "download_during_ingest": false,
+    "executable_model_serialization": false,
+    "mutable_revisions": false,
+    "remote_code": false,
+    "telemetry": false,
+    "telemetry_environment": {
+      "OPENVINO_TELEMETRY_CONSENT": "NO"
+    },
+    "unsafe_fallback": false
+  },
+  "runtime_id": "visualworld-perception-openvino-2026.3.1-vehicle-0201-v1",
+  "schema": "visualworld.perception-runtime",
+  "schema_version": 1,
+  "support": {
+    "architecture": "x86_64",
+    "device": "CPU",
+    "libc": "glibc",
+    "minimum_libc_version": "2.28",
+    "operating_system": "Linux",
+    "python_abi": "cp313",
+    "unsupported_elsewhere": true
+  },
+  "worker": {
+    "boundary": "single-composite-decode-and-inference-worker",
+    "clear_environment": true,
+    "input": "sealed-inherited-read-only-video-fd",
+    "isolation": {
+      "cgroup_v2": true,
+      "landlock": true,
+      "network_namespace": "unshared",
+      "no_new_privileges": true,
+      "non_root": true,
+      "read_only_runtime": true,
+      "seccomp": true,
+      "user_mount_pid_ipc_uts_namespaces": "unshared"
+    },
+    "limits": {
+      "cpu_quota_percent": 400,
+      "max_output_bytes": 16777216,
+      "max_rss_bytes": 2147483648,
+      "max_tasks": 1024,
+      "max_wall_time_ms": 300000,
+      "stderr_bytes": 1048576,
+      "stdout_bytes": 16777216
+    },
+    "output": "bounded-canonical-json-pixel-free-observations",
+    "whole_cgroup_cancel_and_cleanup": true
+  }
+}

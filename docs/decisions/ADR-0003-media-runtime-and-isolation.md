@@ -65,6 +65,21 @@ this decision. Redistribution remains unapproved until the release artifact has
 complete notices, corresponding-source/relinking handling, platform manifests,
 and codec-patent review for its intended jurisdictions.
 
+The accepted deployment closure is
+`visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2`. It contains only the frozen FFmpeg
+and CPython trees, PyAV package and distribution metadata, and reviewed worker;
+development probes, virtual-environment launchers, and ambient-tool links are
+excluded. Its FFmpeg subtree is the issue #7 minimal rebuild; the compiled
+demuxers, decoders, and parser are exactly the surface declared above. Its
+manifest SHA-256 is
+`58cf6f64280888ecc01c647044c38b9b56f197389b6bfc7ead7fbbe93a52ba32`
+and its manifest-excluding tree SHA-256 is
+`7015262cd5dfdfd976d6ee092f0f93541597ea35e0331c3abb9ce6d4c54daeaf`.
+Every regular file must have one link, and every symlink must be relative,
+non-dangling, confined to the closure, and resolve to a regular file. Version
+`v1` is retired because its virtual-environment interpreter link resolved to an
+unbound host path.
+
 ## Alternatives
 
 - **Minimal FFmpeg CLI worker:** smallest dependency surface and retained as a
