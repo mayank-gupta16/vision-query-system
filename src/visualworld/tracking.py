@@ -174,6 +174,26 @@ def _validate_frame(value: FrameRef) -> None:
     FrameRef.__post_init__(value)
 
 
+def _copy_frame(value: FrameRef) -> FrameRef:
+    _validate_frame(value)
+    return FrameRef.from_mapping(value.to_mapping())
+
+
+def _copy_track_point_from_observation(value: Observation) -> TrackPoint:
+    if type(value) is not Observation:
+        raise ValueError("invalid observation")
+    Observation.__post_init__(value)
+    owned_observation = Observation.from_mapping(value.to_mapping())
+    return TrackPoint.from_observation(owned_observation)
+
+
+def _copy_track_point(value: TrackPoint) -> TrackPoint:
+    if type(value) is not TrackPoint:
+        raise ValueError("invalid track point")
+    TrackPoint.__post_init__(value)
+    return TrackPoint.from_mapping(value.to_mapping())
+
+
 def rgb24_discontinuity_basis_points(
     previous: bytes | None,
     current: bytes,
@@ -408,6 +428,76 @@ class _ActiveTrack:
             TrackPoint.__post_init__(point)
 
 
+def _copy_active_track(value: _ActiveTrack) -> _ActiveTrack:
+    if type(value) is not _ActiveTrack:
+        raise ValueError("invalid active track")
+    value.__post_init__()
+    return _ActiveTrack(
+        value.ordinal,
+        tuple(_copy_track_point(point) for point in value.points),
+        value.missed_samples,
+    )
+
+
+def _copy_tracking_diagnostics(value: TrackingDiagnostics) -> TrackingDiagnostics:
+    if type(value) is not TrackingDiagnostics:
+        raise ValueError("invalid tracking diagnostics")
+    return TrackingDiagnostics(
+        value.frame_count,
+        value.observation_count,
+        value.created_tracks,
+        value.maximum_active_tracks,
+        value.detected_cut_frames,
+        value.cut_terminations,
+        value.miss_timeout_terminations,
+        value.source_end_terminations,
+    )
+
+
+def _cursor_integrity_sha256(cursor: TrackingCursor) -> str:
+    payload = {
+        "active_tracks": [
+            {
+                "missed_samples": track.missed_samples,
+                "ordinal": track.ordinal,
+                "points": [point.to_mapping() for point in track.points],
+            }
+            for track in cursor.active_tracks
+        ],
+        "diagnostics": {
+            "created_tracks": cursor.diagnostics.created_tracks,
+            "cut_terminations": cursor.diagnostics.cut_terminations,
+            "detected_cut_frames": cursor.diagnostics.detected_cut_frames,
+            "frame_count": cursor.diagnostics.frame_count,
+            "maximum_active_tracks": cursor.diagnostics.maximum_active_tracks,
+            "miss_timeout_terminations": cursor.diagnostics.miss_timeout_terminations,
+            "observation_count": cursor.diagnostics.observation_count,
+            "source_end_terminations": cursor.diagnostics.source_end_terminations,
+        },
+        "finished": cursor.finished,
+        "first_pts": cursor.first_pts.to_mapping(),
+        "last_frame": cursor.last_frame.to_mapping(),
+        "limits": {
+            "max_active_tracks": cursor.limits.max_active_tracks,
+            "max_duration_seconds": cursor.limits.max_duration_seconds,
+            "max_page_frames": cursor.limits.max_page_frames,
+            "max_page_observations": cursor.limits.max_page_observations,
+            "max_total_frames": cursor.limits.max_total_frames,
+            "max_total_observations": cursor.limits.max_total_observations,
+            "max_total_tracks": cursor.limits.max_total_tracks,
+            "max_track_points": cursor.limits.max_track_points,
+        },
+        "next_ordinal": cursor.next_ordinal,
+        "source_id": cursor.source_id,
+        "source_stream": cursor.source_stream.to_mapping(),
+        "stream_index": cursor.stream_index,
+        "time_base": cursor.time_base.to_mapping(),
+    }
+    return hashlib.sha256(
+        json.dumps(payload, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode()
+    ).hexdigest()
+
+
 @dataclass(frozen=True, slots=True, init=False)
 class TrackingCursor:
     """Opaque immutable continuation state for an unfinished clip prefix."""
@@ -422,6 +512,7 @@ class TrackingCursor:
     active_tracks: tuple[_ActiveTrack, ...]
     next_ordinal: int
     diagnostics: TrackingDiagnostics
+    _integrity_sha256: str
     finished: bool = False
 
     def __init__(
@@ -456,6 +547,7 @@ class TrackingCursor:
             ("finished", finished),
         ):
             object.__setattr__(self, name, value)
+        object.__setattr__(self, "_integrity_sha256", _cursor_integrity_sha256(self))
         self.__post_init__()
 
     def __post_init__(self) -> None:
@@ -474,6 +566,8 @@ class TrackingCursor:
             or type(self.next_ordinal) is not int
             or type(self.diagnostics) is not TrackingDiagnostics
             or type(self.finished) is not bool
+            or type(self._integrity_sha256) is not str
+            or not re.fullmatch(r"[0-9a-f]{64}", self._integrity_sha256)
         ):
             raise ValueError("tracking cursor is invalid")
         _validate_time_base(self.time_base)
@@ -552,6 +646,8 @@ class TrackingCursor:
             ):
                 raise ValueError("tracking cursor conflicts with its active tracks")
             observation_ids.update(point_ids)
+        if self._integrity_sha256 != _cursor_integrity_sha256(self):
+            raise ValueError("tracking cursor integrity check failed")
 
 
 @dataclass(frozen=True, slots=True)
@@ -750,7 +846,7 @@ class GlobalLastBoxTracker:
         )
         by_frame, selected_discontinuities, rate_supported, selected_stream = validated
         base_diagnostics = (
-            cursor.diagnostics
+            _copy_tracking_diagnostics(cursor.diagnostics)
             if cursor is not None
             else TrackingDiagnostics(0, 0, 0, 0, 0, 0, 0, 0)
         )
@@ -783,7 +879,8 @@ class GlobalLastBoxTracker:
             )
 
         active = {
-            track.ordinal: track for track in (() if cursor is None else cursor.active_tracks)
+            track.ordinal: _copy_active_track(track)
+            for track in (() if cursor is None else cursor.active_tracks)
         }
         next_ordinal = 1 if cursor is None else cursor.next_ordinal
         created_tracks = base_diagnostics.created_tracks
@@ -837,7 +934,7 @@ class GlobalLastBoxTracker:
                     raise _error(PortErrorCode.LIMIT_EXCEEDED, operation)
                 active[track.ordinal] = _ActiveTrack(
                     track.ordinal,
-                    (*track.points, TrackPoint.from_observation(detections[column])),
+                    (*track.points, _copy_track_point_from_observation(detections[column])),
                 )
                 matched_ordinals.add(track.ordinal)
                 matched_detections.add(column)
@@ -864,7 +961,7 @@ class GlobalLastBoxTracker:
                     raise _error(PortErrorCode.LIMIT_EXCEEDED, operation)
                 active[next_ordinal] = _ActiveTrack(
                     next_ordinal,
-                    (TrackPoint.from_observation(observation),),
+                    (_copy_track_point_from_observation(observation),),
                 )
                 next_ordinal += 1
                 created_tracks += 1
@@ -913,9 +1010,9 @@ class GlobalLastBoxTracker:
             time_base=cursor_stream.time_base,
             source_stream=cursor_stream,
             limits=_copy_tracking_limits(self._limits),
-            first_pts=first_pts,
-            last_frame=last_frame,
-            active_tracks=tuple(active[ordinal] for ordinal in sorted(active)),
+            first_pts=MediaTime.from_mapping(first_pts.to_mapping()),
+            last_frame=_copy_frame(last_frame),
+            active_tracks=tuple(_copy_active_track(active[ordinal]) for ordinal in sorted(active)),
             next_ordinal=next_ordinal,
             diagnostics=diagnostics,
             finished=end_of_stream,

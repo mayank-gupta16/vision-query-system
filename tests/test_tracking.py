@@ -335,6 +335,71 @@ def test_resumed_pages_equal_one_shot_across_occlusion_and_empty_final_page() ->
         replace(final.cursor, finished=False)
 
 
+def test_cursor_owns_input_graphs_and_detects_direct_nested_mutation() -> None:
+    source = _source()
+    frames = _frames(source, 2)
+    first_observation = _observation(source, frames[0], BOX)
+    second_observation = _observation(source, frames[1], (60, 10, 80, 30))
+    scores = _scores(frames)
+    expected = GlobalLastBoxTracker().track(
+        source,
+        frames,
+        (first_observation, second_observation),
+        discontinuities=scores,
+    )
+
+    tracker = GlobalLastBoxTracker()
+    first = tracker.track_page(
+        source,
+        frames[:1],
+        (first_observation,),
+        discontinuities=scores[:1],
+    )
+    assert first.cursor is not None
+    owned_point = first.cursor.active_tracks[0].points[0]
+    assert owned_point.geometry is not first_observation.geometry
+    assert owned_point.pts is not first_observation.pts
+    assert first.cursor.first_pts is not frames[0].pts
+    assert first.cursor.last_frame is not frames[0]
+
+    object.__setattr__(first_observation.geometry, "box_xyxy", (60, 10, 80, 30))
+    object.__setattr__(frames[0].pts, "value", "100")
+    final = tracker.track_page(
+        source,
+        frames[1:],
+        (second_observation,),
+        discontinuities=scores[1:],
+        cursor=first.cursor,
+        end_of_stream=True,
+    )
+    assert final.tracklets == expected.tracklets
+    assert expected.tracklets[0].points[0].geometry.box_xyxy == BOX
+
+    clean_frames = _frames(source, 2)
+    clean_first = tracker.track_page(
+        source,
+        clean_frames[:1],
+        (_observation(source, clean_frames[0], BOX),),
+        discontinuities=_scores(clean_frames[:1]),
+    )
+    assert clean_first.cursor is not None
+    object.__setattr__(
+        clean_first.cursor.active_tracks[0].points[0].geometry,
+        "box_xyxy",
+        (60, 10, 80, 30),
+    )
+    with pytest.raises(PortError) as raised:
+        tracker.track_page(
+            source,
+            clean_frames[1:],
+            (),
+            discontinuities=_scores(clean_frames[1:]),
+            cursor=clean_first.cursor,
+            end_of_stream=True,
+        )
+    assert raised.value.code is PortErrorCode.INVALID_REQUEST
+
+
 def test_missing_scores_and_out_of_boundary_category_or_rate_are_explicit() -> None:
     source = _source()
     frames = _frames(source, 2)
