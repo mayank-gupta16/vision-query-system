@@ -32,6 +32,7 @@ FRAME_DURATION_MS = 200
 TARGET_WIDTH = 170
 DENSE_TARGET_WIDTH = 120
 DENSE_MIN_VISIBILITY_MILLIONTHS = 250_000
+OCCLUSION_MASK_RGB = (74, 78, 82)
 MAX_INPUT_BYTES = 4 * 1024 * 1024
 MAX_JSON_BYTES = 8 * 1024 * 1024
 _IDENTIFIER = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
@@ -157,8 +158,16 @@ def _expected_derivation() -> dict[str, object]:
         "occlusion_layout": (
             "three disjoint x lanes with deterministic plus-or-minus four pixel drift"
         ),
+        "occlusion_mask_color_rgb": list(OCCLUSION_MASK_RGB),
         "occlusion_mask_frames": {"a": [20], "b": [20, 21, 22], "c": [20, 21, 22, 23, 24]},
+        "occlusion_partial_mask_geometry": (
+            "full box height and horizontal half-open interval "
+            "[x0+floor(width/3), x0+2*floor(width/3))"
+        ),
         "occlusion_partial_mask_frames": {"a": [19, 21], "b": [19, 23], "c": [19, 25]},
+        "occlusion_visibility_millionths": (
+            "floor(unmasked box pixels times 1000000 divided by box pixels)"
+        ),
         "sample_fps": 5,
         "scenario_clip_counts": {
             "calibration": {
@@ -598,6 +607,11 @@ def _visibility_millionths(box: list[int], occluders: list[list[int]]) -> int:
     return visible * 1_000_000 // len(covered)
 
 
+def _partial_occlusion_cover(box: list[int]) -> tuple[int, int, int, int]:
+    third = max(1, (box[2] - box[0]) // 3)
+    return (box[0] + third, box[1], min(box[2], box[0] + 2 * third), box[3])
+
+
 def _render_frame(
     *,
     backgrounds: tuple[bytes, bytes, bytes],
@@ -647,7 +661,7 @@ def _render_frame(
             visibility = (
                 _visibility_millionths(box, [boxes[item] for item in draw_roles[role_index + 1 :]])
                 if scenario == "dense_crossing"
-                else 650_000
+                else _visibility_millionths(box, [list(_partial_occlusion_cover(box))])
                 if is_partial
                 else 1_000_000
             )
@@ -667,11 +681,10 @@ def _render_frame(
             if frame_index in missing[role]:
                 cover = (box[0], box[1], box[2], box[3])
             elif frame_index in partial[role]:
-                third = max(1, (box[2] - box[0]) // 3)
-                cover = (box[0] + third, box[1], min(box[2], box[0] + 2 * third), box[3])
+                cover = _partial_occlusion_cover(box)
             else:
                 continue
-            detection_prep.fill_box(canvas, WIDTH, HEIGHT, cover, (74, 78, 82))
+            detection_prep.fill_box(canvas, WIDTH, HEIGHT, cover, OCCLUSION_MASK_RGB)
     return bytes(canvas), objects
 
 
@@ -705,7 +718,7 @@ def _dataset_manifest(
                 "and pixels are bound by source-manifest.json and annotations.json"
             ),
             "owner": "Wikimedia Commons source artists and VisualWorld derivative generator",
-            "revision": "v02-tracking-cc0-derived-2",
+            "revision": "v02-tracking-cc0-derived-3",
             "sha256": source_sha256,
             "url": (
                 "https://github.com/mayank-gupta16/vision-query-system/tree/main/"
@@ -713,7 +726,7 @@ def _dataset_manifest(
             ),
         },
         "experiment": "tracking",
-        "manifest_id": "tracking-cc0-derived-2",
+        "manifest_id": "tracking-cc0-derived-3",
         "privacy": {
             "classification": "licensed-no-personal-data",
             "consent_status": "not-applicable-no-personal-data",

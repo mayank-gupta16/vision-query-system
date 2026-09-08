@@ -8371,7 +8371,7 @@
                 344
               ],
               "track_id": "calibration-occlusion-1-a",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             },
             {
               "box": [
@@ -8381,7 +8381,7 @@
                 314
               ],
               "track_id": "calibration-occlusion-1-b",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             },
             {
               "box": [
@@ -8391,7 +8391,7 @@
                 284
               ],
               "track_id": "calibration-occlusion-1-c",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 3800,
@@ -8424,7 +8424,7 @@
                 344
               ],
               "track_id": "calibration-occlusion-1-a",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 4200,
@@ -8478,7 +8478,7 @@
                 314
               ],
               "track_id": "calibration-occlusion-1-b",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 4600,
@@ -8552,7 +8552,7 @@
                 284
               ],
               "track_id": "calibration-occlusion-1-c",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 5000,
@@ -30262,7 +30262,7 @@
                 344
               ],
               "track_id": "test-occlusion-1-a",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             },
             {
               "box": [
@@ -30272,7 +30272,7 @@
                 314
               ],
               "track_id": "test-occlusion-1-b",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             },
             {
               "box": [
@@ -30282,7 +30282,7 @@
                 284
               ],
               "track_id": "test-occlusion-1-c",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 3800,
@@ -30315,7 +30315,7 @@
                 344
               ],
               "track_id": "test-occlusion-1-a",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 4200,
@@ -30369,7 +30369,7 @@
                 314
               ],
               "track_id": "test-occlusion-1-b",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 4600,
@@ -30443,7 +30443,7 @@
                 284
               ],
               "track_id": "test-occlusion-1-c",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 5000,
@@ -32708,7 +32708,7 @@
                 344
               ],
               "track_id": "test-occlusion-2-a",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             },
             {
               "box": [
@@ -32718,7 +32718,7 @@
                 314
               ],
               "track_id": "test-occlusion-2-b",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             },
             {
               "box": [
@@ -32728,7 +32728,7 @@
                 284
               ],
               "track_id": "test-occlusion-2-c",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 3800,
@@ -32761,7 +32761,7 @@
                 344
               ],
               "track_id": "test-occlusion-2-a",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 4200,
@@ -32815,7 +32815,7 @@
                 314
               ],
               "track_id": "test-occlusion-2-b",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 4600,
@@ -32889,7 +32889,7 @@
                 284
               ],
               "track_id": "test-occlusion-2-c",
-              "visibility_millionths": 650000
+              "visibility_millionths": 670588
             }
           ],
           "pts_ms": 5000,
@@ -43014,7 +43014,7 @@
   ],
   "schema": "visualworld.v02-tracking-annotation-lock",
   "schema_version": 1,
-  "source_manifest_sha256": "c037b1c0888e5b8c2819ab299e950480c76c94811f460b5c8c89e1fe4865a7be",
+  "source_manifest_sha256": "b15732e4a22e816c718cb1ea5a210660532b15fd31c72b9f24bd39c153427b5f",
   "tracks": [
     {
       "clip_id": "calibration-stationary-1",

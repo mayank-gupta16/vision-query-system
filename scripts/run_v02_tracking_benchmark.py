@@ -72,7 +72,7 @@ METRIC_STRATA = {
     "real_time_factor_milli": ("overall",),
 }
 EXPECTED_CANDIDATE_MANIFEST_SHA256 = (
-    "dfa4f8094653636c368d07aa849320de1cfc04958feede5c7d41a4a38665df63"
+    "0aa29f0c9b07daf65721c7e5783f10629dd25f260d4a40b75a77542b4534d400"
 )
 MAX_FAILURE_EXAMPLES_PER_KIND = 8
 _IDENTIFIER = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
@@ -281,12 +281,12 @@ def _validate_candidates(
     }
     dataset = _mapping(value["dataset"], code)
     expected_dataset = {
-        "annotation_sha256": "eb9ff4363fc75a1898f6b6f364970aba72d33f8eb038657decbb27519bf8c54f",
+        "annotation_sha256": "657965bafc568e6c9fb78539fd5b6612ed876c48013d9b698c1a567df1c64cc7",
         "dataset_manifest_sha256": (
-            "6dfe6c0d9e16d73ad7e15525624b58dd014aef73ea061fd3f48715856ec4aad0"
+            "f2c8629029acd13b99e5560432664f16c4743d76330f811d729ca3467582e67e"
         ),
         "source_manifest_sha256": (
-            "c037b1c0888e5b8c2819ab299e950480c76c94811f460b5c8c89e1fe4865a7be"
+            "b15732e4a22e816c718cb1ea5a210660532b15fd31c72b9f24bd39c153427b5f"
         ),
     }
     sampling_lock = _mapping(value["sampling"], code)

@@ -323,6 +323,15 @@ def test_tracking_annotation_payloads_match_dataset_contract() -> None:
 
 
 def test_occlusion_stratum_isolates_locked_mask_gaps_in_disjoint_lanes() -> None:
+    source = _json(FIXTURE_ROOT / "source-manifest.json")
+    derivation = cast(dict[str, object], source["derivation"])
+    assert derivation["occlusion_mask_color_rgb"] == [74, 78, 82]
+    assert derivation["occlusion_partial_mask_geometry"] == (
+        "full box height and horizontal half-open interval [x0+floor(width/3), x0+2*floor(width/3))"
+    )
+    assert derivation["occlusion_visibility_millionths"] == (
+        "floor(unmasked box pixels times 1000000 divided by box pixels)"
+    )
     annotations = _json(FIXTURE_ROOT / "annotations.json")
     missing = {"a": {20}, "b": {20, 21, 22}, "c": {20, 21, 22, 23, 24}}
     partial = {"a": {19, 21}, "b": {19, 23}, "c": {19, 25}}
@@ -335,8 +344,12 @@ def test_occlusion_stratum_isolates_locked_mask_gaps_in_disjoint_lanes() -> None
             for role in ("a", "b", "c"):
                 assert (role not in by_role) is (frame_index in missing[role])
                 if role in by_role:
+                    box = cast(list[int], by_role[role]["box"])
+                    width = box[2] - box[0]
+                    partial_mask_width = 2 * (width // 3) - width // 3
+                    expected_partial_visibility = (width - partial_mask_width) * 1_000_000 // width
                     assert by_role[role]["visibility_millionths"] == (
-                        650_000 if frame_index in partial[role] else 1_000_000
+                        expected_partial_visibility if frame_index in partial[role] else 1_000_000
                     )
             boxes = [
                 cast(tuple[int, int, int, int], tuple(cast(list[int], item["box"])))
@@ -347,6 +360,34 @@ def test_occlusion_stratum_isolates_locked_mask_gaps_in_disjoint_lanes() -> None
                 for index, first in enumerate(boxes)
                 for second in boxes[index + 1 :]
             )
+
+
+def test_partial_occlusion_visibility_matches_rendered_mask_pixels() -> None:
+    background = bytes([1]) * (preparation.WIDTH * preparation.HEIGHT * 3)
+    chip = (170, 60, bytes([2]) * (170 * 60 * 3))
+    pixels, objects = preparation._render_frame(
+        backgrounds=(background, background, background),
+        chips=(chip, chip, chip, chip),
+        clip_id="oracle-occlusion",
+        frame_index=19,
+        scenario="occlusion",
+        variant=0,
+    )
+    mask = bytes(preparation.OCCLUSION_MASK_RGB)
+    for item in objects:
+        box = cast(list[int], item["box"])
+        width = box[2] - box[0]
+        height = box[3] - box[1]
+        masked = 0
+        for y in range(box[1], box[3]):
+            for x in range(box[0], box[2]):
+                offset = (y * preparation.WIDTH + x) * 3
+                masked += pixels[offset : offset + 3] == mask
+        third = width // 3
+        assert masked == (2 * third - third) * height
+        assert item["visibility_millionths"] == (
+            (width * height - masked) * 1_000_000 // (width * height)
+        )
 
 
 def test_tracking_dataset_lock_rejects_coherent_source_or_oracle_substitution() -> None:
@@ -406,7 +447,7 @@ def test_tracking_annotation_boxes_require_bounded_exact_integers(value: object)
 
 
 def test_cut_score_separates_locked_calibration_cuts_without_oracle_labels() -> None:
-    dataset_root = ROOT / "artifacts" / "issue24" / "dataset-v14"
+    dataset_root = ROOT / "artifacts" / "issue24" / "dataset-v18"
     if not dataset_root.exists():
         pytest.skip("ignored research clips are not present")
     annotations = _json(FIXTURE_ROOT / "annotations.json")
