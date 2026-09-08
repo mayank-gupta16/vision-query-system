@@ -151,9 +151,26 @@ tracklet. A detector/tracker frame batch may carry at most 4,096 observations so
 the bound still represents the frozen six-object tracking fixture. The concrete
 tracker extension can resume longer clips across bounded pages, but it still
 fails closed if one uninterrupted trajectory exceeds the record's 64-point
-limit. Evidence ranking, perception persistence, and coordination remain
-assigned to issues #74–#76; an adapter cannot hide those behaviors behind an
-implementation name.
+limit. Perception persistence and coordination remain assigned to issues
+#75–#76; an adapter cannot hide those behaviors behind an implementation name.
+
+`visualworld.evidence.BestFrameEvidenceSelector` is the first concrete
+`EvidenceSelector`. Its stable `select` operation remains pixel-free and returns
+at most three observation identifiers by default, with a caller-configurable
+hard ceiling of eight. Its metadata-only `plan` extension preserves the rank,
+integer confidence/visible-area/boundary-contact components, deterministic
+source-time tie-breaks, exact source Geometry, selector provenance, private
+retention classification, and coordinator-owned source-cascade deletion policy.
+The ranking and default configuration digest are frozen by
+[ADR-0008](../decisions/ADR-0008-deterministic-best-frame-evidence.md).
+
+The selector's separate `materialize` extension accepts RGB24 bytes only after
+an explicit inspection or downstream-detail request. It uses the existing exact
+crop utility and produces a matching `EvidenceRef`; missing pixels or declared
+unresolvable detail remain `unknown`. Planning does not decode, crop, write, or
+retain anything. The caller may pass a completed crop through `EvidenceStore`,
+while later coordination remains responsible for staging, reference publication,
+and deletion.
 
 `visualworld.detection.OpenVinoVehicleDetector` is the first concrete
 `Detector`. Its fixture-worker seam implements the same record contract in

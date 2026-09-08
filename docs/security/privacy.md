@@ -31,3 +31,12 @@ projections, artifact descriptors/references, and reduced coordination state in
 a private mode-0600 SQLite/WAL set. It never stores source paths, video or
 artifact bytes, raw SQL, or backend exception text. Preparing runs and records
 under pending deletion closure are not returned by ordinary list operations.
+
+Best-frame selection is metadata-only. Its intent records exact source geometry,
+opaque record identifiers, integer scores, producer provenance,
+`derived_private` retention, and `coordinator_source_cascade` deletion ownership,
+but no pixel bytes or source locator. Original RGB24 data may enter only the
+explicit materialization call for a declared inspection or downstream-detail
+need. Crop representations, diagnostics, structured failures, and metadata
+mappings omit those bytes; durable custody still requires the accepted
+EvidenceStore/coordinator path.
