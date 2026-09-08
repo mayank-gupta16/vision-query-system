@@ -3,15 +3,28 @@
 
 from __future__ import annotations
 
-from typing import BinaryIO, cast
+from dataclasses import fields
+from typing import Any, BinaryIO, cast
 
 from visualworld.ingestion import (
     MAX_I31,
     MAX_RECORD_BYTES,
+    AffineCoefficients,
+    Artifact,
     EvidenceRef,
+    Fingerprint,
     FrameRef,
+    Geometry,
+    MediaTime,
+    Producer,
+    ProducerSpace,
+    Rational,
     RunManifest,
+    RunOutputs,
+    Sampling,
     Source,
+    SourceStream,
+    TimeBase,
     _bounded_int,
     _fail,
     _parse_json,
@@ -40,11 +53,45 @@ _INGESTION_SCHEMAS = frozenset(
     {Source.schema, FrameRef.schema, EvidenceRef.schema, RunManifest.schema}
 )
 _PERCEPTION_SCHEMAS = frozenset({Observation.schema, Tracklet.schema})
+_INGESTION_VALUE_TYPES = {
+    AffineCoefficients,
+    Artifact,
+    EvidenceRef,
+    Fingerprint,
+    FrameRef,
+    Geometry,
+    MediaTime,
+    Producer,
+    ProducerSpace,
+    Rational,
+    RunManifest,
+    RunOutputs,
+    Sampling,
+    Source,
+    SourceStream,
+    TimeBase,
+}
+
+
+def _require_plain_ingestion_value(value: object) -> None:
+    value_type = type(value)
+    if value is None or value_type in {bool, int, str}:
+        return
+    if value_type is tuple:
+        for item in cast(tuple[object, ...], value):
+            _require_plain_ingestion_value(item)
+        return
+    if value_type not in _INGESTION_VALUE_TYPES:
+        _fail("non_plain_ingestion_value")
+    for field in fields(cast(Any, value)):
+        _require_plain_ingestion_value(getattr(value, field.name))
+    cast(Any, value_type).__post_init__(value)
 
 
 def dumps_experimental_record(record: ExperimentalRecord) -> bytes:
     """Serialize one exact-type v0.1 or additive perception record."""
     if type(record) in _INGESTION_TYPES:
+        _require_plain_ingestion_value(record)
         return dumps_record(cast(IngestionRecord, record))
     if type(record) in _PERCEPTION_TYPES:
         return dumps_perception_record(cast(PerceptionRecord, record))
@@ -54,6 +101,7 @@ def dumps_experimental_record(record: ExperimentalRecord) -> bytes:
 def identity_experimental_bytes(record: ExperimentalRecord) -> bytes:
     """Return the canonical identity projection for any experimental record."""
     if type(record) in _INGESTION_TYPES:
+        _require_plain_ingestion_value(record)
         return identity_bytes(cast(IngestionRecord, record))
     if type(record) in _PERCEPTION_TYPES:
         return identity_perception_bytes(cast(PerceptionRecord, record))

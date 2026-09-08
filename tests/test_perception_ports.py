@@ -354,6 +354,9 @@ def test_perception_results_and_fakes_reject_hostile_subclasses() -> None:
     class DerivedDetectionResult(DetectionResult):
         pass
 
+    class VendorFingerprint(Fingerprint):
+        pass
+
     observation = observations[0]
     hostile_observation = DerivedObservation(
         observation.observation_id,
@@ -376,6 +379,9 @@ def test_perception_results_and_fakes_reject_hostile_subclasses() -> None:
         tracklet.termination_reason,
         tracklet.producer,
     )
+    hostile_fingerprint = VendorFingerprint("dd" * 32, "10")
+    object.__setattr__(hostile_fingerprint, "vendor_payload", b"private pixels")
+    hostile_nested_source = Source.create(hostile_fingerprint, source.streams)
 
     with pytest.raises(ValueError, match="Observation records"):
         DetectionResult(
@@ -405,6 +411,11 @@ def test_perception_results_and_fakes_reject_hostile_subclasses() -> None:
                 ),
             ),
             frames,
+        )
+    with pytest.raises(PortError, match="invalid_request"):
+        FakeDetector(DetectionResult(PerceptionResultState.COMPLETE)).detect(
+            hostile_nested_source,
+            (),
         )
 
 

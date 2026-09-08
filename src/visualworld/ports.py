@@ -12,6 +12,7 @@ from typing import Protocol, runtime_checkable
 from visualworld.ingestion import (
     Artifact,
     EvidenceRef,
+    Fingerprint,
     FrameRef,
     MediaTime,
     Producer,
@@ -547,24 +548,47 @@ def _plain_port_time(value: object) -> bool:
     )
 
 
+def _plain_perception_source(value: object) -> bool:
+    if (
+        type(value) is not Source
+        or type(value.source_id) is not str
+        or type(value.fingerprint) is not Fingerprint
+        or type(value.fingerprint.digest) is not str
+        or type(value.fingerprint.bytes) is not str
+        or type(value.fingerprint.algorithm) is not str
+        or type(value.streams) is not tuple
+        or not all(
+            type(stream) is SourceStream
+            and type(stream.stream_index) is int
+            and type(stream.width) is int
+            and type(stream.height) is int
+            and type(stream.rotation_degrees) is int
+            and type(stream.media_type) is str
+            and type(stream.time_base) is TimeBase
+            and type(stream.time_base.numerator) is str
+            and type(stream.time_base.denominator) is str
+            for stream in value.streams
+        )
+    ):
+        return False
+    try:
+        Fingerprint.__post_init__(value.fingerprint)
+        for stream in value.streams:
+            TimeBase.__post_init__(stream.time_base)
+            SourceStream.__post_init__(stream)
+        Source.__post_init__(value)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
 def _perception_frames(
     source: Source,
     frames: tuple[FrameRef, ...],
     port: PortKind,
     operation: str,
 ) -> dict[str, FrameRef]:
-    if type(source) is not Source or type(source.source_id) is not str:
-        raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
-    if type(source.streams) is not tuple or not all(
-        type(stream) is SourceStream
-        and type(stream.stream_index) is int
-        and type(stream.width) is int
-        and type(stream.height) is int
-        and type(stream.time_base) is TimeBase
-        and type(stream.time_base.numerator) is str
-        and type(stream.time_base.denominator) is str
-        for stream in source.streams
-    ):
+    if not _plain_perception_source(source):
         raise _port_error(PortErrorCode.INVALID_REQUEST, port, operation)
     if type(frames) is not tuple or len(frames) > MAX_PORT_BATCH_ITEMS:
         raise _port_error(PortErrorCode.LIMIT_EXCEEDED, port, operation)
