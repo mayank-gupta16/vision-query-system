@@ -61,7 +61,7 @@
         "tiny": 0
       },
       "peak_rss_bytes": {
-        "overall": 957325312
+        "overall": 964329472
       },
       "readable_detail_proxy_gain_basis_points": {
         "medium": 0,
@@ -91,10 +91,10 @@
         "redistribution_allowed": true,
         "review_status": "approved-for-evaluation",
         "reviewed_on": "2026-09-08",
-        "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
+        "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
         "sha256": "1eee4ef653e03cf4e04425eb9b117861eaf80ef07574e9de17f20990d631f315",
-        "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/src/visualworld/geometry.py",
-        "terms_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/LICENSE",
+        "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/src/visualworld/geometry.py",
+        "terms_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/LICENSE",
         "trust_remote_code": false,
         "use": "exact detector-to-source mapping and packed RGB24 crop evaluation"
       },
@@ -130,20 +130,20 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-harness",
-      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
-      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-metrics",
-      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
-      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5"
+    "source_revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485"
   },
   "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
@@ -163,7 +163,7 @@
       "failure_code": null,
       "metrics": {
         "crop_wall_ms": {
-          "overall": 3
+          "overall": 2
         },
         "evidence_bytes_per_crop": {
           "overall": 777600
@@ -184,7 +184,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 957325312
+          "overall": 964329472
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -229,7 +229,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 957325312
+          "overall": 964329472
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -274,7 +274,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 957325312
+          "overall": 964329472
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -319,7 +319,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 957325312
+          "overall": 964329472
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,
@@ -364,7 +364,7 @@
           "tiny": 0
         },
         "peak_rss_bytes": {
-          "overall": 957325312
+          "overall": 964329472
         },
         "readable_detail_proxy_gain_basis_points": {
           "medium": 0,

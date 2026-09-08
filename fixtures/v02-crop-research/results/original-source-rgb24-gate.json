@@ -93,7 +93,7 @@
         "maximum": 2147483648,
         "minimum": null,
         "status": "pass",
-        "value": 957325312
+        "value": 964329472
       }
     },
     "readable_detail_proxy_gain_basis_points": {
@@ -178,20 +178,20 @@
     "evaluation_harness": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-harness",
-      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
-      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
     },
     "executable_implementation": "cpython",
     "metric_implementation": {
       "license_expression": "Apache-2.0",
       "name": "visualworld-v02-crop-metrics",
-      "revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5",
-      "sha256": "3e61469b2552de2941498b6516d0fc322740c06ce6b81adbce4a18f58fc798e8",
-      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/9091f3e54476cde3388fa45659f400d6afc2c3d5/scripts/run_v02_crop_benchmark.py"
+      "revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485",
+      "sha256": "7f803be7a0472391d933dc8a8091149b93a122dda7a768779929c3e3f69cdd98",
+      "source_url": "https://github.com/mayank-gupta16/vision-query-system/blob/44bf5fb233533d4a9c537d1f475c659e80bfa485/scripts/run_v02_crop_benchmark.py"
     },
     "python_version": "3.13.15",
-    "source_revision": "9091f3e54476cde3388fa45659f400d6afc2c3d5"
+    "source_revision": "44bf5fb233533d4a9c537d1f475c659e80bfa485"
   },
   "policy_sha256": "977a4035cfb53152f6061bd411a86f131a7de2c3bbd2ef3ce2d5530f591b433f",
   "policy_version": "v0.2-gates-2",
@@ -205,7 +205,7 @@
     "operating_system": "Linux",
     "vcpu": 4
   },
-  "receipt_sha256": "bca5b2ac9d8d5aa57d571be61935981a8bcd5ede729a607a42504a97d66f3dd5",
+  "receipt_sha256": "9a2321dd7e9ce96b6cd63265afaf54a85e4dbff024bbe653bf97d95265762ca9",
   "regression": {},
   "schema": "visualworld.v02-evaluation-result",
   "schema_version": 1,

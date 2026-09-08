@@ -491,10 +491,10 @@ def test_committed_crop_results_revalidate_when_present() -> None:
     raw = _json(raw_path)
     outputs = cast(dict[str, object], raw["outputs"])
     assert hashlib.sha256(raw_path.read_bytes()).hexdigest() == (
-        "4a5fb5aa18448633dd503d37aa9b9ac202971f0291e18b85e6c4fe70b8ce77fa"
+        "7d8f8c0448a790c80a300b1c97aa4a437fe7ea2ac1779ad4a7754c96ec546b09"
     )
     provenance = cast(dict[str, object], raw["provenance"])
-    assert provenance["source_revision"] == "9091f3e54476cde3388fa45659f400d6afc2c3d5"
+    assert provenance["source_revision"] == "44bf5fb233533d4a9c537d1f475c659e80bfa485"
     test_result = cast(dict[str, object], raw["test"])
     aggregate = cast(dict[str, object], test_result["aggregate"])
     metrics = cast(dict[str, object], aggregate["metrics"])
