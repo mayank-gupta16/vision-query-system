@@ -91,6 +91,7 @@ def _observation(
     box: tuple[int, int, int, int],
     *,
     confidence: int = 950_000,
+    category: str = "vehicle",
 ) -> Observation:
     stream = source.streams[0]
     return Observation.create(
@@ -99,7 +100,7 @@ def _observation(
         frame.stream_index,
         frame.pts,
         Geometry(stream.width, stream.height, box, "inferred"),
-        "vehicle",
+        category,
         confidence,
         DETECTOR_PRODUCER,
     )
@@ -509,6 +510,24 @@ def test_missing_scores_and_out_of_boundary_category_or_rate_are_explicit() -> N
         discontinuities=_scores(frames),
     )
     assert unsupported_category == TrackingResult(
+        PerceptionResultState.UNSUPPORTED,
+        reason="category_unsupported",
+    )
+
+
+def test_default_tracker_rejects_valid_non_vehicle_observations() -> None:
+    source = _source()
+    frames = _frames(source, 2)
+    observations = tuple(_observation(source, frame, BOX, category="animal") for frame in frames)
+
+    result = GlobalLastBoxTracker().track(
+        source,
+        frames,
+        observations,
+        discontinuities=_scores(frames),
+    )
+
+    assert result == TrackingResult(
         PerceptionResultState.UNSUPPORTED,
         reason="category_unsupported",
     )

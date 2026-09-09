@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import BinaryIO, ClassVar
@@ -35,7 +36,7 @@ from visualworld.ingestion import (
 MAX_TRACK_POINTS = 64
 MAX_CONFIDENCE_MILLIONTHS = 1_000_000
 MAX_DISCONTINUITY_BASIS_POINTS = 10_000
-_CATEGORIES = frozenset({"vehicle"})
+_CATEGORY_RE = re.compile(r"[a-z][a-z0-9_]{0,127}\Z")
 _TERMINATION_REASONS = frozenset({"cut", "miss_timeout", "source_end"})
 
 
@@ -43,6 +44,14 @@ def _plain_string(value: object, path: str) -> str:
     if type(value) is not str:
         _fail("expected_string", path)
     return _general_string(value, path)
+
+
+def _category(value: object, path: str) -> str:
+    """Validate one vendor-neutral persisted/query category token."""
+    category = _general_string(value, path)
+    if not _CATEGORY_RE.fullmatch(category):
+        _fail("invalid_category", path)
+    return category
 
 
 def _plain_time_base(value: object, path: str) -> TimeBase:
@@ -219,7 +228,7 @@ class Observation(_PerceptionRecord):
         _plain_media_time(self.pts, "pts")
         _plain_geometry(self.geometry, "geometry")
         _plain_string(self.category, "category")
-        _token(self.category, "category", _CATEGORIES)
+        _category(self.category, "category")
         _bounded_int(
             self.confidence_millionths,
             0,
@@ -245,6 +254,7 @@ class Observation(_PerceptionRecord):
         _plain_string(source_id, "source_id")
         _plain_string(frame_id, "frame_id")
         _plain_string(category, "category")
+        _category(category, "category")
         _plain_media_time(pts, "pts")
         _plain_geometry(geometry, "geometry")
         _plain_producer(producer, "producer")
@@ -316,7 +326,7 @@ class Observation(_PerceptionRecord):
             stream_index=_bounded_int(item["stream_index"], 0, MAX_I31, "stream_index"),
             pts=MediaTime.from_mapping(item["pts"], "pts"),
             geometry=Geometry.from_mapping(item["geometry"]),
-            category=_token(item["category"], "category"),
+            category=_category(item["category"], "category"),
             confidence_millionths=_bounded_int(
                 item["confidence_millionths"],
                 0,
@@ -350,7 +360,7 @@ class TrackPoint:
         _plain_media_time(self.pts, "track_point.pts")
         _plain_geometry(self.geometry, "track_point.geometry")
         _plain_string(self.category, "track_point.category")
-        _token(self.category, "track_point.category", _CATEGORIES)
+        _category(self.category, "track_point.category")
 
     @classmethod
     def from_observation(cls, observation: Observation) -> TrackPoint:
@@ -400,7 +410,7 @@ class TrackPoint:
             stream_index=_bounded_int(item["stream_index"], 0, MAX_I31, f"{path}.stream_index"),
             pts=MediaTime.from_mapping(item["pts"], f"{path}.pts"),
             geometry=Geometry.from_mapping(item["geometry"], f"{path}.geometry"),
-            category=_token(item["category"], f"{path}.category"),
+            category=_category(item["category"], f"{path}.category"),
         )
 
 
@@ -427,7 +437,7 @@ class Tracklet(_PerceptionRecord):
         _typed_id(self.source_id, "src", "source_id")
         _bounded_int(self.stream_index, 0, MAX_I31, "stream_index")
         _plain_string(self.category, "category")
-        _token(self.category, "category", _CATEGORIES)
+        _category(self.category, "category")
         if type(self.points) is not tuple:
             _fail("track_points_must_be_tuple", "points")
         if not self.points:
@@ -490,6 +500,7 @@ class Tracklet(_PerceptionRecord):
     ) -> Tracklet:
         _plain_string(source_id, "source_id")
         _plain_string(category, "category")
+        _category(category, "category")
         _plain_string(termination_reason, "termination.reason")
         if type(points) is not tuple:
             _fail("track_points_must_be_tuple", "points")
@@ -583,7 +594,7 @@ class Tracklet(_PerceptionRecord):
             tracklet_id=_general_string(item["tracklet_id"], "tracklet_id"),
             source_id=_general_string(item["source_id"], "source_id"),
             stream_index=_bounded_int(item["stream_index"], 0, MAX_I31, "stream_index"),
-            category=_token(item["category"], "category"),
+            category=_category(item["category"], "category"),
             points=points,
             termination_reason=_token(termination["reason"], "termination.reason"),
             producer=Producer.from_mapping(item["producer"]),

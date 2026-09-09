@@ -52,7 +52,8 @@ pixels are never included in object representations or errors.
 Issue [#70](https://github.com/mayank-gupta16/vision-query-system/issues/70)
 adds the first framework-free perception records in `visualworld.perception`:
 
-- `Observation` is one detector-supported `vehicle` claim. Its content-derived
+- `Observation` is one detector-supported object-like category claim. Its bounded
+  category token matches `[a-z][a-z0-9_]{0,127}` and its content-derived
   `obs_` identifier binds the source and frame identifiers, stream, exact source
   PTS, original-pixel geometry and transform, integer-millionth confidence, and
   exact producer version/configuration digest.

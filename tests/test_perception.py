@@ -7,6 +7,7 @@ import json
 import traceback
 from collections.abc import Callable
 from io import BytesIO
+from pathlib import Path
 from typing import BinaryIO, cast
 
 import pytest
@@ -28,6 +29,17 @@ SOURCE_ID = "src_" + "11" * 32
 FRAME_IDS = ("frm_" + "22" * 32, "frm_" + "33" * 32)
 OBSERVATION_ID = "obs_70d5360054807dfa82ad25f62da132151a9298d85c19a5962de452ef085c28a9"
 TRACKLET_ID = "trk_1dfe350c6e7f7fdd9304d6ce8be5f72a8343651787492e892856f1dff64f8703"
+GOLDEN_ROOT = Path(__file__).parent / "goldens"
+VEHICLE_GOLDENS = (
+    (
+        GOLDEN_ROOT / "perception-observation-v1.json",
+        GOLDEN_ROOT / "perception-observation-identity-v1.json",
+    ),
+    (
+        GOLDEN_ROOT / "perception-tracklet-v1.json",
+        GOLDEN_ROOT / "perception-tracklet-identity-v1.json",
+    ),
+)
 
 
 def encode(value: object) -> bytes:
@@ -59,12 +71,18 @@ def test_representative_perception_records_are_canonical_and_round_trip() -> Non
     observation, tracklet = records()
     all_records: tuple[PerceptionRecord, ...] = (observation, tracklet)
 
-    for record in all_records:
+    for record, (record_golden, identity_golden) in zip(
+        all_records,
+        VEHICLE_GOLDENS,
+        strict=True,
+    ):
         encoded = dumps_perception_record(record)
         assert encoded == encode(record.to_mapping())
         assert loads_perception_record(encoded) == record
         assert load_perception_record(BytesIO(encoded)) == record
         assert identity_perception_bytes(record) == encode(record.identity_projection())
+        assert encoded + b"\n" == record_golden.read_bytes()
+        assert identity_perception_bytes(record) + b"\n" == identity_golden.read_bytes()
 
     assert observation.observation_id == OBSERVATION_ID
     assert tracklet.tracklet_id == TRACKLET_ID
@@ -99,6 +117,121 @@ def test_observation_and_tracklet_identity_bind_inference_provenance() -> None:
     assert changed_tracklet.tracklet_id != tracklet.tracklet_id
 
 
+@pytest.mark.parametrize("category", ("animal", "traffic_light", "a" + "z" * 127))
+def test_non_vehicle_categories_round_trip_through_all_perception_records(category: str) -> None:
+    vehicle_observation, _ = records()
+    observation = Observation.create(
+        vehicle_observation.source_id,
+        vehicle_observation.frame_id,
+        vehicle_observation.stream_index,
+        vehicle_observation.pts,
+        vehicle_observation.geometry,
+        category,
+        vehicle_observation.confidence_millionths,
+        vehicle_observation.producer,
+    )
+    point = TrackPoint.from_observation(observation)
+    tracklet = Tracklet.create(
+        observation.source_id,
+        observation.stream_index,
+        category,
+        (point,),
+        "source_end",
+        Producer("visualworld.fake-tracker", "1", "55" * 32),
+    )
+
+    assert observation.category == point.category == tracklet.category == category
+    assert observation.observation_id != vehicle_observation.observation_id
+    assert loads_perception_record(dumps_perception_record(observation)) == observation
+    assert loads_perception_record(dumps_perception_record(tracklet)) == tracklet
+
+
+@pytest.mark.parametrize(
+    "category",
+    (
+        "",
+        "Animal",
+        "animal-light",
+        "animal/path",
+        "animal space",
+        "animal\n",
+        "café",
+        "a" * 129,
+        "a\u0301",
+    ),
+)
+def test_perception_categories_reject_invalid_tokens_in_all_record_paths(category: str) -> None:
+    observation, tracklet = records()
+    invalid_observation = {
+        **observation.to_mapping(),
+        "category": category,
+    }
+    invalid_tracklet = {
+        **tracklet.to_mapping(),
+        "category": category,
+    }
+    invalid_point_tracklet = {
+        **tracklet.to_mapping(),
+        "points": [
+            {
+                **tracklet.points[0].to_mapping(),
+                "category": category,
+            },
+            *[point.to_mapping() for point in tracklet.points[1:]],
+        ],
+    }
+
+    with pytest.raises(RecordValidationError):
+        Observation.create(
+            observation.source_id,
+            observation.frame_id,
+            observation.stream_index,
+            observation.pts,
+            observation.geometry,
+            category,
+            observation.confidence_millionths,
+            observation.producer,
+        )
+    with pytest.raises(RecordValidationError):
+        Observation(
+            observation.observation_id,
+            observation.source_id,
+            observation.frame_id,
+            observation.stream_index,
+            observation.pts,
+            observation.geometry,
+            category,
+            observation.confidence_millionths,
+            observation.producer,
+        )
+    with pytest.raises(RecordValidationError):
+        TrackPoint(
+            observation.observation_id,
+            observation.source_id,
+            observation.frame_id,
+            observation.stream_index,
+            observation.pts,
+            observation.geometry,
+            category,
+        )
+    with pytest.raises(RecordValidationError):
+        Tracklet(
+            tracklet.tracklet_id,
+            tracklet.source_id,
+            tracklet.stream_index,
+            category,
+            tracklet.points,
+            tracklet.termination_reason,
+            tracklet.producer,
+        )
+    with pytest.raises(RecordValidationError):
+        loads_perception_record(encode(invalid_observation))
+    with pytest.raises(RecordValidationError):
+        loads_perception_record(encode(invalid_tracklet))
+    with pytest.raises(RecordValidationError):
+        loads_perception_record(encode(invalid_point_tracklet))
+
+
 @pytest.mark.parametrize(
     "invalid",
     [
@@ -108,7 +241,7 @@ def test_observation_and_tracklet_identity_bind_inference_provenance() -> None:
             0,
             MediaTime("0", TimeBase("1", "1")),
             Geometry(2, 2, (0, 0, 1, 1), "inferred"),
-            "person",
+            "Person",
             1,
             Producer("p", "1", "0" * 64),
         ),
