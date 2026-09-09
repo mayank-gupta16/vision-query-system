@@ -869,7 +869,9 @@ class GlobalLastBoxTracker:
             if cursor is not None
             else TrackingDiagnostics(0, 0, 0, 0, 0, 0, 0, 0)
         )
-        if self._requested_category != "vehicle":
+        if self._requested_category != "vehicle" or any(
+            observation.category != "vehicle" for observation in observations
+        ):
             return TrackingPage(
                 PerceptionResultState.UNSUPPORTED,
                 (),

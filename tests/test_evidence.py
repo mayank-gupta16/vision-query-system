@@ -65,6 +65,7 @@ def _values(
     height: int = 100,
     termination: str = "source_end",
     pts_values: tuple[int, ...] | None = None,
+    category: str = "vehicle",
 ) -> tuple[Source, tuple[FrameRef, ...], tuple[Observation, ...], Tracklet]:
     assert len(boxes) == len(confidences)
     selected_pts = tuple(index * 200 for index in range(len(boxes)))
@@ -88,7 +89,7 @@ def _values(
             0,
             frame.pts,
             Geometry(width, height, box, "inferred"),
-            "vehicle",
+            category,
             confidence,
             detector,
         )
@@ -97,7 +98,7 @@ def _values(
     tracklet = Tracklet.create(
         source.source_id,
         0,
-        "vehicle",
+        category,
         tuple(TrackPoint.from_observation(observation) for observation in observations),
         termination,
         Producer("visualworld.test-tracker", "1", "cc" * 32),
@@ -166,6 +167,22 @@ def test_golden_order_preserves_integer_scores_and_tie_breaks() -> None:
     assert boundary.score.boundary_touch_count == 1
     assert boundary.score.confidence_millionths == 1_000_000
     assert selector.calls == (PortCall(PortKind.EVIDENCE_SELECTOR, "plan", 5),)
+
+
+def test_best_frame_selector_plans_non_vehicle_observations() -> None:
+    _, _, observations, tracklet = _values(
+        ((10, 10, 70, 70), (20, 10, 60, 60)),
+        (950_000, 900_000),
+        category="traffic_light",
+    )
+
+    plan = BestFrameEvidenceSelector().plan(tracklet, observations)
+
+    assert plan.state is PerceptionResultState.COMPLETE
+    assert plan.observation_ids == (observations[0].observation_id, observations[1].observation_id)
+    assert tuple(intent.observation_id for intent in plan.intents) == tuple(
+        observation.observation_id for observation in observations
+    )
 
 
 def test_stable_port_is_bounded_pixel_free_and_protocol_compatible(

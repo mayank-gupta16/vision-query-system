@@ -41,7 +41,9 @@ from visualworld.ports import (
 )
 
 
-def values() -> tuple[Source, tuple[FrameRef, ...], tuple[Observation, ...], Tracklet]:
+def values(
+    category: str = "vehicle",
+) -> tuple[Source, tuple[FrameRef, ...], tuple[Observation, ...], Tracklet]:
     time_base = TimeBase("1", "1000")
     source = Source.create(
         Fingerprint("aa" * 32, "10"),
@@ -59,7 +61,7 @@ def values() -> tuple[Source, tuple[FrameRef, ...], tuple[Observation, ...], Tra
             frame.stream_index,
             frame.pts,
             Geometry(64, 48, (4 + index, 5, 20 + index, 30), "inferred"),
-            "vehicle",
+            category,
             950_000,
             detector,
         )
@@ -68,7 +70,7 @@ def values() -> tuple[Source, tuple[FrameRef, ...], tuple[Observation, ...], Tra
     tracklet = Tracklet.create(
         source.source_id,
         0,
-        "vehicle",
+        category,
         tuple(TrackPoint.from_observation(observation) for observation in observations),
         "source_end",
         Producer("visualworld.fake-tracker", "1", "cc" * 32),
@@ -103,6 +105,20 @@ def test_perception_fakes_satisfy_their_protocols_and_are_instrumented() -> None
         PortKind.EVIDENCE_SELECTOR,
     }
     assert all(item.descriptor.offline for item in (detector, tracker, selector))
+
+
+def test_perception_fakes_accept_a_coherent_non_vehicle_graph() -> None:
+    source, frames, observations, tracklet = values("animal")
+    detection = DetectionResult(PerceptionResultState.COMPLETE, observations)
+    tracking = TrackingResult(PerceptionResultState.COMPLETE, (tracklet,))
+    selection = EvidenceSelectionResult(
+        PerceptionResultState.COMPLETE,
+        (observations[1].observation_id,),
+    )
+
+    assert FakeDetector(detection).detect(source, frames) == detection
+    assert FakeTracker(tracking).track(source, frames, observations) == tracking
+    assert FakeEvidenceSelector(selection).select(tracklet, observations) == selection
 
 
 def test_detector_frame_bound_allows_multiple_observations_per_frame() -> None:

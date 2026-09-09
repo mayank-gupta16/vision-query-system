@@ -66,6 +66,7 @@ def _values(
     width: int = 100,
     height: int = 100,
     equal_pts: bool = False,
+    category: str = "vehicle",
 ) -> tuple[
     Source,
     tuple[FrameRef, ...],
@@ -95,7 +96,7 @@ def _values(
             0,
             frame.pts,
             Geometry(width, height, (10 + index, 10, 50 + index, 50), "inferred"),
-            "vehicle",
+            category,
             900_000 + index,
             Producer("visualworld.test-detector", "1", "bc" * 32),
         )
@@ -104,7 +105,7 @@ def _values(
     tracklet = Tracklet.create(
         source.source_id,
         0,
-        "vehicle",
+        category,
         tuple(TrackPoint.from_observation(observation) for observation in observations),
         "source_end",
         Producer("visualworld.test-tracker", "1", "cd" * 32),
@@ -125,6 +126,7 @@ def _prepare(
     root: Path,
     *,
     equal_pts: bool = False,
+    category: str = "vehicle",
 ) -> tuple[
     LocalEvidenceStore,
     LocalWorldStore,
@@ -137,7 +139,10 @@ def _prepare(
 ]:
     evidence_store = LocalEvidenceStore(root)
     store = LocalWorldStore(root)
-    source, frames, observations, tracklet, preparing, committed = _values(equal_pts=equal_pts)
+    source, frames, observations, tracklet, preparing, committed = _values(
+        equal_pts=equal_pts,
+        category=category,
+    )
     plan = BestFrameEvidenceSelector().plan(tracklet, observations)
     with evidence_store.writer_session() as session:
         store.commit((source, preparing), evidence_session=session)
@@ -453,6 +458,57 @@ def test_preparing_graph_is_hidden_then_published_atomically_and_paged(tmp_path:
         tracklet_count=1,
         selection_count=3,
     )
+
+
+def test_schema_v2_persists_reopens_filters_and_deletes_non_vehicle_graph(tmp_path: Path) -> None:
+    root = tmp_path / "store"
+    evidence_store, store, source, _, observations, tracklet, _, committed = _prepare(
+        root,
+        category="animal",
+    )
+    store.finalize_run(committed)
+
+    reopened = LocalWorldStore(root)
+    first = reopened.list_run_observations(
+        committed.run_id,
+        stream_index=0,
+        category="animal",
+        limit=2,
+    )
+    second = reopened.list_run_observations(
+        committed.run_id,
+        stream_index=0,
+        after_pts_value=first[-1].pts.value,
+        after_observation_id=first[-1].observation_id,
+        category="animal",
+        limit=2,
+    )
+    assert first + second == observations
+    assert (
+        reopened.list_run_observations(
+            committed.run_id,
+            stream_index=0,
+            category="vehicle",
+            limit=2,
+        )
+        == ()
+    )
+    assert reopened.list_run_tracklets(
+        committed.run_id,
+        stream_index=0,
+        category="animal",
+        limit=2,
+    ) == (tracklet,)
+    assert reopened.get_perception(tracklet.tracklet_id) == tracklet
+    assert reopened.verify().observation_count == len(observations)
+
+    deletion_id = "del_" + "89" * 32
+    with evidence_store.writer_session() as session:
+        reopened.begin_source_deletion(source.source_id, deletion_id, evidence_session=session)
+        reopened.purge_deletion_metadata(deletion_id, evidence_session=session)
+        reopened.complete_deletion(deletion_id, evidence_session=session)
+
+    assert LocalWorldStore(root).verify() == WorldStoreStats(0, 0, 0)
 
 
 def test_perception_batches_reject_missing_and_cross_source_membership_atomically(
