@@ -166,6 +166,51 @@ fails closed if one uninterrupted trajectory exceeds the record's 64-point
 limit. Perception persistence and coordination remain assigned to issues
 #75–#76; an adapter cannot hide those behaviors behind an implementation name.
 
+## Version-2 perception coordination
+
+`PerceptionCoordinator` is an additive local-store composition contract. It
+replays opaque source pages from zero after a recovered hidden run; sampler and
+tracker cursors never cross a process boundary. It reserves one sampler slot
+for exact page overlap, keeps tracker continuation in-process, and rejects an
+uninterrupted 65th point with a bounded `limit_exceeded` error before any run
+is published. Its configuration bounds source candidates, pages, sampled
+frames, observations, completed tracklets, and metadata intents. The metadata
+byte budget covers the canonical source, the larger preparing/committed run
+manifest, and every graph record; storage-engine overhead is outside this
+logical-record budget.
+
+The coordinator accepts only deterministic offline adapters and records their
+capability configuration as run provenance. A discontinuity provider receives
+only `Source`, the prior selected `FrameRef` (or `None` at replay start), and
+the exact selected page; it returns complete, unknown, or unsupported
+pixel-free `FrameDiscontinuity` facts. Unknown scores are propagated rather
+than synthesized. The vehicle-only path validates source/frame/stream/PTS
+relationships and keeps all pixels, paths, crops, and artifact bytes outside
+the public config, result, events, errors, and stored v0.2 graph.
+
+`PerceptionCoordinator` invokes trusted in-process application adapters, as the
+version-1 port boundary requires. `max_duration_ns` is a cooperative response
+budget checked after every adapter return and before persistence; it cannot
+preempt blocked Python code. An adapter that needs an enforced deadline or
+cancellation must provide its own reviewed isolation. The production OpenVINO
+detector provides that isolation. Adapter `timeout` and `cancelled` failures,
+and otherwise-valid values returned after the elapsed budget, are redacted and
+fail closed.
+
+The coordinator validates the authorized `Source` record and every pixel-free
+`FrameRef` relationship, then requires the final source record to be identical.
+It does not attest physical source bytes during metadata paging or bind an exact
+original frame to a later crop. The production source/detector boundary seals
+its authorized snapshot internally; #87 owns the explicit real-frame binding
+for evidence materialization.
+
+One writer session persists hidden schema-v2 frames, observations, completed
+tracklets, and metadata-only `EvidenceIntent`s, then atomically publishes the
+run marker. A retry validates the visible graph through bounded reads and
+reports an already-committed disposition. #87 owns authorized RGB access and
+crop materialization for a producer/config-distinct run; it does not modify a
+committed #76 metadata-only run.
+
 `visualworld.evidence.BestFrameEvidenceSelector` is the first concrete
 `EvidenceSelector`. Its stable `select` operation remains pixel-free and returns
 at most three observation identifiers by default, with a caller-configurable

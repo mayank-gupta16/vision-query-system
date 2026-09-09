@@ -1374,7 +1374,9 @@ def test_pending_operation_pagination_is_bounded(
         return statuses[:64] if after_deletion_id is None else statuses[64:]
 
     monkeypatch.setattr(world, "pending_deletions", pending_deletions)
-    assert coordinator._all_pending_deletions() == statuses
+    with pytest.raises(CoordinatorError) as deletion_bounded:
+        coordinator._all_pending_deletions()
+    assert deletion_bounded.value.code is CoordinatorErrorCode.LIMIT_EXCEEDED
     assert deletion_calls == [None, statuses[63].deletion_id]
 
 
