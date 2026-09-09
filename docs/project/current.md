@@ -28,7 +28,11 @@
   integer-only best-frame selector with pixel-free source-coordinate intents
   and explicit on-demand exact RGB24 materialization, plus additive schema-v2
   persistence for generic observations, completed tracklets, ordered points,
-  and selected-evidence metadata with atomic publication and cascade recovery
+  and selected-evidence metadata with atomic publication and cascade recovery,
+  plus a generic bounded original-frame reader with a frozen Linux-only
+  hostile-decode overlay and a producer-distinct coordinator path that computes
+  exact RGB24 discontinuities, materializes only selected crops, and publishes
+  their CAS bytes and provenance atomically
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -125,8 +129,11 @@
   composes bounded deterministic pages into one restart-safe, metadata-only
   schema-v2 publication with hidden-run recovery and opaque in-process cursors.
   It preserves the vehicle-only measured path and propagates unknown or
-  unsupported outcomes without publishing partial output. Issue #87 retains
-  pixel access and crop materialization. The first concrete
+  unsupported outcomes without publishing partial output. Its additive
+  materializing path obtains exact authorized RGB24 through the generic
+  `OriginalFrameReader`, computes page-spanning discontinuities, and publishes
+  selected crops plus their provenance in the same recoverable writer session.
+  The first concrete
   detector now implements the selected vehicle-only 384×384 OpenVINO CPU policy
   behind the accepted isolated worker; ordinary CI substitutes its deterministic
   pixel-free fixture seam without provisioning native artifacts.
@@ -138,6 +145,13 @@
   that closure and a manifest-bound first-party worker before every launch,
   passes only a sealed source descriptor, and validates canonical pixel-free
   output before creating original-coordinate observations.
+- `OriginalFrameReader` adds bounded, vendor-neutral access to exact authorized
+  source frames. Its deterministic fake covers ordinary CI. The production
+  adapter is Linux x86_64/GNU-libc-2.28+ only and reuses the unchanged accepted
+  media closure with a separately frozen first-party worker overlay, sealed
+  source and output descriptors, exact Source/FrameRef reconciliation, static
+  errors, and whole-cgroup cleanup. No full frames enter logs, metadata, or
+  durable storage; only explicitly selected crops reach the evidence CAS.
 - `BestFrameEvidenceSelector` implements the frozen metadata-only ordering from
   boundary contact, detector confidence, normalized/raw visible area, and
   source-time position. Its intents preserve every score component,
@@ -193,10 +207,11 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- The first end-to-end library path requires caller-supplied RGB24 pixels and
-  manual/fake regions; the CLI deliberately supplies only a built-in 2×2 fixture.
-  A real detector library adapter now exists, but it is not yet wired into the
-  coordinator or CLI. No query engine or real-video CLI input exists.
+- The CLI deliberately supplies only a built-in 2×2 fixture. The real detector
+  and original-frame library adapters now exist, but are not yet wired into the
+  CLI. No query engine or real-video CLI input exists. Native Linux execution of
+  the new original-frame overlay remains to be recorded on the supported
+  root-owned runtime; macOS correctly reports it as unsupported.
   The combined benchmark therefore measures generated exact-PTS records,
   full-resolution crop/hash work, and the local stores without claiming decode
   or perception throughput. The local-video adapter is Linux x86_64 only and
@@ -207,8 +222,8 @@
 
 ## Next priorities
 
-1. Continue the #30 critical path with perception coordination, CLI,
-   regressions, benchmark, and release issues #76–#80.
+1. Continue the #30 critical path with the CLI, regressions, benchmark, and
+   release issues #77–#80.
 2. Preserve the accepted detector and tracker boundaries while completing the
    first real-video perception vertical slice; do not broaden model/platform or
    identity scope before its release gates pass.

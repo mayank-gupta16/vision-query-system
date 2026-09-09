@@ -40,6 +40,7 @@ _UNSIGNED_DECIMAL_RE = re.compile(r"(?:0|[1-9][0-9]*)\Z")
 
 class PortKind(StrEnum):
     VIDEO_SOURCE = "video_source"
+    ORIGINAL_FRAME_READER = "original_frame_reader"
     FRAME_SAMPLER = "frame_sampler"
     FRAME_DISCONTINUITY = "frame_discontinuity"
     DETECTOR = "detector"

@@ -151,6 +151,58 @@ build, model, worker, runtime and source hashes from the accepted worker protoco
 do not treat an import-only probe or a fixture-worker result as native inference
 evidence.
 
+Issue #87's first-party original-frame worker is installed as a separate,
+no-download overlay beside the unchanged accepted media closure:
+
+```sh
+sudo python3 scripts/provision_perception_runtime.py \
+  install-original-frame-overlay \
+  --overlay-root /opt/visualworld-original-frame-overlay-v1 \
+  --media-runtime-root /opt/visualworld-runtime-probe-v2
+sudo python3 scripts/provision_perception_runtime.py \
+  verify-original-frame-overlay \
+  --overlay-root /opt/visualworld-original-frame-overlay-v1 \
+  --media-runtime-root /opt/visualworld-runtime-probe-v2
+```
+
+Installation accepts an existing destination only after complete verification.
+Both commands require the supported root-owned Linux x86_64/GNU-libc closure,
+bind the overlay receipt to the unchanged media manifest/tree, and reject extra
+files, links, writable paths, or drift. Ordinary Mac/Linux CI exercises the
+generic port, worker protocol, parent validation, exact crop publication,
+recovery, and provisioner without claiming native decode:
+
+```sh
+uv run --frozen --no-sync --offline pytest -q \
+  tests/test_frame_access.py \
+  tests/test_original_frame_worker.py \
+  tests/test_original_frame_runtime.py \
+  tests/test_original_frame_provisioning.py \
+  tests/test_original_frame_acceptance.py \
+  tests/test_perception_materialization.py
+```
+
+After both runtime verifiers pass on the required Linux host, run the native
+fixture acceptance:
+
+```sh
+PYTHONPATH=src /opt/visualworld-runtime-probe-v2/python/bin/python3.13 \
+  scripts/run_original_frame_acceptance.py \
+  --media-runtime /opt/visualworld-runtime-probe-v2 \
+  --media-worker /opt/visualworld-runtime-probe-v2/worker/media_worker.py \
+  --overlay-root /opt/visualworld-original-frame-overlay-v1 \
+  --overlay-worker \
+    /opt/visualworld-original-frame-overlay-v1/worker/original_frame_worker.py \
+  --work-root /private/visualworld-validation \
+  --output /private/visualworld-validation/original-frame-acceptance.json
+```
+
+The runner regenerates synthetic-v1, verifies exact full RGB24 hashes, VFR and
+rotation FrameRefs, exact source-coordinate crop hashes, request-order replay,
+static bounded failures, cancellation, timeout, and source mutation. Its
+canonical receipt contains hashes and booleans, never pixels or source paths.
+On macOS it exits before touching runtime paths or writing a receipt.
+
 Build output goes to fresh ignored `artifacts/build-*` directories with exact
 sizes/hashes printed. Runtime-only CycloneDX 1.6 inventory comes from the newly
 installed wheel, excluding dev tools and the external interpreter. The runtime

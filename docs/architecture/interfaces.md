@@ -13,6 +13,7 @@ The architecture must provide replaceable ports for:
 - `SemanticReasoner`
 - `DepthProvider`
 - `EvidenceSelector`
+- `OriginalFrameReader`
 - `EntityResolver`
 - `WorldStore`
 - `EvidenceStore`
@@ -199,17 +200,32 @@ fail closed.
 
 The coordinator validates the authorized `Source` record and every pixel-free
 `FrameRef` relationship, then requires the final source record to be identical.
-It does not attest physical source bytes during metadata paging or bind an exact
-original frame to a later crop. The production source/detector boundary seals
-its authorized snapshot internally; #87 owns the explicit real-frame binding
-for evidence materialization.
+The metadata-only `run` path remains unchanged. The additive
+`run_with_original_frames` path records distinct reader and materialization
+producers, uses the exact reader for page-spanning hard-cut scores, and reads
+only frames selected by an explicit evidence intent for crop materialization.
+Unknown or unsupported pixel access propagates without publishing a partial
+graph.
 
 One writer session persists hidden schema-v2 frames, observations, completed
-tracklets, and metadata-only `EvidenceIntent`s, then atomically publishes the
-run marker. A retry validates the visible graph through bounded reads and
-reports an already-committed disposition. #87 owns authorized RGB access and
-crop materialization for a producer/config-distinct run; it does not modify a
-committed #76 metadata-only run.
+tracklets, and metadata-only `EvidenceIntent`s. For the materializing path, the
+same session stages exact crops, records their artifact intents, promotes the
+CAS bytes, commits the matching `EvidenceRef` records and selection links, then
+atomically publishes the run marker. A retry verifies both the visible graph and
+CAS before reporting an already-committed disposition. The producer/config-
+distinct materializing run never upgrades or mutates a committed metadata-only
+run.
+
+`OriginalFrameReader` is a vendor-neutral, bounded port over one `Source` and
+exact `FrameRef` values. Its complete result pairs each requested reference with
+owned packed RGB24 bytes in request order; `unknown` and `unsupported` results
+contain no frames. The first production implementation is Linux-only and reads
+an already-authorized local file through the frozen media runtime plus the
+separate original-frame worker overlay. Its private sealed-memory transport,
+runtime verification, source/frame reconciliation, and whole-cgroup cleanup are
+adapter internals. Public results, instrumentation, errors, and persistence stay
+path- and pixel-free. The deterministic fake implements the same record and
+limit contract in ordinary CI.
 
 `visualworld.evidence.BestFrameEvidenceSelector` is the first concrete
 `EvidenceSelector`. Its stable `select` operation remains pixel-free and returns
@@ -227,12 +243,12 @@ completed Tracklet and its exact Observation set; the selector validates that
 context, replans, and requires an exact match for the full issued intent before
 touching pixels. It then uses the existing exact crop utility and produces a
 matching `EvidenceRef`; missing pixels or declared unresolvable detail remain
-`unknown`. Planning does not decode, crop, write, or retain anything. The caller
-must supply RGB24 for the intent's exact frame: this extension has no decoder
-attestation, and the Artifact hash covers the supplied crop rather than proving
-source-frame identity. The caller may pass a completed crop through
-`EvidenceStore`, while later coordination remains responsible for staging,
-reference publication, and deletion.
+`unknown`. Planning does not decode, crop, write, or retain anything. Generic
+callers may still supply already-authorized RGB24 to this extension, whose crop
+hash alone does not attest the source frame. The production materializing
+coordinator instead obtains that RGB24 from the exact `OriginalFrameReader`,
+preserving the Source/FrameRef/runtime binding through crop publication and
+source-cascade deletion.
 
 `visualworld.detection.OpenVinoVehicleDetector` is the first concrete
 `Detector`. Its fixture-worker seam implements the same record contract in

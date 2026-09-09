@@ -1,0 +1,115 @@
+{
+  "application_worker": {
+    "install_path": "worker/original_frame_worker.py",
+    "license_expression": "Apache-2.0",
+    "sha256": "41e54bb9cbb8c3ce9fc3cc2f902cd24e2a19950cb017359449e2844a1887fedd"
+  },
+  "ipc": {
+    "request": {
+      "canonical_json": true,
+      "maximum_bytes": 262144,
+      "pixel_free": true,
+      "schema": "visualworld.original_frame_request",
+      "schema_version": 1,
+      "transport": "stdin"
+    },
+    "response": {
+      "canonical_json": true,
+      "pixel_free": true,
+      "schema": "visualworld.original_frame_result",
+      "schema_version": 1,
+      "transport": "stdout"
+    },
+    "source": {
+      "descriptor": 3,
+      "required_seals": [
+        "F_SEAL_GROW",
+        "F_SEAL_SEAL",
+        "F_SEAL_SHRINK",
+        "F_SEAL_WRITE"
+      ],
+      "transport": "sealed-memfd"
+    },
+    "stderr": {
+      "canonical_json": true,
+      "pixel_free": true,
+      "static_status_only": true
+    },
+    "uncompressed_output": {
+      "descriptor": 4,
+      "initial_seals": [
+        "F_SEAL_GROW",
+        "F_SEAL_SHRINK"
+      ],
+      "layout": "request_order_contiguous_packed_rgb24_encoded_source",
+      "required_final_seals": [
+        "F_SEAL_GROW",
+        "F_SEAL_SEAL",
+        "F_SEAL_SHRINK",
+        "F_SEAL_WRITE"
+      ],
+      "size": "exactly-pre-sized-from-request",
+      "transport": "memfd"
+    }
+  },
+  "limits": {
+    "max_decoded_bytes": 402653184,
+    "max_duration_seconds": 3600,
+    "max_frame_bytes": 33554432,
+    "max_frames": 300,
+    "max_height": 4096,
+    "max_output_bytes": 134217728,
+    "max_pixels": 8388608,
+    "max_request_bytes": 262144,
+    "max_requested_frames": 64,
+    "max_source_bytes": 67108864,
+    "max_width": 4096
+  },
+  "media_runtime": {
+    "ffmpeg_version": "9.0.1",
+    "libavcodec_version": "63.1.101",
+    "libavformat_version": "63.1.101",
+    "manifest_path": "workers/visualworld-runtime.json",
+    "manifest_sha256": "58cf6f64280888ecc01c647044c38b9b56f197389b6bfc7ead7fbbe93a52ba32",
+    "pyav_version": "18.1.0",
+    "runtime_id": "visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2",
+    "tree_sha256": "7015262cd5dfdfd976d6ee092f0f93541597ea35e0331c3abb9ce6d4c54daeaf",
+    "worker_sha256": "6104c56592b5007a882f131e6defd42d31d56248d1337a3668f09978bbf340a2"
+  },
+  "policy": {
+    "ambient_network": false,
+    "ambient_shell": false,
+    "arbitrary_paths": false,
+    "download_during_decode": false,
+    "mutable_repo_imports": false,
+    "remote_code": false,
+    "unsafe_fallback": false
+  },
+  "runtime_id": "visualworld-original-frame-overlay-v1",
+  "schema": "visualworld.original-frame-runtime",
+  "schema_version": 1,
+  "support": {
+    "architecture": "x86_64",
+    "libc": "glibc",
+    "minimum_libc_version": "2.28",
+    "operating_system": "Linux",
+    "python_abi": "cp313",
+    "unsupported_elsewhere": true
+  },
+  "worker": {
+    "boundary": "single-original-frame-decode-worker",
+    "clear_environment": true,
+    "isolation": {
+      "cgroup_v2": true,
+      "landlock": true,
+      "network_namespace": "unshared",
+      "no_new_privileges": true,
+      "non_root": true,
+      "read_only_overlay": true,
+      "read_only_runtime": true,
+      "seccomp": true,
+      "user_mount_pid_ipc_uts_namespaces": "unshared"
+    },
+    "whole_cgroup_cancel_and_cleanup": true
+  }
+}

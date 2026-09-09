@@ -80,6 +80,33 @@ non-dangling, confined to the closure, and resolve to a regular file. Version
 `v1` is retired because its virtual-environment interpreter link resolved to an
 unbound host path.
 
+Issue #87 adds the separately frozen, first-party
+`visualworld-original-frame-overlay-v1` beside that unchanged closure. Its
+manifest SHA-256 is
+`3832f06ba7b55e2139f425232f7cd45d39a7ba08d96b69d5d39bce7c36125d3e`
+and its standalone worker SHA-256 is
+`41e54bb9cbb8c3ce9fc3cc2f902cd24e2a19950cb017359449e2844a1887fedd`.
+The overlay contains no interpreter, native library, model, or third-party
+dependency and is installed root-owned and read-only without changing the
+accepted media-runtime tree.
+
+The additive `OriginalFrameReader` accepts one authorized `Source` and an exact
+bounded tuple of its full `FrameRef` records. The parent revalidates the sealed
+source digest and size, and the worker revalidates stream, decode index, exact
+rational PTS and duration, key-frame state, encoded geometry, RGB24 length, and
+all returned hashes. Pixel-free canonical request metadata travels on standard
+input. Descriptor 3 carries the sealed source snapshot; descriptor 4 carries an
+exactly pre-sized uncompressed RGB24 buffer sealed against size changes before
+launch and against writes before success. Standard output, standard error,
+events, exceptions, paths, and stored metadata never carry pixels. The parent
+reads the buffer only after whole-cgroup termination and rejects any seal,
+offset, size, frame, digest, runtime, or isolation mismatch.
+
+The overlay uses the same Linux x86_64/GNU-libc 2.28+, systemd, bubblewrap,
+Landlock, seccomp, cgroup-v2, and fail-closed capability boundary. Native
+original-frame access is intentionally `unsupported` on macOS; fixture and
+contract tests there are not evidence of the Linux hostile-input guarantee.
+
 ## Alternatives
 
 - **Minimal FFmpeg CLI worker:** smallest dependency surface and retained as a
@@ -101,6 +128,10 @@ The first end-to-end prototype can use generated MOV/rawvideo fixtures and
 MP4/H.264 on the Linux CPU-LITE path while the core remains portable and
 dependency-free. Media packages stay adapter-local. The cost is a source-built
 native runtime and a Linux-only hostile-media capability in the first slice.
+Selected original frames exist only long enough to score discontinuities or
+derive an explicitly requested crop. Only the exact crop and its provenance may
+enter the evidence CAS; unselected full frames are neither retained nor
+published.
 Additional containers/codecs beyond that approved surface,
 macOS isolation, packaging, security-update cadence, and performance tuning are
 incremental follow-up work, not blockers to the first working milestone.
