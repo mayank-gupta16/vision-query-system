@@ -392,7 +392,12 @@ class OriginalFrameMaterializer:
             if result.state is not PerceptionResultState.COMPLETE:
                 return EvidenceMaterializationResult(result.state, reason=result.reason)
             item = result.materialized
-            if item is None or item.intent != intent:
+            if (
+                item is None
+                or item.intent != intent
+                or item.need is not self._config.need
+                or item.detail_resolution is not self._config.detail_resolution
+            ):
                 raise _error(PortErrorCode.CONFLICT, "materialize_run")
             del original, read
             total_crop_bytes += len(item.crop.pixels)

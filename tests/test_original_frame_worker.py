@@ -140,6 +140,11 @@ def test_strict_canonical_request_accepts_real_source_and_frame_ref_mappings() -
         lambda item: item["source"]["streams"][0].update(width=5000),
         lambda item: item["frames"][0]["pts"].update(value="1"),
         lambda item: item["frames"][0].update(stream_index=1),
+        lambda item: item.update(schema_version=True),
+        lambda item: item["source"].update(schema_version=True),
+        lambda item: item["source"].update(identity_version=True),
+        lambda item: item["frames"][0].update(schema_version=True),
+        lambda item: item["frames"][0].update(identity_version=True),
     ],
 )
 def test_request_rejects_mismatch_duplicate_order_geometry_pts_and_index(

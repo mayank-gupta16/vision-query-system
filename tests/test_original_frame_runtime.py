@@ -9,6 +9,8 @@ import json
 import os
 import platform as platform_module
 import subprocess as subprocess_module
+import threading
+import time as time_module
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
@@ -246,6 +248,8 @@ def test_worker_output_parser_accepts_only_exact_pixel_free_receipt() -> None:
             dict[str, object], cast(dict[str, object], value["stream"])["time_base"]
         ).update(denominator="0"),
         lambda value: cast(dict[str, object], value["stream"]).update(width=True),
+        lambda value: value.update(schema_version=True),
+        lambda value: value.update(schema_version=1.0),
         lambda value: value.update(secret="forbidden"),
     ],
 )
@@ -307,6 +311,98 @@ def test_unsupported_host_returns_no_pixels_without_invoking_native_boundary(
     assert result.reason == "platform_unsupported"
 
 
+def test_pre_cancelled_reader_stops_before_clock_and_native_preflight(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, frames, pixels = _values()
+    cancelled = threading.Event()
+    cancelled.set()
+    reader = IsolatedOriginalFrameReader(
+        tmp_path,
+        "private-source.mov",
+        _configured_runtime(tmp_path),
+        cancelled=cancelled,
+    )
+    monkeypatch.setattr(
+        time_module,
+        "monotonic_ns",
+        lambda: pytest.fail("pre-cancelled read must not start its deadline"),
+    )
+    monkeypatch.setattr(
+        media,
+        "_capability_check",
+        lambda _runtime: pytest.fail("pre-cancelled read must not check capabilities"),
+    )
+    monkeypatch.setattr(
+        runtime_module,
+        "_verify_overlay",
+        lambda _runtime: pytest.fail("pre-cancelled read must not verify the overlay"),
+    )
+    monkeypatch.setattr(
+        media,
+        "_open_source",
+        lambda *_args: pytest.fail("pre-cancelled read must not open the source"),
+    )
+    monkeypatch.setattr(
+        runtime_module,
+        "_output_memfd",
+        lambda _size: pytest.fail("pre-cancelled read must not allocate output"),
+    )
+    monkeypatch.setattr(
+        runtime_module,
+        "_run_worker",
+        lambda *_args: pytest.fail("pre-cancelled read must not launch the worker"),
+    )
+
+    with pytest.raises(PortError) as raised:
+        reader.read(source, frames[:1])
+
+    assert raised.value.code is PortErrorCode.CANCELLED
+    assert str(raised.value) == "cancelled at original_frame_reader.read"
+    assert "private-source.mov" not in str(raised.value)
+    assert all(repr(content) not in str(raised.value) for content in pixels)
+    assert reader.calls == ()
+
+
+def test_preflight_deadline_overrun_stops_before_overlay_and_source_access(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source, frames, pixels = _values()
+    clock = [0]
+    reader = IsolatedOriginalFrameReader(
+        tmp_path,
+        "private-source.mov",
+        _configured_runtime(tmp_path),
+        limits=OriginalFrameLimits(wall_timeout_ms=10),
+    )
+    monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
+    monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
+
+    def consume_budget(_runtime: object) -> None:
+        clock[0] = 10_000_000
+
+    monkeypatch.setattr(media, "_capability_check", consume_budget)
+    monkeypatch.setattr(
+        runtime_module,
+        "_verify_overlay",
+        lambda _runtime: pytest.fail("expired preflight must not verify the overlay"),
+    )
+    monkeypatch.setattr(
+        media,
+        "_open_source",
+        lambda *_args: pytest.fail("expired preflight must not open the source"),
+    )
+
+    with pytest.raises(PortError) as raised:
+        reader.read(source, frames[:1])
+
+    assert raised.value.code is PortErrorCode.TIMEOUT
+    assert str(raised.value) == "timeout at original_frame_reader.read"
+    assert "private-source.mov" not in str(raised.value)
+    assert all(repr(content) not in str(raised.value) for content in pixels)
+    assert reader.calls == ()
+
+
 def test_reader_integration_reorders_transient_pixels_and_checks_final_digest(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -316,8 +412,98 @@ def test_reader_integration_reorders_transient_pixels_and_checks_final_digest(
     source_path.write_bytes(content)
     output_path = tmp_path / "output.memfd"
     output_path.write_bytes(b"\0" * 24)
-    reader = IsolatedOriginalFrameReader(tmp_path, "source.mov", _configured_runtime(tmp_path))
+    reader = IsolatedOriginalFrameReader(
+        tmp_path,
+        "source.mov",
+        _configured_runtime(tmp_path),
+        limits=OriginalFrameLimits(wall_timeout_ms=20),
+    )
+    clock = [0]
+    worker_wall_budgets: list[int] = []
 
+    monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
+    monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
+    monkeypatch.setattr(media, "_capability_check", lambda _runtime: None)
+    monkeypatch.setattr(runtime_module, "_verify_overlay", lambda _runtime: None)
+
+    def open_source(_root: Path, _relative: str, _maximum: int) -> tuple[int, os.stat_result]:
+        descriptor = os.open(source_path, os.O_RDONLY)
+        return descriptor, os.fstat(descriptor)
+
+    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+        return os.dup(source_fd), hashlib.sha256(content).hexdigest(), len(content)
+
+    monkeypatch.setattr(media, "_open_source", open_source)
+    monkeypatch.setattr(media, "_sealed_snapshot", snapshot)
+
+    def output_memfd(_size: int) -> int:
+        clock[0] = 5_000_000
+        return os.open(output_path, os.O_RDWR)
+
+    monkeypatch.setattr(runtime_module, "_output_memfd", output_memfd)
+    real_fcntl = cast(Any, fcntl_module.fcntl)
+
+    def fcntl_result(descriptor: int, command: int, *args: object) -> int:
+        if command == runtime_module._F_GET_SEALS:
+            return runtime_module._FINAL_OUTPUT_SEALS
+        return cast(int, real_fcntl(descriptor, command, *args))
+
+    monkeypatch.setattr(fcntl_module, "fcntl", fcntl_result)
+
+    def run_worker(
+        _runtime: OriginalFrameRuntime,
+        _limits: OriginalFrameLimits,
+        _source_fd: int,
+        output_fd: int,
+        request: bytes,
+        _cancelled: object,
+    ) -> runtime_module._WorkerRun:
+        worker_wall_budgets.append(_limits.wall_timeout_ms)
+        requested = tuple(
+            FrameRef.from_mapping(item)
+            for item in cast(list[object], json.loads(request)["frames"])
+        )
+        selected = tuple(pixels[frames.index(frame)] for frame in requested)
+        os.pwrite(output_fd, b"".join(selected), 0)
+        return _worker_run(source, requested, selected)
+
+    monkeypatch.setattr(runtime_module, "_run_worker", run_worker)
+
+    result = reader.read(source, tuple(reversed(frames)))
+
+    assert tuple(item.frame for item in result.frames) == tuple(reversed(frames))
+    assert tuple(item.pixels for item in result.frames) == tuple(reversed(pixels))
+    assert all(repr(item.pixels) not in repr(result) for item in result.frames)
+    assert worker_wall_budgets == [15]
+    assert reader.calls[-1].item_count == 2
+
+
+@pytest.mark.parametrize(
+    ("mode", "code"),
+    [("deadline", PortErrorCode.TIMEOUT), ("cancellation", PortErrorCode.CANCELLED)],
+)
+def test_post_read_checks_enforce_deadline_and_cancellation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str,
+    code: PortErrorCode,
+) -> None:
+    content = b"source-bytes"
+    source, frames, pixels = _values(content)
+    source_path = tmp_path / "source.mov"
+    source_path.write_bytes(content)
+    output_path = tmp_path / "output.memfd"
+    output_path.write_bytes(b"\0" * 12)
+    clock = [0]
+    cancelled = threading.Event()
+    reader = IsolatedOriginalFrameReader(
+        tmp_path,
+        "private-source.mov",
+        _configured_runtime(tmp_path),
+        limits=OriginalFrameLimits(wall_timeout_ms=10),
+        cancelled=cancelled,
+    )
+    monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
     monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
     monkeypatch.setattr(media, "_capability_check", lambda _runtime: None)
     monkeypatch.setattr(runtime_module, "_verify_overlay", lambda _runtime: None)
@@ -350,24 +536,40 @@ def test_reader_integration_reorders_transient_pixels_and_checks_final_digest(
         _limits: OriginalFrameLimits,
         _source_fd: int,
         output_fd: int,
-        request: bytes,
+        _request: bytes,
         _cancelled: object,
     ) -> runtime_module._WorkerRun:
-        requested = tuple(
-            FrameRef.from_mapping(item)
-            for item in cast(list[object], json.loads(request)["frames"])
-        )
-        selected = tuple(pixels[frames.index(frame)] for frame in requested)
-        os.pwrite(output_fd, b"".join(selected), 0)
-        return _worker_run(source, requested, selected)
+        os.pwrite(output_fd, pixels[0], 0)
+        return _worker_run(source, frames[:1], pixels[:1])
 
     monkeypatch.setattr(runtime_module, "_run_worker", run_worker)
+    if mode == "deadline":
+        real_decode = runtime_module._decode_output
 
-    result = reader.read(source, tuple(reversed(frames)))
+        def consume_postprocess_budget(*args: Any, **kwargs: Any) -> object:
+            decoded = real_decode(*args, **kwargs)
+            clock[0] = 10_000_000
+            return decoded
 
-    assert tuple(item.frame for item in result.frames) == tuple(reversed(frames))
-    assert tuple(item.pixels for item in result.frames) == tuple(reversed(pixels))
-    assert all(repr(item.pixels) not in repr(result) for item in result.frames)
+        monkeypatch.setattr(runtime_module, "_decode_output", consume_postprocess_budget)
+    else:
+        real_pread = os.pread
+
+        def cancel_after_read(descriptor: int, size: int, offset: int) -> bytes:
+            value = real_pread(descriptor, size, offset)
+            cancelled.set()
+            return value
+
+        monkeypatch.setattr(os, "pread", cancel_after_read)
+
+    with pytest.raises(PortError) as raised:
+        reader.read(source, frames[:1])
+
+    assert raised.value.code is code
+    assert str(raised.value) == f"{code.value} at original_frame_reader.read"
+    assert "private-source.mov" not in str(raised.value)
+    assert all(repr(value) not in str(raised.value) for value in pixels)
+    assert reader.calls == ()
 
 
 def test_limits_and_result_metadata_are_stable() -> None:
@@ -629,11 +831,26 @@ def test_worker_supervisor_rejects_missing_process_or_stdin(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     configured = _configured_runtime(tmp_path)
+    cleanup_calls: list[tuple[object, ...]] = []
+    reset_calls: list[object] = []
+
+    def cleanup(*arguments: object) -> bool:
+        cleanup_calls.append(arguments)
+        return True
+
     monkeypatch.setattr(runtime_module, "_systemd_argv", lambda *arguments: ["worker"])
+    monkeypatch.setattr(media, "_ensure_unit_stopped", cleanup)
+    monkeypatch.setattr(
+        subprocess_module,
+        "run",
+        lambda command, **_kwargs: reset_calls.append(command),
+    )
     monkeypatch.setattr(subprocess_module, "Popen", lambda *args, **kwargs: None)
     with pytest.raises(PortError) as unavailable:
         runtime_module._run_worker(configured, OriginalFrameLimits(), 40, 41, b"request", None)
     assert unavailable.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+    assert cleanup_calls == []
+    assert reset_calls == []
 
     class Process:
         stdin = None
@@ -642,6 +859,69 @@ def test_worker_supervisor_rejects_missing_process_or_stdin(
     with pytest.raises(PortError) as no_stdin:
         runtime_module._run_worker(configured, OriginalFrameLimits(), 40, 41, b"request", None)
     assert no_stdin.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+    assert len(cleanup_calls) == 1
+    assert len(reset_calls) == 1
+    assert "reset-failed" in cast(list[str], reset_calls[0])
+
+
+def test_worker_supervisor_cleans_whole_cgroup_when_sender_start_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    configured = _configured_runtime(tmp_path)
+    cleanup_calls: list[tuple[object, ...]] = []
+    reset_calls: list[object] = []
+
+    class Input:
+        closed = False
+
+        def close(self) -> None:
+            self.closed = True
+
+    class Process:
+        stdin = Input()
+
+    process = Process()
+
+    def cleanup(*arguments: object) -> bool:
+        cleanup_calls.append(arguments)
+        return True
+
+    monkeypatch.setattr(runtime_module, "_systemd_argv", lambda *arguments: ["worker"])
+    monkeypatch.setattr(subprocess_module, "Popen", lambda *args, **kwargs: process)
+    monkeypatch.setattr(
+        threading.Thread,
+        "start",
+        lambda _thread: (_ for _ in ()).throw(RuntimeError("thread unavailable")),
+    )
+    monkeypatch.setattr(media, "_ensure_unit_stopped", cleanup)
+    monkeypatch.setattr(
+        subprocess_module,
+        "run",
+        lambda command, **_kwargs: reset_calls.append(command),
+    )
+    monkeypatch.setattr(
+        media,
+        "_drain_worker",
+        lambda *_arguments: pytest.fail("worker drain must not run"),
+    )
+
+    with pytest.raises(PortError) as raised:
+        runtime_module._run_worker(
+            configured,
+            OriginalFrameLimits(),
+            40,
+            41,
+            b"private-request",
+            None,
+        )
+
+    assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+    assert str(raised.value) == "isolation_unavailable at original_frame_reader.read"
+    assert process.stdin.closed is True
+    assert len(cleanup_calls) == 1
+    assert len(reset_calls) == 1
+    assert "reset-failed" in cast(list[str], reset_calls[0])
+    assert "private-request" not in repr((cleanup_calls, reset_calls, raised.value))
 
 
 @pytest.mark.parametrize(

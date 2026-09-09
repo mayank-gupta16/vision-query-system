@@ -274,7 +274,9 @@ def _source(
     )
     if (
         item["schema"] != "visualworld.source"
+        or type(item["schema_version"]) is not int
         or item["schema_version"] != 1
+        or type(item["identity_version"]) is not int
         or item["identity_version"] != 1
     ):
         _fail()
@@ -351,7 +353,9 @@ def _frame_ref(
         _fail()
     if (
         item["schema"] != "visualworld.frame_ref"
+        or type(item["schema_version"]) is not int
         or item["schema_version"] != 1
+        or type(item["identity_version"]) is not int
         or item["identity_version"] != 1
         or item["source_id"] != source_id
     ):
@@ -401,7 +405,11 @@ def _parse_request(data: bytes) -> dict[str, object]:
     )
     if _canonical_json(request) != data:
         _fail()
-    if request["schema"] != _REQUEST_SCHEMA or request["schema_version"] != 1:
+    if (
+        request["schema"] != _REQUEST_SCHEMA
+        or type(request["schema_version"]) is not int
+        or request["schema_version"] != 1
+    ):
         _fail()
     source, streams = _source(request["source"])
     source_bytes = cast(int, source.pop("_validated_source_bytes"))

@@ -57,9 +57,9 @@ _OVERLAY_RECEIPT_NAME = "visualworld-original-frame-overlay.json"
 _OVERLAY_WORKER = Path("worker/original_frame_worker.py")
 _MAX_REQUEST_BYTES = 256 * 1024
 _APPROVED_OVERLAY_MANIFEST_SHA256 = (
-    "3832f06ba7b55e2139f425232f7cd45d39a7ba08d96b69d5d39bce7c36125d3e"
+    "45c97bfdc7cf58308e9c629acb6b6d6e163141e6aac7a93fdee79f6fdad74bc6"
 )
-_APPROVED_OVERLAY_WORKER_SHA256 = "41e54bb9cbb8c3ce9fc3cc2f902cd24e2a19950cb017359449e2844a1887fedd"
+_APPROVED_OVERLAY_WORKER_SHA256 = "197b8ccc04c0fbcb545abce7b4b7c059ef5268e2c429451945ccd3b54c27a007"
 _EXPECTED_SUCCESS_STDERR = b'{"schema_version":1,"status":"ok"}\n'
 
 
@@ -185,7 +185,9 @@ def _copy_runtime(value: OriginalFrameRuntime) -> OriginalFrameRuntime:
     return OriginalFrameRuntime(media, Path(value.overlay_root), Path(value.worker))
 
 
-def _copy_limits(value: OriginalFrameLimits) -> OriginalFrameLimits:
+def _copy_limits(
+    value: OriginalFrameLimits, *, wall_timeout_ms: int | None = None
+) -> OriginalFrameLimits:
     if type(value) is not OriginalFrameLimits:
         raise ValueError("invalid original-frame limits")
     return OriginalFrameLimits(
@@ -201,10 +203,38 @@ def _copy_limits(value: OriginalFrameLimits) -> OriginalFrameLimits:
         value.max_decoded_bytes,
         value.max_stdout_bytes,
         value.max_stderr_bytes,
-        value.wall_timeout_ms,
+        value.wall_timeout_ms if wall_timeout_ms is None else wall_timeout_ms,
         value.cpu_budget_ms,
         value.memory_bytes,
         value.task_count,
+    )
+
+
+def _checkpoint(cancelled: threading.Event | None, deadline_ns: int) -> int:
+    """Fail closed when cancellation or the complete-call deadline is reached."""
+
+    if cancelled is not None and cancelled.is_set():
+        _fail(PortErrorCode.CANCELLED)
+    now = time.monotonic_ns()
+    if now >= deadline_ns:
+        _fail(PortErrorCode.TIMEOUT)
+    return now
+
+
+def _remaining_worker_limits(
+    limits: OriginalFrameLimits,
+    cancelled: threading.Event | None,
+    deadline_ns: int,
+) -> OriginalFrameLimits:
+    """Copy limits with only the whole-call wall budget that remains."""
+
+    now = _checkpoint(cancelled, deadline_ns)
+    remaining_ms = (deadline_ns - now) // 1_000_000
+    if remaining_ms < 1:
+        _fail(PortErrorCode.TIMEOUT)
+    return _copy_limits(
+        limits,
+        wall_timeout_ms=min(limits.wall_timeout_ms, remaining_ms),
     )
 
 
@@ -557,12 +587,17 @@ def _run_worker(
         )
     if process is None:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    service = f"{unit}.service"
+    cgroup = _media._CGROUP_ROOT / "system.slice" / service
     input_stream = process.stdin
-    if input_stream is None:
-        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
     send_failed = threading.Event()
+    sender: threading.Thread | None = None
+    sender_started = False
 
     def _send_request() -> None:
+        if input_stream is None:
+            send_failed.set()
+            return
         try:
             input_stream.write(request)
             input_stream.flush()
@@ -572,53 +607,59 @@ def _run_worker(
             with suppress(OSError):
                 input_stream.close()
 
-    sender = threading.Thread(target=_send_request, name="original-frame-request", daemon=True)
-    sender.start()
-    cgroup = _media._CGROUP_ROOT / "system.slice" / f"{unit}.service"
-    media_limits = _media.MediaLimits(
-        max_source_bytes=limits.max_source_bytes,
-        max_duration_seconds=limits.max_duration_seconds,
-        max_width=limits.max_width,
-        max_height=limits.max_height,
-        max_pixels=limits.max_pixels,
-        max_frames=limits.max_decoded_frames,
-        max_decoded_bytes=limits.max_decoded_bytes,
-        max_worker_output_bytes=limits.max_stdout_bytes + limits.max_stderr_bytes,
-        wall_timeout_ms=limits.wall_timeout_ms,
-        cpu_budget_ms=limits.cpu_budget_ms,
-        memory_bytes=limits.memory_bytes,
-        task_count=limits.task_count,
-    )
     try:
+        if input_stream is None:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        sender = threading.Thread(
+            target=_send_request,
+            name="original-frame-request",
+            daemon=True,
+        )
+        try:
+            sender.start()
+        except (OSError, RuntimeError):
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        sender_started = True
+        media_limits = _media.MediaLimits(
+            max_source_bytes=limits.max_source_bytes,
+            max_duration_seconds=limits.max_duration_seconds,
+            max_width=limits.max_width,
+            max_height=limits.max_height,
+            max_pixels=limits.max_pixels,
+            max_frames=limits.max_decoded_frames,
+            max_decoded_bytes=limits.max_decoded_bytes,
+            max_worker_output_bytes=limits.max_stdout_bytes + limits.max_stderr_bytes,
+            wall_timeout_ms=limits.wall_timeout_ms,
+            cpu_budget_ms=limits.cpu_budget_ms,
+            memory_bytes=limits.memory_bytes,
+            task_count=limits.task_count,
+        )
         try:
             result = _media._drain_worker(process, unit, media_limits, cancelled)
         except PortError as error:
-            if not _media._ensure_unit_stopped(f"{unit}.service", cgroup, process):
-                _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
             _fail(error.code)
-        except BaseException:
-            if not _media._ensure_unit_stopped(f"{unit}.service", cgroup, process):
-                _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-            raise
-        if not _media._ensure_unit_stopped(f"{unit}.service", cgroup, process):
-            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
         sender.join(timeout=1)
         if sender.is_alive() or send_failed.is_set():
             _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
         return _WorkerRun(result.stdout, result.stderr, result.returncode)
     finally:
-        with suppress(OSError):
-            input_stream.close()
-        sender.join(timeout=1)
+        if input_stream is not None:
+            with suppress(OSError):
+                input_stream.close()
+        if sender is not None and sender_started:
+            sender.join(timeout=1)
+        cleanup_ok = _media._ensure_unit_stopped(service, cgroup, process)
         with suppress(OSError, subprocess.SubprocessError):
             subprocess.run(
-                [os.fspath(_media._SYSTEMCTL), "reset-failed", f"{unit}.service"],
+                [os.fspath(_media._SYSTEMCTL), "reset-failed", service],
                 check=False,
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 timeout=2,
             )
+        if not cleanup_ok:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
 
 
 def _no_duplicate_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -714,6 +755,7 @@ def _decode_output(
     )
     if (
         top["schema"] != "visualworld.original_frame_result"
+        or type(top["schema_version"]) is not int
         or top["schema_version"] != 1
         or top["status"] != "ok"
     ):
@@ -898,28 +940,40 @@ class IsolatedOriginalFrameReader:
         *,
         max_total_bytes: int = MAX_ORIGINAL_FRAME_TOTAL_BYTES,
     ) -> OriginalFrameReadResult:
+        if self._cancelled is not None and self._cancelled.is_set():
+            _fail(PortErrorCode.CANCELLED)
+        deadline_ns = time.monotonic_ns() + self._limits.wall_timeout_ms * 1_000_000
+        _checkpoint(self._cancelled, deadline_ns)
         owned_source = _owned_source(source)
+        _checkpoint(self._cancelled, deadline_ns)
         owned_frames = _owned_frames(frames, owned_source, self._limits)
+        _checkpoint(self._cancelled, deadline_ns)
         if (
             type(max_total_bytes) is not int
             or not 1 <= max_total_bytes <= MAX_ORIGINAL_FRAME_TOTAL_BYTES
         ):
             _fail(PortErrorCode.LIMIT_EXCEEDED)
         if not owned_frames:
+            _checkpoint(self._cancelled, deadline_ns)
             result = OriginalFrameReadResult.complete(())
+            _checkpoint(self._cancelled, deadline_ns)
             self._calls.append(PortCall(PortKind.ORIGINAL_FRAME_READER, "read", 0))
             return result
         stream_indexes = {frame.stream_index for frame in owned_frames}
         if len(stream_indexes) != 1:
+            _checkpoint(self._cancelled, deadline_ns)
             result = OriginalFrameReadResult(
                 PerceptionResultState.UNSUPPORTED, reason="multi_stream_batch_unsupported"
             )
+            _checkpoint(self._cancelled, deadline_ns)
             self._calls.append(PortCall(PortKind.ORIGINAL_FRAME_READER, "read", len(owned_frames)))
             return result
+        _checkpoint(self._cancelled, deadline_ns)
         if not self.supported:
             result = OriginalFrameReadResult(
                 PerceptionResultState.UNSUPPORTED, reason="platform_unsupported"
             )
+            _checkpoint(self._cancelled, deadline_ns)
             self._calls.append(PortCall(PortKind.ORIGINAL_FRAME_READER, "read", len(owned_frames)))
             return result
         stream_index = next(iter(stream_indexes))
@@ -936,23 +990,30 @@ class IsolatedOriginalFrameReader:
             >= self._limits.max_decoded_frames
         ):
             _fail(PortErrorCode.LIMIT_EXCEEDED)
+        _checkpoint(self._cancelled, deadline_ns)
         try:
             _media._capability_check(self._runtime.media)
         except PortError as error:
             _fail(error.code)
+        _checkpoint(self._cancelled, deadline_ns)
         _verify_overlay(self._runtime)
+        _checkpoint(self._cancelled, deadline_ns)
         source_fd = -1
         snapshot_fd = -1
         output_fd = -1
         try:
             try:
+                _checkpoint(self._cancelled, deadline_ns)
                 source_fd, before = _media._open_source(
                     self._source_root, self._relative_path, self._limits.max_source_bytes
                 )
+                _checkpoint(self._cancelled, deadline_ns)
                 snapshot_fd, digest, source_bytes = _media._sealed_snapshot(
                     source_fd, self._limits.max_source_bytes
                 )
+                _checkpoint(self._cancelled, deadline_ns)
                 after = os.fstat(source_fd)
+                _checkpoint(self._cancelled, deadline_ns)
             except PortError as error:
                 _fail(error.code)
             except OSError:
@@ -968,18 +1029,27 @@ class IsolatedOriginalFrameReader:
             request = _request_bytes(owned_source, worker_frames, total_bytes)
             if len(request) > _MAX_REQUEST_BYTES:
                 _fail(PortErrorCode.LIMIT_EXCEEDED)
+            _checkpoint(self._cancelled, deadline_ns)
             output_fd = _output_memfd(total_bytes)
+            _checkpoint(self._cancelled, deadline_ns)
+            worker_limits = _remaining_worker_limits(
+                self._limits,
+                self._cancelled,
+                deadline_ns,
+            )
             run = _run_worker(
                 self._runtime,
-                self._limits,
+                worker_limits,
                 snapshot_fd,
                 output_fd,
                 request,
                 self._cancelled,
             )
+            _checkpoint(self._cancelled, deadline_ns)
             output, output_digest = _decode_output(
                 run, owned_source, worker_frames, total_bytes, self._limits
             )
+            _checkpoint(self._cancelled, deadline_ns)
             try:
                 output_stat = os.fstat(output_fd)
                 seals = fcntl.fcntl(output_fd, _F_GET_SEALS)
@@ -990,26 +1060,31 @@ class IsolatedOriginalFrameReader:
             originals_by_id: dict[str, OriginalFrame] = {}
             aggregate = hashlib.sha256()
             for item in output:
+                _checkpoint(self._cancelled, deadline_ns)
                 try:
                     pixels = os.pread(output_fd, item.size, item.offset)
                 except OSError:
                     _fail(PortErrorCode.DECODE_FAILED)
+                _checkpoint(self._cancelled, deadline_ns)
                 if len(pixels) != item.size or hashlib.sha256(pixels).hexdigest() != item.sha256:
                     _fail(PortErrorCode.DECODE_FAILED)
                 aggregate.update(pixels)
                 originals_by_id[item.frame.frame_id] = OriginalFrame(
                     owned_source, item.frame, pixels
                 )
+                _checkpoint(self._cancelled, deadline_ns)
             if aggregate.hexdigest() != output_digest or len(originals_by_id) != len(owned_frames):
                 _fail(PortErrorCode.DECODE_FAILED)
             result = OriginalFrameReadResult.complete(
                 tuple(originals_by_id[frame.frame_id] for frame in owned_frames)
             )
+            _checkpoint(self._cancelled, deadline_ns)
         finally:
             for descriptor in (output_fd, snapshot_fd, source_fd):
                 if descriptor >= 0:
                     with suppress(OSError):
                         os.close(descriptor)
+        _checkpoint(self._cancelled, deadline_ns)
         self._calls.append(PortCall(PortKind.ORIGINAL_FRAME_READER, "read", len(owned_frames)))
         return result
 

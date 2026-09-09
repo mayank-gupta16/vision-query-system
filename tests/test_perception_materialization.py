@@ -590,3 +590,16 @@ def test_materializer_rejects_malformed_or_mismatched_selector_results() -> None
                     source, frames[:1], observations, tracklets, (selected_intent,)
                 )
             assert raised.value.code is code
+
+    contradictory = OriginalFrameMaterializer(
+        reader,
+        reader.descriptor,
+        Selector(valid),
+        EvidenceMaterializationConfig(
+            need=EvidenceNeed.DOWNSTREAM_DETAIL,
+            detail_resolution=DetailResolution.RESOLVABLE,
+        ),
+    )
+    with pytest.raises(PortError) as mismatch:
+        contradictory.materialize(source, frames[:1], observations, tracklets, (intent,))
+    assert mismatch.value.code is PortErrorCode.CONFLICT

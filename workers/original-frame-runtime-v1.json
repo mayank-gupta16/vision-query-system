@@ -2,7 +2,7 @@
   "application_worker": {
     "install_path": "worker/original_frame_worker.py",
     "license_expression": "Apache-2.0",
-    "sha256": "41e54bb9cbb8c3ce9fc3cc2f902cd24e2a19950cb017359449e2844a1887fedd"
+    "sha256": "197b8ccc04c0fbcb545abce7b4b7c059ef5268e2c429451945ccd3b54c27a007"
   },
   "ipc": {
     "request": {

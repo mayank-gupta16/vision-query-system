@@ -83,9 +83,9 @@ unbound host path.
 Issue #87 adds the separately frozen, first-party
 `visualworld-original-frame-overlay-v1` beside that unchanged closure. Its
 manifest SHA-256 is
-`3832f06ba7b55e2139f425232f7cd45d39a7ba08d96b69d5d39bce7c36125d3e`
+`45c97bfdc7cf58308e9c629acb6b6d6e163141e6aac7a93fdee79f6fdad74bc6`
 and its standalone worker SHA-256 is
-`41e54bb9cbb8c3ce9fc3cc2f902cd24e2a19950cb017359449e2844a1887fedd`.
+`197b8ccc04c0fbcb545abce7b4b7c059ef5268e2c429451945ccd3b54c27a007`.
 The overlay contains no interpreter, native library, model, or third-party
 dependency and is installed root-owned and read-only without changing the
 accepted media-runtime tree.
