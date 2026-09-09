@@ -113,15 +113,20 @@
 - VideoSource, FrameSampler, EvidenceStore, and WorldStore now have framework-free
   version-1 protocols, capability descriptors, structured errors, bounded call
   records, and deterministic in-memory fakes. Ports outside the v0.1 set and
-  the three v0.2 perception contracts below remain conceptual.
+  the three v0.2 perception contracts below remain conceptual except for the
+  bounded detector/tracker/selector composition described below.
 - Observation and completed clip-local Tracklet now have strict version-1
   canonical records. Detector, Tracker, and EvidenceSelector have additive
   experimental ports with bounded offline fakes and explicit complete,
   `UNKNOWN`, or unsupported results. The first contracts exchange only source,
   frame, geometry, time, confidence/provenance, tracklet, and observation-ID
   values. A combined public experimental record dispatcher is additive while
-  the v0.1 WorldStore union remains unchanged; native runtimes, pixels,
-  persistence and coordination remain in later v0.2 issues. The first concrete
+  the v0.1 WorldStore union remains unchanged. `PerceptionCoordinator` now
+  composes bounded deterministic pages into one restart-safe, metadata-only
+  schema-v2 publication with hidden-run recovery and opaque in-process cursors.
+  It preserves the vehicle-only measured path and propagates unknown or
+  unsupported outcomes without publishing partial output. Issue #87 retains
+  pixel access and crop materialization. The first concrete
   detector now implements the selected vehicle-only 384×384 OpenVINO CPU policy
   behind the accepted isolated worker; ordinary CI substitutes its deterministic
   pixel-free fixture seam without provisioning native artifacts.
