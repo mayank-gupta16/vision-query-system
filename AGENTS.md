@@ -17,9 +17,11 @@ instructions.
 ## Navigate narrowly
 
 1. Read `docs/project/current.md` and the active GitHub issue.
-2. Use `docs/index.md` and directory indexes to select only relevant docs.
-3. Read the nearest nested `AGENTS.md` if one exists.
-4. Inspect only the files and tests needed for the issue.
+2. For a milestone-delivery goal, also follow
+   `docs/project/codex-delivery.md` and execution-control issue #30.
+3. Use `docs/index.md` and directory indexes to select only relevant docs.
+4. Read the nearest nested `AGENTS.md` if one exists.
+5. Inspect only the files and tests needed for the issue.
 
 ## MVP-first execution through V1
 
