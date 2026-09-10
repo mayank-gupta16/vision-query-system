@@ -477,7 +477,11 @@ class PerceptionRuntime:
         object.__setattr__(self, "root", Path(os.path.abspath(os.fspath(self.root))))
 
 
-def _copy_limits(value: PerceptionLimits) -> PerceptionLimits:
+def _copy_limits(
+    value: PerceptionLimits,
+    *,
+    wall_timeout_ms: int | None = None,
+) -> PerceptionLimits:
     return PerceptionLimits(
         max_source_bytes=value.max_source_bytes,
         max_duration_seconds=value.max_duration_seconds,
@@ -489,7 +493,7 @@ def _copy_limits(value: PerceptionLimits) -> PerceptionLimits:
         max_detections_per_frame=value.max_detections_per_frame,
         max_stdout_bytes=value.max_stdout_bytes,
         max_stderr_bytes=value.max_stderr_bytes,
-        wall_timeout_ms=value.wall_timeout_ms,
+        wall_timeout_ms=value.wall_timeout_ms if wall_timeout_ms is None else wall_timeout_ms,
         memory_bytes=value.memory_bytes,
         task_count=value.task_count,
     )
@@ -533,6 +537,37 @@ def _cancellation_state(cancelled: threading.Event | None) -> bool | None:
     return state
 
 
+def _checkpoint(cancelled: threading.Event | None, deadline_ns: int) -> int:
+    """Fail closed when cancellation or the complete-call deadline is reached."""
+
+    cancellation = _cancellation_state(cancelled)
+    if cancellation is None:
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    if cancellation:
+        _fail(PortErrorCode.CANCELLED)
+    now = time.monotonic_ns()
+    if now >= deadline_ns:
+        _fail(PortErrorCode.TIMEOUT)
+    return now
+
+
+def _remaining_worker_limits(
+    limits: PerceptionLimits,
+    cancelled: threading.Event | None,
+    deadline_ns: int,
+) -> PerceptionLimits:
+    """Copy limits with only the complete-call wall budget that remains."""
+
+    now = _checkpoint(cancelled, deadline_ns)
+    remaining_ms = (deadline_ns - now) // 1_000_000
+    if remaining_ms < 1:
+        _fail(PortErrorCode.TIMEOUT)
+    return _copy_limits(
+        limits,
+        wall_timeout_ms=min(limits.wall_timeout_ms, remaining_ms),
+    )
+
+
 def _copy_producer(value: Producer) -> Producer:
     return Producer(value.name, value.version, value.configuration_sha256)
 
@@ -548,11 +583,19 @@ def _copy_media_time(value: MediaTime) -> MediaTime:
     )
 
 
-def _read_runtime_file(path: Path, maximum: int = _MAX_RUNTIME_FILE_BYTES) -> bytes:
+def _read_runtime_file(
+    path: Path,
+    maximum: int = _MAX_RUNTIME_FILE_BYTES,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> bytes:
     descriptor = -1
     raw = b""
     read_failed = False
     try:
+        if deadline_ns is not None:
+            _checkpoint(cancelled, deadline_ns)
         descriptor = os.open(
             path,
             os.O_RDONLY
@@ -571,9 +614,16 @@ def _read_runtime_file(path: Path, maximum: int = _MAX_RUNTIME_FILE_BYTES) -> by
             _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
         remaining = maximum + 1
         chunks: list[bytes] = []
-        while remaining > 0 and (chunk := os.read(descriptor, min(1024 * 1024, remaining))):
+        while remaining > 0:
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                break
             chunks.append(chunk)
             remaining -= len(chunk)
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
         if remaining == 0:
             _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
         raw = b"".join(chunks)
@@ -590,7 +640,15 @@ def _read_runtime_file(path: Path, maximum: int = _MAX_RUNTIME_FILE_BYTES) -> by
     return raw
 
 
-def _runtime_link_target(root: Path, path: Path) -> bytes:
+def _runtime_link_target(
+    root: Path,
+    path: Path,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> bytes:
+    if deadline_ns is not None:
+        _checkpoint(cancelled, deadline_ns)
     invalid = False
     resolved_root = root
     resolved = path
@@ -612,21 +670,43 @@ def _runtime_link_target(root: Path, path: Path) -> bytes:
     return os.fsencode(resolved.relative_to(resolved_root).as_posix())
 
 
-def _tree_sha256(root: Path, *, normalize_python_root: bool = False) -> str:
+def _tree_sha256(
+    root: Path,
+    *,
+    normalize_python_root: bool = False,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> str:
     digest = hashlib.sha256()
     invalid = False
     try:
-        paths = sorted(root.rglob("*"))
+        paths: list[Path] = []
+        for path in root.rglob("*"):
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
+            paths.append(path)
+        paths.sort()
         for path in paths:
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
             relative = path.relative_to(root).as_posix()
             metadata = path.lstat()
             if stat.S_ISLNK(metadata.st_mode):
-                target = _runtime_link_target(root, path)
+                target = _runtime_link_target(
+                    root,
+                    path,
+                    cancelled=cancelled,
+                    deadline_ns=deadline_ns,
+                )
                 kind = b"link"
                 raw = target
             elif stat.S_ISREG(metadata.st_mode):
                 kind = b"file"
-                raw = _read_runtime_file(path)
+                raw = _read_runtime_file(
+                    path,
+                    cancelled=cancelled,
+                    deadline_ns=deadline_ns,
+                )
                 if normalize_python_root and path.name.startswith("_sysconfigdata_"):
                     raw = raw.replace(os.fsencode(root), b"/__PYTHON_ROOT__")
             elif stat.S_ISDIR(metadata.st_mode):
@@ -634,6 +714,8 @@ def _tree_sha256(root: Path, *, normalize_python_root: bool = False) -> str:
             else:
                 _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
             content_sha256 = hashlib.sha256(raw).hexdigest()
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
             digest.update(relative.encode() + b"\0" + kind + b"\0")
             digest.update(str(len(raw)).encode() + b"\0" + content_sha256.encode() + b"\n")
     except PortError:
@@ -645,11 +727,18 @@ def _tree_sha256(root: Path, *, normalize_python_root: bool = False) -> str:
     return digest.hexdigest()
 
 
-def _logical_size(root: Path) -> int:
+def _logical_size(
+    root: Path,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> int:
     total = 0
     invalid = False
     try:
         for path in root.rglob("*"):
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
             metadata = path.lstat()
             if stat.S_ISREG(metadata.st_mode):
                 total += metadata.st_size
@@ -660,16 +749,32 @@ def _logical_size(root: Path) -> int:
     return total
 
 
-def _validate_frozen_runtime(root: Path) -> None:
+def _validate_frozen_runtime(
+    root: Path,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> None:
     invalid = False
     try:
-        paths = (root, *root.rglob("*"))
+        paths = [root]
+        for path in root.rglob("*"):
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
+            paths.append(path)
         for path in paths:
+            if deadline_ns is not None:
+                _checkpoint(cancelled, deadline_ns)
             metadata = path.lstat()
             if metadata.st_uid != _TRUSTED_RUNTIME_UID:
                 _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
             if stat.S_ISLNK(metadata.st_mode):
-                _runtime_link_target(root, path)
+                _runtime_link_target(
+                    root,
+                    path,
+                    cancelled=cancelled,
+                    deadline_ns=deadline_ns,
+                )
             elif stat.S_ISDIR(metadata.st_mode):
                 if metadata.st_mode & 0o222 or metadata.st_mode & stat.S_IXOTH == 0:
                     _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
@@ -717,7 +822,14 @@ def _expected_receipt() -> dict[str, object]:
     }
 
 
-def _verify_perception_boundary(runtime: PerceptionRuntime) -> None:
+def _verify_perception_boundary(
+    runtime: PerceptionRuntime,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> None:
+    if deadline_ns is not None:
+        _checkpoint(cancelled, deadline_ns)
     root = runtime.root
     if not all(_trusted_traversable_directory(path) for path in (root, *root.parents)):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
@@ -735,28 +847,114 @@ def _verify_perception_boundary(runtime: PerceptionRuntime) -> None:
         _PERCEPTION_RECEIPT_NAME,
     }:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    _validate_frozen_runtime(root)
-    manifest = _read_runtime_file(root / _PERCEPTION_MANIFEST_NAME, 256 * 1024)
+    if deadline_ns is not None:
+        _checkpoint(cancelled, deadline_ns)
+    _validate_frozen_runtime(root, cancelled=cancelled, deadline_ns=deadline_ns)
+    manifest = _read_runtime_file(
+        root / _PERCEPTION_MANIFEST_NAME,
+        256 * 1024,
+        cancelled=cancelled,
+        deadline_ns=deadline_ns,
+    )
     if hashlib.sha256(manifest).hexdigest() != DETECTOR_MANIFEST_SHA256:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
     expected_receipt = (
         json.dumps(_expected_receipt(), sort_keys=True, indent=2, ensure_ascii=True) + "\n"
     ).encode()
-    if _read_runtime_file(root / _PERCEPTION_RECEIPT_NAME, 256 * 1024) != expected_receipt:
+    if (
+        _read_runtime_file(
+            root / _PERCEPTION_RECEIPT_NAME,
+            256 * 1024,
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+        != expected_receipt
+    ):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    worker = _read_runtime_file(root / _PERCEPTION_WORKER, 1024 * 1024)
+    worker = _read_runtime_file(
+        root / _PERCEPTION_WORKER,
+        1024 * 1024,
+        cancelled=cancelled,
+        deadline_ns=deadline_ns,
+    )
     if hashlib.sha256(worker).hexdigest() != DETECTOR_WORKER_SHA256:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
     if (
-        _tree_sha256(root / "python", normalize_python_root=True) != _PYTHON_TREE_SHA256
-        or _tree_sha256(root / "site-packages") != _SITE_PACKAGES_TREE_SHA256
-        or _logical_size(root / "site-packages") != _SITE_PACKAGES_LOGICAL_BYTES
-        or _tree_sha256(root / "model") != _MODEL_TREE_SHA256
+        _tree_sha256(
+            root / "python",
+            normalize_python_root=True,
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+        != _PYTHON_TREE_SHA256
+        or _tree_sha256(
+            root / "site-packages",
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+        != _SITE_PACKAGES_TREE_SHA256
+        or _logical_size(
+            root / "site-packages",
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+        != _SITE_PACKAGES_LOGICAL_BYTES
+        or _tree_sha256(
+            root / "model",
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+        != _MODEL_TREE_SHA256
     ):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    executable = _read_runtime_file(root / "python/bin/python3.13")
+    executable = _read_runtime_file(
+        root / "python/bin/python3.13",
+        cancelled=cancelled,
+        deadline_ns=deadline_ns,
+    )
     if hashlib.sha256(executable).hexdigest() != _PYTHON_EXECUTABLE_SHA256:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+
+
+def verify_perception_runtime(
+    runtime: PerceptionRuntime,
+    *,
+    limits: PerceptionLimits | None = None,
+    cancelled: threading.Event | None = None,
+) -> None:
+    """Verify the approved composite perception closure in one bounded preflight."""
+
+    selected_limits = PerceptionLimits() if limits is None else limits
+    if type(runtime) is not PerceptionRuntime or type(selected_limits) is not PerceptionLimits:
+        raise ValueError("runtime and limits must use the approved perception records")
+    if cancelled is not None and type(cancelled) is not threading.Event:
+        raise ValueError("cancelled must be a threading.Event")
+    cancellation = _cancellation_state(cancelled)
+    if cancellation is None:
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    if cancellation:
+        _fail(PortErrorCode.CANCELLED)
+    try:
+        owned_runtime = _copy_runtime(runtime)
+        owned_limits = _copy_limits(selected_limits)
+    except (AttributeError, TypeError, ValueError):
+        raise ValueError("invalid perception runtime or limits") from None
+    deadline_ns = time.monotonic_ns() + owned_limits.wall_timeout_ms * 1_000_000
+    try:
+        _verify_media_boundary(
+            owned_runtime.media,
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+    except PortError as error:
+        _fail(error.code)
+    _checkpoint(cancelled, deadline_ns)
+    _verify_perception_boundary(
+        owned_runtime,
+        cancelled=cancelled,
+        deadline_ns=deadline_ns,
+    )
+    _checkpoint(cancelled, deadline_ns)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1210,6 +1408,12 @@ class IsolatedPerceptionWorker:
             _fail(PortErrorCode.UNSUPPORTED)
         if not frames:
             raise ValueError("the adapter does not invoke a worker for an empty batch")
+        cancellation = _cancellation_state(self._cancelled)
+        if cancellation is None:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        if cancellation:
+            _fail(PortErrorCode.CANCELLED)
+        started_ns = time.monotonic_ns()
         runtime: PerceptionRuntime | None = None
         limits: PerceptionLimits | None = None
         try:
@@ -1219,6 +1423,8 @@ class IsolatedPerceptionWorker:
             pass
         if runtime is None or limits is None:
             _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        deadline_ns = started_ns + limits.wall_timeout_ms * 1_000_000
+        _checkpoint(self._cancelled, deadline_ns)
         stream_indexes = {frame.stream_index for frame in frames}
         if len(stream_indexes) != 1:
             _fail(PortErrorCode.INVALID_REQUEST)
@@ -1227,12 +1433,22 @@ class IsolatedPerceptionWorker:
             _fail(PortErrorCode.LIMIT_EXCEEDED)
         media_error: PortErrorCode | None = None
         try:
-            _verify_media_boundary(runtime.media)
+            _verify_media_boundary(
+                runtime.media,
+                cancelled=self._cancelled,
+                deadline_ns=deadline_ns,
+            )
         except PortError as error:
             media_error = error.code
         if media_error is not None:
             _fail(media_error)
-        _verify_perception_boundary(runtime)
+        _checkpoint(self._cancelled, deadline_ns)
+        _verify_perception_boundary(
+            runtime,
+            cancelled=self._cancelled,
+            deadline_ns=deadline_ns,
+        )
+        _checkpoint(self._cancelled, deadline_ns)
         source_error: PortErrorCode | None = None
         source_fd = -1
         try:
@@ -1240,6 +1456,8 @@ class IsolatedPerceptionWorker:
                 self._source_root,
                 self._relative_path,
                 limits.max_source_bytes,
+                cancelled=self._cancelled,
+                deadline_ns=deadline_ns,
             )
         except PortError as error:
             source_error = error.code
@@ -1262,8 +1480,11 @@ class IsolatedPerceptionWorker:
                 snapshot_fd, digest, source_bytes = _sealed_snapshot(
                     source_stream.fileno(),
                     limits.max_source_bytes,
+                    cancelled=self._cancelled,
+                    deadline_ns=deadline_ns,
                 )
                 snapshot_stream = io.FileIO(snapshot_fd, mode="rb", closefd=True)
+                _checkpoint(self._cancelled, deadline_ns)
             except PortError as error:
                 setup_error = error.code
             except OSError:
@@ -1285,13 +1506,19 @@ class IsolatedPerceptionWorker:
         run_error: PortErrorCode | None = None
         try:
             try:
+                worker_limits = _remaining_worker_limits(
+                    limits,
+                    self._cancelled,
+                    deadline_ns,
+                )
                 run = _run_worker(
                     runtime,
-                    limits,
+                    worker_limits,
                     snapshot_stream.fileno(),
                     requested,
                     self._cancelled,
                 )
+                _checkpoint(self._cancelled, deadline_ns)
             except PortError as error:
                 run_error = error.code
             except (OSError, subprocess.SubprocessError):
@@ -1304,7 +1531,9 @@ class IsolatedPerceptionWorker:
             _fail(run_error)
         if run is None:
             _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-        return _decode_worker_output(run, source, frames, digest, source_bytes, limits)
+        result = _decode_worker_output(run, source, frames, digest, source_bytes, limits)
+        _checkpoint(self._cancelled, deadline_ns)
+        return result
 
 
 def _no_duplicate_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -1715,4 +1944,5 @@ __all__ = [
     "PerceptionWorkerResult",
     "WorkerDetection",
     "WorkerFrame",
+    "verify_perception_runtime",
 ]

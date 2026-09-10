@@ -32,7 +32,10 @@
   plus a generic bounded original-frame reader with a frozen Linux-only
   hostile-decode overlay and a producer-distinct coordinator path that computes
   exact RGB24 discontinuities, materializes only selected crops, and publishes
-  their CAS bytes and provenance atomically
+  their CAS bytes and provenance atomically, plus an additive canonical-JSON
+  real-video perception CLI that validates the fixed closure before store
+  access, runs the measured vehicle-only composition, pages committed records,
+  exports run-owned selected crops, and invokes durable recovery/deletion
 - Benchmark baseline: local source/probe, exact-PTS sampling, and original-pixel
   crop mapping/copy plus local evidence disk/hash/write and WorldStore
   transaction/index/disk passes, and end-to-end coordinator stage costs on
@@ -60,6 +63,8 @@
 - The first installable package is `visualworld-engine`, import/CLI `visualworld`.
   Its v0.1 CLI exposes only the deterministic built-in fake/manual ingestion
   slice; no real-video CLI input, model inference, or query behavior is claimed.
+  The additive `visualworld perception` namespace is the v0.2 experimental
+  surface and does not change any v0.1 command or result byte.
   ADR-0002 governs its toolchain, exact lock, and four Linux/macOS Python lanes.
 - The architecture separates observations, tracklets, persistent entities,
   temporal claims, evidence, uncertainty, and queries behind stable ports.
@@ -207,11 +212,12 @@
   PRs, that status check, and resolved conversations; force pushes and deletion
   are blocked. Required approvals are zero and admins are not enforced so a solo
   maintainer retains recovery access.
-- The CLI deliberately supplies only a built-in 2×2 fixture. The real detector
-  and original-frame library adapters now exist, but are not yet wired into the
-  CLI. No query engine or real-video CLI input exists. Native Linux execution of
-  the new original-frame overlay remains to be recorded on the supported
-  root-owned runtime; macOS correctly reports it as unsupported.
+- The v0.1 CLI deliberately supplies only a built-in 2×2 fixture. The additive
+  v0.2 namespace wires the real detector and original-frame adapters into an
+  explicit local-video command, but native Linux execution of the complete CLI
+  path and original-frame overlay remains to be recorded on the supported
+  root-owned runtime; macOS correctly reports it as unsupported. No query engine
+  exists.
   The combined benchmark therefore measures generated exact-PTS records,
   full-resolution crop/hash work, and the local stores without claiming decode
   or perception throughput. The local-video adapter is Linux x86_64 only and
@@ -222,8 +228,8 @@
 
 ## Next priorities
 
-1. Continue the #30 critical path with the CLI, regressions, benchmark, and
-   release issues #77–#80.
+1. Continue the #30 critical path with the end-to-end regressions, benchmark,
+   and release issues #78–#80 after the perception CLI.
 2. Preserve the accepted detector and tracker boundaries while completing the
    first real-video perception vertical slice; do not broaden model/platform or
    identity scope before its release gates pass.

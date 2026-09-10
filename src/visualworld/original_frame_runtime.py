@@ -56,6 +56,8 @@ _OVERLAY_MANIFEST_NAME = "original-frame-runtime-v1.json"
 _OVERLAY_RECEIPT_NAME = "visualworld-original-frame-overlay.json"
 _OVERLAY_WORKER = Path("worker/original_frame_worker.py")
 _MAX_REQUEST_BYTES = 256 * 1024
+_MAX_OVERLAY_METADATA_BYTES = 256 * 1024
+_MAX_OVERLAY_WORKER_BYTES = 1024 * 1024
 _APPROVED_OVERLAY_MANIFEST_SHA256 = (
     "45c97bfdc7cf58308e9c629acb6b6d6e163141e6aac7a93fdee79f6fdad74bc6"
 )
@@ -320,15 +322,100 @@ def _trusted_file(path: Path) -> bool:
     )
 
 
-def _file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+def _read_overlay_file(
+    path: Path,
+    maximum: int,
+    *,
+    cancelled: threading.Event | None,
+    deadline_ns: int,
+) -> bytes:
+    _checkpoint(cancelled, deadline_ns)
+    if not _trusted_file(path):
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    descriptor = -1
+    try:
+        before = path.lstat()
+        descriptor = os.open(
+            path,
+            os.O_RDONLY
+            | os.O_CLOEXEC
+            | getattr(os, "O_NOFOLLOW", 0)
+            | getattr(os, "O_NONBLOCK", 0),
+        )
+        opened = os.fstat(descriptor)
+        if (
+            (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)
+            or not stat.S_ISREG(opened.st_mode)
+            or opened.st_nlink != 1
+            or opened.st_mode & 0o022
+            or not 0 <= opened.st_size <= maximum
+        ):
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        remaining = maximum + 1
+        chunks: list[bytes] = []
+        while remaining > 0:
+            _checkpoint(cancelled, deadline_ns)
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                break
+            chunks.append(chunk)
+            remaining -= len(chunk)
+            _checkpoint(cancelled, deadline_ns)
+        if remaining == 0:
+            _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+        return b"".join(chunks)
+    except PortError:
+        raise
+    except OSError:
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    finally:
+        if descriptor >= 0:
+            with suppress(OSError):
+                os.close(descriptor)
+    raise AssertionError("unreachable")
 
 
-def _verify_overlay(runtime: OriginalFrameRuntime) -> None:
+def _exact_directory_entries(
+    path: Path,
+    expected: frozenset[str],
+    *,
+    cancelled: threading.Event | None,
+    deadline_ns: int,
+) -> None:
+    """Stream one frozen directory and reject drift before it can accumulate."""
+
+    _checkpoint(cancelled, deadline_ns)
+    observed: set[str] = set()
+    try:
+        with os.scandir(path) as entries:
+            for entry in entries:
+                _checkpoint(cancelled, deadline_ns)
+                name = entry.name
+                if name not in expected or name in observed or len(observed) >= len(expected):
+                    _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+                observed.add(name)
+                _checkpoint(cancelled, deadline_ns)
+    except PortError:
+        raise
+    except (OSError, UnicodeError):
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    if observed != expected:
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    _checkpoint(cancelled, deadline_ns)
+
+
+def _verify_overlay(
+    runtime: OriginalFrameRuntime,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> None:
+    selected_deadline = (
+        time.monotonic_ns() + OriginalFrameLimits().wall_timeout_ms * 1_000_000
+        if deadline_ns is None
+        else deadline_ns
+    )
+    _checkpoint(cancelled, selected_deadline)
     if not _APPROVED_OVERLAY_MANIFEST_SHA256 or not _APPROVED_OVERLAY_WORKER_SHA256:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
     manifest_path = runtime.overlay_root / _OVERLAY_MANIFEST_NAME
@@ -350,36 +437,54 @@ def _verify_overlay(runtime: OriginalFrameRuntime) -> None:
         _trusted_directory(path, frozen=True) for path in frozen_directories
     ):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    _exact_directory_entries(
+        runtime.overlay_root,
+        frozenset(
+            {
+                _OVERLAY_MANIFEST_NAME,
+                _OVERLAY_RECEIPT_NAME,
+                _OVERLAY_WORKER.parts[0],
+            }
+        ),
+        cancelled=cancelled,
+        deadline_ns=selected_deadline,
+    )
+    _exact_directory_entries(
+        runtime.worker.parent,
+        frozenset({_OVERLAY_WORKER.name}),
+        cancelled=cancelled,
+        deadline_ns=selected_deadline,
+    )
     try:
-        root_entries = {path.name for path in runtime.overlay_root.iterdir()}
-        worker_entries = {path.name for path in runtime.worker.parent.iterdir()}
-    except OSError:
-        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    if root_entries != {
-        _OVERLAY_MANIFEST_NAME,
-        _OVERLAY_RECEIPT_NAME,
-        _OVERLAY_WORKER.parts[0],
-    } or worker_entries != {_OVERLAY_WORKER.name}:
-        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    if (
-        not _trusted_file(manifest_path)
-        or not _trusted_file(receipt_path)
-        or not _trusted_file(runtime.worker)
-    ):
-        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    try:
-        raw = manifest_path.read_bytes()
+        raw = _read_overlay_file(
+            manifest_path,
+            _MAX_OVERLAY_METADATA_BYTES,
+            cancelled=cancelled,
+            deadline_ns=selected_deadline,
+        )
         manifest = json.loads(raw, object_pairs_hook=_no_duplicate_object)
-        receipt_raw = receipt_path.read_bytes()
+        receipt_raw = _read_overlay_file(
+            receipt_path,
+            _MAX_OVERLAY_METADATA_BYTES,
+            cancelled=cancelled,
+            deadline_ns=selected_deadline,
+        )
         receipt = json.loads(receipt_raw, object_pairs_hook=_no_duplicate_object)
-    except (OSError, PortError, UnicodeError, ValueError, RecursionError):
+        worker_raw = _read_overlay_file(
+            runtime.worker,
+            _MAX_OVERLAY_WORKER_BYTES,
+            cancelled=cancelled,
+            deadline_ns=selected_deadline,
+        )
+    except PortError as error:
+        if error.code in {PortErrorCode.CANCELLED, PortErrorCode.TIMEOUT}:
+            raise
+        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    except (UnicodeError, ValueError, RecursionError):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
     application_worker = manifest.get("application_worker") if type(manifest) is dict else None
     media_runtime = manifest.get("media_runtime") if type(manifest) is dict else None
-    try:
-        worker_sha256 = _file_sha256(runtime.worker)
-    except OSError:
-        _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    worker_sha256 = hashlib.sha256(worker_raw).hexdigest()
     expected_receipt = {
         "complete": True,
         "manifest_sha256": _APPROVED_OVERLAY_MANIFEST_SHA256,
@@ -410,6 +515,46 @@ def _verify_overlay(runtime: OriginalFrameRuntime) -> None:
         or receipt_raw != expected_receipt_raw
     ):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
+    _checkpoint(cancelled, selected_deadline)
+
+
+def verify_original_frame_runtime(
+    runtime: OriginalFrameRuntime,
+    *,
+    limits: OriginalFrameLimits | None = None,
+    cancelled: threading.Event | None = None,
+) -> None:
+    """Verify the media closure and overlay within one bounded preflight."""
+
+    selected_limits = OriginalFrameLimits() if limits is None else limits
+    if (
+        type(runtime) is not OriginalFrameRuntime
+        or type(selected_limits) is not OriginalFrameLimits
+    ):
+        raise ValueError("runtime and limits must use the approved original-frame records")
+    if cancelled is not None and type(cancelled) is not threading.Event:
+        raise ValueError("cancelled must be a threading.Event")
+    if cancelled is not None and cancelled.is_set():
+        _fail(PortErrorCode.CANCELLED)
+    owned_runtime = _copy_runtime(runtime)
+    owned_limits = _copy_limits(selected_limits)
+    deadline_ns = time.monotonic_ns() + owned_limits.wall_timeout_ms * 1_000_000
+    _checkpoint(cancelled, deadline_ns)
+    try:
+        _media._capability_check(
+            owned_runtime.media,
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+    except PortError as error:
+        _fail(error.code)
+    _checkpoint(cancelled, deadline_ns)
+    _verify_overlay(
+        owned_runtime,
+        cancelled=cancelled,
+        deadline_ns=deadline_ns,
+    )
+    _checkpoint(cancelled, deadline_ns)
 
 
 def _metadata_identity(metadata: os.stat_result) -> tuple[int, int, int, int, int]:
@@ -994,11 +1139,19 @@ class IsolatedOriginalFrameReader:
             _fail(PortErrorCode.LIMIT_EXCEEDED)
         _checkpoint(self._cancelled, deadline_ns)
         try:
-            _media._capability_check(self._runtime.media)
+            _media._capability_check(
+                self._runtime.media,
+                cancelled=self._cancelled,
+                deadline_ns=deadline_ns,
+            )
         except PortError as error:
             _fail(error.code)
         _checkpoint(self._cancelled, deadline_ns)
-        _verify_overlay(self._runtime)
+        _verify_overlay(
+            self._runtime,
+            cancelled=self._cancelled,
+            deadline_ns=deadline_ns,
+        )
         _checkpoint(self._cancelled, deadline_ns)
         source_fd = -1
         snapshot_fd = -1
@@ -1007,11 +1160,18 @@ class IsolatedOriginalFrameReader:
             try:
                 _checkpoint(self._cancelled, deadline_ns)
                 source_fd, before = _media._open_source(
-                    self._source_root, self._relative_path, self._limits.max_source_bytes
+                    self._source_root,
+                    self._relative_path,
+                    self._limits.max_source_bytes,
+                    cancelled=self._cancelled,
+                    deadline_ns=deadline_ns,
                 )
                 _checkpoint(self._cancelled, deadline_ns)
                 snapshot_fd, digest, source_bytes = _media._sealed_snapshot(
-                    source_fd, self._limits.max_source_bytes
+                    source_fd,
+                    self._limits.max_source_bytes,
+                    cancelled=self._cancelled,
+                    deadline_ns=deadline_ns,
                 )
                 _checkpoint(self._cancelled, deadline_ns)
                 after = os.fstat(source_fd)
@@ -1095,4 +1255,5 @@ __all__ = [
     "IsolatedOriginalFrameReader",
     "OriginalFrameLimits",
     "OriginalFrameRuntime",
+    "verify_original_frame_runtime",
 ]

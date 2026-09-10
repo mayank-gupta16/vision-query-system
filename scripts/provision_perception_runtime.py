@@ -87,6 +87,8 @@ _ARTIFACT_NAMES = (
 )
 _WHEEL_NAMES = ("numpy", "openvino", "openvino-telemetry")
 _MODEL_NAMES = ("vehicle-detection-0201-xml", "vehicle-detection-0201-bin")
+_RESULT_SCHEMA = "visualworld.perception-provision-result"
+_RESULT_SCHEMA_VERSION = 1
 
 
 class ProvisioningError(RuntimeError):
@@ -133,11 +135,29 @@ def _write_text(value: str, stream: TextIO) -> bool:
 
 def _emit(value: object, stream: TextIO) -> bool:
     try:
-        raw = json.dumps(value, allow_nan=False, sort_keys=True) + "\n"
+        raw = (
+            json.dumps(
+                value,
+                allow_nan=False,
+                ensure_ascii=True,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+            + "\n"
+        )
     except (TypeError, UnicodeError, ValueError):
         _silence_stream(stream)
         return False
     return _write_text(raw, stream)
+
+
+def _result(status: str, **fields: object) -> dict[str, object]:
+    return {
+        **fields,
+        "schema": _RESULT_SCHEMA,
+        "schema_version": _RESULT_SCHEMA_VERSION,
+        "status": status,
+    }
 
 
 class _StableArgumentParser(argparse.ArgumentParser):
@@ -1969,15 +1989,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                     manifest,
                     manifest_sha256,
                 )
-        return 0 if _emit({"command": arguments.command, "status": "ok"}, sys.stdout) else 2
+        return 0 if _emit(_result("ok", command=arguments.command), sys.stdout) else 2
     except ProvisioningError as error:
-        _emit({"error": error.code, "status": "error"}, sys.stderr)
+        _emit(_result("error", error=error.code), sys.stderr)
         return 2
     except KeyboardInterrupt:
-        _emit({"error": "cancelled", "status": "error"}, sys.stderr)
+        _emit(_result("error", error="cancelled"), sys.stderr)
         return 130
     except Exception:
-        _emit({"error": "provisioning_failed", "status": "error"}, sys.stderr)
+        _emit(_result("error", error="provisioning_failed"), sys.stderr)
         return 2
 
 

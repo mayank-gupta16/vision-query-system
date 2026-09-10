@@ -342,6 +342,7 @@ def make_wheel(tmp_path: Path, defect: str = "none") -> Path:
         "visualworld/media.py": b"",
         "visualworld/original_frame_runtime.py": b"",
         "visualworld/perception.py": b"",
+        "visualworld/perception_cli.py": b"",
         "visualworld/perception_materialization.py": b"",
         "visualworld/ports.py": b"",
         "visualworld/sampling.py": b"",
@@ -410,7 +411,11 @@ def test_wheel_smoke_uses_fresh_offline_runtime_and_records_only_shipped_package
         elif args[-1] == "--version":
             output = "visualworld 0.1.0\n"
         elif args[-1] == "--help":
-            output = "usage: visualworld\n"
+            output = (
+                "usage: visualworld perception\n"
+                if "perception" in args
+                else "usage: visualworld\n"
+            )
         elif args[-1] == "probe":
             output = json.dumps(
                 {
@@ -459,7 +464,7 @@ def test_wheel_smoke_uses_fresh_offline_runtime_and_records_only_shipped_package
 
     monkeypatch.setattr(subprocess, "run", execute)
     check_wheel.check(wheel, tmp_path / "uv")
-    assert len(calls) == 13
+    assert len(calls) == 15
     assert calls[0][1] == "venv"
     assert {"--no-deps", "--offline"} <= set(calls[1])
     assert calls[1][-1] == str(wheel)

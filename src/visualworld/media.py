@@ -166,6 +166,61 @@ def _error(code: PortErrorCode, operation: str) -> PortError:
     return PortError(code, PortKind.VIDEO_SOURCE, operation)
 
 
+def _cancellation_state(cancelled: threading.Event | None) -> bool | None:
+    if cancelled is None:
+        return False
+    try:
+        state = threading.Event.is_set(cancelled)
+    except BaseException:
+        return None
+    return state if type(state) is bool else None
+
+
+def _checkpoint(
+    cancelled: threading.Event | None,
+    deadline_ns: int | None,
+    operation: str,
+) -> int:
+    """Fail closed when cancellation or the complete-call deadline is reached."""
+
+    cancellation = _cancellation_state(cancelled)
+    if cancellation is None:
+        raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, operation) from None
+    if cancellation:
+        raise _error(PortErrorCode.CANCELLED, operation) from None
+    now = time.monotonic_ns()
+    if deadline_ns is not None and now >= deadline_ns:
+        raise _error(PortErrorCode.TIMEOUT, operation) from None
+    return now
+
+
+def _remaining_worker_limits(
+    limits: MediaLimits,
+    cancelled: threading.Event | None,
+    deadline_ns: int,
+) -> MediaLimits:
+    """Copy limits with only the complete-call wall budget that remains."""
+
+    now = _checkpoint(cancelled, deadline_ns, "decode")
+    remaining_ms = (deadline_ns - now) // 1_000_000
+    if remaining_ms < 1:
+        raise _error(PortErrorCode.TIMEOUT, "decode") from None
+    return MediaLimits(
+        max_source_bytes=limits.max_source_bytes,
+        max_duration_seconds=limits.max_duration_seconds,
+        max_width=limits.max_width,
+        max_height=limits.max_height,
+        max_pixels=limits.max_pixels,
+        max_frames=limits.max_frames,
+        max_decoded_bytes=limits.max_decoded_bytes,
+        max_worker_output_bytes=limits.max_worker_output_bytes,
+        wall_timeout_ms=min(limits.wall_timeout_ms, remaining_ms),
+        cpu_budget_ms=limits.cpu_budget_ms,
+        memory_bytes=limits.memory_bytes,
+        task_count=limits.task_count,
+    )
+
+
 def _absolute(path: Path) -> Path:
     if not isinstance(path, Path):
         raise ValueError("runtime paths must be pathlib.Path values")
@@ -230,14 +285,29 @@ def _source_directory(path: Path) -> bool:
         metadata = path.lstat()
     except OSError:
         return False
-    return stat.S_ISDIR(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode)
+    return (
+        stat.S_ISDIR(metadata.st_mode)
+        and not stat.S_ISLNK(metadata.st_mode)
+        and metadata.st_uid == os.geteuid()
+        and stat.S_IMODE(metadata.st_mode) == 0o700
+    )
 
 
-def _file_sha256(path: Path) -> str:
+def _file_sha256(
+    path: Path,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+        while True:
+            _checkpoint(cancelled, deadline_ns, "probe")
+            chunk = stream.read(1024 * 1024)
+            if not chunk:
+                break
             digest.update(chunk)
+            _checkpoint(cancelled, deadline_ns, "probe")
     return digest.hexdigest()
 
 
@@ -259,11 +329,21 @@ def _runtime_internal_symlink(root: Path, path: Path) -> bool:
     return resolved.is_file()
 
 
-def _runtime_tree_digest(root: Path) -> str | None:
+def _runtime_tree_digest(
+    root: Path,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> str | None:
     digest = hashlib.sha256()
     try:
-        entries = sorted(root.rglob("*"), key=lambda path: os.fsencode(path.relative_to(root)))
+        entries: list[Path] = []
+        for path in root.rglob("*"):
+            _checkpoint(cancelled, deadline_ns, "probe")
+            entries.append(path)
+        entries.sort(key=lambda path: os.fsencode(path.relative_to(root)))
         for path in entries:
+            _checkpoint(cancelled, deadline_ns, "probe")
             relative = path.relative_to(root)
             if relative == Path(_RUNTIME_MANIFEST_NAME):
                 continue
@@ -286,7 +366,10 @@ def _runtime_tree_digest(root: Path) -> str | None:
                 if mode & 0o022 != 0 or metadata.st_nlink != 1:
                     return None
                 kind = b"file"
-                payload = f"{metadata.st_size}:{_file_sha256(path)}".encode("ascii")
+                payload = (
+                    f"{metadata.st_size}:"
+                    f"{_file_sha256(path, cancelled=cancelled, deadline_ns=deadline_ns)}"
+                ).encode("ascii")
             else:
                 return None
             for field in (kind, name, f"{mode:o}".encode("ascii"), payload):
@@ -296,25 +379,47 @@ def _runtime_tree_digest(root: Path) -> str | None:
     return digest.hexdigest()
 
 
-def _runtime_manifest_valid(runtime: MediaRuntime) -> bool:
+def _runtime_manifest_valid(
+    runtime: MediaRuntime,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> bool:
+    _checkpoint(cancelled, deadline_ns, "probe")
     manifest = runtime.root / _RUNTIME_MANIFEST_NAME
     if runtime.worker != runtime.root / _APPROVED_RUNTIME_WORKER:
         return False
     if not _trusted_single_link_regular(manifest):
         return False
     try:
-        manifest_digest = _file_sha256(manifest)
+        manifest_digest = _file_sha256(
+            manifest,
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
     except OSError:
         return False
     return (
         manifest_digest == _APPROVED_RUNTIME_MANIFEST_SHA256
-        and _runtime_tree_digest(runtime.root) == _APPROVED_RUNTIME_TREE_SHA256
+        and _runtime_tree_digest(
+            runtime.root,
+            cancelled=cancelled,
+            deadline_ns=deadline_ns,
+        )
+        == _APPROVED_RUNTIME_TREE_SHA256
     )
 
 
-def _capability_check(runtime: MediaRuntime) -> None:
+def _capability_check(
+    runtime: MediaRuntime,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> None:
+    _checkpoint(cancelled, deadline_ns, "probe")
     if platform.system() != "Linux" or platform.machine() != "x86_64" or os.geteuid() != 0:
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
+    _checkpoint(cancelled, deadline_ns, "probe")
     if not all(_trusted_regular(path) for path in (_SYSTEMD_RUN, _SYSTEMCTL, _BWRAP)):
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
     try:
@@ -333,13 +438,50 @@ def _capability_check(runtime: MediaRuntime) -> None:
         runtime.worker
     ):
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
-    if not _runtime_manifest_valid(runtime):
+    _checkpoint(cancelled, deadline_ns, "probe")
+    if not _runtime_manifest_valid(
+        runtime,
+        cancelled=cancelled,
+        deadline_ns=deadline_ns,
+    ):
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
+    _checkpoint(cancelled, deadline_ns, "probe")
     if not (_CGROUP_ROOT / "cgroup.controllers").is_file():
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe")
 
 
-def _open_source(root: Path, relative: str, maximum: int) -> tuple[int, os.stat_result]:
+def verify_media_runtime(
+    runtime: MediaRuntime,
+    *,
+    limits: MediaLimits | None = None,
+    cancelled: threading.Event | None = None,
+) -> None:
+    """Verify the approved media closure within one bounded, redacted preflight."""
+
+    selected_limits = MediaLimits() if limits is None else limits
+    if type(runtime) is not MediaRuntime or type(selected_limits) is not MediaLimits:
+        raise ValueError("runtime and limits must use the v1 media records")
+    if cancelled is not None and type(cancelled) is not threading.Event:
+        raise ValueError("cancelled must be a threading.Event")
+    cancellation = _cancellation_state(cancelled)
+    if cancellation is None:
+        raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "probe") from None
+    if cancellation:
+        raise _error(PortErrorCode.CANCELLED, "probe") from None
+    deadline_ns = time.monotonic_ns() + selected_limits.wall_timeout_ms * 1_000_000
+    _capability_check(runtime, cancelled=cancelled, deadline_ns=deadline_ns)
+    _checkpoint(cancelled, deadline_ns, "probe")
+
+
+def _open_source(
+    root: Path,
+    relative: str,
+    maximum: int,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> tuple[int, os.stat_result]:
+    _checkpoint(cancelled, deadline_ns, "open")
     if platform.system() != "Linux" or platform.machine() != "x86_64":
         raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "open")
     root = _absolute(root)
@@ -351,9 +493,26 @@ def _open_source(root: Path, relative: str, maximum: int) -> tuple[int, os.stat_
         root_fd = os.open(root, root_flags)
     if root_fd is None:
         raise _error(PortErrorCode.INVALID_REQUEST, "open")
+    source_fd = -1
     try:
+        _checkpoint(cancelled, deadline_ns, "open")
+        opened_root = os.fstat(root_fd)
+        try:
+            selected_root = root.lstat()
+        except OSError:
+            raise _error(PortErrorCode.INVALID_REQUEST, "open") from None
+        if (
+            (opened_root.st_dev, opened_root.st_ino) != (selected_root.st_dev, selected_root.st_ino)
+            or not stat.S_ISDIR(opened_root.st_mode)
+            or opened_root.st_uid != os.geteuid()
+            or stat.S_IMODE(opened_root.st_mode) != 0o700
+        ):
+            raise _error(PortErrorCode.INVALID_REQUEST, "open")
         how = _OpenHow(
-            os.O_RDONLY | os.O_CLOEXEC | getattr(os, "O_NOFOLLOW", 0),
+            os.O_RDONLY
+            | os.O_CLOEXEC
+            | getattr(os, "O_NOFOLLOW", 0)
+            | getattr(os, "O_NONBLOCK", 0),
             0,
             _RESOLVE_BENEATH | _RESOLVE_NO_MAGICLINKS | _RESOLVE_NO_SYMLINKS,
         )
@@ -375,17 +534,28 @@ def _open_source(root: Path, relative: str, maximum: int) -> tuple[int, os.stat_
         source_fd = int(result)
     finally:
         os.close(root_fd)
-    metadata = os.fstat(source_fd)
-    if not stat.S_ISREG(metadata.st_mode):
+    try:
+        _checkpoint(cancelled, deadline_ns, "open")
+        metadata = os.fstat(source_fd)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise _error(PortErrorCode.INVALID_REQUEST, "open")
+        if metadata.st_size > maximum:
+            raise _error(PortErrorCode.LIMIT_EXCEEDED, "open")
+        _checkpoint(cancelled, deadline_ns, "open")
+        return source_fd, metadata
+    except BaseException:
         os.close(source_fd)
-        raise _error(PortErrorCode.INVALID_REQUEST, "open")
-    if metadata.st_size > maximum:
-        os.close(source_fd)
-        raise _error(PortErrorCode.LIMIT_EXCEEDED, "open")
-    return source_fd, metadata
+        raise
 
 
-def _sealed_snapshot(source_fd: int, maximum: int) -> tuple[int, str, int]:
+def _sealed_snapshot(
+    source_fd: int,
+    maximum: int,
+    *,
+    cancelled: threading.Event | None = None,
+    deadline_ns: int | None = None,
+) -> tuple[int, str, int]:
+    _checkpoint(cancelled, deadline_ns, "snapshot")
     libc = ctypes.CDLL(None, use_errno=True)
     result = libc.syscall(
         ctypes.c_long(_MEMFD_CREATE),
@@ -400,6 +570,7 @@ def _sealed_snapshot(source_fd: int, maximum: int) -> tuple[int, str, int]:
     os_failure = False
     try:
         while True:
+            _checkpoint(cancelled, deadline_ns, "snapshot")
             chunk = os.read(source_fd, min(1024 * 1024, maximum + 1 - total))
             if not chunk:
                 break
@@ -409,16 +580,19 @@ def _sealed_snapshot(source_fd: int, maximum: int) -> tuple[int, str, int]:
             digest.update(chunk)
             view = memoryview(chunk)
             while view:
+                _checkpoint(cancelled, deadline_ns, "snapshot")
                 written = os.write(snapshot, view)
                 if written <= 0:
                     raise _error(PortErrorCode.DECODE_FAILED, "snapshot")
                 view = view[written:]
+        _checkpoint(cancelled, deadline_ns, "snapshot")
         fcntl.fcntl(
             snapshot,
             _F_ADD_SEALS,
             _F_SEAL_SEAL | _F_SEAL_SHRINK | _F_SEAL_GROW | _F_SEAL_WRITE,
         )
         os.lseek(snapshot, 0, os.SEEK_SET)
+        _checkpoint(cancelled, deadline_ns, "snapshot")
     except OSError:
         os_failure = True
     except BaseException:
@@ -847,6 +1021,15 @@ def _media_time(value: object) -> MediaTime:
     return MediaTime(_signed_decimal(item["value"]), _time_base(item["time_base"]))
 
 
+def _no_duplicate_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise _error(PortErrorCode.DECODE_FAILED, "decode") from None
+        result[key] = value
+    return result
+
+
 def _decode_output(
     run: _WorkerRun,
     digest: str,
@@ -858,11 +1041,21 @@ def _decode_output(
         if run.returncode == 22:
             code = PortErrorCode.ISOLATION_UNAVAILABLE
         raise _error(code, "decode")
-    sentinel = object()
-    raw: object = sentinel
-    with suppress(UnicodeDecodeError, ValueError, RecursionError):
-        raw = json.loads(run.stdout)
-    if raw is sentinel:
+    if not run.stdout or len(run.stdout) > limits.max_worker_output_bytes:
+        raise _error(PortErrorCode.LIMIT_EXCEEDED, "decode")
+    parse_failed = False
+    try:
+        raw = json.loads(run.stdout, object_pairs_hook=_no_duplicate_object)
+        canonical = (
+            json.dumps(raw, allow_nan=False, sort_keys=True, separators=(",", ":")) + "\n"
+        ).encode()
+    except PortError:
+        raise
+    except (RecursionError, TypeError, UnicodeError, ValueError):
+        parse_failed = True
+    if parse_failed:
+        raise _error(PortErrorCode.DECODE_FAILED, "decode")
+    if run.stdout != canonical:
         raise _error(PortErrorCode.DECODE_FAILED, "decode")
     top = _mapping(
         raw,
@@ -1020,22 +1213,45 @@ class LocalVideoSource:
     def _ensure_decoded(self) -> _Decoded:
         if self._decoded is not None:
             return self._decoded
-        _capability_check(self._runtime)
+        cancellation = _cancellation_state(self._cancelled)
+        if cancellation is None:
+            raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "decode") from None
+        if cancellation:
+            raise _error(PortErrorCode.CANCELLED, "decode") from None
+        deadline_ns = time.monotonic_ns() + self._limits.wall_timeout_ms * 1_000_000
+        _checkpoint(self._cancelled, deadline_ns, "decode")
+        _capability_check(
+            self._runtime,
+            cancelled=self._cancelled,
+            deadline_ns=deadline_ns,
+        )
+        _checkpoint(self._cancelled, deadline_ns, "decode")
         source_fd, _ = _open_source(
             self._source_root,
             self._relative_path,
             self._limits.max_source_bytes,
+            cancelled=self._cancelled,
+            deadline_ns=deadline_ns,
         )
         try:
+            _checkpoint(self._cancelled, deadline_ns, "decode")
             snapshot_fd, digest, source_bytes = _sealed_snapshot(
                 source_fd,
                 self._limits.max_source_bytes,
+                cancelled=self._cancelled,
+                deadline_ns=deadline_ns,
             )
         finally:
             os.close(source_fd)
         run: _WorkerRun | None = None
         try:
-            run = _run_worker(self._runtime, self._limits, snapshot_fd, self._cancelled)
+            worker_limits = _remaining_worker_limits(
+                self._limits,
+                self._cancelled,
+                deadline_ns,
+            )
+            run = _run_worker(self._runtime, worker_limits, snapshot_fd, self._cancelled)
+            _checkpoint(self._cancelled, deadline_ns, "decode")
         except PortError:
             raise
         except (OSError, subprocess.SubprocessError):
@@ -1045,6 +1261,7 @@ class LocalVideoSource:
         if run is None:
             raise _error(PortErrorCode.ISOLATION_UNAVAILABLE, "decode")
         self._decoded = _decode_output(run, digest, source_bytes, self._limits)
+        _checkpoint(self._cancelled, deadline_ns, "decode")
         return self._decoded
 
     def probe(self) -> Source:
@@ -1084,4 +1301,5 @@ __all__ = [
     "MediaMetrics",
     "MediaRuntime",
     "ProbeDetails",
+    "verify_media_runtime",
 ]

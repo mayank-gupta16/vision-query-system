@@ -227,6 +227,17 @@ adapter internals. Public results, instrumentation, errors, and persistence stay
 path- and pixel-free. The deterministic fake implements the same record and
 limit contract in ordinary CI.
 
+The additive `visualworld perception` CLI composes these existing interfaces; it
+does not add a second orchestration or persistence path. Runtime validation and
+the authorized media probe complete before store construction. Run output is an
+aggregate bounded summary, while committed observations, tracklets, and selected
+evidence are exposed only through pages of at most 64 records. Exact crop export
+resolves a committed `(run, tracklet, rank)` selection and reads its CAS bytes;
+it never re-decodes media. Recovery and source deletion delegate to
+`IngestionCoordinator` so the accepted durable protocols remain authoritative.
+The original v0.1 parser and result bytes are unchanged because only the exact
+first token `perception` activates this namespace.
+
 `visualworld.evidence.BestFrameEvidenceSelector` is the first concrete
 `EvidenceSelector`. Its stable `select` operation remains pixel-free and returns
 at most three observation identifiers by default, with a caller-configurable
