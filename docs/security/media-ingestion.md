@@ -65,3 +65,27 @@ rotation, runtime identity, model/worker hashes, and the worker's isolation prob
 before publishing an `Observation`. OpenVINO-required threads remain subject to
 the cgroup task limit; seccomp continues to deny networking and new namespace,
 process-execution, mount, tracing, module, and BPF capabilities.
+
+The v0.2 application CLI preserves that boundary rather than weakening it for
+convenience. On an unsupported platform it returns before inspecting any
+operator path. On the Linux path it validates all three immutable runtime trees,
+then validates and probes the one relative source beneath its explicit private
+root, before creating or recovering a store. The opened source root must match
+the selected directory inode, be owned by the effective UID, and have exact
+`0700` permissions. It derives fixed worker paths from
+the accepted roots and accepts no URL, shell fragment, model path, worker path,
+dependency specifier, or fallback adapter.
+
+Media and detector preprocessing share the command's cancellation signal and a
+bounded monotonic deadline through runtime verification, source snapshot/hash,
+worker execution, and output validation. Worker JSON must be duplicate-key-free
+and byte-for-byte compact canonical JSON with one trailing newline. Any timeout,
+cancellation, malformed output, unexpected stderr, runtime drift, or source
+mutation fails closed without publishing a partial graph.
+
+Because the first boundary currently requires an effective-UID-0 supervisor,
+native execution is allowed only from an absolute root-owned application
+installation with a cleared environment and root-owned verified runtimes. Never
+elevate an executable, import path, virtual environment, or checkout writable by
+an unprivileged user. The native child remains non-root and confined by the
+existing namespace, cgroup, seccomp, and Landlock controls.

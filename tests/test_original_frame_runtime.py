@@ -12,6 +12,7 @@ import stat
 import subprocess as subprocess_module
 import threading
 import time as time_module
+from collections.abc import Iterator
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -178,6 +179,12 @@ def test_overlay_verification_requires_exact_installed_topology(
     (configured.overlay_root / "visualworld-original-frame-overlay.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+    for path in (
+        configured.worker,
+        configured.overlay_root / "original-frame-runtime-v1.json",
+        configured.overlay_root / "visualworld-original-frame-overlay.json",
+    ):
+        path.chmod(0o444)
     directory_checks: list[tuple[Path, bool]] = []
 
     def trust_directory(path: Path, *, frozen: bool = False) -> bool:
@@ -199,6 +206,148 @@ def test_overlay_verification_requires_exact_installed_topology(
     with pytest.raises(PortError) as raised:
         runtime_module._verify_overlay(configured)
     assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+
+
+def test_overlay_file_reads_are_bounded_and_cancellable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    payload = tmp_path / "overlay-file"
+    payload.write_bytes(b"approved")
+    payload.chmod(0o444)
+    monkeypatch.setattr(runtime_module, "_trusted_file", lambda _path: True)
+
+    with pytest.raises(PortError) as oversized:
+        runtime_module._read_overlay_file(
+            payload,
+            1,
+            cancelled=None,
+            deadline_ns=time_module.monotonic_ns() + 1_000_000_000,
+        )
+    assert oversized.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+
+    cancelled = threading.Event()
+    real_read = os.read
+
+    def cancel_after_read(descriptor: int, maximum: int) -> bytes:
+        raw = real_read(descriptor, maximum)
+        cancelled.set()
+        return raw
+
+    monkeypatch.setattr(cast(Any, runtime_module).os, "read", cancel_after_read)
+    with pytest.raises(PortError) as stopped:
+        runtime_module._read_overlay_file(
+            payload,
+            1024,
+            cancelled=cancelled,
+            deadline_ns=time_module.monotonic_ns() + 1_000_000_000,
+        )
+    assert stopped.value.code is PortErrorCode.CANCELLED
+
+
+@pytest.mark.parametrize(
+    ("directory", "expected"),
+    [
+        (
+            Path("/overlay"),
+            frozenset(
+                {
+                    "original-frame-runtime-v1.json",
+                    "visualworld-original-frame-overlay.json",
+                    "worker",
+                }
+            ),
+        ),
+        (Path("/overlay/worker"), frozenset({"original_frame_worker.py"})),
+    ],
+)
+def test_overlay_directory_enumeration_is_streamed_bounded_and_cancellable(
+    directory: Path,
+    expected: frozenset[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    yielded = [0]
+
+    class ExcessEntries:
+        def __enter__(self) -> ExcessEntries:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            del args
+
+        def __iter__(self) -> Iterator[SimpleNamespace]:
+            for name in (*sorted(expected), "unexpected", "must-not-be-read"):
+                yielded[0] += 1
+                yield SimpleNamespace(name=name)
+
+    monkeypatch.setattr(os, "scandir", lambda _selected: ExcessEntries())
+    with pytest.raises(PortError) as excessive:
+        runtime_module._exact_directory_entries(
+            directory,
+            expected,
+            cancelled=None,
+            deadline_ns=time_module.monotonic_ns() + 1_000_000_000,
+        )
+    assert excessive.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
+    assert yielded[0] == len(expected) + 1
+
+    cancelled = threading.Event()
+
+    class CancellingEntries:
+        def __enter__(self) -> CancellingEntries:
+            return self
+
+        def __exit__(self, *args: object) -> None:
+            del args
+
+        def __iter__(self) -> Iterator[SimpleNamespace]:
+            cancelled.set()
+            yield SimpleNamespace(name=next(iter(expected)))
+
+    monkeypatch.setattr(os, "scandir", lambda _selected: CancellingEntries())
+    with pytest.raises(PortError) as stopped:
+        runtime_module._exact_directory_entries(
+            directory,
+            expected,
+            cancelled=cancelled,
+            deadline_ns=time_module.monotonic_ns() + 1_000_000_000,
+        )
+    assert stopped.value.code is PortErrorCode.CANCELLED
+
+
+def test_public_original_frame_preflight_shares_deadline_and_honours_precancel(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    runtime = _configured_runtime(tmp_path)
+    clock = [0]
+    deadlines: list[int] = []
+    monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
+
+    def media_preflight(_runtime: object, **kwargs: object) -> None:
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+        clock[0] = 4_000_000
+
+    def overlay_preflight(_runtime: object, **kwargs: object) -> None:
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+
+    monkeypatch.setattr(media, "_capability_check", media_preflight)
+    monkeypatch.setattr(runtime_module, "_verify_overlay", overlay_preflight)
+
+    runtime_module.verify_original_frame_runtime(
+        runtime,
+        limits=OriginalFrameLimits(wall_timeout_ms=10),
+    )
+    assert deadlines == [10_000_000, 10_000_000]
+
+    cancelled = threading.Event()
+    cancelled.set()
+    monkeypatch.setattr(
+        time_module,
+        "monotonic_ns",
+        lambda: pytest.fail("pre-cancelled preflight must not start a deadline"),
+    )
+    with pytest.raises(PortError) as raised:
+        runtime_module.verify_original_frame_runtime(runtime, cancelled=cancelled)
+    assert raised.value.code is PortErrorCode.CANCELLED
 
 
 def test_parent_request_is_canonical_full_record_pixel_free_and_sorted() -> None:
@@ -346,17 +495,17 @@ def test_pre_cancelled_reader_stops_before_clock_and_native_preflight(
     monkeypatch.setattr(
         media,
         "_capability_check",
-        lambda _runtime: pytest.fail("pre-cancelled read must not check capabilities"),
+        lambda _runtime, **_kwargs: pytest.fail("pre-cancelled read must not check capabilities"),
     )
     monkeypatch.setattr(
         runtime_module,
         "_verify_overlay",
-        lambda _runtime: pytest.fail("pre-cancelled read must not verify the overlay"),
+        lambda _runtime, **_kwargs: pytest.fail("pre-cancelled read must not verify the overlay"),
     )
     monkeypatch.setattr(
         media,
         "_open_source",
-        lambda *_args: pytest.fail("pre-cancelled read must not open the source"),
+        lambda *_args, **_kwargs: pytest.fail("pre-cancelled read must not open the source"),
     )
     monkeypatch.setattr(
         runtime_module,
@@ -393,19 +542,19 @@ def test_preflight_deadline_overrun_stops_before_overlay_and_source_access(
     monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
     monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
 
-    def consume_budget(_runtime: object) -> None:
+    def consume_budget(_runtime: object, **_kwargs: object) -> None:
         clock[0] = 10_000_000
 
     monkeypatch.setattr(media, "_capability_check", consume_budget)
     monkeypatch.setattr(
         runtime_module,
         "_verify_overlay",
-        lambda _runtime: pytest.fail("expired preflight must not verify the overlay"),
+        lambda _runtime, **_kwargs: pytest.fail("expired preflight must not verify the overlay"),
     )
     monkeypatch.setattr(
         media,
         "_open_source",
-        lambda *_args: pytest.fail("expired preflight must not open the source"),
+        lambda *_args, **_kwargs: pytest.fail("expired preflight must not open the source"),
     )
 
     with pytest.raises(PortError) as raised:
@@ -438,14 +587,16 @@ def test_reader_integration_reorders_transient_pixels_and_checks_final_digest(
 
     monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
     monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
-    monkeypatch.setattr(media, "_capability_check", lambda _runtime: None)
-    monkeypatch.setattr(runtime_module, "_verify_overlay", lambda _runtime: None)
+    monkeypatch.setattr(media, "_capability_check", lambda _runtime, **_kwargs: None)
+    monkeypatch.setattr(runtime_module, "_verify_overlay", lambda _runtime, **_kwargs: None)
 
-    def open_source(_root: Path, _relative: str, _maximum: int) -> tuple[int, os.stat_result]:
+    def open_source(
+        _root: Path, _relative: str, _maximum: int, **_kwargs: object
+    ) -> tuple[int, os.stat_result]:
         descriptor = os.open(source_path, os.O_RDONLY)
         return descriptor, os.fstat(descriptor)
 
-    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, _maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         return os.dup(source_fd), hashlib.sha256(content).hexdigest(), len(content)
 
     monkeypatch.setattr(media, "_open_source", open_source)
@@ -520,14 +671,16 @@ def test_post_read_checks_enforce_deadline_and_cancellation(
     )
     monkeypatch.setattr(time_module, "monotonic_ns", lambda: clock[0])
     monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
-    monkeypatch.setattr(media, "_capability_check", lambda _runtime: None)
-    monkeypatch.setattr(runtime_module, "_verify_overlay", lambda _runtime: None)
+    monkeypatch.setattr(media, "_capability_check", lambda _runtime, **_kwargs: None)
+    monkeypatch.setattr(runtime_module, "_verify_overlay", lambda _runtime, **_kwargs: None)
 
-    def open_source(_root: Path, _relative: str, _maximum: int) -> tuple[int, os.stat_result]:
+    def open_source(
+        _root: Path, _relative: str, _maximum: int, **_kwargs: object
+    ) -> tuple[int, os.stat_result]:
         descriptor = os.open(source_path, os.O_RDONLY)
         return descriptor, os.fstat(descriptor)
 
-    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, _maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         return os.dup(source_fd), hashlib.sha256(content).hexdigest(), len(content)
 
     monkeypatch.setattr(media, "_open_source", open_source)
@@ -867,7 +1020,7 @@ def test_reader_constructor_metadata_and_capability_fail_closed(
     monkeypatch.setattr(runtime_module, "_supported_platform", lambda: True)
     source, frames, _ = _values()
 
-    def unavailable(_runtime: object) -> None:
+    def unavailable(_runtime: object, **_kwargs: object) -> None:
         raise PortError(PortErrorCode.ISOLATION_UNAVAILABLE, PortKind.VIDEO_SOURCE, "probe")
 
     monkeypatch.setattr(media, "_capability_check", unavailable)

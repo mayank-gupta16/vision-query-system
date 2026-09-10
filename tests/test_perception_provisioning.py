@@ -321,7 +321,12 @@ def test_fifo_manifest_fails_without_blocking_or_leaking_path(tmp_path: Path) ->
 
     assert result.returncode == 2
     assert os.fspath(fifo) not in result.stderr
-    assert json.loads(result.stderr) == {"error": "invalid_manifest_file", "status": "error"}
+    assert json.loads(result.stderr) == {
+        "error": "invalid_manifest_file",
+        "schema": "visualworld.perception-provision-result",
+        "schema_version": 1,
+        "status": "error",
+    }
 
 
 def test_cache_requires_private_exact_regular_closure(tmp_path: Path) -> None:
@@ -903,7 +908,12 @@ def test_cli_redacts_unexpected_failures(
     assert provision.main(["verify-manifest"]) == 2
     captured = capsys.readouterr()
     assert "/private" not in captured.err
-    assert json.loads(captured.err) == {"error": "provisioning_failed", "status": "error"}
+    assert json.loads(captured.err) == {
+        "error": "provisioning_failed",
+        "schema": "visualworld.perception-provision-result",
+        "schema_version": 1,
+        "status": "error",
+    }
 
 
 def test_cli_redacts_hostile_arguments_and_survives_closed_streams(tmp_path: Path) -> None:
@@ -918,7 +928,12 @@ def test_cli_redacts_hostile_arguments_and_survives_closed_streams(tmp_path: Pat
     )
     assert invalid.returncode == 2
     assert invalid.stdout == b""
-    assert json.loads(invalid.stderr) == {"error": "invalid_arguments", "status": "error"}
+    assert json.loads(invalid.stderr) == {
+        "error": "invalid_arguments",
+        "schema": "visualworld.perception-provision-result",
+        "schema_version": 1,
+        "status": "error",
+    }
     assert marker.encode() not in invalid.stdout + invalid.stderr
 
     success_command = [sys.executable, os.fspath(script), "verify-manifest"]

@@ -14,6 +14,7 @@ import signal
 import subprocess
 import sys
 import threading
+import time
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import replace
@@ -1011,18 +1012,18 @@ def test_production_and_fixture_workers_are_adapter_substitutable(
         MediaRuntime(Path("/opt/media"), Path("/opt/media/worker/media_worker.py")),
     )
     monkeypatch.setattr(detection, "_supported_platform", lambda: True)
-    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime: None)
-    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime: None)
+    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime, **_kwargs: None)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime, **_kwargs: None)
     monkeypatch.setattr(
         detection,
         "_open_source",
-        lambda _root, _relative, _maximum: (
+        lambda _root, _relative, _maximum, **_kwargs: (
             os.open(source_path, os.O_RDONLY),
             source_path.stat(),
         ),
     )
 
-    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, _maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         content = os.read(source_fd, 1024)
         return os.dup(source_fd), hashlib.sha256(content).hexdigest(), len(content)
 
@@ -1072,22 +1073,32 @@ def test_production_worker_snapshots_runtime_and_limits_before_verify_and_launch
     object.__setattr__(limits, "max_source_bytes", 2**30 + 1)
     object.__setattr__(limits, "wall_timeout_ms", 300_001)
     seen: dict[str, object] = {}
+    clock = [0]
+    deadlines: list[int] = []
+    monkeypatch.setattr(cast(Any, detection).time, "monotonic_ns", lambda: clock[0])
     monkeypatch.setattr(detection, "_supported_platform", lambda: True)
 
-    def verify_media(value: MediaRuntime) -> None:
+    def verify_media(value: MediaRuntime, **kwargs: object) -> None:
         seen["media"] = value
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
 
-    def verify_perception(value: PerceptionRuntime) -> None:
+    def verify_perception(value: PerceptionRuntime, **kwargs: object) -> None:
         seen["verified_runtime"] = value
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+        clock[0] = 2_345_000_000
         object.__setattr__(cast(Any, worker)._runtime, "root", Path("/private/race-runtime"))
         object.__setattr__(cast(Any, worker)._limits, "wall_timeout_ms", 300_001)
 
-    def open_source(_root: Path, _relative: str, maximum: int) -> tuple[int, os.stat_result]:
+    def open_source(
+        _root: Path, _relative: str, maximum: int, **_kwargs: object
+    ) -> tuple[int, os.stat_result]:
         seen["open_maximum"] = maximum
+        deadlines.append(cast(int, _kwargs["deadline_ns"]))
         return os.open(source_path, os.O_RDONLY), source_path.stat()
 
-    def snapshot(source_fd: int, maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         seen["snapshot_maximum"] = maximum
+        deadlines.append(cast(int, _kwargs["deadline_ns"]))
         raw = os.read(source_fd, 1024)
         return os.dup(source_fd), hashlib.sha256(raw).hexdigest(), len(raw)
 
@@ -1116,7 +1127,8 @@ def test_production_worker_snapshots_runtime_and_limits_before_verify_and_launch
     assert verified is launched
     assert launched.root == Path("/opt/perception")
     assert launched.media.root == Path("/opt/media")
-    assert launched_limits.wall_timeout_ms == 12_345
+    assert set(deadlines) == {12_345_000_000}
+    assert launched_limits.wall_timeout_ms == 10_000
     assert seen["open_maximum"] == seen["snapshot_maximum"] == 4096
 
 
@@ -1141,15 +1153,15 @@ def test_production_worker_close_failures_are_nested_closed_once_and_redacted(
     close_calls: list[int] = []
     run_calls = 0
     monkeypatch.setattr(detection, "_supported_platform", lambda: True)
-    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime: None)
-    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime: None)
+    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime, **_kwargs: None)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime, **_kwargs: None)
 
-    def open_source(*_args: object) -> tuple[int, os.stat_result]:
+    def open_source(*_args: object, **_kwargs: object) -> tuple[int, os.stat_result]:
         descriptor = os.open(source_path, os.O_RDONLY)
         descriptors.append(descriptor)
         return descriptor, source_path.stat()
 
-    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, _maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         raw = os.read(source_fd, 1024)
         descriptor = os.dup(source_fd)
         descriptors.append(descriptor)
@@ -1201,15 +1213,15 @@ def test_production_worker_closes_source_and_snapshot_on_digest_conflict(
     )
     descriptors: list[int] = []
     monkeypatch.setattr(detection, "_supported_platform", lambda: True)
-    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime: None)
-    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime: None)
+    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime, **_kwargs: None)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime, **_kwargs: None)
 
-    def open_source(*_args: object) -> tuple[int, os.stat_result]:
+    def open_source(*_args: object, **_kwargs: object) -> tuple[int, os.stat_result]:
         descriptor = os.open(source_path, os.O_RDONLY)
         descriptors.append(descriptor)
         return descriptor, source_path.stat()
 
-    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, _maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         descriptor = os.dup(source_fd)
         descriptors.append(descriptor)
         return descriptor, "bb" * 32, len(b"sealed-source")
@@ -1246,9 +1258,9 @@ def test_production_worker_reports_absent_boundary_without_opening_source(
         MediaRuntime(Path("/opt/missing-media"), Path("/opt/missing-media/worker/media_worker.py")),
     )
     monkeypatch.setattr(detection, "_supported_platform", lambda: True)
-    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime: None)
+    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime, **_kwargs: None)
 
-    def unavailable(_runtime: PerceptionRuntime) -> None:
+    def unavailable(_runtime: PerceptionRuntime, **_kwargs: object) -> None:
         raise PortError(PortErrorCode.ISOLATION_UNAVAILABLE, PortKind.DETECTOR, "detect")
 
     monkeypatch.setattr(detection, "_verify_perception_boundary", unavailable)
@@ -1266,6 +1278,96 @@ def test_production_worker_reports_absent_boundary_without_opening_source(
     assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
     assert "private-source" not in str(raised.value)
     assert adapter.calls == ()
+
+
+def test_public_perception_preflight_shares_one_deadline_across_both_closures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = PerceptionRuntime(
+        Path("/private/perception-runtime"),
+        MediaRuntime(
+            Path("/private/media-runtime"),
+            Path("/private/media-runtime/worker/media_worker.py"),
+        ),
+    )
+    clock = [0]
+    deadlines: list[int] = []
+    monkeypatch.setattr(cast(Any, detection).time, "monotonic_ns", lambda: clock[0])
+
+    def verify_media(_runtime: MediaRuntime, **kwargs: object) -> None:
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+        clock[0] = 4_000_000
+
+    def verify_perception(_runtime: PerceptionRuntime, **kwargs: object) -> None:
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+
+    monkeypatch.setattr(detection, "_verify_media_boundary", verify_media)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", verify_perception)
+
+    detection.verify_perception_runtime(
+        runtime,
+        limits=PerceptionLimits(wall_timeout_ms=10),
+    )
+
+    assert deadlines == [10_000_000, 10_000_000]
+
+    cancelled = threading.Event()
+    cancelled.set()
+    monkeypatch.setattr(
+        cast(Any, detection).time,
+        "monotonic_ns",
+        lambda: pytest.fail("pre-cancelled preflight must not start a deadline"),
+    )
+    with pytest.raises(PortError) as raised:
+        detection.verify_perception_runtime(runtime, cancelled=cancelled)
+    assert raised.value.code is PortErrorCode.CANCELLED
+    assert str(raised.value) == "cancelled at detector.detect"
+    assert "private" not in str(raised.value)
+
+
+def test_detector_preflight_timeout_stops_before_perception_and_source_access(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    runtime = PerceptionRuntime(
+        Path("/private/perception-runtime"),
+        MediaRuntime(
+            Path("/private/media-runtime"),
+            Path("/private/media-runtime/worker/media_worker.py"),
+        ),
+    )
+    worker = IsolatedPerceptionWorker(
+        tmp_path,
+        "private-source.mov",
+        runtime,
+        limits=PerceptionLimits(wall_timeout_ms=10),
+    )
+    clock = [0]
+    monkeypatch.setattr(cast(Any, detection).time, "monotonic_ns", lambda: clock[0])
+    monkeypatch.setattr(detection, "_supported_platform", lambda: True)
+
+    def consume_budget(_runtime: MediaRuntime, **_kwargs: object) -> None:
+        clock[0] = 10_000_000
+
+    monkeypatch.setattr(detection, "_verify_media_boundary", consume_budget)
+    monkeypatch.setattr(
+        detection,
+        "_verify_perception_boundary",
+        lambda *_args, **_kwargs: pytest.fail("expired preflight must stop verification"),
+    )
+    monkeypatch.setattr(
+        detection,
+        "_open_source",
+        lambda *_args, **_kwargs: pytest.fail("expired preflight must not open the source"),
+    )
+
+    source = _source()
+    with pytest.raises(PortError) as raised:
+        worker.infer(source, _frames(source, 1))
+
+    assert raised.value.code is PortErrorCode.TIMEOUT
+    assert str(raised.value) == "timeout at detector.detect"
+    assert "private" not in str(raised.value)
 
 
 def test_production_worker_returns_unsupported_without_checking_native_boundary(
@@ -1608,6 +1710,36 @@ def test_runtime_file_tree_and_trust_helpers_bind_bytes_links_and_modes(
     assert detection._trusted_traversable_directory(root) is False
 
 
+def test_runtime_file_read_checks_cancellation_inside_hash_input_loop(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(detection, "_TRUSTED_RUNTIME_UID", tmp_path.stat().st_uid)
+    payload = tmp_path / "private-runtime-file"
+    payload.write_bytes(b"approved")
+    payload.chmod(0o444)
+    cancelled = threading.Event()
+    real_read = os.read
+
+    def cancel_after_read(descriptor: int, maximum: int) -> bytes:
+        raw = real_read(descriptor, maximum)
+        cancelled.set()
+        return raw
+
+    monkeypatch.setattr(cast(Any, detection).os, "read", cancel_after_read)
+
+    with pytest.raises(PortError) as raised:
+        detection._read_runtime_file(
+            payload,
+            cancelled=cancelled,
+            deadline_ns=time.monotonic_ns() + 1_000_000_000,
+        )
+
+    assert raised.value.code is PortErrorCode.CANCELLED
+    assert str(raised.value) == "cancelled at detector.detect"
+    assert "private-runtime-file" not in str(raised.value)
+
+
 def test_cgroup_and_systemd_status_helpers_cover_success_and_failure(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -1843,7 +1975,7 @@ def test_isolated_worker_constructor_and_prelaunch_failures_are_structured(
     monkeypatch.setattr(
         detection,
         "_verify_media_boundary",
-        lambda _runtime: (_ for _ in ()).throw(
+        lambda _runtime, **_kwargs: (_ for _ in ()).throw(
             PortError(PortErrorCode.ISOLATION_UNAVAILABLE, PortKind.VIDEO_SOURCE, "probe")
         ),
     )
@@ -1865,12 +1997,12 @@ def test_isolated_worker_redacts_source_open_and_snapshot_failures(
     frames = _frames(source, 1)
     worker = IsolatedPerceptionWorker(tmp_path, "private.mov", runtime)
     monkeypatch.setattr(detection, "_supported_platform", lambda: True)
-    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime: None)
-    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime: None)
+    monkeypatch.setattr(detection, "_verify_media_boundary", lambda _runtime, **_kwargs: None)
+    monkeypatch.setattr(detection, "_verify_perception_boundary", lambda _runtime, **_kwargs: None)
     monkeypatch.setattr(
         detection,
         "_open_source",
-        lambda *_args: (_ for _ in ()).throw(
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
             PortError(PortErrorCode.INVALID_REQUEST, PortKind.VIDEO_SOURCE, "open")
         ),
     )
@@ -1883,7 +2015,7 @@ def test_isolated_worker_redacts_source_open_and_snapshot_failures(
     source_path.write_bytes(b"source")
     descriptors: list[int] = []
 
-    def open_source(*_args: object) -> tuple[int, os.stat_result]:
+    def open_source(*_args: object, **_kwargs: object) -> tuple[int, os.stat_result]:
         descriptor = os.open(source_path, os.O_RDONLY)
         descriptors.append(descriptor)
         return descriptor, source_path.stat()
@@ -1892,7 +2024,7 @@ def test_isolated_worker_redacts_source_open_and_snapshot_failures(
     monkeypatch.setattr(
         detection,
         "_sealed_snapshot",
-        lambda *_args: (_ for _ in ()).throw(
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
             PortError(PortErrorCode.LIMIT_EXCEEDED, PortKind.VIDEO_SOURCE, "read")
         ),
     )

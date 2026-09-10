@@ -127,17 +127,19 @@ completion receipt before the closure is eligible for execution. A cache or
 runtime path must be absolute and explicitly operator-selected; worker or media
 data can never choose it. The cache and installed closure are local operational
 state, not files to copy into Git, a VisualWorld release, container, or installer.
+Every provisioner result is one compact canonical JSON line using
+`visualworld.perception-provision-result` schema version 1; errors contain only a
+stable code and never echo a selected path.
 The accepted media root is the sanitized
 `visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2` closure; `v1` is retired because it
 contained an interpreter symlink to an unbound host toolchain.
 
-The production adapter remains an experimental library surface rather than a
-CLI command. Construct `PerceptionRuntime` from the two verified roots, then
-wrap an `IsolatedPerceptionWorker` in `OpenVinoVehicleDetector`. The worker's
-configured source root and relative path must identify the same authorized local
-file used to create the supplied `Source` and `FrameRef` records; the sealed
-snapshot digest/size is checked before native execution. Ordinary contract and
-hostile-boundary coverage needs no native closure:
+The production adapter is exposed through the additive
+`visualworld perception` command namespace. The worker's configured source root
+and relative path identify the same authorized local file used for media probe,
+detection, and original-frame extraction; the sealed snapshot digest and byte
+count are checked before native execution. Ordinary contract and hostile-boundary
+coverage needs no native closure:
 
 ```sh
 uv run --frozen --no-sync --offline pytest -q \
@@ -181,6 +183,108 @@ uv run --frozen --no-sync --offline pytest -q \
   tests/test_original_frame_acceptance.py \
   tests/test_perception_materialization.py
 ```
+
+### Real-video perception commands
+
+Native execution is an administrator operation in v0.2. Use an absolute,
+root-owned application installation; never run `sudo visualworld` from a
+user-writable checkout, virtual environment, `PATH`, or preserved `PYTHONPATH`.
+The source root, store, application, and three runtime roots are separately
+operator-selected private local paths. The source itself is always a relative
+POSIX name beneath its source root. The source root must be owned by the
+effective UID with exact `0700` permissions.
+
+With the application installed at the example root-owned path below, validate
+the complete installed closure before authorizing a source:
+
+```sh
+app=/opt/visualworld-application/bin/visualworld
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception validate-runtime \
+  --media-runtime-root /opt/visualworld-runtime-probe-v2 \
+  --perception-runtime-root /opt/visualworld-perception-0201-v1 \
+  --original-frame-overlay-root /opt/visualworld-original-frame-overlay-v1
+```
+
+Run the fixed measured path explicitly. No ordinary perception command imports
+the provisioner, accepts a URL/model/worker path, or enables network access:
+
+```sh
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception run \
+  --store /private/visualworld-store \
+  --source-root /private/visualworld-sources \
+  --source synthetic-v1/cfr.mov \
+  --media-runtime-root /opt/visualworld-runtime-probe-v2 \
+  --perception-runtime-root /opt/visualworld-perception-0201-v1 \
+  --original-frame-overlay-root /opt/visualworld-original-frame-overlay-v1 \
+  --model vehicle-detection-0201 --device CPU --category vehicle
+```
+
+`run` validates the platform and every runtime tree, then probes the authorized
+source, all before it creates or recovers the store. It emits only aggregate
+counts, bounded stage/resource summaries, IDs, source-time endpoints, and
+producer provenance. An identical replay verifies the visible graph and CAS and
+returns `already_committed`; it does not duplicate records or evidence.
+
+Committed output is read through bounded pages. Repeat a page with the returned
+`next` fields until `next` is `null`:
+
+```sh
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception inspect \
+  --store /private/visualworld-store --run-id RUN_ID \
+  --kind observations --limit 32
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception inspect \
+  --store /private/visualworld-store --run-id RUN_ID \
+  --kind tracklets --limit 32
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception inspect \
+  --store /private/visualworld-store --run-id RUN_ID \
+  --kind evidence --tracklet-id TRACKLET_ID --limit 8
+```
+
+Export authorizes one already-materialized selection by its committed run,
+tracklet, and rank. It never decodes media again, refuses overwrite, and writes
+the exact read-only packed RGB24 crop outside the store:
+
+```sh
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception export-evidence \
+  --store /private/visualworld-store --run-id RUN_ID \
+  --tracklet-id TRACKLET_ID --rank 1 \
+  --output /private/visualworld-exports/tracklet-rank-1.rgb24
+```
+
+Retention is `derived_private` and deletion ownership is
+`coordinator_source_cascade`. Use the durable commands rather than deleting
+SQLite or CAS files directly:
+
+```sh
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception recover \
+  --store /private/visualworld-store
+sudo env -i PATH=/usr/sbin:/usr/bin:/bin "$app" perception delete-source \
+  --store /private/visualworld-store --source-id SOURCE_ID
+```
+
+Success and replay exit 0; usage exits 2; unsupported platform/configuration
+exits 3; a bounded incomplete/unknown result exits 4; a deadline exits 124;
+cancellation exits 130. Other validation, integrity, or isolation failures exit
+1. Each command writes exactly one bounded canonical JSON line to stdout on
+success or stderr on failure. macOS and other unsupported hosts return before
+inspecting runtime/source roots or creating a store. They provide fail-closed
+contract evidence, not native inference proof.
+
+Run the deterministic fresh-process CLI acceptance on either supported
+development host without a native runtime:
+
+```sh
+uv run --frozen --no-sync --offline pytest -q tests/test_v02_cli_acceptance.py
+```
+
+Its 23 child commands cover success, replay, pagination, export, recovery,
+deletion, absent/tampered runtime, unsupported platform/configuration, hostile
+paths/worker output/export destinations, an elapsed timer, real SIGINT, output
+bounds, path redaction, and denied socket/DNS entrypoints. The runtime
+absence/tampering cases inject failure only at the verifier boundary; lower-level
+tests exercise actual malformed runtime files. The runner marks that seam and
+`native_linux_runtime_executed: false` in its receipt; it is not native inference
+or native cgroup-cleanup evidence.
 
 After both runtime verifiers pass on the required Linux host, run the native
 fixture acceptance:

@@ -53,6 +53,7 @@ def inspect_wheel(wheel: Path) -> tuple[str, str]:
             "visualworld/media.py",
             "visualworld/original_frame_runtime.py",
             "visualworld/perception.py",
+            "visualworld/perception_cli.py",
             "visualworld/perception_materialization.py",
             "visualworld/ports.py",
             "visualworld/sampling.py",
@@ -113,7 +114,8 @@ def check(wheel: Path, uv: Path) -> None:
         probe = (
             "import importlib.metadata as m,json,visualworld,visualworld.detection,"
             "visualworld.evidence,visualworld.experimental,visualworld.frame_access,"
-            "visualworld.original_frame_runtime,visualworld.perception_materialization,"
+            "visualworld.original_frame_runtime,visualworld.perception_cli,"
+            "visualworld.perception_materialization,"
             "visualworld.tracking; "
             "print(json.dumps({'packages': sorted((d.metadata['Name'], d.version) "
             "for d in m.distributions()), 'version': visualworld.__version__, "
@@ -176,6 +178,17 @@ def check(wheel: Path, uv: Path) -> None:
                 or document.get("status") != "ok"
             ):
                 raise ValueError("Installed CLI probe smoke check failed")
+            result = subprocess.run(
+                [*prefix, "perception", "--help"],
+                cwd=directory,
+                env=env,
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=30,
+            )
+            if "usage: visualworld perception" not in result.stdout or result.stderr:
+                raise ValueError("Installed perception CLI smoke check failed")
 
         console = runtime / "bin/visualworld"
         store = directory / "quickstart-store"
@@ -267,7 +280,7 @@ def check(wheel: Path, uv: Path) -> None:
     )
     print(
         "Fresh installed wheel: import, module, console, exact-crop CLI, license, "
-        "zero runtime dependencies passed."
+        "perception help, zero runtime dependencies passed."
     )
 
 

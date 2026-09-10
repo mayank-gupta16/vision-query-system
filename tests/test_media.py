@@ -11,6 +11,7 @@ import stat
 import subprocess
 import sys
 import threading
+import time
 from contextlib import suppress
 from errno import ELOOP, ENOENT, ENOSYS
 from pathlib import Path
@@ -72,7 +73,7 @@ def worker_payload() -> dict[str, object]:
 def worker_run(payload: object | None = None, *, returncode: int = 0) -> media._WorkerRun:
     selected = worker_payload() if payload is None else payload
     return media._WorkerRun(
-        json.dumps(selected, sort_keys=True).encode(),
+        (json.dumps(selected, sort_keys=True, separators=(",", ":")) + "\n").encode(),
         b'{"schema_version":1,"status":"ok"}\n',
         returncode,
         12,
@@ -156,6 +157,54 @@ def test_unsupported_platform_fails_closed_before_launch(monkeypatch: pytest.Mon
     assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
 
 
+def test_public_media_preflight_uses_one_deadline_and_redacts_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = [0]
+    seen: list[int] = []
+    runtime = media.MediaRuntime(
+        Path("/private/media-runtime"),
+        Path("/private/media-runtime/worker/media_worker.py"),
+    )
+    monkeypatch.setattr(cast(Any, media).time, "monotonic_ns", lambda: clock[0])
+
+    def consume_budget(_runtime: media.MediaRuntime, **kwargs: object) -> None:
+        seen.append(cast(int, kwargs["deadline_ns"]))
+        clock[0] = 10_000_000
+
+    monkeypatch.setattr(media, "_capability_check", consume_budget)
+
+    with pytest.raises(PortError) as raised:
+        media.verify_media_runtime(runtime, limits=media.MediaLimits(wall_timeout_ms=10))
+
+    assert seen == [10_000_000]
+    assert raised.value.code is PortErrorCode.TIMEOUT
+    assert str(raised.value) == "timeout at video_source.probe"
+    assert "private" not in str(raised.value)
+
+
+def test_public_media_preflight_honours_pre_cancellation_before_clock(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cancelled = threading.Event()
+    cancelled.set()
+    runtime = media.MediaRuntime(
+        Path("/private/media-runtime"),
+        Path("/private/media-runtime/worker/media_worker.py"),
+    )
+    monkeypatch.setattr(
+        cast(Any, media).time,
+        "monotonic_ns",
+        lambda: pytest.fail("pre-cancelled preflight must not start a deadline"),
+    )
+
+    with pytest.raises(PortError) as raised:
+        media.verify_media_runtime(runtime, cancelled=cancelled)
+
+    assert raised.value.code is PortErrorCode.CANCELLED
+    assert str(raised.value) == "cancelled at video_source.probe"
+
+
 def test_trusted_path_checks_require_root_owned_nonwritable_nodes(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -175,6 +224,8 @@ def test_trusted_path_checks_require_root_owned_nonwritable_nodes(
     assert media._trusted_directory(tmp_path) is False
     metadata.st_mode = stat.S_IFDIR | 0o755
     assert media._trusted_directory(tmp_path) is True
+    metadata.st_mode = stat.S_IFDIR | 0o700
+    metadata.st_uid = os.geteuid()
     assert media._source_directory(tmp_path) is True
     metadata.st_uid = 501
     assert media._trusted_directory(tmp_path) is False
@@ -212,7 +263,7 @@ def test_capability_probe_checks_runtime_tools_and_cgroup(
     monkeypatch.setattr(media, "_CGROUP_ROOT", cgroup)
     monkeypatch.setattr(media, "_trusted_regular", lambda _path: True)
     monkeypatch.setattr(media, "_trusted_directory", lambda _path: True)
-    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime: True)
+    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime, **_kwargs: True)
 
     media._capability_check(runtime)
 
@@ -223,10 +274,10 @@ def test_capability_probe_checks_runtime_tools_and_cgroup(
     with pytest.raises(PortError, match="isolation_unavailable"):
         media._capability_check(runtime)
     monkeypatch.setattr(media, "_trusted_regular", lambda _path: True)
-    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime: False)
+    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime, **_kwargs: False)
     with pytest.raises(PortError, match="isolation_unavailable"):
         media._capability_check(runtime)
-    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime: True)
+    monkeypatch.setattr(media, "_runtime_manifest_valid", lambda _runtime, **_kwargs: True)
     (cgroup / "cgroup.controllers").unlink()
     with pytest.raises(PortError, match="isolation_unavailable"):
         media._capability_check(runtime)
@@ -342,16 +393,16 @@ def test_runtime_manifest_rejects_worker_or_tree_drift(
     monkeypatch.setattr(
         media,
         "_file_sha256",
-        lambda _path: media._APPROVED_RUNTIME_MANIFEST_SHA256,
+        lambda _path, **_kwargs: media._APPROVED_RUNTIME_MANIFEST_SHA256,
     )
     monkeypatch.setattr(
         media,
         "_runtime_tree_digest",
-        lambda _root: media._APPROVED_RUNTIME_TREE_SHA256,
+        lambda _root, **_kwargs: media._APPROVED_RUNTIME_TREE_SHA256,
     )
     assert media._runtime_manifest_valid(runtime) is True
 
-    monkeypatch.setattr(media, "_runtime_tree_digest", lambda _root: "0" * 64)
+    monkeypatch.setattr(media, "_runtime_tree_digest", lambda _root, **_kwargs: "0" * 64)
     assert media._runtime_manifest_valid(runtime) is False
     assert (
         media._runtime_manifest_valid(
@@ -411,6 +462,7 @@ def test_open_source_uses_openat2_and_enforces_regular_size(
     assert opened == source_fd
     assert metadata.st_size == 7
     assert libc.calls and cast(Any, libc.calls[0][0]).value == media._OPENAT2
+    assert cast(Any, libc.calls[0][3])._obj.flags & os.O_NONBLOCK
     os.close(opened)
 
     oversized_fd = os.open(source, os.O_RDONLY)
@@ -458,6 +510,20 @@ def test_open_source_rejects_unsupported_or_non_directory_roots(
     monkeypatch.setattr(cast(Any, media).platform, "machine", lambda: "x86_64")
     with pytest.raises(PortError, match="invalid_request"):
         media._open_source(tmp_path / "missing", "source.mov", 10)
+
+
+def test_source_root_must_be_exactly_private_and_owned_by_effective_uid(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    tmp_path.chmod(0o700)
+    assert media._source_directory(tmp_path) is True
+
+    tmp_path.chmod(0o750)
+    assert media._source_directory(tmp_path) is False
+    tmp_path.chmod(0o700)
+    monkeypatch.setattr(cast(Any, media).os, "geteuid", lambda: tmp_path.stat().st_uid + 1)
+    assert media._source_directory(tmp_path) is False
 
 
 def test_open_source_rejects_nonregular_result(
@@ -524,6 +590,44 @@ def test_sealed_snapshot_maps_unavailable_and_copy_failures(
     os.close(source_fd)
 
 
+def test_sealed_snapshot_checks_cancellation_inside_copy_loop(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source"
+    snapshot = tmp_path / "snapshot"
+    source.write_bytes(b"private source bytes")
+    snapshot.write_bytes(b"")
+    source_fd = os.open(source, os.O_RDONLY)
+    snapshot_fd = os.open(snapshot, os.O_RDWR)
+    cancelled = threading.Event()
+    libc = _OpenAt2Libc(snapshot_fd)
+    real_read = os.read
+    monkeypatch.setattr(cast(Any, media).ctypes, "CDLL", lambda *_args, **_kwargs: libc)
+
+    def cancel_after_read(descriptor: int, maximum: int) -> bytes:
+        raw = real_read(descriptor, maximum)
+        cancelled.set()
+        return raw
+
+    monkeypatch.setattr(cast(Any, media).os, "read", cancel_after_read)
+    try:
+        with pytest.raises(PortError) as raised:
+            media._sealed_snapshot(
+                source_fd,
+                64,
+                cancelled=cancelled,
+                deadline_ns=time.monotonic_ns() + 1_000_000_000,
+            )
+    finally:
+        os.close(source_fd)
+
+    assert raised.value.code is PortErrorCode.CANCELLED
+    assert str(raised.value) == "cancelled at video_source.snapshot"
+    with pytest.raises(OSError):
+        os.fstat(snapshot_fd)
+
+
 def test_worker_output_builds_exact_domain_records() -> None:
     decoded = media._decode_output(
         worker_run(),
@@ -542,6 +646,30 @@ def test_worker_output_builds_exact_domain_records() -> None:
     assert decoded.details.pyav_version == "18.1.0"
     assert decoded.details.libavformat_version == "63.1.101"
     assert decoded.metrics == media.MediaMetrics(12, 4, 1024, 2892, 2)
+
+
+@pytest.mark.parametrize("variant", ["duplicate", "spaces", "missing_lf", "extra_lf"])
+def test_worker_stdout_requires_unique_keys_and_exact_canonical_json(variant: str) -> None:
+    canonical = worker_run().stdout
+    if variant == "duplicate":
+        raw = canonical.replace(b'"status":"ok"', b'"status":"ok","status":"ok"', 1)
+    elif variant == "spaces":
+        raw = (json.dumps(worker_payload(), sort_keys=True) + "\n").encode()
+    elif variant == "missing_lf":
+        raw = canonical[:-1]
+    else:
+        raw = canonical + b"\n"
+
+    with pytest.raises(PortError) as raised:
+        media._decode_output(
+            media._WorkerRun(raw, b'{"schema_version":1,"status":"ok"}\n', 0, 1, 1, 1),
+            "a" * 64,
+            1,
+            media.MediaLimits(),
+        )
+
+    assert raised.value.code is PortErrorCode.DECODE_FAILED
+    assert str(raised.value) == "decode_failed at video_source.decode"
 
 
 @pytest.mark.parametrize("returncode", [1, 20, 21, 22])
@@ -612,16 +740,36 @@ def test_local_video_source_caches_one_decode_and_pages(
     worker = tmp_path / "worker.py"
     worker.write_text("# worker", encoding="utf-8")
     runs: list[int] = []
+    clock = [0]
+    deadlines: list[int] = []
+    worker_budgets: list[int] = []
+    monkeypatch.setattr(cast(Any, media).time, "monotonic_ns", lambda: clock[0])
 
-    monkeypatch.setattr(media, "_capability_check", lambda _runtime: None)
+    def capability(_runtime: media.MediaRuntime, **kwargs: object) -> None:
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+        clock[0] = 5_000_000_000
+
+    monkeypatch.setattr(media, "_capability_check", capability)
+
+    def open_source(
+        _root: Path,
+        _relative: str,
+        _maximum: int,
+        **kwargs: object,
+    ) -> tuple[int, os.stat_result]:
+        deadlines.append(cast(int, kwargs["deadline_ns"]))
+        return os.open(source, os.O_RDONLY), source.stat()
+
     monkeypatch.setattr(
         media,
         "_open_source",
-        lambda _root, _relative, _maximum: (os.open(source, os.O_RDONLY), source.stat()),
+        open_source,
     )
 
-    def snapshot(source_fd: int, _maximum: int) -> tuple[int, str, int]:
+    def snapshot(source_fd: int, _maximum: int, **_kwargs: object) -> tuple[int, str, int]:
         content = os.read(source_fd, 64)
+        deadlines.append(cast(int, _kwargs["deadline_ns"]))
+        clock[0] = 7_000_000_000
         return os.dup(source_fd), hashlib.sha256(content).hexdigest(), len(content)
 
     def run(
@@ -632,6 +780,7 @@ def test_local_video_source_caches_one_decode_and_pages(
     ) -> media._WorkerRun:
         os.fstat(snapshot_fd)
         runs.append(snapshot_fd)
+        worker_budgets.append(_limits.wall_timeout_ms)
         return worker_run()
 
     monkeypatch.setattr(media, "_sealed_snapshot", snapshot)
@@ -652,6 +801,8 @@ def test_local_video_source_caches_one_decode_and_pages(
     assert adapter.details.codec == "rawvideo"
     assert adapter.metrics.frame_count == 2
     assert len(runs) == 1
+    assert set(deadlines) == {20_000_000_000}
+    assert worker_budgets == [13_000]
     assert [call.operation for call in adapter.calls] == [
         "probe",
         "probe",
@@ -927,16 +1078,19 @@ def test_runner_os_failures_are_mapped_without_backend_chaining(
 ) -> None:
     source = tmp_path / "source.mov"
     source.write_bytes(b"fixture")
-    monkeypatch.setattr(media, "_capability_check", lambda _runtime: None)
+    monkeypatch.setattr(media, "_capability_check", lambda _runtime, **_kwargs: None)
     monkeypatch.setattr(
         media,
         "_open_source",
-        lambda _root, _relative, _maximum: (os.open(source, os.O_RDONLY), source.stat()),
+        lambda _root, _relative, _maximum, **_kwargs: (
+            os.open(source, os.O_RDONLY),
+            source.stat(),
+        ),
     )
     monkeypatch.setattr(
         media,
         "_sealed_snapshot",
-        lambda source_fd, _maximum: (
+        lambda source_fd, _maximum, **_kwargs: (
             os.dup(source_fd),
             hashlib.sha256(b"fixture").hexdigest(),
             7,

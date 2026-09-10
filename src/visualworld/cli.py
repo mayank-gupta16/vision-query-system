@@ -479,6 +479,11 @@ def _finish_success(command: str, payload: dict[str, object]) -> int:
 def main(argv: Sequence[str] | None = None) -> int:
     """Run one bounded command and return a stable process exit code."""
 
+    selected_arguments = sys.argv[1:] if argv is None else argv
+    if selected_arguments and selected_arguments[0] == "perception":
+        from visualworld.perception_cli import main as perception_main
+
+        return perception_main(selected_arguments[1:])
     parser = build_parser()
     try:
         arguments = parser.parse_args(argv)

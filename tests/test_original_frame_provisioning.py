@@ -387,4 +387,9 @@ def test_overlay_cli_subcommands_route_without_loading_perception_or_fetching(
     )
 
     assert calls == [(overlay_root, media_root, manifest, manifest_sha256)]
-    assert json.loads(capsys.readouterr().out) == {"command": command, "status": "ok"}
+    assert json.loads(capsys.readouterr().out) == {
+        "command": command,
+        "schema": "visualworld.perception-provision-result",
+        "schema_version": 1,
+        "status": "ok",
+    }

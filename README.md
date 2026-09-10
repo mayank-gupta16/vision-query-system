@@ -20,8 +20,11 @@ records/ports, a bounded Linux-only local-video source/probe adapter,
 deterministic exact-PTS frame sampling, original-pixel crop utilities, a
 crash-recoverable local evidence CAS, and transactional local SQLite metadata.
 The library and CLI expose a deterministic end-to-end ingestion path for
-fake/manual regions, including recovery and source deletion. Real-video CLI
-input, perception, and queries are not implemented yet.
+fake/manual regions, including recovery and source deletion. The in-development
+v0.2 `visualworld perception` namespace adds the fixed vehicle-only local-video
+detector/tracklet path, bounded inspection, selected original-pixel crop export,
+recovery, and deletion on the separately provisioned Linux isolation boundary.
+macOS native perception and query behavior are not implemented.
 See [current project state](docs/project/current.md) and the
 [roadmap](docs/project/roadmap.md) for the proposed sequencing and explicit
 non-goals.
@@ -73,6 +76,15 @@ and checksums are published in the
 See [developer setup](docs/testing/development.md) for compatibility, build/audit
 commands, network boundaries, and exact versions. Nothing is published to a
 package registry by these commands or this release.
+
+The v0.2 real-video path is deliberately separate from this dependency-free
+fixture quickstart. It requires a root-owned application installation and the
+three exact user-provisioned runtime roots; only the administrator's explicit
+provisioner `fetch` command may use the network. See
+[real-video perception commands](docs/testing/development.md#real-video-perception-commands)
+for validation, run, paginated inspection, selected-crop export, recovery, and
+source-deletion syntax. Do not run the privileged command from a writable
+checkout or virtual environment.
 
 ## Principles
 
