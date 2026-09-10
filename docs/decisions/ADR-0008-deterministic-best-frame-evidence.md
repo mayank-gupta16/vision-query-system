@@ -100,11 +100,14 @@ The caller passes the returned artifact descriptor and bytes to `EvidenceStore`
 only when persistence is justified. The coordinator remains the sole owner of
 CAS staging, publication, retention, and source-cascade deletion.
 
-The caller or orchestrator is responsible for supplying packed RGB24 bytes from
-the intent's exact `frame_id`. This issue adds no decoder attestation and cannot
-prove that the supplied frame bytes came from that frame. The returned Artifact
-hash covers only the exact cropped bytes supplied to this operation; it is not a
-hash or attestation of the source frame.
+The generic selector extension accepts packed RGB24 supplied for the intent's
+exact `frame_id`; by itself it does not attest that input. Issue #87 adds the
+first production orchestration path that obtains those bytes from an
+`OriginalFrameReader` which revalidates the authorized source, exact frame
+metadata, frozen runtime, worker, and output hashes before materialization. The
+returned Artifact hash still covers the crop bytes rather than the full source
+frame, while run provenance retains the reader/materialization configuration
+that established the frame binding.
 
 The default producer configuration SHA-256 is
 `98cca604cf1880af26173fb2210eedb5b9a5734dd7970e9024e734d0531a1de5`.
@@ -118,6 +121,6 @@ Changing the configured maximum produces a different digest.
   are created by the default port operation.
 - Boundary contact and size are documented heuristics, not semantic inference or
   proof that fine detail is available.
-- Source decoding and durable evidence storage remain orchestration work for later
-  v0.2 issues; this decision adds no filesystem, network, database, model, or
-  dependency capability.
+- The generic selector adds no filesystem, network, database, model, or
+  dependency capability. Issue #87 supplies source decoding and durable evidence
+  storage in separate, provenance-bearing orchestration and adapter boundaries.

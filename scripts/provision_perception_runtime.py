@@ -35,10 +35,17 @@ from typing import IO, Any, NoReturn, TextIO, cast
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "workers" / "perception-runtime-v1.json"
 DEFAULT_APPLICATION_WORKER = ROOT / "workers" / "perception_worker.py"
+DEFAULT_ORIGINAL_FRAME_MANIFEST = ROOT / "workers" / "original-frame-runtime-v1.json"
+DEFAULT_ORIGINAL_FRAME_WORKER = ROOT / "workers" / "original_frame_worker.py"
 INSTALL_MANIFEST_NAME = "perception-runtime-manifest.json"
 INSTALL_RECEIPT_NAME = "visualworld-perception-runtime.json"
+ORIGINAL_FRAME_INSTALL_MANIFEST_NAME = "original-frame-runtime-v1.json"
+ORIGINAL_FRAME_INSTALL_RECEIPT_NAME = "visualworld-original-frame-overlay.json"
 _APPROVED_CANONICAL_MANIFEST_SHA256 = (
     "7c658028266f92f94c388b24fc5f122162182362a58a9997c0255931926ba29d"
+)
+_APPROVED_ORIGINAL_FRAME_CANONICAL_MANIFEST_SHA256 = (
+    "faf721af53b7e861772b7fd9f978fc225c96a51832334095a2860c57ccde2e9f"
 )
 _MAX_MANIFEST_BYTES = 256 * 1024
 _MAX_MEMBER_BYTES = 128 * 1024 * 1024
@@ -526,6 +533,170 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> tuple[dict[str, Any], str]:
     except (UnicodeError, json.JSONDecodeError, ProvisioningError):
         _fail("invalid_manifest")
     manifest = validate_manifest(value)
+    if raw != _pretty_json(manifest):
+        _fail("noncanonical_manifest")
+    return manifest, hashlib.sha256(raw).hexdigest()
+
+
+def validate_original_frame_manifest(value: object) -> dict[str, Any]:
+    """Validate the exact first-party, offline original-frame overlay manifest."""
+
+    manifest = _mapping(value)
+    _expect_fields(
+        manifest,
+        {
+            "application_worker",
+            "ipc",
+            "limits",
+            "media_runtime",
+            "policy",
+            "runtime_id",
+            "schema",
+            "schema_version",
+            "support",
+            "worker",
+        },
+    )
+    if (
+        manifest["schema"] != "visualworld.original-frame-runtime"
+        or manifest["schema_version"] != 1
+        or manifest["runtime_id"] != "visualworld-original-frame-overlay-v1"
+    ):
+        _fail("invalid_manifest")
+    application_worker = _mapping(manifest["application_worker"])
+    _expect_fields(application_worker, {"install_path", "license_expression", "sha256"})
+    if (
+        _safe_relative_path(application_worker["install_path"]).as_posix()
+        != "worker/original_frame_worker.py"
+        or application_worker["license_expression"] != "Apache-2.0"
+    ):
+        _fail("invalid_manifest")
+    _sha256_text(application_worker["sha256"])
+    if manifest["support"] != {
+        "architecture": "x86_64",
+        "libc": "glibc",
+        "minimum_libc_version": "2.28",
+        "operating_system": "Linux",
+        "python_abi": "cp313",
+        "unsupported_elsewhere": True,
+    }:
+        _fail("invalid_manifest")
+    if manifest["policy"] != {
+        "ambient_network": False,
+        "ambient_shell": False,
+        "arbitrary_paths": False,
+        "download_during_decode": False,
+        "mutable_repo_imports": False,
+        "remote_code": False,
+        "unsafe_fallback": False,
+    }:
+        _fail("invalid_manifest")
+    if manifest["limits"] != {
+        "max_decoded_bytes": 402653184,
+        "max_duration_seconds": 3600,
+        "max_frame_bytes": 33554432,
+        "max_frames": 300,
+        "max_height": 4096,
+        "max_output_bytes": 134217728,
+        "max_pixels": 8388608,
+        "max_request_bytes": 262144,
+        "max_requested_frames": 64,
+        "max_source_bytes": 67108864,
+        "max_width": 4096,
+    }:
+        _fail("invalid_manifest")
+    if manifest["media_runtime"] != {
+        "ffmpeg_version": "9.0.1",
+        "libavcodec_version": "63.1.101",
+        "libavformat_version": "63.1.101",
+        "manifest_path": "workers/visualworld-runtime.json",
+        "manifest_sha256": ("58cf6f64280888ecc01c647044c38b9b56f197389b6bfc7ead7fbbe93a52ba32"),
+        "pyav_version": "18.1.0",
+        "runtime_id": "visualworld-pyav-18.1.0-ffmpeg-9.0.1-v2",
+        "tree_sha256": "7015262cd5dfdfd976d6ee092f0f93541597ea35e0331c3abb9ce6d4c54daeaf",
+        "worker_sha256": "6104c56592b5007a882f131e6defd42d31d56248d1337a3668f09978bbf340a2",
+    }:
+        _fail("invalid_manifest")
+    ipc = _mapping(manifest["ipc"])
+    _expect_fields(ipc, {"request", "response", "source", "stderr", "uncompressed_output"})
+    if ipc != {
+        "request": {
+            "canonical_json": True,
+            "maximum_bytes": 262144,
+            "pixel_free": True,
+            "schema": "visualworld.original_frame_request",
+            "schema_version": 1,
+            "transport": "stdin",
+        },
+        "response": {
+            "canonical_json": True,
+            "pixel_free": True,
+            "schema": "visualworld.original_frame_result",
+            "schema_version": 1,
+            "transport": "stdout",
+        },
+        "source": {
+            "descriptor": 3,
+            "required_seals": [
+                "F_SEAL_GROW",
+                "F_SEAL_SEAL",
+                "F_SEAL_SHRINK",
+                "F_SEAL_WRITE",
+            ],
+            "transport": "sealed-memfd",
+        },
+        "stderr": {
+            "canonical_json": True,
+            "pixel_free": True,
+            "static_status_only": True,
+        },
+        "uncompressed_output": {
+            "descriptor": 4,
+            "initial_seals": ["F_SEAL_GROW", "F_SEAL_SHRINK"],
+            "layout": "request_order_contiguous_packed_rgb24_encoded_source",
+            "required_final_seals": [
+                "F_SEAL_GROW",
+                "F_SEAL_SEAL",
+                "F_SEAL_SHRINK",
+                "F_SEAL_WRITE",
+            ],
+            "size": "exactly-pre-sized-from-request",
+            "transport": "memfd",
+        },
+    }:
+        _fail("invalid_manifest")
+    if manifest["worker"] != {
+        "boundary": "single-original-frame-decode-worker",
+        "clear_environment": True,
+        "isolation": {
+            "cgroup_v2": True,
+            "landlock": True,
+            "network_namespace": "unshared",
+            "no_new_privileges": True,
+            "non_root": True,
+            "read_only_overlay": True,
+            "read_only_runtime": True,
+            "seccomp": True,
+            "user_mount_pid_ipc_uts_namespaces": "unshared",
+        },
+        "whole_cgroup_cancel_and_cleanup": True,
+    }:
+        _fail("invalid_manifest")
+    canonical_sha256 = hashlib.sha256(_canonical_json(manifest)).hexdigest()
+    if canonical_sha256 != _APPROVED_ORIGINAL_FRAME_CANONICAL_MANIFEST_SHA256:
+        _fail("unapproved_manifest")
+    return manifest
+
+
+def load_original_frame_manifest(
+    path: Path = DEFAULT_ORIGINAL_FRAME_MANIFEST,
+) -> tuple[dict[str, Any], str]:
+    raw = _read_regular(path, maximum=_MAX_MANIFEST_BYTES, code="invalid_manifest_file")
+    try:
+        value = json.loads(raw, object_pairs_hook=_no_duplicate_object)
+    except (UnicodeError, json.JSONDecodeError, ProvisioningError):
+        _fail("invalid_manifest")
+    manifest = validate_original_frame_manifest(value)
     if raw != _pretty_json(manifest):
         _fail("noncanonical_manifest")
     return manifest, hashlib.sha256(raw).hexdigest()
@@ -1195,6 +1366,50 @@ def _discard_staging(root: Path) -> None:
     shutil.rmtree(root, ignore_errors=True)
 
 
+def _publish_frozen_directory(staging: Path, destination: Path) -> None:
+    """Atomically publish and refreeze the verified staging inode by descriptor."""
+
+    descriptor = -1
+    writable = False
+    primary_error: BaseException | None = None
+    try:
+        path_metadata = staging.lstat()
+        descriptor = os.open(
+            staging,
+            os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW,
+        )
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISDIR(metadata.st_mode)
+            or metadata.st_uid != _TRUSTED_RUNTIME_UID
+            or stat.S_IMODE(metadata.st_mode) != 0o555
+            or (metadata.st_dev, metadata.st_ino) != (path_metadata.st_dev, path_metadata.st_ino)
+        ):
+            _fail("install_failed")
+        writable = True
+        os.fchmod(descriptor, 0o755)
+        try:
+            staging.rename(destination)
+        except FileExistsError:
+            _fail("destination_exists")
+        os.fchmod(descriptor, 0o555)
+        writable = False
+        os.fsync(descriptor)
+    except BaseException as error:
+        primary_error = error
+        if descriptor >= 0 and writable:
+            with contextlib.suppress(BaseException):
+                os.fchmod(descriptor, 0o555)
+        raise
+    finally:
+        if descriptor >= 0:
+            try:
+                os.close(descriptor)
+            except BaseException:
+                if primary_error is None:
+                    raise
+
+
 def _libc_version(value: str) -> tuple[int, ...]:
     parts = value.split(".")
     if not parts or any(not part.isascii() or not part.isdigit() for part in parts):
@@ -1533,6 +1748,159 @@ def verify_ready_runtime(
     verify_media_runtime(media_root, manifest)
 
 
+def _original_frame_receipt(manifest: Mapping[str, Any], manifest_sha256: str) -> dict[str, object]:
+    worker = cast(dict[str, Any], manifest["application_worker"])
+    media = cast(dict[str, Any], manifest["media_runtime"])
+    return {
+        "complete": True,
+        "manifest_sha256": manifest_sha256,
+        "media_runtime_manifest_sha256": media["manifest_sha256"],
+        "media_runtime_tree_sha256": media["tree_sha256"],
+        "runtime_id": manifest["runtime_id"],
+        "schema": "visualworld.original-frame-overlay-receipt",
+        "schema_version": 1,
+        "worker_sha256": worker["sha256"],
+    }
+
+
+def verify_installed_original_frame_overlay(
+    overlay_root: Path,
+    media_root: Path,
+    manifest: Mapping[str, Any],
+    manifest_sha256: str,
+) -> None:
+    """Verify the frozen first-party overlay and its bound media runtime."""
+
+    _assert_supported_platform()
+    if not overlay_root.is_absolute():
+        _fail("installed_overlay_invalid")
+    _reject_symlink_ancestors(overlay_root.parent, code="installed_overlay_invalid")
+    try:
+        entries = {path.name for path in overlay_root.iterdir()}
+    except OSError:
+        _fail("installed_overlay_invalid")
+    if entries != {
+        "worker",
+        ORIGINAL_FRAME_INSTALL_MANIFEST_NAME,
+        ORIGINAL_FRAME_INSTALL_RECEIPT_NAME,
+    }:
+        _fail("installed_overlay_invalid")
+    installed_manifest = _read_regular(
+        overlay_root / ORIGINAL_FRAME_INSTALL_MANIFEST_NAME,
+        maximum=_MAX_MANIFEST_BYTES,
+        code="installed_overlay_invalid",
+        single_link=True,
+    )
+    if _sha256_bytes(installed_manifest) != manifest_sha256:
+        _fail("installed_overlay_invalid")
+    receipt_raw = _read_regular(
+        overlay_root / ORIGINAL_FRAME_INSTALL_RECEIPT_NAME,
+        maximum=_MAX_MANIFEST_BYTES,
+        code="installed_overlay_invalid",
+        single_link=True,
+    )
+    try:
+        receipt = json.loads(receipt_raw, object_pairs_hook=_no_duplicate_object)
+    except (UnicodeError, json.JSONDecodeError, ProvisioningError):
+        _fail("installed_overlay_invalid")
+    expected_receipt = _original_frame_receipt(manifest, manifest_sha256)
+    if receipt != expected_receipt or receipt_raw != _pretty_json(expected_receipt):
+        _fail("installed_overlay_invalid")
+    application_worker = cast(dict[str, Any], manifest["application_worker"])
+    worker_path = _safe_relative_path(application_worker["install_path"])
+    worker_directory = overlay_root.joinpath(*worker_path.parts[:-1])
+    try:
+        worker_entries = {path.name for path in worker_directory.iterdir()}
+    except OSError:
+        _fail("installed_overlay_invalid")
+    if worker_entries != {worker_path.name}:
+        _fail("installed_overlay_invalid")
+    worker_raw = _read_regular(
+        overlay_root.joinpath(*worker_path.parts),
+        maximum=1024 * 1024,
+        code="installed_overlay_invalid",
+        single_link=True,
+    )
+    if _sha256_bytes(worker_raw) != application_worker["sha256"]:
+        _fail("installed_overlay_invalid")
+    _validate_frozen_tree(overlay_root)
+    verify_media_runtime(media_root, manifest)
+
+
+def _overlay_install_parent(destination: Path) -> Path:
+    if not destination.is_absolute() or destination.name in {"", ".", ".."}:
+        _fail("unsafe_destination")
+    try:
+        parent = destination.parent
+        _reject_symlink_ancestors(parent, code="unsafe_destination")
+        metadata = parent.lstat()
+    except OSError:
+        _fail("unsafe_destination")
+    if (
+        not stat.S_ISDIR(metadata.st_mode)
+        or stat.S_ISLNK(metadata.st_mode)
+        or metadata.st_uid != _TRUSTED_RUNTIME_UID
+        or stat.S_IMODE(metadata.st_mode) & 0o022
+    ):
+        _fail("unsafe_destination")
+    return parent
+
+
+def install_original_frame_overlay(
+    destination: Path,
+    media_root: Path,
+    manifest: Mapping[str, Any],
+    manifest_sha256: str,
+) -> None:
+    """Atomically install the offline worker overlay; never fetch any artifact."""
+
+    _assert_supported_platform()
+    _require_privileged_install()
+    parent = _overlay_install_parent(destination)
+    verify_media_runtime(media_root, manifest)
+    if destination.exists() or destination.is_symlink():
+        verify_installed_original_frame_overlay(destination, media_root, manifest, manifest_sha256)
+        _fsync_directory(parent)
+        return
+
+    staging = Path(tempfile.mkdtemp(prefix=f".{destination.name}.staging-", dir=parent))
+    staging.chmod(0o700)
+    published = False
+    try:
+        application_worker = cast(dict[str, Any], manifest["application_worker"])
+        worker_raw = _read_regular(
+            DEFAULT_ORIGINAL_FRAME_WORKER,
+            maximum=1024 * 1024,
+            code="application_worker_invalid",
+            single_link=True,
+        )
+        if _sha256_bytes(worker_raw) != application_worker["sha256"]:
+            _fail("application_worker_invalid")
+        worker_path = _safe_relative_path(application_worker["install_path"])
+        _write_exclusive(staging.joinpath(*worker_path.parts), worker_raw)
+        _write_exclusive(
+            staging / ORIGINAL_FRAME_INSTALL_MANIFEST_NAME,
+            _pretty_json(manifest),
+        )
+        _write_exclusive(
+            staging / ORIGINAL_FRAME_INSTALL_RECEIPT_NAME,
+            _pretty_json(_original_frame_receipt(manifest, manifest_sha256)),
+        )
+        _freeze_tree(staging)
+        verify_installed_original_frame_overlay(staging, media_root, manifest, manifest_sha256)
+        _sync_directory_tree(staging)
+        # Darwin can require owner-write permission on the source directory for
+        # rename. Only the verified staging inode receives that temporary bit.
+        _publish_frozen_directory(staging, destination)
+        published = True
+        _fsync_directory(parent)
+        verify_installed_original_frame_overlay(destination, media_root, manifest, manifest_sha256)
+    except BaseException:
+        if not published and staging.exists():
+            _discard_staging(staging)
+        raise
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = _StableArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
@@ -1547,26 +1915,60 @@ def _parser() -> argparse.ArgumentParser:
     verify = subparsers.add_parser("verify-runtime")
     verify.add_argument("--runtime-root", required=True, type=Path)
     verify.add_argument("--media-runtime-root", required=True, type=Path)
+    for name in ("install-original-frame-overlay", "verify-original-frame-overlay"):
+        overlay = subparsers.add_parser(name)
+        overlay.add_argument("--overlay-root", required=True, type=Path)
+        overlay.add_argument("--media-runtime-root", required=True, type=Path)
+        overlay.add_argument(
+            "--overlay-manifest",
+            default=DEFAULT_ORIGINAL_FRAME_MANIFEST,
+            type=Path,
+        )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     try:
         arguments = _parser().parse_args(argv)
-        manifest, manifest_sha256 = load_manifest(arguments.manifest)
-        if arguments.command == "fetch":
-            fetch_artifacts(arguments.cache_root, manifest)
-        elif arguments.command == "verify-cache":
-            verify_cache(arguments.cache_root, manifest)
-        elif arguments.command == "install":
-            install_runtime(arguments.cache_root, arguments.runtime_root, manifest, manifest_sha256)
-        elif arguments.command == "verify-runtime":
-            verify_ready_runtime(
-                arguments.runtime_root,
-                arguments.media_runtime_root,
-                manifest,
-                manifest_sha256,
-            )
+        if arguments.command in {
+            "install-original-frame-overlay",
+            "verify-original-frame-overlay",
+        }:
+            manifest, manifest_sha256 = load_original_frame_manifest(arguments.overlay_manifest)
+            if arguments.command == "install-original-frame-overlay":
+                install_original_frame_overlay(
+                    arguments.overlay_root,
+                    arguments.media_runtime_root,
+                    manifest,
+                    manifest_sha256,
+                )
+            else:
+                verify_installed_original_frame_overlay(
+                    arguments.overlay_root,
+                    arguments.media_runtime_root,
+                    manifest,
+                    manifest_sha256,
+                )
+        else:
+            manifest, manifest_sha256 = load_manifest(arguments.manifest)
+            if arguments.command == "fetch":
+                fetch_artifacts(arguments.cache_root, manifest)
+            elif arguments.command == "verify-cache":
+                verify_cache(arguments.cache_root, manifest)
+            elif arguments.command == "install":
+                install_runtime(
+                    arguments.cache_root,
+                    arguments.runtime_root,
+                    manifest,
+                    manifest_sha256,
+                )
+            elif arguments.command == "verify-runtime":
+                verify_ready_runtime(
+                    arguments.runtime_root,
+                    arguments.media_runtime_root,
+                    manifest,
+                    manifest_sha256,
+                )
         return 0 if _emit({"command": arguments.command, "status": "ok"}, sys.stdout) else 2
     except ProvisioningError as error:
         _emit({"error": error.code, "status": "error"}, sys.stderr)

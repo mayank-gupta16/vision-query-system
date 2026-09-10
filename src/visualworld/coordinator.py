@@ -17,7 +17,13 @@ from itertools import pairwise
 from typing import Protocol, TypeVar
 
 from visualworld import __version__
-from visualworld.evidence import EvidenceIntent, EvidencePlanResult, dumps_evidence_intent
+from visualworld.evidence import (
+    EvidenceIntent,
+    EvidencePlanResult,
+    MaterializedEvidence,
+    dumps_evidence_intent,
+)
+from visualworld.frame_access import OriginalFrameReader
 from visualworld.geometry import Box, CropError, extract_rgb24_crop, source_geometry
 from visualworld.ingestion import (
     Artifact,
@@ -39,6 +45,13 @@ from visualworld.perception import (
     TrackPoint,
     dumps_perception_record,
 )
+from visualworld.perception_materialization import (
+    EvidenceMaterializationConfig,
+    EvidenceMaterializationResult,
+    OriginalFrameDiscontinuityProvider,
+    OriginalFrameMaterializer,
+    materialization_producer,
+)
 from visualworld.ports import (
     MAX_PORT_BATCH_ITEMS,
     CapabilityDescriptor,
@@ -58,13 +71,16 @@ from visualworld.storage import (
     InventoryEntry,
     InventoryKind,
     LocalEvidenceStore,
+    StageHandle,
 )
 from visualworld.tracking import ResumableTracker, TrackingCursor, TrackingPage
 from visualworld.world_store import (
     DeletionPlan,
     DeletionState,
     DeletionStatus,
+    EvidenceSelectionLink,
     LocalWorldStore,
+    PersistedEvidenceSelection,
     RunCleanupPlan,
 )
 
@@ -1414,6 +1430,7 @@ class PerceptionRunResult:
     disposition: PerceptionDisposition | None = None
     events: tuple[PerceptionEvent, ...] = ()
     reason: str | None = None
+    evidence: tuple[EvidenceRef, ...] = ()
 
     def __post_init__(self) -> None:
         complete = self.state is PerceptionResultState.COMPLETE
@@ -1423,17 +1440,34 @@ class PerceptionRunResult:
             or type(self.observations) is not tuple
             or type(self.tracklets) is not tuple
             or type(self.intents) is not tuple
+            or type(self.evidence) is not tuple
             or type(self.events) is not tuple
             or len(self.frames) > MAX_PERCEPTION_SAMPLES
             or len(self.observations) > MAX_PERCEPTION_SAMPLES
             or len(self.tracklets) > MAX_PERCEPTION_SAMPLES
             or len(self.intents) > MAX_PERCEPTION_SAMPLES
+            or len(self.evidence) > MAX_PERCEPTION_SAMPLES
             or not all(type(item) is FrameRef for item in self.frames)
             or not all(type(item) is Observation for item in self.observations)
             or not all(type(item) is Tracklet for item in self.tracklets)
             or not all(type(item) is EvidenceIntent for item in self.intents)
+            or not all(type(item) is EvidenceRef for item in self.evidence)
             or not all(type(item) is PerceptionEvent for item in self.events)
             or len(self.events) > MAX_PERCEPTION_EVENTS
+            or (
+                self.evidence
+                and (
+                    len(self.evidence) != len(self.intents)
+                    or len({item.evidence_id for item in self.evidence}) != len(self.evidence)
+                    or any(
+                        evidence.frame_id != intent.frame_id
+                        or evidence.geometry != intent.geometry
+                        or evidence.kind != intent.kind
+                        or evidence.retention != intent.retention
+                        for intent, evidence in zip(self.intents, self.evidence, strict=True)
+                    )
+                )
+            )
         ):
             raise ValueError("invalid perception run result")
         if complete:
@@ -1449,6 +1483,7 @@ class PerceptionRunResult:
             or self.observations
             or self.tracklets
             or self.intents
+            or self.evidence
             or self.disposition is not None
             or type(self.reason) is not str
             or not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", self.reason)
@@ -1719,7 +1754,13 @@ class PerceptionCoordinator:
 
     @staticmethod
     def _metadata_size(
-        value: Source | RunManifest | FrameRef | Observation | Tracklet | EvidenceIntent,
+        value: Source
+        | RunManifest
+        | FrameRef
+        | EvidenceRef
+        | Observation
+        | Tracklet
+        | EvidenceIntent,
     ) -> int:
         try:
             if type(value) is Source:
@@ -1727,6 +1768,8 @@ class PerceptionCoordinator:
             if type(value) is RunManifest:
                 return len(dumps_record(value))
             if type(value) is FrameRef:
+                return len(dumps_record(value))
+            if type(value) is EvidenceRef:
                 return len(dumps_record(value))
             if type(value) is Observation:
                 return len(dumps_perception_record(value))
@@ -1755,6 +1798,7 @@ class PerceptionCoordinator:
         intents: tuple[EvidenceIntent, ...],
         source: Source,
         config: PerceptionConfig,
+        evidence: tuple[EvidenceRef, ...] = (),
     ) -> None:
         """Read the committed graph through public bounded store APIs."""
 
@@ -1839,7 +1883,7 @@ class PerceptionCoordinator:
                 or tuple(stored_tracklets) != tuple(sorted(tracklets, key=self._tracklet_key))
             ):
                 raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.VERIFY)
-            stored_intents: list[EvidenceIntent] = []
+            stored_selections: list[PersistedEvidenceSelection] = []
             for tracklet in sorted(tracklets, key=self._tracklet_key):
                 after_rank: int | None = None
                 while True:
@@ -1849,11 +1893,11 @@ class PerceptionCoordinator:
                         after_rank=after_rank,
                         limit=8,
                     )
-                    if len(stored_intents) + len(selection_page) > config.max_intents:
+                    if len(stored_selections) + len(selection_page) > config.max_intents:
                         raise CoordinatorError(
                             CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.VERIFY
                         )
-                    stored_intents.extend(selection.intent for selection in selection_page)
+                    stored_selections.extend(selection_page)
                     if len(selection_page) < 8:
                         break
                     after_rank = selection_page[-1].intent.rank
@@ -1865,12 +1909,38 @@ class PerceptionCoordinator:
                     key=lambda item: item.rank,
                 )
             )
+            stored_intents = tuple(selection.intent for selection in stored_selections)
             if (
                 len({(item.tracklet_id, item.rank) for item in stored_intents})
                 != len(stored_intents)
-                or tuple(stored_intents) != expected_intents
+                or stored_intents != expected_intents
             ):
                 raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.VERIFY)
+            evidence_by_intent = {(item.frame_id, item.geometry): item for item in evidence}
+            if len(evidence_by_intent) != len(evidence):
+                raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.VERIFY)
+            expected_evidence = tuple(
+                evidence_by_intent.get((intent.frame_id, intent.geometry))
+                for intent in expected_intents
+            )
+            stored_evidence = tuple(selection.evidence for selection in stored_selections)
+            if stored_evidence != expected_evidence:
+                raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.VERIFY)
+            if evidence:
+                for start in range(0, len(evidence), MAX_PORT_BATCH_ITEMS):
+                    checks = self._evidence.inspect(
+                        tuple(
+                            item.artifact for item in evidence[start : start + MAX_PORT_BATCH_ITEMS]
+                        )
+                    )
+                    if any(check.state is ArtifactState.CORRUPT for check in checks):
+                        raise CoordinatorError(
+                            CoordinatorErrorCode.CORRUPT, CoordinatorStage.VERIFY
+                        )
+                    if any(check.state is not ArtifactState.VALID for check in checks):
+                        raise CoordinatorError(
+                            CoordinatorErrorCode.CONFLICT, CoordinatorStage.VERIFY
+                        )
             persisted_bytes = (
                 self._metadata_size(source)
                 + self._metadata_size(manifest)
@@ -1878,6 +1948,7 @@ class PerceptionCoordinator:
                 + sum(self._metadata_size(item) for item in stored_observations)
                 + sum(self._metadata_size(item) for item in stored_tracklets)
                 + sum(self._metadata_size(item) for item in stored_intents)
+                + sum(self._metadata_size(item) for item in evidence)
             )
             if persisted_bytes > config.max_metadata_bytes:
                 raise CoordinatorError(CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.VERIFY)
@@ -1950,6 +2021,85 @@ class PerceptionCoordinator:
             )
             return self._incomplete(PerceptionResultState.UNKNOWN, "cancelled", tuple(events))
 
+    def run_with_original_frames(
+        self,
+        video_source: VideoSource,
+        sampler: ResumableFrameSampler,
+        detector: Detector,
+        tracker: ResumableTracker,
+        original_frames: OriginalFrameReader,
+        selector: EvidencePlanner,
+        config: PerceptionConfig,
+        materialization: EvidenceMaterializationConfig,
+        *,
+        cancelled: threading.Event | None = None,
+        fault_hook: FaultHook | None = None,
+    ) -> PerceptionRunResult:
+        """Run perception with exact RGB24 scoring and atomic evidence crops."""
+
+        events: list[PerceptionEvent] = []
+        run_started_ns = self._now()
+        if (
+            type(config) is not PerceptionConfig
+            or type(materialization) is not EvidenceMaterializationConfig
+            or (cancelled is not None and type(cancelled) is not threading.Event)
+            or (fault_hook is not None and not callable(fault_hook))
+        ):
+            raise CoordinatorError(CoordinatorErrorCode.INVALID_REQUEST, CoordinatorStage.PROBE)
+        if self._is_cancelled(cancelled):
+            self._emit(
+                events,
+                CoordinatorStage.PROBE,
+                EventStatus.CANCELLED,
+                run_started_ns,
+                0,
+            )
+            return self._incomplete(PerceptionResultState.UNKNOWN, "cancelled", tuple(events))
+        reader_descriptor = self._descriptor(original_frames, PortKind.ORIGINAL_FRAME_READER)
+        reader_producer = self._adapter_producer(original_frames, CoordinatorStage.PROBE)
+        try:
+            discontinuities = OriginalFrameDiscontinuityProvider(
+                original_frames, reader_descriptor, materialization
+            )
+            evidence_materializer = OriginalFrameMaterializer(
+                original_frames, reader_descriptor, selector, materialization
+            )
+            additional_producers = (
+                self._producer("original-frame-reader", reader_descriptor),
+                reader_producer,
+                materialization_producer(materialization),
+            )
+        except Exception:
+            raise CoordinatorError(
+                CoordinatorErrorCode.INVALID_REQUEST, CoordinatorStage.PROBE
+            ) from None
+        try:
+            return self._execute(
+                video_source,
+                sampler,
+                detector,
+                tracker,
+                discontinuities,
+                selector,
+                config,
+                cancelled=cancelled,
+                fault_hook=fault_hook,
+                events=events,
+                run_started_ns=run_started_ns,
+                additional_producers=additional_producers,
+                materializer=evidence_materializer,
+            )
+        except _PerceptionCancelled as cancellation:
+            self._emit(
+                events,
+                cancellation.stage,
+                EventStatus.CANCELLED,
+                cancellation.started_ns,
+                cancellation.item_count,
+                cancellation.run_id,
+            )
+            return self._incomplete(PerceptionResultState.UNKNOWN, "cancelled", tuple(events))
+
     def _execute(
         self,
         video_source: VideoSource,
@@ -1964,6 +2114,8 @@ class PerceptionCoordinator:
         fault_hook: FaultHook | None,
         events: list[PerceptionEvent],
         run_started_ns: int,
+        additional_producers: tuple[Producer, ...] = (),
+        materializer: OriginalFrameMaterializer | None = None,
     ) -> PerceptionRunResult:
         started_ns = self._now()
         video_descriptor = self._descriptor(video_source, PortKind.VIDEO_SOURCE)
@@ -2029,6 +2181,7 @@ class PerceptionCoordinator:
             tracker_producer,
             selector_producer,
             discontinuity_producer,
+            *additional_producers,
             self._config_producer(config),
         )
         preparing = RunManifest.create(source.source_id, producers, sampling, "preparing")
@@ -2044,6 +2197,8 @@ class PerceptionCoordinator:
         observations: list[Observation] = []
         tracklets: list[Tracklet] = []
         intents: list[EvidenceIntent] = []
+        materialized_items: tuple[MaterializedEvidence, ...] = ()
+        evidence: tuple[EvidenceRef, ...] = ()
         by_observation_id: dict[str, Observation] = {}
         tracklet_ids: set[str] = set()
         tracked_observation_ids: set[str] = set()
@@ -2771,6 +2926,100 @@ class PerceptionCoordinator:
             raise CoordinatorError(CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.PROBE)
         if reprobed != source:
             raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.PROBE)
+        if materializer is not None:
+            started_ns = self._now()
+            self._raise_if_cancelled(
+                cancelled, CoordinatorStage.CROP, started_ns, preparing.run_id, len(intents)
+            )
+            materialized = self._adapter_call(
+                events,
+                CoordinatorStage.CROP,
+                started_ns,
+                len(intents),
+                preparing.run_id,
+                lambda: materializer.materialize(
+                    source,
+                    tuple(sampled),
+                    tuple(observations),
+                    tuple(tracklets),
+                    tuple(intents),
+                ),
+            )
+            self._raise_if_cancelled(
+                cancelled, CoordinatorStage.CROP, started_ns, preparing.run_id, len(intents)
+            )
+            if type(materialized) is not EvidenceMaterializationResult:
+                self._emit(
+                    events,
+                    CoordinatorStage.CROP,
+                    EventStatus.FAILED,
+                    started_ns,
+                    len(intents),
+                    preparing.run_id,
+                )
+                raise CoordinatorError(CoordinatorErrorCode.INVALID_REQUEST, CoordinatorStage.CROP)
+            try:
+                EvidenceMaterializationResult.__post_init__(materialized)
+            except (TypeError, ValueError):
+                self._emit(
+                    events,
+                    CoordinatorStage.CROP,
+                    EventStatus.FAILED,
+                    started_ns,
+                    len(intents),
+                    preparing.run_id,
+                )
+                raise CoordinatorError(
+                    CoordinatorErrorCode.INVALID_REQUEST, CoordinatorStage.CROP
+                ) from None
+            if self._expired(run_started_ns, config):
+                self._emit(
+                    events,
+                    CoordinatorStage.CROP,
+                    EventStatus.FAILED,
+                    started_ns,
+                    len(intents),
+                    preparing.run_id,
+                )
+                raise CoordinatorError(CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.CROP)
+            self._emit(
+                events,
+                CoordinatorStage.CROP,
+                EventStatus.SUCCEEDED
+                if materialized.state is PerceptionResultState.COMPLETE
+                else EventStatus.FAILED,
+                started_ns,
+                len(intents),
+                preparing.run_id,
+            )
+            if materialized.state is not PerceptionResultState.COMPLETE:
+                return self._incomplete(
+                    materialized.state,
+                    materialized.reason or "materialization_unavailable",
+                    tuple(events),
+                )
+            materialized_items = materialized.materialized
+            evidence = tuple(item.reference for item in materialized_items)
+            evidence_metadata_bytes = sum(self._metadata_size(item) for item in evidence)
+            if metadata_bytes + evidence_metadata_bytes > config.max_metadata_bytes:
+                raise CoordinatorError(CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.CROP)
+            metadata_bytes += evidence_metadata_bytes
+            started_ns = self._now()
+            reprobed_after_materialization = self._adapter_call(
+                events,
+                CoordinatorStage.PROBE,
+                started_ns,
+                0,
+                preparing.run_id,
+                video_source.probe,
+            )
+            self._raise_if_cancelled(
+                cancelled, CoordinatorStage.PROBE, started_ns, preparing.run_id
+            )
+            if self._expired(run_started_ns, config):
+                raise CoordinatorError(CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.PROBE)
+            if reprobed_after_materialization != source:
+                raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.PROBE)
         index = sample_index_bytes(tuple(sampled))
         committed = RunManifest.create(
             source.source_id,
@@ -2805,6 +3054,7 @@ class PerceptionCoordinator:
                     tuple(intents),
                     source,
                     config,
+                    evidence,
                 )
                 return PerceptionRunResult(
                     state=PerceptionResultState.COMPLETE,
@@ -2813,6 +3063,7 @@ class PerceptionCoordinator:
                     observations=tuple(observations),
                     tracklets=tuple(tracklets),
                     intents=tuple(intents),
+                    evidence=evidence,
                     disposition=PerceptionDisposition.ALREADY_COMMITTED,
                     events=tuple(events),
                 )
@@ -2826,6 +3077,20 @@ class PerceptionCoordinator:
                 or existing.outputs is not None
             ):
                 raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.FINALIZE)
+        unique_artifacts: dict[str, tuple[Artifact, bytes]] = {}
+        for item in materialized_items:
+            artifact = item.reference.artifact
+            existing_artifact = unique_artifacts.get(artifact.sha256)
+            selected_artifact = (artifact, item.crop.pixels)
+            if existing_artifact is not None and existing_artifact != selected_artifact:
+                raise CoordinatorError(CoordinatorErrorCode.CONFLICT, CoordinatorStage.STAGE)
+            unique_artifacts[artifact.sha256] = selected_artifact
+        if (
+            len(unique_artifacts) > self._evidence.max_inventory_entries
+            or sum(len(content) for _, content in unique_artifacts.values())
+            > self._evidence.max_inventory_bytes
+        ):
+            raise CoordinatorError(CoordinatorErrorCode.LIMIT_EXCEEDED, CoordinatorStage.STAGE)
         started_ns = self._now()
         self._raise_if_cancelled(
             cancelled, CoordinatorStage.PERCEPTION_METADATA, started_ns, preparing.run_id
@@ -2836,6 +3101,29 @@ class PerceptionCoordinator:
                 IngestionCoordinator._boundary(
                     fault_hook, CommitBoundary.PREPARED, preparing.run_id
                 )
+                stages: tuple[StageHandle, ...] = ()
+                if materializer is not None:
+                    stages = tuple(
+                        session.stage(preparing.run_id, artifact, content)
+                        for artifact, content in unique_artifacts.values()
+                    )
+                    IngestionCoordinator._boundary(
+                        fault_hook, CommitBoundary.STAGED, preparing.run_id
+                    )
+                    for stage_batch in _batches(stages):
+                        self._world.record_artifact_intents(
+                            preparing.run_id,
+                            stage_batch,
+                            evidence_session=session,
+                        )
+                    IngestionCoordinator._boundary(
+                        fault_hook, CommitBoundary.INTENTS_RECORDED, preparing.run_id
+                    )
+                    for stage in stages:
+                        session.commit_stage(stage)
+                    IngestionCoordinator._boundary(
+                        fault_hook, CommitBoundary.ARTIFACTS_PROMOTED, preparing.run_id
+                    )
                 self._raise_if_cancelled(
                     cancelled,
                     CoordinatorStage.PERCEPTION_METADATA,
@@ -2910,6 +3198,32 @@ class PerceptionCoordinator:
                         CoordinatorErrorCode.LIMIT_EXCEEDED,
                         CoordinatorStage.PERCEPTION_METADATA,
                     )
+                if materializer is not None:
+                    for evidence_batch in _batches(evidence):
+                        self._world.commit_for_run(
+                            preparing.run_id,
+                            evidence_batch,
+                            evidence_session=session,
+                        )
+                    links = tuple(
+                        EvidenceSelectionLink(
+                            item.intent.tracklet_id,
+                            item.intent.rank,
+                            item.reference.evidence_id,
+                        )
+                        for item in materialized_items
+                    )
+                    for link_batch in _batches(links):
+                        self._world.link_selected_evidence(
+                            preparing.run_id,
+                            link_batch,
+                            evidence_session=session,
+                        )
+                    IngestionCoordinator._boundary(
+                        fault_hook,
+                        CommitBoundary.EVIDENCE_METADATA_RECORDED,
+                        preparing.run_id,
+                    )
                 self._world.finalize_run(committed, evidence_session=session)
                 IngestionCoordinator._boundary(
                     fault_hook, CommitBoundary.RUN_COMMITTED, preparing.run_id
@@ -2959,6 +3273,7 @@ class PerceptionCoordinator:
             tuple(intents),
             source,
             config,
+            evidence,
         )
         return PerceptionRunResult(
             state=PerceptionResultState.COMPLETE,
@@ -2967,6 +3282,7 @@ class PerceptionCoordinator:
             observations=tuple(observations),
             tracklets=tuple(tracklets),
             intents=tuple(intents),
+            evidence=evidence,
             disposition=PerceptionDisposition.COMMITTED,
             events=tuple(events),
         )
@@ -2989,6 +3305,7 @@ __all__ = [
     "DiscontinuityProvider",
     "EventSink",
     "EventStatus",
+    "EvidenceMaterializationConfig",
     "EvidencePlanner",
     "FaultHook",
     "FrameDiscontinuityResult",
