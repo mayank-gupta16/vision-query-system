@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import os
 import stat
 from pathlib import Path
 from typing import Any
@@ -110,6 +111,146 @@ def test_overlay_install_is_offline_atomic_frozen_and_idempotent(
     )
     assert media_verifications == [media_root] * 6
     assert not list(tmp_path.glob(".overlay.staging-*"))
+
+
+def test_overlay_install_uses_owner_write_only_for_portable_atomic_rename(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    manifest, manifest_sha256 = provision.load_original_frame_manifest()
+    _allow_local_install(monkeypatch, tmp_path)
+    monkeypatch.setattr(provision, "verify_media_runtime", lambda *arguments: None)
+    destination = tmp_path / "overlay"
+    original_rename = Path.rename
+    rename_modes: list[int] = []
+
+    def require_owner_write(source: Path, target: Path) -> Path:
+        mode = stat.S_IMODE(source.stat().st_mode)
+        rename_modes.append(mode)
+        if not mode & stat.S_IWUSR:
+            raise PermissionError("directory owner write is required for rename")
+        assert not mode & (stat.S_IWGRP | stat.S_IWOTH)
+        assert all(
+            not stat.S_IMODE(path.lstat().st_mode) & 0o222
+            for path in source.rglob("*")
+            if not path.is_symlink()
+        )
+        return original_rename(source, target)
+
+    monkeypatch.setattr(Path, "rename", require_owner_write)
+
+    provision.install_original_frame_overlay(
+        destination, tmp_path / "media", manifest, manifest_sha256
+    )
+
+    assert rename_modes == [0o755]
+    assert stat.S_IMODE(destination.stat().st_mode) == 0o555
+    assert all(
+        not stat.S_IMODE(path.lstat().st_mode) & 0o222
+        for path in (destination, *destination.rglob("*"))
+        if not path.is_symlink()
+    )
+
+
+def test_descriptor_bound_publish_refreezes_displaced_inode_and_preserves_interrupt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _allow_local_install(monkeypatch, tmp_path)
+    staging = tmp_path / ".overlay.staging-test"
+    destination = tmp_path / "overlay"
+    displaced = tmp_path / "displaced-overlay"
+    staging.mkdir(mode=0o700)
+    staging.chmod(0o555)
+    staging_identity = (staging.stat().st_dev, staging.stat().st_ino)
+    original_open = os.open
+    original_close = os.close
+    original_rename = Path.rename
+    opened: list[tuple[int, int]] = []
+    closed: list[int] = []
+
+    def record_open(path: Path, flags: int) -> int:
+        descriptor = original_open(path, flags)
+        opened.append((descriptor, flags))
+        return descriptor
+
+    def replace_then_interrupt(source: Path, target: Path) -> Path:
+        original_rename(source, target)
+        os.rename(target, displaced)
+        destination.mkdir(mode=0o700)
+        raise KeyboardInterrupt("rename interrupted")
+
+    def close_then_fail(descriptor: int) -> None:
+        closed.append(descriptor)
+        original_close(descriptor)
+        raise PermissionError("close failed")
+
+    monkeypatch.setattr(
+        Path,
+        "chmod",
+        lambda _path, _mode: pytest.fail("descriptor-bound publication used path chmod"),
+    )
+    monkeypatch.setattr(os, "open", record_open)
+    monkeypatch.setattr(os, "close", close_then_fail)
+    monkeypatch.setattr(Path, "rename", replace_then_interrupt)
+
+    with pytest.raises(KeyboardInterrupt, match="rename interrupted"):
+        provision._publish_frozen_directory(staging, destination)
+
+    required_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW
+    assert len(opened) == 1
+    assert opened[0][1] == required_flags
+    assert closed == [opened[0][0]]
+    with pytest.raises(OSError):
+        os.fstat(opened[0][0])
+    assert (displaced.stat().st_dev, displaced.stat().st_ino) == staging_identity
+    assert stat.S_IMODE(displaced.stat().st_mode) == 0o555
+    assert stat.S_IMODE(destination.stat().st_mode) == 0o700
+
+
+@pytest.mark.parametrize(
+    ("failed_mode", "published", "final_mode"),
+    [(0o755, False, 0o555), (0o555, True, 0o755)],
+)
+def test_descriptor_bound_publish_preserves_fchmod_failure_and_closes_fd(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    failed_mode: int,
+    published: bool,
+    final_mode: int,
+) -> None:
+    _allow_local_install(monkeypatch, tmp_path)
+    staging = tmp_path / ".overlay.staging-test"
+    destination = tmp_path / "overlay"
+    staging.mkdir(mode=0o700)
+    staging.chmod(0o555)
+    original_open = os.open
+    original_fchmod = os.fchmod
+    opened: list[int] = []
+
+    def record_open(path: Path, flags: int) -> int:
+        descriptor = original_open(path, flags)
+        opened.append(descriptor)
+        return descriptor
+
+    def deny_mode(descriptor: int, mode: int) -> None:
+        if mode == failed_mode:
+            raise PermissionError(f"fchmod {mode:o} denied")
+        original_fchmod(descriptor, mode)
+
+    monkeypatch.setattr(os, "open", record_open)
+    monkeypatch.setattr(os, "fchmod", deny_mode)
+
+    with pytest.raises(PermissionError, match=f"fchmod {failed_mode:o} denied"):
+        provision._publish_frozen_directory(staging, destination)
+
+    assert len(opened) == 1
+    with pytest.raises(OSError):
+        os.fstat(opened[0])
+    root = destination if published else staging
+    assert root.is_dir()
+    assert stat.S_IMODE(root.stat().st_mode) == final_mode
+    assert destination.is_dir() is published
 
 
 def test_overlay_install_failure_does_not_publish_or_leave_staging(

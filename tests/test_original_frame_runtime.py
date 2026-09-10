@@ -8,11 +8,13 @@ import hashlib
 import json
 import os
 import platform as platform_module
+import stat
 import subprocess as subprocess_module
 import threading
 import time as time_module
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -176,10 +178,23 @@ def test_overlay_verification_requires_exact_installed_topology(
     (configured.overlay_root / "visualworld-original-frame-overlay.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    monkeypatch.setattr(runtime_module, "_trusted_directory", lambda _path: True)
+    directory_checks: list[tuple[Path, bool]] = []
+
+    def trust_directory(path: Path, *, frozen: bool = False) -> bool:
+        directory_checks.append((path, frozen))
+        return True
+
+    monkeypatch.setattr(
+        runtime_module,
+        "_trusted_directory",
+        trust_directory,
+    )
     monkeypatch.setattr(runtime_module, "_trusted_file", lambda _path: True)
 
     runtime_module._verify_overlay(configured)
+    assert (configured.overlay_root, True) in directory_checks
+    assert (configured.worker.parent, True) in directory_checks
+    assert all((parent, False) in directory_checks for parent in configured.overlay_root.parents)
     (configured.worker.parent / "av.py").write_text("raise RuntimeError\n", encoding="utf-8")
     with pytest.raises(PortError) as raised:
         runtime_module._verify_overlay(configured)
@@ -617,6 +632,40 @@ def test_platform_and_trust_helpers_reject_missing_or_invalid_values(
     assert runtime_module._supported_platform() is False
     assert runtime_module._trusted_directory(tmp_path / "missing") is False
     assert runtime_module._trusted_file(tmp_path / "missing") is False
+
+
+def test_trusted_directory_rejects_owner_writable_frozen_overlay(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    metadata = SimpleNamespace(st_mode=stat.S_IFDIR | 0o755, st_uid=0)
+    monkeypatch.setattr(Path, "lstat", lambda _path: metadata)
+
+    assert runtime_module._trusted_directory(tmp_path) is True
+    assert runtime_module._trusted_directory(tmp_path, frozen=True) is False
+    metadata.st_mode = stat.S_IFDIR | 0o555
+    assert runtime_module._trusted_directory(tmp_path, frozen=True) is True
+
+
+def test_overlay_verification_rejects_owner_writable_root_before_reading_contents(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    configured = _configured_runtime(tmp_path)
+
+    def directory_metadata(path: Path) -> SimpleNamespace:
+        mode = 0o755 if path == configured.overlay_root else 0o555
+        return SimpleNamespace(st_mode=stat.S_IFDIR | mode, st_uid=0)
+
+    monkeypatch.setattr(Path, "lstat", directory_metadata)
+    monkeypatch.setattr(
+        Path,
+        "iterdir",
+        lambda _path: pytest.fail("writable overlay contents must not be read"),
+    )
+
+    with pytest.raises(PortError) as raised:
+        runtime_module._verify_overlay(configured)
+
+    assert raised.value.code is PortErrorCode.ISOLATION_UNAVAILABLE
 
 
 def test_memfd_helpers_fail_closed_and_create_exact_size(

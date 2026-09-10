@@ -292,7 +292,7 @@ def _supported_platform() -> bool:
     )
 
 
-def _trusted_directory(path: Path) -> bool:
+def _trusted_directory(path: Path, *, frozen: bool = False) -> bool:
     try:
         metadata = path.lstat()
     except OSError:
@@ -303,6 +303,7 @@ def _trusted_directory(path: Path) -> bool:
         and metadata.st_uid == 0
         and stat.S_IMODE(metadata.st_mode) & 0o022 == 0
         and stat.S_IMODE(metadata.st_mode) & stat.S_IXOTH != 0
+        and (not frozen or stat.S_IMODE(metadata.st_mode) & 0o222 == 0)
     )
 
 
@@ -338,15 +339,16 @@ def _verify_overlay(runtime: OriginalFrameRuntime) -> None:
         relative = runtime.worker.relative_to(runtime.overlay_root)
     except ValueError:
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
-    directories = {
+    frozen_directories = {
         runtime.overlay_root,
-        *runtime.overlay_root.parents,
         *(
             runtime.overlay_root / Path(*relative.parts[:index])
             for index in range(1, len(relative.parts))
         ),
     }
-    if not all(_trusted_directory(path) for path in directories):
+    if not all(_trusted_directory(path) for path in runtime.overlay_root.parents) or not all(
+        _trusted_directory(path, frozen=True) for path in frozen_directories
+    ):
         _fail(PortErrorCode.ISOLATION_UNAVAILABLE)
     try:
         root_entries = {path.name for path in runtime.overlay_root.iterdir()}

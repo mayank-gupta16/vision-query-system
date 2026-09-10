@@ -1366,6 +1366,50 @@ def _discard_staging(root: Path) -> None:
     shutil.rmtree(root, ignore_errors=True)
 
 
+def _publish_frozen_directory(staging: Path, destination: Path) -> None:
+    """Atomically publish and refreeze the verified staging inode by descriptor."""
+
+    descriptor = -1
+    writable = False
+    primary_error: BaseException | None = None
+    try:
+        path_metadata = staging.lstat()
+        descriptor = os.open(
+            staging,
+            os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW,
+        )
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISDIR(metadata.st_mode)
+            or metadata.st_uid != _TRUSTED_RUNTIME_UID
+            or stat.S_IMODE(metadata.st_mode) != 0o555
+            or (metadata.st_dev, metadata.st_ino) != (path_metadata.st_dev, path_metadata.st_ino)
+        ):
+            _fail("install_failed")
+        writable = True
+        os.fchmod(descriptor, 0o755)
+        try:
+            staging.rename(destination)
+        except FileExistsError:
+            _fail("destination_exists")
+        os.fchmod(descriptor, 0o555)
+        writable = False
+        os.fsync(descriptor)
+    except BaseException as error:
+        primary_error = error
+        if descriptor >= 0 and writable:
+            with contextlib.suppress(BaseException):
+                os.fchmod(descriptor, 0o555)
+        raise
+    finally:
+        if descriptor >= 0:
+            try:
+                os.close(descriptor)
+            except BaseException:
+                if primary_error is None:
+                    raise
+
+
 def _libc_version(value: str) -> tuple[int, ...]:
     parts = value.split(".")
     if not parts or any(not part.isascii() or not part.isdigit() for part in parts):
@@ -1845,11 +1889,10 @@ def install_original_frame_overlay(
         _freeze_tree(staging)
         verify_installed_original_frame_overlay(staging, media_root, manifest, manifest_sha256)
         _sync_directory_tree(staging)
-        try:
-            staging.rename(destination)
-            published = True
-        except FileExistsError:
-            _fail("destination_exists")
+        # Darwin can require owner-write permission on the source directory for
+        # rename. Only the verified staging inode receives that temporary bit.
+        _publish_frozen_directory(staging, destination)
+        published = True
         _fsync_directory(parent)
         verify_installed_original_frame_overlay(destination, media_root, manifest, manifest_sha256)
     except BaseException:
